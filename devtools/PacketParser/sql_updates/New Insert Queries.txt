@@ -1,0 +1,49 @@
+INSERT INTO `eq2_test`.`npcs` (`id`, `name`, `min_level`, `max_level`, `enc_level`, `race`, `race_type`, `class_`, `gender`, `hair_type_id`,
+   `facial_hair_type_id`, `wing_type_id`, `chest_type_id`, `legs_type_id`, `soga_hair_type_id`, `soga_facial_hair_type_id`, `show_name`, `attackable`,
+   `show_level`, `targetable`, `show_command_icon`, `display_hand_icon`, visual_state, action_state, mood_state, initial_state, activity_status, collision_radius, command_primary, size)
+select `id`, `name`, `level`, `level`, `difficulty`, `race`, `race_type`, `class_`, `gender`, `hair_type_id`, `facial_hair_type_id`, `wing_type_id`,
+    `chest_type_id`, `legs_type_id`, `soga_hair_type_id`, `soga_facial_hair_type_id`,  (vis_flags & 16) >0 as 'show_name', attackable_status = 0 as 'attackable',
+      (vis_flags & 64 || vis_flags & 32) >0 as 'show_level', (vis_flags & 4) >0 as 'targetable', (vis_flags & 2) >0 as 'show_command_icon', hand_flag, 
+			visual_state, action_state, mood_state, pos_state, activity_status, pos_collision_radius, 0, pos_size
+   from `eq2_rawdata`.`raw_spawn_info`;
+
+insert into `eq2_test`.`npc_appearance`
+   select
+      `id`,
+      `spawn_id` as npc_id,
+      `signed_value`,
+      `type`,
+      `red`,
+      `green`,
+      `blue`
+   from `eq2_rawdata`.`raw_spawn_appearance`; 
+
+insert into `eq2_test`.`npc_appearance_equip`
+   select
+      `id`,
+      `spawn_id` as npc_id,
+      `slot_id`,
+      `equip_type`,
+      `red`,
+      `green`,
+      `blue`,
+      `highlight_red`,
+      `highlight_green`,
+      `highlight_blue`
+   from `eq2_rawdata`.`raw_spawn_appearance_equip`; 
+
+insert into eq2_test.spawngroup select id, 'Tutorial Island Good Spawns' from eq2_rawdata.raw_spawns where eq2_rawdata.raw_spawns.spawn_packet_type = 'Normal';
+
+insert into eq2_test.spawnentry (npcid, spawngroupid, spawnpercentage) select eq2_test.npcs.id, eq2_rawdata.raw_spawns.id, 100 from eq2_test.npcs, eq2_rawdata.raw_spawn_info, eq2_rawdata.raw_spawns where eq2_test.npcs.id = eq2_rawdata.raw_spawn_info.id and eq2_rawdata.raw_spawn_info.id = eq2_rawdata.raw_spawns.spawn_id and  eq2_rawdata.raw_spawns.spawn_packet_type = 'Normal';
+
+insert into eq2_test.spawns (spawngroup_id, zone_id, x, y, z, heading, respawn, location_id) select eq2_rawdata.raw_spawns.id, 9999, eq2_rawdata.raw_spawns.x,
+	eq2_rawdata.raw_spawns.y, eq2_rawdata.raw_spawns.z, eq2_rawdata.raw_spawns.heading, 3600, eq2_rawdata.raw_spawns.grid_id 
+	from eq2_rawdata.raw_spawn_info, eq2_rawdata.raw_spawns
+	where eq2_rawdata.raw_spawn_info.id = eq2_rawdata.raw_spawns.spawn_id and eq2_rawdata.raw_spawns.spawn_packet_type = 'Normal';
+
+update eq2_test.spawns, eq2_test.zones, eq2_rawdata.raw_spawns, eq2_rawdata.raw_zones set eq2_test.spawns.zone_id=eq2_test.zones.id 
+where eq2_test.spawns.zone_id= 9999 and eq2_rawdata.raw_spawns.id = eq2_test.spawns.spawngroup_id and eq2_rawdata.raw_zones.id = eq2_rawdata.raw_spawns.zone_id and eq2_rawdata.raw_zones.zone_file = eq2_test.zones.file;
+
+
+update eq2_test.npcs, eq2_rawdata.raw_spawn_info, eq2_test.entity_commands set eq2_test.npcs.command_primary = eq2_test.entity_commands.command_list_id
+where eq2_rawdata.raw_spawn_info.default_command = eq2_test.entity_commands.command_text and eq2_test.npcs.id = eq2_rawdata.raw_spawn_info.id;

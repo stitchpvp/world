@@ -1,0 +1,257 @@
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+
+    This file is part of EQ2Emulator.
+
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include "Log.h"
+#include "DatabaseNew.h"
+
+//increase this if large queries are being run frequently to make less calls to malloc()
+#define QUERY_INITIAL_SIZE	512
+
+#if defined WORLD
+#define DB_INI	"world_db.ini"
+#elif defined LOGIN
+#define DB_INI	"login_db.ini"
+#elif defined PARSER
+#define DB_INI	"parser_db.ini"
+#endif
+
+DatabaseNew::DatabaseNew() {
+	mysql_init(&mysql);
+	MMysql.SetName("DatabaseNew::mysql");
+}
+
+DatabaseNew::~DatabaseNew() {
+	mysql_close(&mysql);
+#if MYSQL_VERSION_ID >= 50003
+	mysql_library_end();
+#else
+	mysql_server_end();
+#endif
+}
+
+bool DatabaseNew::Connect() {
+	char line[256], *key, *val;
+	char host[256], user[64], password[64], database[64];
+	bool found_section = false;
+	FILE *f;
+
+	if ((f = fopen(DB_INI, "r")) == NULL) {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unable to read %s\n", DB_INI);
+		return false;
+	}
+
+	memset(host, 0, sizeof(host));
+	memset(user, 0, sizeof(user));
+	memset(password, 0, sizeof(password));
+	memset(database, 0, sizeof(database));
+
+	while (fgets(line, sizeof(line), f) != NULL) {
+		if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+			continue;
+
+		if (!found_section) {
+			if (strncasecmp(line, "[Database]", 10) == 0)
+				found_section = true;
+		}
+		else {
+			if ((key = strtok(line, "=")) != NULL) {
+				if ((val = strtok(NULL, "\r\n")) != NULL) {
+					if (strncasecmp(line, "host", 4) == 0)
+						strncpy(host, val, sizeof(host) - 1);
+					else if (strncasecmp(line, "user", 4) == 0)
+						strncpy(user, val, sizeof(user) - 1);
+					else if (strncasecmp(line, "password", 8) == 0)
+						strncpy(password, val, sizeof(password) - 1);
+					else if (strncasecmp(line, "database", 8) == 0)
+						strncpy(database, val, sizeof(database) - 1);
+				}
+			}
+		}
+	}
+
+	fclose(f);
+
+	if (host[0] == '\0') {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unknown 'host' in '%s'\n", DB_INI);
+		return false;
+	}
+	if (user[0] == '\0') {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unknown 'user' in '%s'\n", DB_INI);
+		return false;
+	}
+	if (password[0] == '\0') {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unknown 'password' in '%s'\n", DB_INI);
+		return false;
+	}
+	if (database[0] == '\0') {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unknown 'database' in '%s'\n", DB_INI);
+		return false;
+	}
+
+	return Connect(host, user, password, database);
+}
+
+bool DatabaseNew::Connect(const char *host, const char *user, const char *password, const char *database) {
+	return Connect(host, user, password, database, 3306);
+}
+
+bool DatabaseNew::Connect(const char *host, const char *user, const char *password, const char *database, unsigned int port) {
+	if (mysql_real_connect(&mysql, host, user, password, database, port, NULL, 0) == NULL) {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Unable to connect to MySQL server at %s:%u: %s\n", host, port, mysql_error(&mysql));
+		return false;
+	}
+
+	return true;
+}
+
+bool DatabaseNew::Query(const char *query, ...) {
+	char *buf;
+	size_t size = QUERY_INITIAL_SIZE;
+	int num_chars;
+	va_list args;
+	bool ret;
+
+	MMysql.writelock(__FUNCTION__, __LINE__);
+	while (true) {
+		if ((buf = (char *)malloc(size)) == NULL) {
+			LogWrite(DATABASE__ERROR, 0, "Database", "Out of memory trying to allocate database query of %u bytes\n", size);
+			MMysql.releasewritelock(__FUNCTION__, __LINE__);
+			return false;
+		}
+
+		va_start(args, query);
+		num_chars = vsnprintf(buf, size, query, args);
+		va_end(args);
+
+		if (num_chars > -1 && (size_t)num_chars < size)
+			break;
+
+		if (num_chars > -1)
+			size = num_chars + 1;
+		else
+			size *= 2;
+
+		free(buf);
+	}
+
+	ret = (mysql_real_query(&mysql, buf, (unsigned long)num_chars) == 0);
+	if (!ret)
+		LogWrite(DATABASE__ERROR, 0, "Database", "Error %i running MySQL query: %s\n%s\n", mysql_errno(&mysql), mysql_error(&mysql), buf);
+	free(buf);
+
+	MMysql.releasewritelock(__FUNCTION__, __LINE__);
+	return ret;
+}
+
+bool DatabaseNew::Select(DatabaseResult *result, const char *query, ...) {
+	char *buf;
+	size_t size = QUERY_INITIAL_SIZE;
+	int num_chars;
+	va_list args;
+	MYSQL_RES *res;
+	bool ret;
+
+	MMysql.writelock(__FUNCTION__, __LINE__);
+	while (true) {
+		if ((buf = (char *)malloc(size)) == NULL) {
+			LogWrite(DATABASE__ERROR, 0, "Database", "Out of memory trying to allocate database query of %u bytes\n", size);
+			MMysql.releasewritelock(__FUNCTION__, __LINE__);
+			return false;
+		}
+
+		va_start(args, query);
+		num_chars = vsnprintf(buf, size, query, args);
+		va_end(args);
+
+		if (num_chars > -1 && (size_t)num_chars < size)
+			break;
+
+		if (num_chars > -1)
+			size = num_chars + 1;
+		else
+			size *= 2;
+
+		free(buf);
+	}
+
+	ret = (mysql_real_query(&mysql, buf, (unsigned long)num_chars) == 0);
+	if (!ret)
+		LogWrite(DATABASE__ERROR, 0, "Database", "Error %i running MySQL query: %s\n%s\n", mysql_errno(&mysql), mysql_error(&mysql), buf);
+	free(buf);
+
+	if (ret && (res = mysql_store_result(&mysql)) != NULL)
+		ret = result->StoreResult(res);
+
+	MMysql.releasewritelock(__FUNCTION__, __LINE__);
+	return ret;
+}
+
+int32 DatabaseNew::LastInsertID()
+{
+	return (int32)mysql_insert_id(&mysql);
+}
+
+long DatabaseNew::AffectedRows()
+{
+	return mysql_affected_rows(&mysql);
+}
+
+char * DatabaseNew::Escape(const char *str, size_t len) {
+	char *buf = (char *)malloc(len * 2 + 1);
+
+	if (buf == NULL) {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Out of memory trying to allocate %u bytes in %s:%u\n", len * 2 + 1, __FUNCTION__, __LINE__);
+		return NULL;
+	}
+
+	mysql_real_escape_string(&mysql, buf, str, len);
+	return buf;
+}
+
+char * DatabaseNew::Escape(const char *str) {
+	return Escape(str, strlen(str));
+}
+
+string DatabaseNew::EscapeStr(const char *str, size_t len) {
+	char *buf = (char *)malloc(len * 2 + 1);
+	string ret;
+
+	if (buf == NULL) {
+		LogWrite(DATABASE__ERROR, 0, "Database", "Out of memory trying to allocate %u bytes in %s:%u\n", len * 2 + 1, __FUNCTION__, __LINE__);
+		return NULL;
+	}
+
+	mysql_real_escape_string(&mysql, buf, str, len);
+	ret.append(buf);
+	free(buf);
+
+	return ret;
+}
+
+string DatabaseNew::EscapeStr(const char *str) {
+	return EscapeStr(str, strlen(str));
+}
+
+string DatabaseNew::EscapeStr(string str) {
+	return EscapeStr(str.c_str(), str.length());
+}

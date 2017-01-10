@@ -1,0 +1,2 @@
+ALTER TABLE `raw_spawn_appearance_equip` ADD COLUMN `data_version` SMALLINT(5) UNSIGNED DEFAULT '0' NOT NULL AFTER `highlight_blue`; 
+ALTER TABLE `raw_spawn_appearance_equip` DROP KEY `NewIndex`, ADD UNIQUE `EquipIDX` (`spawn_id`, `slot_id`, `data_version`, `language_type`); 

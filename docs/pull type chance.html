@@ -1,0 +1,175 @@
+<html><head><title>Extending Pull Type</title>
+
+<script>
+function decimal(n, places)
+{
+	n += 0.000001; // for the case of 100 not displaying as 100.0
+
+	var s = n + "";
+	var d = s.indexOf(".");
+	return(s.substr(0,d+1+places));
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h1>Extending Pull Type</h1>
+
+<script>
+function _Pull(isRare, chance)
+{
+	this.isRare = isRare;
+	this.chance = chance;
+}
+
+var pullType = [ "1 common", "3 common", "5 common", "1 imbue", "1 rare", "10 common<BR>1 rare" ];
+
+var baseTable = 
+[
+	new _Pull(0, 70	), // 1 common
+	new _Pull(0, 20	), // 3 common
+	new _Pull(0,  8	), // 5 common
+	new _Pull(0,  1	), // 1 imbue
+	new _Pull(1,  0.7	), // 1 rare
+	new _Pull(1,  0.3	)  // 10 common and 1 rare
+];
+
+function copyTable(oldTable)
+{
+	var newTable = [];
+
+	for(var x=0, xl=oldTable.length; x<xl; ++x)
+		newTable[x] = new _Pull(oldTable[x].isRare, oldTable[x].chance);
+
+	return(newTable);
+}
+
+function mkBonus(table)
+{
+	var bonus = copyTable(table);
+	var increase = 0;
+
+	/* mult chances by 1.5 (round up) except "1 common" */
+	for(var x=1, xl=bonus.length; x<xl; ++x)
+	{
+		bonus[x].chance = decimal(table[x].chance * 1.5 + 0.05, 1) - 0;
+		increase += bonus[x].chance - table[x].chance;
+	}
+	bonus[0].chance -= increase;
+
+	return(bonus);
+}
+
+function header()
+{
+	document.write("<tr>");
+	document.write("<td># Rares</td><td>Table Type</td><td>Total</td>");
+
+	for(var x=0, xl=pullType.length; x<xl; ++x)
+		document.write("<td>" + pullType[x] + "</td>");
+
+	document.write("<td>Checked<BR>Total</td>");
+	document.write("</tr>");
+}
+
+function row(nRares, tableType, table)
+{
+	var oldTotal = newTotal = 0;
+
+	for(var x=0, xl=table.length; x<xl; ++x)
+		oldTotal += table[x].chance;
+
+	document.write("<tr>");
+	document.write("<td align=right>" + nRares + "</td>");
+	document.write("<td>" + tableType + "</td>");
+	document.write("<td align=right>" + decimal(oldTotal, 2) + "</td>");
+
+	for(var x=0, xl=table.length; x<xl; ++x)
+	{
+		var chance = table[x].chance / oldTotal * 100 + 0.05;
+		var s = decimal(chance, 1);
+		newTotal += (s - 0);
+		if(s == "0.0")
+			document.write("<td align=right>----</td>");
+		else
+			document.write("<td align=right>" + s + "</td>");
+	}
+
+	document.write("<td align=right>" + decimal(newTotal, 2) + "</td>");
+}
+
+
+/*----------------*/
+document.write("<P>Starting with the numbers Domino gave for T4 root node base table:");
+
+document.write("<table border=1 cellpadding=5>");
+header();
+row(1, "Base", baseTable);
+document.write("</table>");
+
+/*----------------*/
+document.write("<P>I made the T4 root node bonus table such that everything except \"1 common\" was 1.5 better chance and took the extra off \"1 common\".");
+
+var bonusTable = mkBonus(baseTable);
+document.write("<table border=1 cellpadding=5>");
+header();
+row(1, "Bonus", bonusTable);
+document.write("</table>");
+
+/*----------------*/
+document.write("<P>Fish nodes have 0 rares and are a special case. I simply recalculated the table with no rares.");
+var noRares = copyTable(baseTable);
+for(var x=0, xl=noRares.length; x<xl; ++x)
+{
+	if(noRares[x].isRare)
+		noRares[x].chance = 0;
+}
+var noRaresBonus = mkBonus(noRares);
+
+document.write("<table border=1 cellpadding=5>");
+header();
+row(0, "Base", noRares);
+row(0, "Bonus", noRaresBonus);
+document.write("</table>");
+
+/*----------------*/
+document.write("<P>Ore (except T9) and Rocks are also special cases - they have 2 rares. Rare drop rates for these nodes have been doubled, again the excess is just taken off \"1 common\".");
+
+var twoRares = copyTable(baseTable);
+var increase = 0;
+for(var x=1, xl=noRares.length; x<xl; ++x)
+{
+	if(twoRares[x].isRare)
+	{
+		increase += twoRares[x].chance;
+		twoRares[x].chance *= 2;
+	}
+}
+twoRares[0].chance -= increase;
+var twoRaresBonus = mkBonus(twoRares);
+
+document.write("<table border=1 cellpadding=5>");
+header();
+row(2, "Base", twoRares);
+row(2, "Bonus", twoRaresBonus);
+document.write("</table>");
+
+/*----------------*/
+document.write("<h2>Summary of Pull type chances</h2>");
+
+document.write("<table border=1 cellpadding=5>");
+header();
+row(0, "Base", noRares);
+row(0, "Bonus", noRaresBonus);
+row(1, "Base", baseTable);
+row(1, "Bonus", bonusTable);
+row(2, "Base", twoRares);
+row(2, "Bonus", twoRaresBonus);
+document.write("</table>");
+
+
+
+</script></body></html>

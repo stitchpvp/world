@@ -1,0 +1,2 @@
+ALTER TABLE `raw_quest_reward_items` ADD `selectable` TINYINT UNSIGNED DEFAULT '0' NOT NULL;
+ALTER TABLE `raw_quest_reward_items` DROP INDEX `ItemQuestIDX`, ADD UNIQUE `ItemQuestIDX` (`item_id`, `quest_id`, `selectable`);

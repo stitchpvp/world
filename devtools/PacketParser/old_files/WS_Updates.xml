@@ -1,0 +1,8 @@
+<Struct Name="WS_TitleUpdate" ClientVersion="996" OpcodeName="OP_TitleUpdateMsg">
+<Data ElementName="num_titles" Type="int16" />
+<Data ElementName="titles_array" Type="Array" ArraySizeVariable="num_titles">
+  <Data ElementName="title" Type="EQ2_16Bit_String" />
+  <Data ElementName="prefix" Type="int8" Size="1" />
+</Data>
+<Data ElementName="unknown" Type="int32" Size="1" />
+</Struct>

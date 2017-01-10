@@ -1,0 +1,1862 @@
+EQ2Emulator 0.0.1+ Changelog (Started on July 26, 2007 15:58)
+--------------------------------------------------------
+==07/19/2010:
+JohnAdams: Relocated Dev SVN to JA's hardware. Test Commit (no code changes)
+
+==06/06/2010:
+Scatman: Bug fix for item values caused by my Type2 commit.
+
+==06/05/2010:
+Rhas: Added commands for /loot_corpse, /motd and /random
+Rhas: Hotbar fix for items and equipped slots.
+Zcoretri: Updated PacketParser code to parse latest logs.
+Zcoretri: Fixed typos in WorldStructs.xml
+
+==06/03/2010:
+Scatman: Packet values can now have two possible types.  Use Type2="<type>" to designate a 2nd type and set the 'use_second_type' flag to true in the PacketStruct::SetDataByName functions to use the second type.
+Scatman: Minor version ;)
+
+==06/01/2010:
+Rhas: Added command /use_equipped_item to use items from inventory or a charm slot.
+Rhas: Added command /cancel_maintained. This will cancel friendly spells in your maintained window.
+
+==05/31/2010:
+Zcoretri: Modified ItemStructs.xml - Added support for float values in item stats
+
+==05/29/2010:
+Rhas: Fixed the issue where you continue to drown even after leaving the water or swimming to the top.
+Rhas: Fixed the display of the level column in the broker window.
+Rhas: Fixed bug where you could equip any item in any slot. Fixed it so if you try to equip an item in an invalid slot it does nothing and leaves the item in your inventory.
+
+==05/23/2010:
+Scatman: Fixed a bug with my previous fix when moving full stacks of items.
+Scatman: Joining a group will now apply all the group's buffs to you.
+Scatman: Leaving a group will remove all buffs received from the group.
+Scatman: NPCs will no longer face away from its opponent during combat and will constantly face its most hated target.
+
+==05/22/2010:
+Scatman: Fixed bug #383. Moving stacks of items into an empty inventory spot will now work properly.
+
+==05/20/2010:
+Scatman: Fixed a bug with food/drink items being damaged upon death.
+
+==05/06/2010:
+Scatman: Fixed a bug loading characters with no created date.
+Scatman: Potential crash fix of a rare situation when writing to the logfile.
+Scatman: x64 commit.
+
+==4/14/2010:
+JohnAdams: Commit x64bit binary
+Scatman: Updated LoginServer.ini
+
+==4/12/2010:
+Scatman: Fixed a bug with loading items caused from a previous commit. Thanks JA for the heads up.
+
+==4/11/2010:
+Scatman: Fixed a bug causing a player to sheath their weapon if combat was started using a hostile spell.
+
+==4/07/2010:
+Scatman: Fixed a few issues with the itemsearch window.  Namely implememnted the ability to search for items using an item stat.
+
+==4/4/2010:
+JohnAdams: Implemented "hot zone" xp modifier. Set value in zones.xp_modifier to be a float > 0. 0 and 1 = no modifier, 1.5 is 50% bonus, .5 = 1/2 xp in zone.
+	   Thanks to Scatman for the C++ lesson!
+
+==4/3/2010:
+JohnAdams: Commit x64bit binary
+
+==3/29/2010:
+elcapototal: fixed bug 314.
+elcapototal: fixed bug 339 by adding the missing drowning update code and changing the drowning logic correspondingly.
+elcapototal: semi-fixed bug 350 by setting account age to character age.
+elcapototal: fixed bug 353 by decouplying AddFighter to InCombat(true) and then checking the attacker's class. priests and mages will not start autoattack after a hostile spell but scouts and warriors will.
+Scatman: Fixed a bug in guilds where initiates could not be given permission to receive guild points.
+Scatman: Fixed a bug with items displaying classes improperly.  How long has that been like that? :P
+Scatman: Potential bug fix with player skill bonuses.
+
+==3/28/2010:
+Scatman: NPCs can now use spells that increase their skills.
+Scatman: Spawns that die and have an action state will no longer continue to perform their action while dead. :P
+Scatman: Fixed a bug with spawns that have randomly generated features.
+elcapototal: fixed bug where the server would crash if you killed yourself from a high fall.
+elcapototal: fixed bug 88 by fixing the task group bugs for QuestJournalReply.
+elcapototal: fixed bug with item swap when dropping on top of the char image.
+elcapototal: fixed bug where /spawn set heading 180 would result in heading = 0.
+
+==3/27/2010:
+elcapototal: Fixed bug 241 by checking if the slot in question already has an item, and unequipping it before equipping the item at hand (i.e. swapping).
+Scatman: Fear not, for the auto-bank will no longer eat your items!  It'll now properly place your item into the first bank slot it finds, or none if your bank is full.
+
+==3/26/2010:
+Scatman: Crash fix with spell queue.
+elcapototal: Fixed bugs 196 & 300 by sending the PlayerInfo struck packet after equipping/unequipping an item.
+elcapototal: fixed bug 194 by resetting the quickbar items collection every time the user logs on.
+
+==3/24/2010:
+elcapototal: Added check when killing a spawn to make sure it's not already in the dead list.
+elcapototal: Added fix to /summon.
+Scatman: Possible fix for the display problem with queue'd spells.
+
+==3/23/2010:
+JohnAdams: Fixed bug in FK constraints on spawn_npcs table preventing insert of new spawns via /spawn add new command. Minor Version 244.
+
+==3/22/2010:
+JohnAdams: Re-compile binaries testing x64 compile setup.
+
+==3/21/2010:
+Scatman: Hopefully fixed the login bug.  Sorry it took so long.
+
+==3/20/2010:
+JohnAdams: Changed visual_states table structure (minor version 241) - added visual_state_id column which is the actual ID, and made the old `id` column a standard PK.
+JohnAdams: Added debug print of XP earned to client (_DEBUG) and logs. Also added for group XP earned.
+
+==3/16/2010:
+JohnAdams: Mocks Scatman for his disgraceful item load bug
+JohnAdams: ClientLauncher: Cleaned up SVN commit. Changed output to ./Client Launcher, and put sources in Sources folder
+
+==3/10/2010:
+Scatman: Fixed a disgraceful bug with my last change for loading items faster.
+Scatman: /reload items should no longer crash world.
+
+==3/8/2010:
+Scatman: Increased the speed at which items load from the database.
+
+==3/7/2010:
+Scatman: Fixed a huge spell crash.
+
+==3/6/2010:
+Scatman: Fixed many crashes (more to come).
+
+==3/3/2010:
+JohnAdams: Parser: added -debug option, shutting off DumpPacket unless used
+		   added parser_stats table; parser now outputs totals to table for data review
+		   removed SaveSpawnUnknowns() to -debug only -- too much useless data, not parsed properly anyway
+
+==2/28/2010:
+Scatman: Added /location create [name] (include y).  Include y defaults to 0 (false).
+Scatman: Added /location add [location id].
+Scatman: Added /location remove [location point id].
+Scatman: Added /location delete [location id].
+Scatman: Added /location list [locations|points] [location id if points used].
+
+==2/21/2010:
+Scatman: Implemented locations.  Use the `locations` and `locaton_details` tables.  Whenever a player enters a location, the name of the location will pop up on the screen.
+Scatman: Added /reload locations.
+
+==2/20/2010:
+Scatman: Fixed a bug causing spell visuals not to show after a /reload spawns.
+Scatman: Added support to use spawn_location_placement.expire_offset.  This will offset a spawn's expire_timer +/- expire_offset.
+Zcoretri: Packetparser: Added version 1027 structs for spell parsing.
+
+==2/15/2010:
+Scatman: Combining spawns now preserves their spawn location offsets.
+Scatman: Fixed a bug where spawns in a spawn combine were being given unequal percentages to spawn.
+Scatman: Added zone script functions enter_location(Zone, Player, GridID) and leave_location(Zone, Player, GridID).  These are called when a player enters/leaves a grid within a zone.
+Scatman: Spawns can now be given a timer for how long they can be spawned for before being depoped (like harvest nodes on live).  Use `spawn_location_placement.expire_timer` (in seconds).
+Zcoretri: PacketParser: Added version 1008 item structs for parsing only at this time.
+Zcoretri: PacketParser: Fixed -loaditems switch to work again due to evolving DB changes.
+Zcoretri: PacketParser: Added support to parse the new item flags ORNATE, HEIRLOOM, LORE_EQUIP, APPEARANCE_ONLY 
+
+==2/14/2010:
+Scatman: Fixed a bug with the new LUA spell loading system if the script did not have ".lua" on the end in the database.
+Scatman: Yet, another spell crash fix.
+
+==2/11/2010:
+Scatman: Fixed a bug not letting NPCs cast encounter AEs on players.
+Scatman: Added LUA function ApplySpellVisual(Target, SpellVisualID).
+Scatman: Implemented spell scribing from spell scrolls (be sure to update your WorldStructs.xml).
+Scatman: NPCs that are in a spawn group which are aggro'able to you, will now aggro you together as a group (sorry! :P).
+Scatman: Fixed a crash with interrupts.
+
+==2/10/2010:
+Zcoretri: Reverted ItemStructs.xml file. Version 1008 structs caused examine problems.
+
+==2/08/2010:
+Scatman: Fixed some linux compile warnings.
+Scatman: Whole bunch of spell tweaks to calculate spell targets.  Should be nearly identical to live now.
+Scatman: Spawns no longer check for aggro'able spawns when moving only.  It's now checked at all times, every 2 seconds.
+Scatman: Fixed a bug that was displaying the wrong error message when purchasing an item you did not have enough coin for.
+JohnAdams: Re-wrote UpdateStartingZone() function - added SQL error checking and debug output.
+
+==2/07/2010:
+Scatman: Fixed a bug that was causing self only spells to check their range.
+
+==2/06/2010:
+Scatman: Fixed a display issue with concentration not showing correctly when we switched over to use SOE's concentration standards (256 per 1 concentration slot).
+
+==2/05/2010:
+Scatman: Added support for group enemy hostile spells (spells.target_type=1[Enemy] and spells.group_spell=1).
+Scatman: Modified LUA function AddHate to calculate group targets if the spell being cast is a group spell. Use this function for group and single target taunts (also works if you're not casting a spell).
+
+==2/04/2010:
+Scatman: Added support for stifle, daze, and stun. Use AddControlEffect with types 2, 3, and 4 respectively.
+
+==2/03/2010:
+Scatman: Fixed a bug which was causing toggleable spells not to cancel if you had a different target than you did when you applied the spell.
+Scatman: Implemented the command clearallqueuedabilities. The spam should be gone when you target something now :)
+Scatman: Fixed a huge memory leak with spells.
+Scatman: Interrupted spells will no longer consume concentration.
+Scatman: Fixed a bug causing interrupted spells to still show their visual effect to all targets except the initial target.
+Scatman: Spells that are uninterruptable will no longer be interrupted by moving.
+Scatman: Added support for true AOE spells.
+Zcoretri: Added version 1008 item structs.
+
+==2/02/2010:
+Scatman: Made a lot of changes to spells and how its targets are found (mostly group stuff) to make the code easier to understand and less stressful on world.
+
+==1/31/2010:
+Scatman: Fixed a crash bug with reuse timers for NPCs.
+Scatman: You can now assign a picture through the EQ2 UI for your toon if you are a guild recruiter.
+Scatman: The 'Collection' groundspawn skill will now properly use the 'Gathering' spell.  Make sure your harvest spells are target_type=0 (Self).
+
+==1/30/2010:
+Scatman: Implemented guild recruiting.
+Scatman: Fixed a small bug that was saving a guild recruiting value improperly.
+
+==1/29/2010:
+Scatman: Rewrote how spell scripts were loaded to only load spells scripts being used and to allow for subdirectories.
+
+==1/28/2010:
+Scatman: Spells now take into account the amount of concentration required to cast it.
+
+==1/27/2010:
+Scatman: Imlemented group exp.
+Scatman: If you slay an epic mob, an announcement will appear in guild of your heroic actions!
+Scatman: Winning any prize in the lotto will now display the coin animation on your character.
+
+==1/26/2010:
+Scatman: Fixed a linux issue with the lotto.
+Scatman: Implemented LUA functions GetVariableValue(name) and GetCoinMessage(total_coin_amount) (You can use these together to print out how much the current lottery is eg. 500 platinum 50 gold).
+JohnAdams: DB: Removing FK constraints from spawn_npcs table (for now)
+
+==1/25/2010:
+Scatman: Added LUA functions AddControlEffect(target, type) and RemoveControlEffect(target, type).  For now, type=1 is mez. Later on, type=2 will be stifle and type=3 will be daze, etc.
+Scatman: Implemented the lottery :P
+
+==1/24/2010:
+Scatman: Added LUA functions AddSkillBonus(target, skill_id, value) and RemoveSkillBonus(target).
+Scatman: Calling AddSkillBonus multiple times for one spell will now properly modify all skills intended for.
+Scatman: Guild events now save into the database properly.
+LethalEncounter: Fixed a Parser crash bug.
+LethalEncounter: Fixed a bug with spawns depopping immediately.
+
+==1/23/2010:
+Scatman: When a guild member levels, their new level will be shown correctly in the guild window.
+Scatman: Group buffs' visuals will now display on all members of the group.
+Scatman: Maintained spell icons for group buffs will appear on all group members' UI.
+Zcoretri: Packet Parser: Added support to parse achievement data and specialspellinfo
+Zcoretri: Added support for text replacement in spell fade messages.
+
+==1/22/2010:
+Scatman: Implemented group buff support.
+
+==1/20/2010:
+Scatman: Groundspawns should once again be working properly.
+Scatman/JA: Added 'Collecting' as a valid groundspawn harvesting type.
+Zcoretri: Added support for text replacement in spell success messages.
+
+==1/19/2010:
+Zcoretri: Fixed spell effect, success and fade message colors to match live.
+
+==1/16/2010: (dev revision 1000!)
+JohnAdams: DB: Committed Minor Version 226 - all FK work completed (for now)
+JohnAdams: Fixed DB query in code looking for `titles` table, which is now named `character_titles`
+Scatman: You can now use '/spawn create' and '/spawn add new' with signs and groundspawns.
+Scatman: Guilds now use the custom value tables in the database to assign starting permissions, event filters, etc.
+
+==1/12/2010:
+Zcoretri: Start implementation of languages
+
+==01/11/2010:
+Scatman: A whole bunch of guild fixes/modifications.
+Scatman: Added guild GM commands /guilds create|delete|add|remove|list.
+Scatman: Modified world to use the new `character_social` table for characters' friends and ignore lists.
+JohnAdams: DB: Pushed out InnoDB changes to World database, cleaned up some unused tables from download (Minor Version 137)
+JohnAdams: DB: Modified guild_ranks_defaults to store default permission sets for ranks (Minor Version 138)
+
+==01/10/2010:
+Scatman: Guilds!
+
+==1/9/2010:
+Zcoretri: Fixed WS_AdventureList struct due to struct changes
+Zcoretri: Added Titles and Language structs
+Zcoretri: Packet parser updates
+
+==12/21/2009:
+Image: MiniLogin defined in the Login source for convenience - better to keep them together since db changes.
+
+==12/16/2009:
+Scatman: Spawns that are aggro to you but are also gray con will no longer have a red outline around their name.
+Scatman: The hate meter will now show your percentage of hate towards the spawn you are fighting.
+Scatman: Added in proper messaging when a spawn leashes.
+LethalEncounter: Fixed a crash related to MutexMaps.
+
+==12/15/2009:
+LethalEncounter: Fixed a crash related to DataStructs.
+
+==12/14/2009:
+Zcoretri: Fixed typo in WS_WaypointSelect struct
+
+==12/13/2009:
+LethalEncounter: Fixed a problem submitted by bolly about npc moving speed.
+LethalEncounter: Fixed a problem submitted by bolly about groundspawns command list display.
+LethalEncounter: Fixed a crashbug with the test command.
+Scatman: Added LUA function Attack(NPC, Player).
+
+==12/12/2009:
+LethalEncounter: Made quite a few changes to the MutexList/Map code to hopefully fix the crash bugs that were left.
+LethalEncounter: Character class changes will now be saved to the database.
+Scatman: Mobs that are aggro to you will no longer try to attack you if you're invulnerable.
+Scatman: You will no longer be spammed by the drowning message if you're invulnerable and are drowning.
+Scatman: If you do choose not to cheat death by drowning via /invulnerable, you should no longer die in less than a milisecond. You'll take damage every 2 seconds now as intended.
+
+==12/09/2009:
+Scatman: Fixed a bug not letting players equip ranged weapons.
+
+==12/07/2009:
+Scatman: Fixed a bug with /kick not allowing higher status players to kick lower status players.
+
+==12/06/2009:
+LethalEncounter: Fixed a bug with the CastSpell LUA function.
+LethalEncounter: Possible crash fix for MutexLists.
+LethalEncounter: Added spell bonuses.
+LethalEncounter: Fixed some issues with combat.
+LethalEncounter: Made some changes to the LUA logging system.
+
+==12/05/2009:
+LethalEncounter: Fixed a bug submitted by bolly where the power and health values would be swapped after a character database update.
+
+==12/01/2009:
+Scatman: Fixed a bug with my previous code change dealing with harvesting groundspawns.
+
+==11/29/2009:
+LethalEncounter: Added ability for the Login server to display the custom zone name from the player's World server.
+
+==11/23/2009:
+Scatman: You can no longer cast hostile spells on spawns that are not attackable.  Also added in some additional checks.
+
+==11/22/2009:
+LethalEncounter: Fixed a bug where the bought message was not being displayed correctly for 0 cp items.
+LethalEncounter: Fixed the bug where bought/quest bags where showing up as Opened and would delete all your items if you deleted it in this state.
+LethalEncounter: Fixed a bug that was causing players to get sent to 0, 0, 0 when zoning in.
+LethalEncounter: Fixed soga display issues as well as beards.  Be sure to update your CommonStructs.xml file.
+Scatman: Fixed a bug allowing you to equip items even if your level was too low.
+Scatman: Signs that allow you to zone will now take into account the sign_distance before zoning you. Using 0 won't put a restriction on it.
+
+==11/21/2009:
+LethalEncounter: Changed the update query to a replace query when setting the spawn group chances.
+LethalEncounter: Fixed a 0 delay bug that was causing spawn loops to fail.
+
+==11/20/2009:
+Bolly: Added LUA function AddSpellBookEntry(Spawn, SpellID, SpellTier).
+Bolly: Added LUA function HasFreeSlot(Spawn).
+Bolly: Fixed a bug when quests were completed before the client was saved, causing the completed quest to never be saved.
+Scatman: Fixed an issue with saving and loading quests.
+Scatman: Initial player inspecting.
+
+==11/15/2009:
+LethalEncounter: Fixed a few combat related issues.  NPC placement seems to be off a bit, but it will be fixed soon.
+
+==11/1/2009:
+LethalEncounter: Fixed problem with spawn group associations not spawning correctly.
+
+==10/19/2009:
+Scatman: LUA function RemoveItem will now consider whether or not the item is stackable.
+Scatman: LUA function OfferQuest now lets you offer a quest with no quest giver.  Use nil.
+Zcoretri: PacketParser: Added new version of SpecialSpellInfo struct.
+
+==10/18/2009:
+Scatman: Server statistcs should now work properly again.
+Scatman: Null check crash fix with tracking if the struct wasn't found. =/
+Scatman: Added LUA function AddPrimaryEntityCommand(Player, Spawn, CommandName, [Distance], [Command], [ErrorText], [CastTime], [SpellVisual]).  If not Command is specified, it will default to CommandText.  If not distance is specified it will default to 10.  Other values will default to 0.  Note: Only the player who's passed into the command will see the new entity command on the spawn. 
+Zcoretri: PacketParser: Added ability to parse character titles.
+Zcoretri: PacketParser: sql db updates for raw_spells and raw_spell_visuals tables.
+
+==10/17/2009:
+LethalEncounter: Fixed (hopefully) last desync issue.  Will know for sure after more extensive testing.
+Scatman: Implemented tracking.  You can type /track to begin for now.  Thanks to Zcoretri for help with the packets.
+Scatman: Implemented LUA function ToggleTracking(Player).
+Scatman: Implemented /distance.  Tells you the distance between you and your target.
+
+==10/16/2009:
+Scatman: More mail enhancements.
+
+==10/15/2009:
+Scatman: You can now use items. The LUA function used(Item, Player) will be called in the item's item script when used is clicked. To make an item usable, set the `used` field in the `items` table to 1.
+Scatman: Implemented /weaponstats.
+Scatman: Implemented mail.  Give your mailboxes the 'Check Mail' entity command.
+Scatman: Implemented /reload mail.
+JohnAdams: Bumped minor version to 72 for table updates.
+		Note: I cannot compile x64 version at this time, so it is not updated.
+Scatman: Fixed an issue where widgets, signs, and groundspawns could not use commands.
+Scatman: Using an entity command on a spawn will now use the proper text when casting it.
+
+==10/12/2009:
+LethalEncounter: Fixed a 64 bit issue that was causing an infinite loop.
+
+==10/11/2009:
+LethalEncounter: Crash fixes, warning fixes, VS 2008 upgrade.
+LethalEncounter: Checked in a 64 bit version of the emu.
+LethalEncounter: MutexList changes so they delete any pending data when they are destroyed.
+LethalEncounter: Fixed client crash bug.
+
+==10/10/2009:
+Zcoretri: Parser: Group several functions to parse spells and related data under the -spells switch.
+Zcoretri: Modified WS_HearCastSpell struct. Changed spell_visual from int32 to int16.
+
+==10/09/2009:
+LethalEncounter: Made some fixes for linux compiles.
+Scatman: Added LUA function GetTarget(Entity).
+
+==10/08/2009:
+LethalEncounter: Made some fixes to the new container system and added the ability to delay the deletion of data inside a container.
+
+==10/06/2009:
+Scatman: Widgets now use the new entity command handle use.
+
+==10/05/2009:
+Scatman: Added /merchant list [merchant description].
+Scatman: Added /appearance list [appearance name].
+Scatman: Added 'sub_title' to /spawn set.
+LethalEncounter: Converted combat to new container system.
+LethalEncounter: Made some fixes to the new container system.
+
+==10/04/2009:
+LethalEncounter: Started a major overhaul to the storage and useage of the object containers. They are now all thread safe which allows us to stop using the readlock/writelock support which could lead to deadlocks.
+Zcoretri: Parser: Updated structs for OP_TraitsList and OP_AdventureList to version 996.
+Zcoretri: Parser: Fixed bug in getting difficulty for NPC spawns.
+LethalEncounter: Fixed quest struct.
+LethalEncounter: Started fixing some compile time warnings.	
+
+==10/03/2009:
+JohnAdams: Parser: Fixed bug in spawn -populate command, and updated Parser DB.sql to version 996 opcodes
+
+==10/02/2009:
+Scatman: Implemented starting details. Use the starting_details table to determine a race/class combo's starting stats.
+
+==10/01/2009:
+Scatman: Fixed a grammatical error when fishing that Bolly pointed out.
+Scatman: Fixed a bug related to repairing equipped armor thanks again to Bolly.
+Scatman: Added a few more stat updates (# harvested items, # rares harvested, highest melee/magical/falling damages, total wealth).
+Scatman: Added /entity_command list [name].
+Scatman: Added /reload factions.
+
+==09/30/2009:
+Scatman: Put in a formula to calculate repair costs using the item's level and tier.
+
+==09/29/2009:
+Scatman: You will now be notified when equipping broken armor.
+Scatman: Fixed a bug with merchants offering their repair services.
+
+==09/28/2009:
+Scatman: Implemented repairing.  Add 16 to merchant_type in spawns if you want your merchant to offer a repair service.  Repair costs are based off sell_price of the item for now.
+
+==09/27/2009:
+LethalEncounter: Fixed Collector to work with the latest client.
+LethalEncounter: Updated the opcodes and structs to work with the latest client.
+LethalEncounter: Make some tweaks to the network code and fixed a major memory leak.
+Scatman: Spawns once again called the healthchanged LUA function with the new combat revamp.
+
+==09/26/2009:
+Scatman: Added LUA function IsInCombat(Entity)
+Scatman: LUA function SummonItem now takes bool parameter, SummonItem(Player, Item, DisplayMessages).  If DisplayMessages is true(1), text and a popup message will display on the client's screen just like live.
+Scatman: LUA function RemoveItem now returns true or false.
+
+==09/25/2009:
+Scatman: Fixed a bug which allowed you to interact with spawns even if the spawn was not targetable.
+Scatman: Modified spawns to allow multiple required quests steps for a given quest. For each step, just call the LUA function SetRequiredQuest(Spawn, QuestID, QuestStepID).
+Scatman: Changed the name of the LUA function StartItemConversation to StartDialogConversation. This is because the 'dialog' conversations can be started from either a spawn or an item. To handle this, the StartDialogConversation function takes an extra parameter 'type'. Type 1 means you're passing a spawn in and type 2 means you're passing an item in.
+         StartDialogConversation(Conversation, Type (1 or 2), (Spawn or Item), Player, text, mp3, key1, key2) where mp3, key1, and key2 are optional.
+Scatman: Using SetRequiredQuest will now take into account if you have multiple steps open under a single taskgroup.
+
+==09/24/2009:
+Scatman: Interacting with spawns is now done differently. You no longer need a spell to match the entity command. All you need is the entity command (with the expanded entity_command table) and to give that spawn the entity command of course.
+Scatman: Added safe_heading functionality to the zones table.
+Scatman: Added /reload entity_commands.
+Scatman: Hailing NPCs will no longer display the chat bubble over your head like on live.
+
+--09/20/2009:
+LethalEncounter: Fixed a few issues with combat.
+LethalEncounter: Hopefully fixed a spell crash bug.
+Zcoretri: Added support to PacketParser to get Alternate Acheivement information.
+
+--09/19/2009:
+JohnAdams: Fixed bug in Items::CheckClass() for items with class = 0 (no restrictions)
+
+==09/13/2009:
+LethalEncounter: Fixed spawn display problem.
+LethalEncounter: Made some changes to the Spell Process code to improve reliability.
+LethalEncounter: Each zone will have it's own Combat thread to increase performance and reliability.
+Zcoretri: Fixed bug in packetparser not getting spell level
+
+==09/07/2009:
+LethalEncounter: Added Item Script functionality.
+
+==09/06/2009:
+LethalEncounter: Rewrote much of the code that handles loading and using the appearance data that is stored the database.
+LethalEncounter: Reorganized some Entity-only data elements into the Entity class to avoid wasting resources whenever an object, sign, etc is created.
+LethalEncounter: Fixed the display of spells, it now properly tracks when a spell re-use timer is up and which spell is queued.
+LethalEncounter: Fixed a couple of crash bugs in spell processing.
+LethalEncounter: Preventative fix in the LUA code that should prevent a possible crash based on the current spell.
+
+==09/03/2009:
+Scatman: Fixed a crash bug related to casting a self/group buff with no target.
+Scatman: Added /randomize command.  This will allow your NPCs to spawn with randomly generated features everytime it spawns (hair, race, gender, colors, etc).  Type /randomize in game for more information.
+LethalEncounter: Fixed a bug with npc skills not being loaded.
+
+==09/02/2009:
+LethalEncounter: Checked in revamped combat system.  The system needs to be tuned and has a few flaws that need fixing, but it offers quite a few benefits to the old system.  The highlights are NPCs can now cast, use weapons, and they can use/increase their skills.
+LethalEncounter: Added adjustable agro range.
+LethalEncounter: Lots of other changes that I can't remember :P
+
+==08/29/2009:
+Scatman: Added LUA function GetSpawnByGroupID.
+Scatman: Added LUA function GetSpawnByLocationID.
+Scatman: Added LUA function SetServerControlFlag (moonjumps, flymode, etc =) )
+Scatman: Fixed LUA function GetSpawnID to return the proper ID.
+Scatman: Reorganized /spawn details.
+Scatman: Fixed a minor issue in /zone set regarding the zone motd.
+
+==08/21/2009:
+Scatman: /zone details crash fix.
+Zcoretri: SpawnStruct.xml fix.
+Zcoretri: Modified World for HearCastSpell packet. 
+
+==08/18/2009:
+Scatman: Added /zone set [zone id|zone name] [attribute] [value].  It will change it in the database and change it in memory if the zone is running.
+Scatman: Added /zone details [zone id|zone name].
+
+==08/17/2009:
+JohnAdams: Attempting to fix incorrect ToggleCharacterOnline() disconnect placement
+JohnAdams: Bump to Minor Version for DB updates - restoring item_details_skills table
+
+==08/16/2009:
+Secrets: (JA) Fixed bug with Friends list reporting player logins when they zone
+Secrets: (JA) Also fixed bug with ACCEPTED_CONNECTIONS server stat for the same reason
+Zcoretri: Minor bug fixes to spells/achievements parsing. Disabled Quest parsing per JA
+Zcoretri: Modified WS_HearCastSpell struct, resolved unknown5 and unknown6
+
+==08/14/2009:
+Zcoretri: Added support to PacketParser to parse Points Of Interest locations
+Zcoretri: Added support to PacketParser to parse spell info from the character development and achievements window
+
+==08/10/2009:
+JohnAdams: Fixed bug where max_hp/max_power update values were swapped
+JohnAdams: Cleaned up PacketParser folder, moving xml's to old_files folder
+Scatman: Put in the proper drowning messaging.
+Scatman: Added /skill [add|remove|list] [skill name] command.
+
+==08/07/2009:
+Scatman: Implemented faction rewards for quests.
+Scatman: Made some int to signed int changes in WorldStructs to reflect the faction rewards.
+Scatman: Coin rewards for quests will now default to 0 if you do not specify a value for it.  NPCs couldn't afford the 150 platinum pieces (or whatever random number was in memory) as a reward for quests :P
+Scatman: Prereq level for quests will now default to 1 if you do not specify a value for it.
+
+==08/06/2009:
+Image: More instancing code implemented, some did not make the multiple merges I had to break through.
+
+==08/02/2009:
+Scatman: Added the appropriate error messages when equipping an item which you cannot equip.
+Scatman: Ranged items now load properly.
+Scatman: Fixed a bug when loading item's skill_req1 which was using the wrong field in the database, making most items unequippable.
+
+==07/26/2009:
+Zcoretri: Added duration_flag field so spell examine window now shows Duration: Until Canceled when flag is set
+JohnAdams: Added spawn_group_id field to raw_spawns to help link spawn points to spawn groups.
+LethalEncounter: Made quite a few parser changes to parse previously unknown values.
+LethalEncounter: Added lock traceback support to MPlayerItems in World.
+
+==07/25/2009:
+JohnAdams: Fixed broken SpellInfo struct for version 954.
+Scatman: Added LUA function GetGender.
+
+==07/24/2009:
+LethalEncounter: Added support for latest live client.
+LethalEncounter: Fixed spawn struct problem with heroic flag.
+LethalEncounter: Fixed mouse over problem with spells.
+LethalEncounter: Got spells working properly with the latest version.
+JohnAdams: (Parser) Changed raw_items parsing to populate new classes fields only, and not build raw_item_classes table at all
+JohnAdams: (Parser) Changed raw_item_details_skills parsing to populate new classes fields only, and not build raw_item_skill_classes table at all
+JohnAdams: (Parser) Changed how -populate tracks populate_spawn_id, now in raw_spawns vs raw_spawn_info
+JohnAdams: Corrected typo in "Loading EQ time of day" to say EQ2
+JohnAdams: Moved server STAT defines from Player.h to World.h
+
+==07/23/2009:
+Zcoretri: Added support to packetparser to be able to parse AA spells
+
+==07/21/2009:
+LethalEncounter: Fixed level problem with broker search results.
+LethalEncounter: Fixed display of item base class information.  It was red when the character's class was a subclass of an allowed class.
+LethalEncounter: Changed the way that item classes were stored and sent to the client.  Thanks to JA's idea, we store the item classes in a single field in the db now instead of the 750,000+ entries in another table!
+LethalEncounter: Fixed the display of shields in /itemsearch.
+LethalEncounter: Made some misc broker fixes.
+
+==07/18/2009:
+Scatman: Made the changes for loading quests as discussed on the forum.  All of the quest init() process is now stored in the database.
+JohnAdams: (Parser) Re-wrote -loaditems routines to be more efficient
+JohnAdams: Committed new Parser DB.sql with latest (973) DB changes by LE
+
+==07/11/2009:
+LethalEncounter: Modified factions to only display increase/descrease messages if the value actually changes.
+LethalEncounter: Fixed a crash bug with regen.
+LethalEncounter: Fixed a deadlock issue with quests.
+
+==07/04/2009:
+JohnAdams: Renamed zones.zone_script field to zones.lua_script for consistency (Minor Version 43)
+
+==07/02/2009:
+JohnAdams: Commited new Parser DB.sql, w/Zcoretri's new fields
+JohnAdams: Added parse counts for factions and collections parsing Bion added a while ago
+JohnAdams: Added default `respawn` value of 300 (rather than change table default and cause another minor version). This way, manually inserted spawns still have the default 3600, but parsed spawns respawn in 300 seconds.
+JohnAdams: Changed PacketParser.exe -populate tables to new spawn_location* structure
+
+==06/30/2009:
+LethalEncounter: Fixed a crash bug caused by player's spawns.
+LethalEncounter: Fixed a desync issue.
+LethalEncounter: Fixed a few spell display/queueing issues.
+
+==06/29/2009:
+LethalEncounter: Fixed a bug that prevented spawn groups from respawning correctly.
+
+==06/28/2009:
+Scatman: Added the remaining functionality to the activity status flags.
+LethalEncounter: Made changes to allow the server to run more efficiently/faster.
+LethalEncounter: Only players regenerate now, per forum discussion.
+LethalEncounter: Closed quite a few memleaks.
+LethalEncounter: Fixed several crash bugs.
+LethalEncounter: Changed the logging system to use timestamps.
+LethalEncounter: Converted most of the cout statements to use the logging system.
+LethalEncounter: Disabled crash handled for now.
+LethalEncounter: Fixed a combat related bug that caused the player's damage to remain at their previous level's amount.
+LethalEncounter: Fixed a problem with quest updates causing delays.
+LethalEncounter: Fixed a group crash.
+Zcoretri: Made modifications to PacketParser::ProcessSpells function
+
+==06/27/2009:
+Scatman: Some simple unsigned to signed int changes.
+
+==06/26/2009:
+JohnAdams: Added resets for some server stats at world startup to World::init()
+
+==06/21/2009:
+Scatman: Added LUA functions GetSpawnGroupID, GetSpawnLocationID, and GetSpawnLocationPlacementID.
+Scatman: Added LUA function AddVisualStateLoop(spawn, time_to_do_visual, delay_after, visual_state_id). Call these in a spawn's spawn() function. You will need one for every emote.
+LethalEncounter: Made some crash fixes.
+LethalEncounter: Further changes made to the mutex code.
+LethalEncounter: Fixed an error in damage struct.
+LethalEncounter: You will now autoattack when using combat abilities.
+
+==06/20/2009:
+LethalEncounter: Possible Mutex fix.
+LethalEncounter: Fixed the facial hair bug on login server.  Unfortunately this will only work for new character creations.
+LethalEncounter: Updated structs/opcodes for latest client version.
+LethalEncounter: Changed the way spawn updates were being handled to make them faster and more efficient.
+LethalEncounter: Fixed NPCs facing away during combat.
+LethalEncounter: Increased the max spawn chase distance.
+LethalEncounter: Fixed charges not being displayed properly.
+LethalEncounter: Fixed combat not displaying correct names.
+LethalEncounter: Fixed loot window not automatically being dismissed.
+LethalEncounter: Fixed some loot items not being displayed properly.
+LethalEncounter: Fixed loot messages not appearing in the correct window.
+LethalEncounter: Fixed some issues with combat.
+LethalEncounter: Fixed spawns not being removed after the coins were looted.
+LethalEncounter: Added drowning.  Don't stay under water too long!
+
+==06/14/2009:
+LethalEncounter: Fixed a crash bug with /spawn combine.
+LethalEncounter: Fixed a crash bug with /spawn group.
+LethalEncounter: Fixed a login server issue.
+
+==06/13/2009:
+LethalEncounter: Added ability to spawn groups of NPCs.  use the /spawn group command.
+LethalEncounter: Fix for linux compiles :/
+LethalEncounter: Moved the spawn tables to the spawn_location* table names.
+LethalEncounter: Fixed a deadlock issue cause by Mutexes.
+Scatman: Fixed a timing issue when displaying certain pop up messages.
+
+==06/12/2009:
+PaulGH: Update /who to show GM status and other flags.
+PaulGH: Add in flag support. Also add commands to use them ( /lfg /anon /show_cloak etc.).
+PaulGH: Add commands /gm_hide (hide GM status) and gm_invis (invivible to /who).
+
+==06/07/2009
+JohnAdams: Changed server Stats REPLACE to INSERT ON DUPLICATE UPDATE.
+
+==06/06/2009:
+Scatman: Made changes for the quest database changes.
+
+==06/02/2009:
+LethalEncounter: Fixed a bug with the ignore chat code.
+
+==06/01/2009:
+LethalEncounter: Fixed min_level/max_level not being used when creating new NPCs.
+LethalEncounter: Added friend/ignore functionality.
+LethalEncounter: Fixed some issues with player right click menus.
+
+==05/31/2009:
+Scatman: Added level caps. Use variables 'level_cap' and 'level_cap_override_status'.
+Scatman: You can no longer be less than level 1. :)
+
+==05/30/2009:
+Image: Fixed a NULL call in WriteServerStatisticsNeededQueries
+      (new databases with no characters would crash shortly after booting, eventually writing stats).
+
+==05/29/2009:
+LethalEncounter: Fixed a crash bug caused by another crash bug fix :P
+LethalEncounter: Removed some memory leaks.
+LethalEncounter: Removed some pieces of code that weren't being used.
+LethalEncounter: Rewrote some of the spawn code to reduce the memory usage.
+
+==05/26/2009:
+LethalEncounter: *Hopefully* fixed a desync issue that has plagued us since the beginning.
+
+==05/25/2009:
+LethalEncounter: Fixed a few bugs as given on forums.
+LethalEncounter: Added spawn size offset code.
+LethalEncounter: Crash fix with earlier code.
+
+==05/23/2009:
+Scatman: Spawns now call the healthchanged function when they take damage.
+Scatman: Fixed my syntax error with statistics =)
+
+==05/19/2009:
+Scatman: Added LUA function GetRaceName and GetRaceClass.
+Scatman: Added server stats functionality.
+
+==05/17/2009:
+LethalEncounter: Players display a right click menu now.
+LethalEncounter: Players display the LD flag and remain in game for 30 seconds after going LD.
+LethalEncounter: Added initial group support.
+LethalEncounter: Fixed a couple of issues with the cl_* variables.
+LethalEncounter: Fixed a few issues with the group support.
+LethalEncounter: Fixed a deadlock issue with reloading spawns.
+LethalEncounter: Fixed a crash issue with removing clients.
+
+==05/12/2009:
+JohnAdams: Added preliminary STAT_PLAYER_* constants to Player.h for Stats system
+JohnAdams: Added player death counter (untested)
+
+==05/10/2009:
+LethalEncounter: Rewrote the ZoneServer Mutex code (again) as the first rewrite didn't work out as anticipated.
+Scatman: Implemented JohnAdam's stat system.
+
+==05/09/2009:
+JohnAdams: Added characters.online toggle to track when a character is online (1) or offline (0)
+LethalEncounter: Rewrote the ZoneServer Mutex code.
+LethalEncounter: Added Client feature override capability, just add cl_* entries to your variables table.
+LethalEncounter: Fixed a crash bug from Zone not being set for the player until after it was being used by ZoneScripts.
+
+==05/07/2009:
+JohnAdams: Parser: Changed raw_quests table to use 'id' as a PK, and 'quest_id` for quest ID's
+JohnAdams: Parser: Added 'log_file' output to raw_quests table
+JohnAdams: Parser: Updated "Parser DB.sql" with all current sql updates
+LethalEncounter: Fixed some issues with parsing quest items/factions.
+
+==05/05/2009:
+LethalEncounter: Fixed Packet Parser's parse of quests for versions >= 931.
+
+==04/29/2009:
+Bion: Parser: added parsing of books and added another sql table to hold this
+Bion: Struct: added WS_EqShowBook
+
+==04/28/2009:
+LethalEncounter: Updated Emu for the latest client.
+
+==04/26/2009:
+Scatman: Added Zone MOTDs.
+
+==04/25/2009:
+Bion: Parser: added methods for getting collections data use -collections and added raw_collections to sql updates
+Bion: Misc:   added method to get item crc from the item name in misc.cpp
+Bion: Struct: updated WS_CollectionUpdate for 955 and 839(oldest log i could find)
+Scatman: Added GetFactionAmount(Player, FactionID) LUA function.
+
+==04/19/2009:
+LethalEncounter: Added shutdown_timer field to the zones table that allows you to specify how long each zone should remain up (in seconds) before it is shut down.
+LethalEncounter: Modified SetRequiredQuest LUA command so that the same spawn could be used for multiple quests/quest steps.  (Just call the function for each quest/step you want)
+LethalEncounter: Fixed SetRequiredQuest spawns so that they only are interactable when you are on the quest/step.
+LethalEncounter: Added new Merchant system.
+
+==04/13/2009:
+Bion: Parser: added item_type 19 and sql_update for raw_items_details_book.
+Bion: Struct: updated WS_MerchantItemHouse and WS_ItemHouse for version 955 and added WS_MerchantItemBook and WS_ItemBook starting at 955.
+
+==04/12/2009:
+Scatman: LUA function AddHate will now make your opponent attack you if not previously in combat.
+Scatman: Added LUA Function SendPopUpMessage(Spawn, Message, [Color]).  Color defaults to white.  Optionally, you can pass in basic color names to change it.
+
+==04/08/2009:
+Scatman: Fixed a bug with zone scripts.
+
+==04/07/2009:
+Scatman: Added /broadcast and /announce.
+
+==04/05/2009:
+Scatman: Added GetSpawnID(Spawn) LUA function.
+
+==04/03/2009:
+JohnAdams: Parser: Fixed `range` as a column name issue with newer MySQL servers
+JohnAdams: Parser: Removed obsolete items fields from -loaditems
+
+==04/03/2009:
+Scatman: Added SendMessage(Player, Message, [Color]) LUA Function.  Color defaults to white.  Optionally, you can pass in "red" or "yellow" to change it.
+
+==03/29/2009:
+LethalEncounter: Fixed mounts for 4412 client.
+LethalEncounter: Fixed a desync issue caused by the network code.
+LethalEncounter: Fixed a bug with quest bag items.
+LethalEncounter: Fixed spell details not being displayed when you moused over the spell.
+
+==03/27/2009:
+LethalEncounter: Added Mounts :)
+LethalEncounter: Added SetMount, SetMountColor, GetMount, SetAdventureClass, and SetTradeskillClass LUA functions.
+
+==03/22/2009:
+LethalEncounter: Replace /itemsearch with a user interface based on the broker system.
+LethalEncounter: Fixed a bug with zlib deflating.
+
+==03/17/2009:
+Bion/LethalEncounter: Fixed issue with items stats not properly being parsed when the value was negative.
+LethalEncounter: Latest client now works.
+
+==03/11/2009:
+LethalEncounter: Crash bug fix.
+
+==03/10/2009:
+LethalEncounter: Fixed quest display problem.
+
+==03/09/2009:
+Scatman: Fixed a problem when updating a quest step that has more than one quantity.
+
+==03/04/2009:
+LethalEncounter: Added includes for Linux as submitted by bobbydole.  Thanks!
+LethalEncounter: Fixed some error messages in LUA scripts.
+
+==03/03/2009:
+Scatman: Modified AddQuestStepChat to accept a quantity parameter.  AddQuestStepChat(Quest, StepID, StepText, Quantity, TaskGroupText, Icon, ID(s))
+
+==03/02/2009:
+LethalEncounter: Spells now show properly in the effects and maintanance windows.
+LethalEncounter: Fixed some issues with spells not being applied to the right target.
+LethalEncounter: Updated several spell related structs.
+
+==03/01/2009:
+LethalEncounter: Fixed some issues with stacking items.
+LethalEncounter: Fixed merchant hover text opening new examine window.
+LethalEncounter: Fixed coins in player struct.
+LethalEncounter: Added buy/sell merchant text.
+LethalEncounter: Added automatic stacking capability.
+Scatman: Added RemoveItem LUA function.
+
+==02/28/2009:
+LethalEncounter: Fixed a severe crash bug related to some of the reload commands.
+LethalEncounter: Fixed spawngroups issue that was preventing more than 1 entry from being in a spawngroup.
+LethalEncounter: Groundspawns should now respawn correctly.
+LethalEncounter: Added a fix for the GetSpawn command.
+LethalEncounter: Disabled exception handling until we fix a few bugs.
+Zcoretri: Added a few struct changes.
+
+==02/26/2009:
+Scatman: Added /reload zonescripts.
+Scatman: Fixed a bug with SetLocationProximityFunction that was crashing the zone if a client zoned into an x,y,z where a proximity was already set.
+
+==02/25/2009:
+JohnAdams: Added `starting_city` to characters table to preserve the city chosen during character creation
+Scatman: Added LUA function SetLocationProximityFunction(Zone, x, y, z, MaxVariation, InRangeFunction, LeavingRangeFunction).
+
+==02/24/2009: 
+LethalEncounter: Made some tweaks to the spell generation code.
+Scatman: Added Zone Scripts.  Each zone has one script specified in the zones table.  Whenever a player zones into a zone
+         with a zone script, the LUA function "player_entry(Zone, Player)" will be called within the zone's zone script.
+Scatman: The "init_zone_script(Zone)" function will be called within the zone's zone script whenever a zone is loaded.
+
+==02/23/2009: 
+LethalEncounter: Added initial code for giving players spells upon leveling.
+LethalEncounter: Fixed a crash bug with factions.
+LethalEncounter: Fixed a reserved word issue with mysql 5.1 and the patcher.
+
+==02/22/2009: 
+LethalEncounter: Release 0.6.5
+LethalEncounter: Updated Patcher to consolidated server.
+
+==02/21/2009: 
+LethalEncounter: Made changes for the latest client.
+LethalEncounter: Combat stance/combat music now works correctly.
+LethalEncounter: Added support for minidings.
+LethalEncounter: Players should fall down correctly when they die.
+LethalEncounter: Fixed item display of classes.
+LethalEncounter: Enabled item class/level restrictions.
+LethalEncounter: Fixed most item menu commands.
+LethalEncounter: Fixed item effects.
+LethalEncounter: General item fixes.
+
+==02/20/2009:
+JohnAdams: Committed AdnaeDMorte idea of unlimited /who results, enhanced with settings in `variables` table
+Zcoretri: Added 3 toggles to spells for target display (display_spell_tier, friendly_spell, group_spell)
+Zcoretri: Added toggle to display spell tier in examine
+
+OPTIONAL SQL:
+insert into `variables`(`variable_name`,`variable_value`,`comment`) values ( 'max_who_results','10','Maximum number of players to show up in /who commands');
+insert into `variables`(`variable_name`,`variable_value`,`comment`) values ( 'max_who_results_status_override','100','Admin status to override the cap and display all results');
+
+==02/09/2009: 
+LethalEncounter: Modified movement code to allow Widgets and objects to use Movement Loops like NPCs do.
+LethalEncounter: Modified the net code to hopefully provide better stability.
+LethalEncounter: Added invulnerable command.
+LethalEncounter: Fixed /spawn create bug that wouldn't allow you to create spawns in an empty zone.
+LethalEncounter: Fixed a client crash bug on linux.
+LethalEncounter: Update to latest client.
+
+
+==01/29/2009:
+Scatman: LUA functions ModifyHP and ModifyPower now work as intended.
+Scatman: Added ModifyMaxHP and ModifyMaxPower LUA functions.
+
+==01/27/2009:
+Scatman: Emotes no longer display the targeted_message when you have yourself targeted.  It will use the message field as it does on live.
+LethalEncounter: Fixed a crash bug with connections.
+LethalEncounter: Fixed a crash bug in Parser.
+
+==01/26/2009:
+LethalEncounter: Fixed a deadlock crash.
+LethalEncounter: Fixed a client crash I inadvertently added.
+LethalEncounter: Fixed a server crash bug.
+LethalEncounter: Added more exception handling capability.
+
+==01/25/2009:
+LethalEncounter: Fixed a crash bug from a deleted packet stream.
+LethalEncounter: Fixed emote capability.
+LethalEncounter: Added most emote messages.
+LethalEncounter: Fixed ability to specify combat/emote voices.
+
+==01/24/2009:
+LethalEncounter: Fixed a couple of issues with spawn movement.
+LethalEncounter: Fixed bug with health not showing up correctly.
+LethalEncounter: Fixed a couple of crash bugs related to /repop.
+LethalEncounter: Fixed a bug with toggle spells.
+LethalEncounter: Fixed a bug that prevented spawns from falling down when they were dead.
+LethalEncounter: Fixed a bug that would cause your target to be reset on the server side when any spawn was killed.
+
+==01/23/2009:
+LethalEncounter: Made some changes to spells to prevent crashes.
+LethalEncounter: Fixed a deadlock with range spawns.
+LethalEncounter: Added some checks to prevent LUA errors from crashing server.
+LethalEncounter: Fixed bug with using zone id with /zone
+
+==01/21/2009:
+Scatman: Added AddStepProgress(Spawn, QuestID, StepID, ProgressAmount) LUA function.
+Scatman: Added AddQuestStep(Quest, StepID, StepText, Quantity, Percentage, TaskgroupText, Icon).  This step can only be updated via SetStepComplete or AddStepProgress.
+Scatman: When a spell (or command) is cast on a spawn, the "casted_on(NPC, Spawn)" function is called in the target's spawn script.
+
+==01/20/2009:
+Image: Fixed an issue with static zones and new variables from the zones table.
+Image: Uploaded the profiler build.
+Image: Added *base* instance code.
+Image: Modified /zone command to allow /zone active (show list of zones running).
+       Also /zone instance # (Allows you to zone to a specific instance number).
+LethalEncounter: Fixed quite a few crash bugs/deadlocks.
+LethalEncounter: Added some debugging code to catch deadlocks.
+Image: Uploaded a fix that was related to static zones and attempting to use the zone access variables, minstatus and minlevel.  The instance type was also fixed for static zones.
+
+==01/18/2009:
+LethalEncounter: Couple of crash bugs fixed.
+LethalEncounter: Added support for latest client.
+
+==01/17/2009:
+LethalEncounter: Fixed a couple of crash bugs.
+Scatman: Added AddQuestStepSpell(Quest, StepID, StepText, Quantity, Percentage, TaskgroupText, Icon, SpellIDs)
+         This quest step will update whenever one of the Spell IDs is successfully finished casting.
+Scatman: Added GetLevel LUA function.
+
+==01/15/2009:
+Scatman: Added functionality for signs to use commands and spawnscripts from the right-click menu.
+Scatman: Changed AddQuestStepChat, AddQuestStepKill, AddQuestStepObtainItem, and AddQuestStepLocation to take an icon as an additional parameter.  Setting it to 0 will make it so the quest step does not show an icon.
+         AddQuestStepChat(Quest, StepID, StepText, TaskgroupText, Icon, ID)
+         AddQuestStepKill(Quest, StepID, StepText, Quantity, Percentage, TaskgroupText, Icon, IDs)
+         AddQuestStepObtainItem(Quest, StepID, StepText, Quantity, Percentage, TaskgroupText, Icon, IDs)
+         AddQuestStepLocation(Quest, StepID, StepText, Max Varation, TaskgroupText, Icon, x1, y1, z1 ...)
+
+==01/14/2009:
+Scatman: Added UpdateQuestZone LUA function.  Used to update which zone the quest is currently taking place in for quests that take place in more than one zone.
+
+==01/13/2009:
+Scatman: Objects now call the 'death' function within their spawn script when killed.
+
+==01/12/2009:
+Image: Fixed a crash in the new database functions (non-existant characters).
+LethalEncounter: Added respawn timers to non NPC spawns.
+LethalEncounter: Fixed linux compile issue.
+LethalEncounter: Added HandleUse ability for NPCs.
+LethalEncounter: Added ability to call spawn scripts via right click menu.
+
+==01/11/2009:
+LethalEncounter: Fixed SpawnMob LUA function bug.
+LethalEncounter: Rewrote some of the spawn handling code to hopefully be more live-like.
+
+==01/10/2009
+Image: Implemented /giveitem [name] [itemid]
+Image: Implemented /kick [name], /ban [name] [permanent:0/1] and /lock [0/1].
+	- the ban command permanent argument is optional, 1 will set account-wide bans.
+Scatman: Modified AddQuestStepLocation LUA function to accept unlimited number of coordinates.
+         The new function looks like: AddQuestStepLocation(Quest, Quest ID, Step Text, Max Varation, Taskgroup Text, x1, y1, z1 ...)
+
+==01/09/2009:
+LethalEncounter: Fixed /tell bug.
+
+==01/08/2009:
+LethalEncounter: Fixed class/difficulty appearance bugs.
+LethalEncounter: Added "/spawn target radius [radius here]" command to set spawns targetable by a radius.
+
+==01/07/2009:
+LethalEncounter: Memleak fixes.
+
+==01/06/2009:
+LethalEncounter: Fixed /move_spawn command.
+
+==01/03/2009:
+LethalEncounter: Added ability to use in game maps.
+
+==01/02/2009:
+Scatman: Added IsAlive LUA function.
+LethalEncounter: Added /reload spawns command.
+LethalEncounter: Added transport code to allow object transports and location based transports (warp points).
+LethalEncounter: Fixed bug with SpawnMob command.
+LethalEncounter: Renamed teleporter_id to transport_id.
+LethalEncounter: Rewrote some of the /tell code that code have been causing problems.
+LethalEncounter: Found piece of struct that allows NPCs to face the player.
+
+==01/01/2009:
+LethalEncounter: Fixed lifts.
+LethalEncounter: Fixed bug with quests.
+LethalEncounter: Renamed Spawn LUA function to SpawnMob.
+
+==12/31/2008:
+LethalEncounter: Fixed bug with bind location.
+LethalEncounter: Fixed several of the display issues with quests.
+
+==12/30/2008:
+LethalEncounter: Fixed errors in sample quest.
+LethalEncounter: Made changes the way bind_zone and house_zone were stored in the database.
+LethalEncounter: Added LUA commands for handling binding/gating.
+
+==12/29/2008:
+LethalEncounter: Reorganized World structs.
+
+==12/28/2008:
+LethalEncounter: Changes for the latest client.
+
+==12/11/2008:
+LethalEncounter: Modified AddHate to accept negative numbers to allow hate reduction spells.
+LethalEncounter: Made NPCs easier to kill.
+Scatman: Added AddHate LUA function.
+
+==12/10/2008:
+LethalEncounter: Fixed a crash bug from spawn script timers.
+LethalEncounter: Added Despawn, KillSpawnByDistance, and SpawnSet LUA functions.
+Scatman: Added KillSpawn LUA function.
+
+==12/07/2008:
+LethalEncounter: Fixed non interruptable spells being interrupted.
+LethalEncounter: Fixed skill caps.
+
+==12/06/2008:
+LethalEncounter: Several crash fixes thanks to John Adams.
+LethalEncounter: Changed right click spell command to get the player's spell tier to display the correct information.
+LethalEncounter: Checked in initial code for harvesting items from nodes.
+LethalEncounter: Added reload capability for groundspawn items.
+
+==11/24/2008:
+LethalEncounter: Several crash fixes as well as the quest struct fix.  Thanks to John and Wyndal/Marjorie for helping test it!
+
+==11/23/2008:
+LethalEncounter: Added support for both the latest Live client as well as the TSO box client.
+LethalEncounter: Most of the item changes/fixes that are now possible with the current feature set have been completed.
+
+==11/15/2008:
+Image: Made Packet Parser linux compatible.
+
+==11/03/2008:
+LethalEncounter: Added HasPendingLoot, HasPendingLootItem, and GiveLoot LUA functions for the upcoming collection support.
+
+==10/31/2008:
+Image: Fixed a crash in the Login Server, if the version number was not in the opcode manager.
+
+==10/29/2008:
+LethalEncounter: Update server changes for upcoming release.
+
+==10/28/2008:
+LethalEncounter: NPCs engaged in combat will now call the hailed_busy LUA function instead of the hailed function.
+LethalEncounter: Duplicate NPC issue on revive should be fixed.
+LethalEncounter: The radius for the PlayFlavor LUA command is now 30.
+LethalEncounter: Only red, white and grey item colors are now used for merchants.
+
+==10/26/2008
+Image: Zones now have a min_status and min_level variable. (SQL change attachment on BZ)
+	http://bugzilla.emagiware.com/show_bug.cgi?id=1
+Image: Fixed a bug with revive_points being null and crashing the world server.
+Image: Fixed a bug with /spawn set commands setting to players or other NPCs not targetted
+       due to the database id of the targetted npc being 0 and other spawns that are 0. (esp        players).
+
+==10/18/2008:
+LethalEncounter: Added support for the latest client (5166L).
+
+==10/16/2008:
+LethalEncounter: Fixed various camping options.  /camp (charname) works too for switching characters.
+
+==10/13/2008:
+LethalEncounter: Fixed object corpse problem.
+LethalEncounter: Fixed item linking problem.
+LethalEncounter: Added temporary action state (used to suspend action when facing a player).
+LethalEncounter: Added a couple of more quest item updates.
+
+==10/13/2008:
+LethalEncounter: Completed Step 1 of the item revamp.
+			-Complete overhaul of item loading and storage.  Got rid of some obsolete fields and cleaned it up.  Items in the items table are now set with just two fields (bag_id and slot).  Bag_id is 0 for inventory items, otherwise it is the unique id of the bag which it is in.  Bag_id is -3 for bank, -4 for shared bank.
+			-Simplification of the entire items lifecycle.  A lot of the code was way more complex than it needed to be, which led to some of the item issues.
+			-Items will be added to bags first, then inventory if the bag is full (this includes starting_items).
+			-Enhancements/overhaul of the starting_items table - you no longer have to specify the slot as it will automatically assign a slot in the given characters inventory.  It will now properly handle EQUIPPED items as well so you can automatically dress a character upon creation.
+			-Support for banked/shared bank items added.  No need for the character_banks table.
+			-Numerous bug fixes with the core item behavior.
+			-Step 2 will be in a couple of weeks and will focus on the items themselves.
+
+==10/11/2008:
+LethalEncounter: Made John Adam's requested database changes.
+LethalEncounter: Converted race_type to model_type.
+LethalEncounter: Added new AddQuestPrereqModelType LUA funcion.
+LethalEncounter: Fixed crash bug with creating new NPCs as submitted by John Adams.
+LethalEncounter: Fixed crash bug with network connections as submitted by John Adams.
+Jabantiz:	 Changed code to all for visual state suspend after being hailed.
+Jabantiz: 	 Added GetRace LUA function.
+
+==10/07/2008:
+LethalEncounter: Added GetZoneName, GetZoneID, and GetSpawn LUA functions.
+
+==10/06/2008:
+LethalEncounter: Fixed a crash bug with SetPlayerProximityFunction.
+
+==9/20/2008:
+LethalEncounter: Added SetPlayerProximityFunction lua function that calls a specified LUA function when the player enters a given range and optional leaves the given range.
+LethalEncounter: Added initial Merchant code.
+
+==9/19/2008:
+LethalEncounter: Fixed macro skillbar bug as submitted by John.
+LethalEncounter: Fixed item and quest bugs with the 4412 client as submitted by Scatman.
+LethalEncounter: Added lua script option to call after a NPC completes a movement in MovementLoopAdd Lua function.
+LethalEncounter: Added voice option to the StartConversation function.
+LethalEncounter: Added ability for quests to have a multiple rewards to choose from.
+LethalEncounter: Added several new LUA functions for quests.
+LethalEncounter: Fixed some issues with multiple quest items.
+LethalEncounter: Fixed a bug with unsigned values and LUA.
+LethalEncounter: Added QuestStepIsComplete function.
+
+==9/18/2008:
+LethalEncounter: Changed /say chat distance from 500 to 30, as submitted by John Adams.
+LethalEncounter: Changed the radius spawn combine component to only add spawns of the same type as the original spawn, as submitted by John Adams.
+LethalEncounter: Arrow colors will now change when the player changes level, as submitted by John Adams.
+LethalEncounter: Removed my test stuff that I had in the /name command, as submitted by John Adams.
+LethalEncounter: Fixed quest turn in bug, as submitted by Malcolm.
+LethalEncounter: Fixed bug that allowed you to gain xp from killing yourself.
+LethalEncounter: Fixed HP/Power regen bug submitted by Seleandalos and John.
+LethalEncounter: Fixed facial hair bug as submitted by John.
+
+==9/13/2008:
+LethalEncounter: Modified the way that spawn scripts are stored and used.
+		 - You can now specify a spawn script for a specific spawn_id, spawngroup_id, or spawn_entry_id.
+		 - The scripts are now loaded when needed instead of loading all of them at startup.
+		 - You must specify the absolute path to the structs now.  This allows for additional organization.
+LethalEncounter: Added /spawn set commands: spawn_script, spawngroup_script, and spawnentry_script.
+LethalEncounter: Modified quests to take a percentage argument for the Kill and Item steps.
+
+==9/12/2008:
+LethalEncounter: Changed the way that /zone list worked.
+LethalEncounter: Fixed the 'You stop fighting' bug.
+
+==8/31/2008:
+LethalEncounter: Added SetStepComplete function to Quests to take the place an automatic updating hail.
+LethalEncounter: Fixed /reload quests
+LethalEncounter: Fixed a few issues with multithreading.
+LethalEncounter: Fixed a few bugs with the quest system.
+LethalEncounter: Added several new LUA functions for the quest system.
+
+==8/30/2008:
+LethalEncounter: Converted spell system over to the two table spell system that will reduce redundant data considerably.
+LethalEncounter: Changed a few column names for JA.
+LethalEncounter: Added several new LUA commands.
+LethalEncounter: Made quite a few struct changes to reduce redundancy.
+LethalEncounter: Changed the wildcard for the starting tables to 255.
+LethalEncounter: Removed the spawn type parameter requirement on several /spawn commands.
+LethalEncounter: Added several new fields for spells thanks to paulgh.
+LethalEncounter: Fixed a problem with the display of quests.
+LethalEncounter: Fixed the LUA Spawn command.
+LethalEncounter: Added display of book icon if the NPC has a chat quest update.
+
+==8/18/2008:
+LethalEncounter: Fixed sign display problem.
+LethalEncounter: Fixed a couple of bugs with locks.
+
+==8/17/2008:
+LethalEncounter: Added interruptions for spells.
+LethalEncounter: Fixed several bugs with spells that were causing odd behaviors.
+LethalEncounter: Fixed bug with zones not shutting down properly.
+
+==8/16/2008:
+LethalEncounter: Fixed some spawn movement bugs.
+LethalEncounter: Added city zone and always up options to the zones table.  This allows you to boot up a zone without anyone in it.
+
+==8/14/2008:
+LethalEncounter: Fixed some problems with factions.
+LethalEncounter: Fixed some issues with npc attacks.
+LethalEncounter: Fixed a bug locking up the spell que.
+LethalEncounter: Made the quest end spawn default to the quest start spawn.
+LethalEncounter: Fixed a couple of annoying random crashes/glitches caused by corrupted memory pointers.
+LethalEncounter: Improved the NPC attack code.
+
+==8/10/2008:
+LethalEncounter: Added ability for NPCs to attack each other based on factions.
+LethalEncounter: Fixed a few crash errors with /repop, spawn scripts and combat.
+LethalEncounter: Improved the spawn movement process.
+
+
+==8/09/2008:
+LethalEncounter: Added factions.
+LethalEncounter: Fixed a crash bug associated with /spawn combine.
+LethalEncounter: Fixed a bug with conversations.
+LethalEncounter: Made some changes to the way NPC movement worked.
+
+==8/07/2008:
+LethalEncounter: Added /depop, /repop, and /spawn combine commands.
+LethalEncounter: Made some fixes to the parser.
+LethalEncounter: Fixed a couple of bugs with /spawn combine.
+LethalEncounter: Added automatic retargeting of the master spawn when using /spawn combine.
+
+==8/04/2008:
+LethalEncounter: Added AddTimer LUA function.
+LethalEncounter: Fixed a bug with entity commands.
+LethalEncounter: Added ability for spawns to change their heading back to the original heading after 30 seconds.
+
+==8/03/2008:
+LethalEncounter: Added ability to zone with the zone ID.
+LethalEncounter: Fixed a bug that was dropping client connections more often that it should have done.
+LethalEncounter: Made more improvements to the questing system to be more like Live.
+
+==8/02/2008:
+LethalEncounter: Created questing system.  This system is very robust and allows you to use LUA scripts to do just about anything.
+LethalEncounter: Fixed a bug with structs that was preventing substructs from using the correct version.
+
+==7/27/2008:
+LethalEncounter: Fixed a bug with high level spawns being gray cons.
+
+==6/30/2008:
+LethalEncounter: Added /bug command.  It will now forward all bugs to the login server which will save them for future use.
+
+==6/22/2008:
+LethalEncounter: Fixed various item bugs to work with the latest client.
+LethalEncounter: Opcodes/structs updated to work with the latest client.
+LethalEncounter: Version changed to 0.6.
+
+==6/16/2008:
+LethalEncounter: Fixed looting bugs.
+
+==6/15/2008:
+LethalEncounter: Fixed a display problem with looting.
+LethalEncounter: Fixed a bug with Entity right click commands being truncated.
+LethalEncounter: Removed some of the debug print statements being printed out.
+LethalEncounter: Added bank coin fields to the database,
+LethalEncounter: Added initial code for banking both items and coins.  Additional code will be needed to properly handle bags in bank and shared bank.
+
+==6/14/2008:
+LethalEncounter: Added loottables and a loot system.
+LethalEncounter: Added loot commands /loot list, additem, removeitem, setcoin
+LethalEncounter: Remove some old LUA functions.
+LethalEncounter: Fixed some looting issues.
+
+==6/1/2008:
+LethalEncounter: Reworked items to make more logical sense and fixed some issues with them.
+LethalEncounter: Merged all the reload commands into one master /reload command with spells, items, etc being subcommands.
+John Adams: 	 Fixed a bug with min locked status.
+John Adams:	 Added LUA to the include directory listing.
+LethalEncounter: Added spell class table.
+LethalEncounter: Added item_details_skill table.
+
+==5/23/2008:
+LethalEncounter: Got item chat links working properly.
+LethalEncounter: Loot it now working.
+LethalEncounter: Redesigned the way items were being sent.
+LethalEncounter: Updated structs on login for the latest client and updated the opcodes.
+
+==5/05/2008:
+LethalEncounter: Fixed a compile problem on linux.
+
+==5/04/2008:
+LethalEncounter: Added signs and zone points.
+LethalEncounter: Fixed a bug with LUA spell scripts that was appending ".lua" to the end.
+LethalEncounter: Fixed a problem with parser that prevented npc appearances from appearing correctly.
+LethalEncounter: Added zone point collection to the parser.
+LethalEncounter: Reversed soga_eye and soga_skin colors in the structs.
+LethalEncounter: Added /reloadluasystem command that should fix any lua problems if they occur.
+LethalEncounter: Added conversation and voice collection to parser.
+LethalEncounter: Fixed a problem parser was having with certain zones.
+
+==4/27/2008:
+LethalEncounter: Reorganized the spawn code.  Players and NPCs are now subclasses of Entity, which is a new subclass of Spawn.  This is so that we can keep the Entity (combat - enabled) stuff separate from objects, widgets, and signs as they dont need combat support.
+LethalEncounter: Added Entity and Widget classes.  Widgets are things in the zone like doors that can be controlled.
+John Adams/LethalEncounter: Reoganized the spawn database to be more logical and friendly.
+LethalEncounter: Added new option to Parser called -populate that will populate a database with the raw database tables.
+LethalEncounter: Got doors (and other widgets) working properly.
+LethalEncounter: Added ability to play sounds (such as a door opening/closing, etc).
+
+==4/25/2008:
+LethalEncounter: Fixed revives, it will now work correctly.  If a revive point is not set, it will use the zone's safe point.
+LethalEncounter: Added timer for NPCs to run back to their starting location if they kill someone and dont have anyone else to attack.
+LethalEncounter: Fixed a couple of crash bugs with spawns.
+
+==4/24/2008:
+LethalEncounter: Update opcodes and structs to work with the latest live client.
+
+==4/23/2008:
+LethalEncounter: Added SetPosition and removed SetX/SetY/SetZ from lua interface.
+
+==4/21/2008:
+LethalEncounter: Changed the way that spawns are sent/resent once again :P
+LethalEncounter: Fixed a few crash bugs.
+
+==4/20/2008:
+LethalEncounter: Spawns should no longer crash the client.
+LethalEncounter: Added several new LUA functions.
+LethalEncounter: Added spawn scripts to make spawns "come alive".
+LethalEncounter: Rewrote much of the spawn handling code.
+LethalEncounter: Modified some of the combat formulas.
+LethalEncounter: Disabled new spawn grouping code.
+
+==4/13/2008:
+LethalEncounter: Made some additional combat system improvements/bug fixes.
+LethalEncounter: Added code that will respawn dead NPCs given the value in the spawns table.
+LethalEncounter: Added some LUA functions.
+
+==4/09/2008:
+LethalEncounter: Made some combat system improvements/bug fixes.
+
+==4/05/2008:
+LethalEncounter: Fixed a few bugs relating to combat.
+LethalEncounter: Added a spell que system similiar to live just without a few visual features.
+LethalEncounter: Added framework for different spell types.
+LethalEncounter: Changed a considerable amount of the spell code.
+LethalEncounter: Added spell visual effects.
+
+==3/30/2008:
+LethalEncounter: Fixed a crash bug in combat.
+LethalEncounter: Added LUA scripting engine.  If you are compiling this yourself BE SURE TO ADD the LUA directory to your includes and the LUA lib file to your libraries!!!
+LethalEncounter: Changed the spell system to one based on LUA scripts.
+LethalEncounter: Heavily modified the database in regards to spells.
+
+==3/17/2008:
+LethalEncounter: Released 0.5!
+LethalEncounter: Made changes to allow the latest live client.
+LethalEncounter: Fixed a problem with database updates.
+LethalEncounter: Changed `name` in the commands table to `command`.
+
+==3/01/2008:
+LethalEncounter: Fixed display of attack icon for attackable NPCs.
+LethalEncounter: Added some additional set options to /spawn set.
+LethalEncounter: /settime will now update all clients.
+
+==2/29/2008:
+LethalEncounter: Disallowed pvp and combat of dead spawns.
+LethalEncounter: Fixed a crash bug with spawns.
+LethalEncounter: Changed /move_spawn command to allow placement of wall items.
+LethalEncounter: Added /settime command as requested.
+LethalEncounter: Fixed a crash bug if the user got disconnected before the world properly handed the client to the zone server.
+LethalEncounter: Changed /zone command to prevent people from zoning to the same zone they are in.
+LethalEncounter: Removed some of the old obsolete spawn variables.
+LethalEncounter: Made some fixes to client movement that makes it much more like Live.
+LethalEncounter: Fixed a crash caused by the client not being removed properly.
+LethalEncounter: Fixed a client crash bug caused by an invalid spawn radius.
+LethalEncounter: Fixed quickbar updates for macros and spells.
+LethalEncounter: Added several new fields for spawns.
+LethalEncounter: Fixed several of the display problems with spawns.
+LethalEncounter: Added a couple of defines to allow people to easily change the distance spawns are sent or removed.
+LethalEncounter: Fixed a bug with spawns that was preventing some of them from being displayed properly.
+
+==2/23/2008:
+LethalEncounter: Fixed a crash bug/problem with the /goto command.
+LethalEncounter: Fixed a crash bug relating to the new netcode.
+LethalEncounter: Added visual_state, action_state, and mood_state to further customize npcs.  This uses the data in the visual_states table.
+LethalEncounter: Spawn set will now set apply the action to all npcs that use the same database ID.
+LethalEncounter: Fixed a problem with corrupt spawn packets on version 4412.
+LethalEncounter: Fixed size problems that John mentioned.
+LethalEncounter: Fixed linux compiler bug.
+LethalEncounter: Fixed a client crash bug relating to other clients.
+
+==2/23/2008:
+LethalEncounter: Fixed crash problem with version 4412.
+LethalEncounter: Added player macros.
+
+==2/21/2008:
+LethalEncounter: Fixed the problem with getting stuck on loading of UI Resources.
+LethalEncounter: Fixed a large memory leak in World.
+
+==2/20/2008:
+LethalEncounter: Fixed a crash bug in the new network code.
+LethalEncounter: Revamped the entity commands (commands displayed when right clicking a spawn).
+
+==2/19/2008:
+LethalEncounter: Changed quite a bit of the network code.  Client crashes should be very rare now.
+LethalEncounter: Made some fixes for item/stat calculations.
+LethalEncounter: Added additional stat bases.
+LethalEncounter: The /level command will reset xp now.
+LethalEncounter: Added an option to the /spawn remove command that will despawn the mob as well (/spawn remove 1)
+LethalEncounter: Added initial code to support damaging items upon player death.
+LethalEncounter: Reset the CanEquipItem function to always return true so that you can equip any item so matter what the class requirements.  I'll reenable it later on.
+
+
+==2/09/2008:
+LethalEncounter: Fixed client crash bug related to spawn IDs.
+LethalEncounter: Fixed latest client to work with emu.
+LethalEncounter: Renamed executables to EQ2World by request.
+
+==2/02/2008:
+LethalEncounter: Fixed another packet size bug that affect various packets.
+LethalEncounter: Fixed the WS_DeathWindow struct.
+
+==2/02/2008:
+LethalEncounter: Fixed a compiler error on linux.
+LethalEncounter: Modified /move_spawn command to enable a player to move a spawn anywhere they like.
+LethalEncounter: /move_spawn will save the spawn location if it already has a spawn group id.
+LethalEncounter: Fixed a problem with certain client commands.
+
+==1/28/2008:
+LethalEncounter: Fixed a problem with account passwords that would give a bad password if the password was followed by spaces.
+LethalEncounter: Fixed a bug in position updates that was corrupting the first update.
+LethalEncounter: Added /summon and /goto commands.
+LethalEncounter: Made some changes to the way exceptions are handled for zones that should isolate a crash in one zone from affecting other zones. (Unless the crash occurs in the main world thread.)
+
+==1/26/2008:
+LethalEncounter: Fixed the display of locked servers on character select screen.
+LethalEncounter: Fixed a crash bug when saving players.
+LethalEncounter: Fixed the display of spells.
+LethalEncounter: Made a few fixes to the way the exp bar was being displayed.  The yellow/blue bars as well as the yellow/blue vitality indicators were wrong.
+LethalEncounter: Vitality will now be update according to your settings for it in the variables table.  You can specify the amount and how often it is given.
+LethalEncounter: Fixed an overflow problem with Timers.
+LethalEncounter: Fixed a problem with the destroy spawn packet that could crash the client.
+LethalEncounter: Rewrote some of the packet code so that it checked the length after the packet was generated to prevent problems.
+LethalEncounter: Consolidated the remove spawn packet code into one function.
+LethalEncounter: Changed the spawn set location command to not need an argument.
+
+==1/24/2008:
+LethalEncounter: Fixed a bug with automatic updates not updating properly.
+LethalEncounter: Added initial xp code.
+LethalEncounter: Fixed a few structs in character sheet.
+LethalEncounter: Added code to save stats, coins, hp, etc.
+
+==1/23/2008:
+LethalEncounter: Fixed world time functionality.  Clients will now receive the coorect world time when they login and it will update like live.
+LethalEncounter: Modified PacketStructs to be more tolerant of a bad configuration file.  Now it wont use the PacketStruct if the opcode is wrong.
+LethalEncounter: Fixed bug with summoning bags that made them appear open until you relogged.
+LethalEncounter: Fixed bug with spawns that was causing the client to think it was dead since we didnt set the HP when they were /spawned.
+LethalEncounter: Rewrote some of the spawn update code to prevent problems when large indexes and packets are created.
+
+==1/20/2008:
+LethalEncounter: Fixed a crash bug when processing Skill update.
+LethalEncounter: Fixed a crash bug when checking new character names.
+_Andrew: Created code to handle player falls.
+LethalEncounter: Added Safe Fall skill to _Andrews fall code.
+LethalEncounter: Fixed bug that was causing a selection box to appear when logging in for the first timein the latest client.
+LethalEncounter: Fixed much of the spawn code that was causing players to crash.  Crashes should be relatively rare now.
+LethalEncounter: Updated damage structs for all known damage types.
+LethalEncounter: Rewrote damage functions to take advantage of the new structs.
+LethalEncounter: Changed fall code to display correct message when the client is damaged.
+LethalEncounter: Moved some files that were previously in the common directory to the world directory.
+LethalEncounter: Fixed bugs that were causing spawn updates to be sent right after an NPC was spawned.
+LethalEncounter: Damage packets will now only be sent to players within a range of 30'.
+LethalEncounter: Updates skill code to properly send skill updates to the client.
+LethalEncounter: Fixed /move that was broken in the last update.
+LethalEncounter: Changed Spawn code to use per player indexes like Live instead of global indexes when sending spawns.
+LethalEncounter: OP_MapFogDataUpdateMsg falls will now be ignored by default to get rid of some of the spam in the console window.  It will eventually be handled.
+LethalEncounter: Arrow colors will now be applied to all attackable mobs.  Non-attackable mobs will be white.
+
+==1/14/2008:
+LethalEncounter: Applied patch that Andrew created.  This fixes many of the warnings generated on linux compiles.
+LethalEncounter: Applied bug fix sent in by Andrew that fixed a compilation problem with linux.
+Diamente: Added syntax displays for EQ2 client commands.
+Diamente: Fixed a bug when attempting to /kill without a target.
+
+==1/13/2008:
+LethalEncounter: Added code for checking skill raises.
+LethalEncounter: Fixed a bug when loading large int values from the database.
+LethalEncounter: Modified and added quite a few skills that will be set when a character is created.
+LethalEncounter: Update World Patcher for multiple databases.
+
+==1/9/2008:
+LethalEncounter: Changed color of servers running in debug mode to yellow on character creation server list.
+LethalEncounter: Removed the version from the server names on character select.
+LethalEncounter: Updates will now occur before anything else is loaded as world starts.
+LethalEncounter: Added ability to limit update downloads if users abuse it.
+LethalEncounter: Removed versions 0.1 to 0.3 from the valid versions list.
+LethalEncounter: Modified LoginServer.ini file for patcher.  BE SURE TO UPDATE YOUR LOGINSERVER.INI FILE!!
+
+==1/7/2008:
+Diamente: Updated WorldStructs so that /quit and /camp function correctly again.
+
+==1/6/2008:
+LethalEncounter: Created new Skill classes to handle skills.  Converted existing code to use the classes.
+LethalEncounter: Fixed a crash bug with items.
+LethalEncounter: Reverted the order in which commands were sent to that of yesterday.  Some clients seem to be having problems with it.
+
+
+==1/5/2008:
+LethalEncounter: Updated most of the opcodes to be correct.
+LethalEncounter: Fixed a crash bug when loading opcodes.
+LethalEncounter: Fixed a crash bug when using the /who command.
+LethalEncounter: Fixed a few of the old incorrect opcodes referenced in the code.
+LethalEncounter: Items that you summon will now be saved on your character even after you log off.
+
+==1/4/2008:
+LethalEncounter: Revamped item code to make them easier to read and use.
+Diamente: Made some updates to SendPlayerDeathWindow() and WS_DeathWindow
+
+==1/3/2008:
+Diamente: Fixed shameless error in previously SVN'ed content.
+Diamente: Added methods for retrieving revive locations from db and (properly) displaying them as junction choices in the death window
+Diamente: Updated player death functions; fixed death window; updated WS_DeathWindow struct
+Diamente: Added command: /kill.  Those so inclined may indeed kill themselves by targetting themselves OR by using /kill self
+
+==1/2/2008:
+LethalEncounter: Converted chat to use PacketStructs.
+LethalEncounter: Changed /ooc to be global.
+LethalEncounter: Made some fixes to items.
+Diamente: Updated /quit to ensure player saving before disconnecting.
+
+==1/1/2008:
+Diamente: Tweaked HP regen so that players who die stay dead until reviving. (Guess I need to implement reviving now...)
+Diamente: Made small changes to the appearance of the server loading status messages for readability
+Diamente: Fixed /camp; implemented /quit. 
+Diamente: Added WS_RequestCamp as well as initial version of WS_DeathWindow to World Structs.
+
+==12/31/2007
+LethalEncounter: Added /spawn details command.
+LethalEncounter: Added several more /spawn set values.
+
+==12/30/2007
+LethalEncounter: Added /spawn target command.
+LethalEncounter: Fixed spawn commands.
+LethalEncounter: Made some changes to the way world stats were calculated.
+LethalEncounter: Updated several opcodes.
+LethalEncounter: Update /sit and /stand to use opcodes like live.
+
+==12/29/2007
+Diamente: Fixed crash bug related to spawn death in combat.
+
+==12/27/2007
+LethalEncounter: Fixed crash bug relating to failed database updates.
+LethalEncounter: Made a few changes to the way that packets were being processed and compressed.
+LethalEncounter: Fixed a bug on login that was causing clients to hang.
+LethalEncounter: Implemented several spawn sub commands as mentioned on forums.
+LethalEncounter: Updated some opcodes that were incorrect.
+Diamente: Fixed issue with abandoning camp.
+
+==12/26/2007
+Diamente: Fixed bug related to automatic zone shutdowns.
+Diamente: Added commands: sit and stand.
+Diamente: Added visuals to /level command; added WS_UpdateText struct to WorldStructs for client message displays.
+
+==12/14/2007
+LethalEncounter: Updated GPL licensing information to v3.
+
+==12/07/2007
+LethalEncounter: Finally fixed stuck on loading entities bug.
+LethalEncounter: Added /version command.
+LethalEncounter: Made several bug fixes for spawns.
+LethalEncounter: Implemented /who command.  The lfg, lfw, and roleplay flags won't be implemented until we start using them.
+LethalEncounter: Fixed several packet related crashes/issues.
+LethalEncounter: Fixed packet issue where future synced packets would cause client to become desynced.
+
+==12/02/2007
+LethalEncounter: Changed the way zones were loaded and saved from the characters table.  It now uses the zone name instead of the zone file.  You can also give zones shorter names for the /zone command.  Be sure to use _ instead of a space in the name though.
+LethalEncounter: Made some changes to the way packets were generated and handled that should make the emu more stable and efficient.
+LethalEncounter: Fixed char creation struct that was causing a problem.  Be sure that you update your CommonStructs.xml file!
+
+==11/27/2007
+LethalEncounter: Fixed a bug with packets that were just a tad bit smaller than those that would be compressed.
+
+==11/26/2007
+LethalEncounter: Added some initial support functions for spawn commands.
+LethalEncounter: Added /who command.
+
+==11/19/2007
+LethalEncounter: Fixed all the memory leaks in the code. (there were A LOT)
+LethalEncounter: World will now display a title indicating the number of clients/zones when running on windows.
+LethalEncounter: Fixed several crash bugs related to the multiversion implementation.
+LethalEncounter: Updated structs for the new live client.
+LethalEncounter: The emu will now be able to support more than one client version at a time again.  The versions supported are 4523L, 4427L, and 4412.
+LethalEncounter: Login wont let you connect with an invalid version anymore.
+LethalEncounter: Fixed some misc bugs with login.
+LethalEncounter: Mostly fixed the bug where you hang on Loading Entities on Login server.  It still happens occasionally, but not often.
+LethalEncounter: Login will now allow you to create a Sarnak if you are using versions 4412 or 4427.
+LethalEncounter: Zones will automatically shut down after 5 minutes without a client.
+LethalEncounter: Fixed some bugs with PacketStructs.
+
+==11/14/2007
+LethalEncounter: Character Select will now correctly display a World server's version.
+
+==11/12/2007
+LethalEncounter: Added Starting tables for automatically updating tables for new characters.  Information like zones, items, etc.  
+			See http://eq2emulator.net/forums/viewtopic.php?p=1692#1692 for more details.
+
+==11/11/2007
+LethalEncounter: Fixed a bug with the sprint spell that was allowing the client to run at 40% even after they removed the effect.
+LethalEncounter: Added character_spells table.  The spells in knowledge book are created from this table.
+LethalEncounter: Added hot bar feature by dragging spells from knowledge book to any hotbar.
+LethalEncounter: Added save feature to hotbars that will save their order. (Saves to DB every 60 seconds if hotbars are updated)
+LethalEncounter: Fixed several issues with spells, hotbars, and knowledge book.
+LethalEncounter: Fixed delete problem on Login.
+LethalEncounter: Increase max number of characters that can be created on Login to 10.
+LethalEncounter: Fixed display of zonename on character select.
+LethalEncounter: Added zone update that will send your new zone name to Login for displaying on character select when you /zone.
+LethalEncounter: Now saves your level correctly after you use /level.
+LethalEncounter: Found and set expansion information field.
+
+
+==11/08/2007
+LethalEncounter: Fixed some crash problems with VS .Net 2005.
+
+==11/07/2007
+LethalEncounter: Only sends spawns to the player if they are in the proximity of the spawn.
+LethalEncounter: Removes the spawn from the player's list once the player moves far enough away.
+LethalEncounter: Fixed bug with /spawn that wasnt assigning a new spawn id.
+LethalEncounter: Added /speed command.
+LethalEncounter: Fixed a few bugs with the proximity code.
+
+
+==11/03/2007
+LethalEncounter: Fixed a crash bug with long zone names.
+LethalEncounter: If a player doesnt inclue coordinates when using /spawn it will default to the player's coordinates.
+LethalEncounter: Fixed motd, it will now correctly load from database.
+LethalEncounter: Fixed bug with combat that allowed you to attack yourself.
+
+==10/26/2007
+LethalEncounter: Fixed bug that would cause clients to crash each other from movement.
+LethalEncounter: Fixed a bug that should cause the client to ignore movement updates after a few minutes.
+LethalEncounter: Made a few changes to packets that should improve performance a bit.
+LethalEncounter: Fixed a bug from spawn updates that would crash client when it spawned.
+LethalEncounter: Fixed a crash bug from sending updates too soon as a client is logging onto the server.
+LethalEncounter: Found a few more flags for items.
+
+==10/24/2007
+Cadimiom: /itemsearch added, can specify a search string up to 256 characters (include spacing),
+	  can also specify max search results after that (just a number).  Ex. /itemsearch rough ruby 5
+	  Max results for an admin is set to 20, crashes the client if any more are sent.
+
+==10/21/2007
+Cadimiom: Added two variables: maxplayers and mingamefullstatus these are checks with the login
+	  server when a character attempts to play their character.
+
+==10/19/2007
+Cadimiom: Login Server now records world server statistics in the database for future website use.
+
+==10/16/2007
+Cadimiom: Login Server now keeps track of worlds in two variables, a map and a list.
+	  The list holds worlds which have not yet been authorized (have ID's set)
+	  The map holds the worlds which have been authorized.
+Cadimiom: Users will no longer get stuck with forced disconnect trying to create a character.
+Cadimiom: Fixed bugs with how VisualStates and Variables in the World Server were handled in maps.
+
+==10/15/2007
+Cadimiom: World Servers can now be locked and use a database variable to set minimum status.
+Cadimiom: Updated the Login Server to handle world's admin_status for banned/suspended accounts.
+	  (All receive the same reply right now, but it restricts logging to the world).
+
+==10/14/2007
+Cadimiom: If a client tries to login to an invalid world or does not receive a response within
+	  5 seconds from a world server, it now receives a response to reset the character screen.
+Cadimiom: World servers that are not connected are no longer listed on the LoginServer.
+Cadimiom: Characters from world servers that are not connected should no longer appear.
+Cadimiom: Login Server now has the updated reason codes for character creation.
+Cadimiom: World Server's Name Filter now checks appropriate max lengths for characters name.
+Cadimiom: World Server will now receive updates of Login Character Deletions if it is connected.
+LethalEncounter: Fixed crash bug when spawning objects.
+LethalEncounter: Made some adjustments to player position updates that should reduce the amount of crashes produced.
+LethalEncounter: Fixed a few crash bugs relating to logging in and out.
+LethalEncounter: Fixed a few code bugs for linux compilations.
+
+==10/13/2007
+LethalEncounter: Updated world to allow multiple clients to zone in and see each other (as well as chat).
+LethalEncounter: Fixed the basics of movement updates for clients.  It will appear a bit wierd and choppy right now.
+LethalEncounter: Fixed a few things that were broken in the last patch.
+
+==10/08/2007
+LethalEncounter: Updated to live.
+
+==10/07/2007
+LethalEncounter: Created basic combat system.  It is rather simple right now, but will be built upon in the future to develop a more robust system.
+LethalEncounter: Fixed camping.
+LethalEncounter: Fixed a crash few bugs relating to spawns.
+LethalEncounter: Combined spawn updates/char sheet updates to reduce bandwidth.
+LethalEncounter: Reworked some of the Spawn and zone functions to be easier to use.
+LethalEncounter: Added disable exp command.
+LethalEncounter: Fixed several opcodes associated with camping.
+
+
+==09/23/2007
+LethalEncounter: Revamped spawns to be more consistent with the rest of the code.
+LethalEncounter: Fixed spawn struct problems and discovered the purpose of much of the unknowns.
+LethalEncounter: Added equipment appearance table for mobs that will allow people to customize mobs without giving them actual weapons and armor.
+LethalEncounter: Removed all World SQL tables from svn to prevent people from trying to source them.  Just connect to login and it will create/update your db.
+
+==09/19/2007
+Cadimiom: Fixed VisualStates in Release Build, bogus characters were being passed.
+LethalEncounter: Fixed some character colors on character select screen.
+LethalEncounter: Fixed some minor issues with logging into World that could crash server.
+LethalEncounter: Fixed opcodes and structs that allows us to run with the latest client.  Be sure to update to live.
+
+==09/17/2007
+Cadimiom: Fixed a buffer overrun exploit in TCPConnection with inflated packets.
+Cadimiom: Clients no longer make a server list packet on login unless an update
+	  has occured to a world.
+Cadimiom: The LS now receives updates of /race,/class and /level.
+Cadimiom: The LS and World use the character id retrieved from the world on
+	  creation (opposed to name).
+
+==09/16/2007
+LethalEncounter: You can now summon items with the /summon command.
+LethalEncounter: Implemented item movement from bags to inventory and vice versa.
+LethalEncounter: Implemented equipping items.
+LethalEncounter: Implemented unequipping items.
+LethalEncounter: Add limited support for item stat calculations when equipping.
+LethalEncounter: Add /reloaditems command.
+LethalEncounter: Completely redesigned items and their associated tables.
+LethalEncounter: Made some bug fixes to max hp/regen code.
+LethalEncounter: Imported over 12,000 items into db.
+LethalEncounter: Made some bug fixes to item loading, reducing the loading time considerably.
+
+==08/29/2007
+Cadimiom: Fixed an exploit with packets sent to the LS without authentication.
+
+==08/28/2007
+LethalEncounter: Got spell requirements working.  Now it will check to verify that an effect should be fired.
+
+==08/27/2007
+LethalEncounter: Added player and mob Regen.  Formula still needs to be tweeked, but they will regen correctly every 6 seconds.
+LethalEncounter: Added some stuff for spell requirements.
+
+==08/26/2007
+LethalEncounter: Made a few bug fixes to the spell code.
+LethalEncounter: Update character profile struct with regens.
+LethalEncounter: Changed Login to display a world as down if a world isnt connected.
+LethalEncounter: Updated spell tables with some additional fields.
+LethalEncounter: Made some improvements to PacketStructs.
+LethalEncounter: Implemented spell casting system.  It was designed to be flexible enough for NPC spell casting in the future.
+LethalEncounter: Added functions for interrupting spells.
+LethalEncounter: Got first working spell in emu created. (Sprint)
+LethalEncounter: Cleaned up alot of the code in regards to Player.
+LethalEncounter: Added functions for Spawn updates.
+LethalEncounter: Fixed spawn updates.
+LethalEncounter: Fixed player updates.
+LethalEncounter: Fixed /race, /class, /level commands.
+LethalEncounter: /spawn command should work correctly again.
+LethalEncounter: Discovered several more of the unknowns in character profile.
+
+
+==08/22/2007
+Cadimiom: Eliminated hash collissions in the VisualStates, plus additional memory reduction.
+
+==08/21/2007
+Cadimiom: /animtest can now use the name column in visual_states
+(ex. '/animtest cast_dustpuff' works just like '/animtest 145')
+Cadimiom: The majority of gestures are now available through a visual_states hash table.  Not all gestures seem to be in visual_states yet (/laugh for example) and every gesture needs a message applied to it.
+DBUpdate: alter table visual_states add column message varchar(128) not null default '';
+
+==08/19/2007
+LethalEncounter: Added character_skillbar table.
+LethalEncounter: The character_skillbar table is used to specify which spells are added to the skillbar when logging in.
+LethalEncounter: Added packet to allow world to read spell information from db and send it to client for above.
+
+==08/18/2007
+Cadimiom: Created an /animtest command to test the variety of gestures/spell effects on a player.
+Ritojo: Updated most zones with their descriptions and safe coordinates.
+LethalEncounter: Added spells, spell_effects, spell_effect_types, spell_effect_values, and spell_visual_effects tables to database.
+LethalEncounter: World now loads spells from database and will display the spells correctly when viewed in game.
+
+==08/15/2007
+ferthala: Updated position struct and got it working correctly.  Also added new opcode for it.
+LethalEncounter: Added Spell class for future spell functions.
+LethalEncounter: Updated the new spell struct.
+LethalEncounter: Fixed a small bug in automatic updates.
+
+==08/13/2007
+Cadimiom: Removed two packets (GhostControlClose and OP_UpdateClientPredFlagsMsg) from zoning
+	  they were not needed.
+Cadimiom: Cleaned up ClientPacketFunctions of un-used packets.
+Cadimiom: ZoneServers have been threaded for their process to make sure one zone cannot
+	  consume the entire process.
+
+==08/11/2007
+LethalEncounter: Cleaned up some of the code related to sending packets to client.
+LethalEncounter: Added /move command to transport people around the zone.  Usage: /move x y z
+LethalEncounter: Added structs for UpdateSpellBook and UpdateInventory and created the methods for them to be sent when logging in.
+LethalEncounter: Fixed annoying crash loop on login that occured if the client crashed. (Previously required player to remove all logs files from eq2 directory)
+Cadimiom: Fixed a crash in the World Server ClientList Process (NULL ref crashes).
+Cadimiom: Updated ZoneAuthRequest and Client to support firstLogin, used to specify
+	  packets or other messages that need to be only sent on world login (ex. MOTD).
+Cadimiom: There is now a database-driven Variables external class.  It's first use is for
+	  handling the world MOTD in the database.  Hard-coded MOTD will be used otherwise.
+	  The new table is available in the SQL Files, World Directory "variables.sql"
+
+==08/10/2007
+LethalEncounter:  Fixed a few login bugs.
+
+==08/09/2007
+LethalEncounter:  Created skill packet necessary to update client with their available skills.
+LethalEncounter:  Updated database tables for skills.
+Cadimiom: The /zone command is now functional again, this required a few changes:
+	  1) Save character now saves the zone name to current_zone instead of zone.
+	  2) Following opcodes need to be sourced into the database:
+	update opcodes set opcode=76 where name='OP_ReadyToZoneMsg';
+	update opcodes set opcode=70 where name='OP_ChangeZoneMsg';
+	update opcodes set opcode=74 where name='OP_AddGroupToGroupMsg';
+	  3) I have noticed some zones do not work properly
+		(befallen and boat_freeport for examples) and may get stuck in there.
+
+==08/07/2007
+LethalEncounter:  Improvements to PacketStruct to make it faster/more efficient.
+LethalEncounter:  Overhauled the character stats table (now called character_details) and made quite a few changes.  Character Sheet packet will use the values from this table.
+Cadimiom: After a character is created, the Login Server now reloads the login character list.
+	  This solves the problem with crashing after creating a new character.
+
+==08/06/2007
+LethalEncounter:  Added wing and hair types to spawn struct.
+LethalEncounter:  Updated character sheet packet for latest client.
+
+==08/05/2007
+LethalEncounter:  Updated Spawn Struct.  Now loading and sending character information from database.
+LethalEncounter:  Fixed several errors in PacketStructs that were causing corrupted data.
+LethalEncounter:  Added Print function to PacketStruct to print out debug information.
+LethalEncounter:  Update make file to compile on linux.
+LethalEncounter:  World will now load characters by name instead of ID so that the ids between world and login dont have to stay synced.
+LethalEncounter:  Updated to work with latest client.
+LethalEncounter:  Converted SetPOVGhostCmd and SetControlGhostCmd to use dynamic structs.
+
+==08/03/2007
+LethalEncounter:  Rewrote a lot of the xml packet struct code.  Streamlined it a little, but mainly to add in the ability to have packet arrays built into the structs.
+LethalEncounter:  Updated ZoneInfo struct.
+
+==07/30/2007
+LethalEncounter:  Found the last packet needed to login to World! :)
+Cadimiom: Command serialization updated for live (packet size is now sent as 4 bytes)
+Cadimiom: Chat structure updated for live ( OP_EqHearChatCmd is now Opcode 474 )
+
+==07/29/2007
+Cadimiom: Hardcoded an ability and quick bar initialization packets for world login.
+Cadimiom: Dynamic structures added for CommandName and CommandMOTD.
+
+==07/28/2007
+Cadimiom: WorldStructs.xml added to Config Files/World Structs, must be added to the build folder.
+Cadimiom: Cleaned up code in LoginServer.cpp cases: ServerOP_CharacterCreate, 	  ServerOP_CharTimeStamp, ServerOP_UsertoWorldReq.
+Cadimiom: Added LS_LoginReply to WorldStructs.xml, Dynamic structures through configReader
+	  can now be used in ClientPacketFunctions.
+LethalEncounter:  Fixed character deletion on character select screen.
+LethalEncounter:  New Character creation checks with world before it creates any new characters.
+LethalEncounter:  Character selection works like live.  New characters will display just as you made them.
+LethalEncounter:  Converted LoginByNumRequest packet to use xml structs.
+
+==07/26/2007
+LethalEncounter:  Restarted project :)

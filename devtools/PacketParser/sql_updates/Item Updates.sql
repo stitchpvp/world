@@ -1,0 +1,11 @@
+ALTER TABLE `raw_items` ADD `offers_quest` VARCHAR(64) DEFAULT ' ' NOT NULL AFTER `set_name`;
+ALTER TABLE `raw_items` ADD `part_of_quest` VARCHAR(64) DEFAULT ' ' NOT NULL AFTER `offers_quest`;
+ALTER TABLE `raw_items` ADD `quest_unknown` tinyint unsigned DEFAULT '0' NOT NULL AFTER `part_of_quest`;
+ALTER TABLE `raw_items` ADD `total_charges` smallint unsigned DEFAULT '0' NOT NULL AFTER `quest_unknown`;
+ALTER TABLE `raw_items` ADD `recommended_level` smallint unsigned DEFAULT '0' NOT NULL AFTER `total_charges`;
+ALTER TABLE `raw_items` ADD `required_level` smallint unsigned DEFAULT '0' NOT NULL AFTER `recommended_level`;
+ALTER TABLE `raw_items` ADD `stack_size` smallint unsigned DEFAULT '0' NOT NULL AFTER `required_level`;
+ALTER TABLE `raw_items` ADD `collectable` tinyint unsigned DEFAULT '0' NOT NULL AFTER `stack_size`;
+ALTER TABLE `raw_items` ADD `adornment_description` VARCHAR(64) DEFAULT ' ' NOT NULL AFTER `collectable`;
+ALTER TABLE `raw_items` CHANGE `item_type` `item_type` ENUM('Normal','Armor','Food','Bag','Weapon','Ranged','Shield','Spell','Recipe','Book','House','Thrown','Bauble','House Container','Adornment') DEFAULT 'Normal' NOT NULL;
+ALTER TABLE `raw_items` ADD `adornment_description` VARCHAR(255) DEFAULT ' ' NOT NULL AFTER `collectable`;

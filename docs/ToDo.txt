@@ -1,0 +1,18 @@
+Quest Enhancements/Fixes
+Collection Quests
+Item enhancement/Fixes
+Spells (More options/types)
+Pets
+AI Enhancements
+Combat revisit
+In-game Maps/Fog data
+Groups
+Instancing
+Mounts
+Guilds
+Tradeskills
+In-game email
+Zone access flags
+AA/Achievements
+Create a better way of implementing commands.
+Recompile commands into DLL file that can be replaced and reloaded without shutting down server.

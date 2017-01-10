@@ -1,0 +1,584 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>EQ2World</ProjectName>
+    <ProjectGuid>{FC063D75-089D-4470-B255-032A80DE3CCE}</ProjectGuid>
+    <RootNamespace>EQ2World</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)worldserver\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\$(ProjectName)__Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)worldserver\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\$(ProjectName)__Debug_$(Platform)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\..\..\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\$(ProjectName)__$(Configuration)_$(PlatformName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\..\..\bin\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\$(ProjectName)__$(Configuration)_$(PlatformName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)__Debug_$(Platform)</TargetName>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\source\depends\mysql-5.1.45-winx64\include;$(SolutionDir)..\source\depends\zlib\include;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\source\depends\mysql-5.1.45-winx64\include;$(SolutionDir)..\source\depends\zlib\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\source\depends\mysql-5.1.45-winx64\lib\opt;$(SolutionDir)..\source\depends\zlib\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\source\depends\mysql-5.1.45-winx64\lib\opt;$(SolutionDir)..\source\depends\zlib\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\source\depends\mysql-5.1.45-win32\include;$(SolutionDir)..\source\depends\zlib\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\source\depends\mysql-5.1.45-win32\lib\opt;$(SolutionDir)..\source\depends\zlib\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\source\depends\mysql-5.1.45-win32\include;$(SolutionDir)..\source\depends\zlib\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\source\depends\mysql-5.1.45-win32\lib\opt;$(SolutionDir)..\source\depends\zlib\lib;$(LibraryPath)</LibraryPath>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)__Debug</TargetName>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <TypeLibraryName>.\../build/World.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WORLD;DEBUG;_EQDEBUG;_WIN32_WINNT=0x0400;WIN32;_CONSOLE;EQ2;EQN_DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level1</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ShowIncludes>false</ShowIncludes>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <BrowseInformationFile>
+      </BrowseInformationFile>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386  %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;wsock32.lib;zlib.lib;mysqlclient.lib;lua5.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\source\LUA</AdditionalLibraryDirectories>
+      <ManifestFile>$(IntDir)$(TargetName).intermediate.manifest</ManifestFile>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SubSystem>
+      </SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>
+      </FixedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>
+      </LinkTimeCodeGeneration>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <Bscmake>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Bscmake>
+    <Bscmake>
+      <OutputFile>
+      </OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\../build/World.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WORLD;_DEBUG;_EQDEBUG;_WIN32_WINNT=0x0400;WIN32;_CONSOLE;EQ2;EQN_DEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>false</BrowseInformation>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ShowIncludes>false</ShowIncludes>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <MinimalRebuild>true</MinimalRebuild>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;wsock32.lib;Zlibx64_debug.lib;mysqlclient_debug.lib;LUALibx64_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\source\LUA</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>
+      </SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>
+      </FixedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX64</TargetMachine>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <ManifestFile>
+      </ManifestFile>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <TypeLibraryName>.\../build/World.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0400;WIN32;NDEBUG;_CONSOLE;WORLD;EQ2;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>false</BrowseInformation>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;wsock32.lib;zlib.lib;mysqlclient.lib;lua5.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\source\LUA</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libc;msvcrt;libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapFileName>
+      </MapFileName>
+      <SubSystem>
+      </SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <ManifestFile>$(IntDir)$(TargetName).intermediate.manifest</ManifestFile>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+    </Link>
+    <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\../build/World.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0400;WIN32;NDEBUG;_CONSOLE;WORLD;EQ2;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>
+      </BrowseInformation>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeTypeInfo>
+      </RuntimeTypeInfo>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <Link>
+      <AdditionalDependencies>LUALibx64_release.lib;ws2_32.lib;Zlibx64_release.lib;mysqlclientx64_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)_$(Platform)$(TargetExt)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\source\LUA</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libc.lib; msvcrt.lib; libcd.lib; libcmtd.lib; msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName)__$(Configuration)_$(Platform).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapFileName>
+      </MapFileName>
+      <SubSystem>
+      </SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX64</TargetMachine>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <ManifestFile>$(IntDir)$(TargetName)__$(Configuration)_$(Platform).intermediate.manifest</ManifestFile>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName)__$(Configuration)_$(Platform).pgd</ProfileGuidedDatabase>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+    </Link>
+    <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\common\DatabaseNew.cpp" />
+    <ClCompile Include="..\..\source\common\DatabaseResult.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Achievements\Achievements.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Achievements\AchievementsDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancementDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Chat\Chat.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Chat\ChatChannel.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Chat\ChatDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\classes.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\client.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\ClientPacketFunctions.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Collections\Collections.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Collections\CollectionsDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Combat.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Commands\CommandsDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Entity.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Factions.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\GroundSpawn.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Guilds\Guild.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Guilds\GuildDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOp.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOpDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOpPackets.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Housing\HousingDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Housing\HousingPackets.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRC.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCChannel.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCMessage.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCServer.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Items\Items.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Items\ItemsDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Items\Loot.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Items\LootDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Languages.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\LoginServer.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\LuaFunctions.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\LuaInterface.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\net.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\NPC.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\NPC_AI.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Object.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Player.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\PlayerGroups.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Quests.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\races.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\RaceTypes\RaceTypes.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\RaceTypes\RaceTypesDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Recipes\Recipe.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Recipes\RecipeDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Rules\Rules.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Rules\RulesDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Sign.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Skills.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Spawn.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\SpellProcess.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Spells.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Titles.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsPackets.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Traits\Traits.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Widget.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\World.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\WorldDatabase.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\zoneserver.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\Tradeskills.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Commands\Commands.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Commands\ConsoleCommands.cpp" />
+    <ClCompile Include="..\..\source\common\Condition.cpp" />
+    <ClCompile Include="..\..\source\common\ConfigReader.cpp" />
+    <ClCompile Include="..\..\source\common\CRC16.cpp" />
+    <ClCompile Include="..\..\source\common\Crypto.cpp" />
+    <ClCompile Include="..\..\source\common\database.cpp" />
+    <ClCompile Include="..\..\source\common\dbcore.cpp" />
+    <ClCompile Include="..\..\source\common\debug.cpp" />
+    <ClCompile Include="..\..\source\common\emu_opcodes.cpp" />
+    <ClCompile Include="..\..\source\common\EQEMuError.cpp" />
+    <ClCompile Include="..\..\source\common\EQPacket.cpp" />
+    <ClCompile Include="..\..\source\common\EQStream.cpp" />
+    <ClCompile Include="..\..\source\common\EQStreamFactory.cpp" />
+    <ClCompile Include="..\..\source\common\Log.cpp" />
+    <ClCompile Include="..\..\source\common\md5.cpp" />
+    <ClCompile Include="..\..\source\common\misc.cpp" />
+    <ClCompile Include="..\..\source\common\MiscFunctions.cpp" />
+    <ClCompile Include="..\..\source\common\Mutex.cpp" />
+    <ClCompile Include="..\..\source\common\opcodemgr.cpp" />
+    <ClCompile Include="..\..\source\common\packet_dump.cpp" />
+    <ClCompile Include="..\..\source\common\packet_functions.cpp" />
+    <ClCompile Include="..\..\source\common\PacketStruct.cpp" />
+    <ClCompile Include="..\..\source\common\RC4.cpp" />
+    <ClCompile Include="..\..\source\common\TCPConnection.cpp" />
+    <ClCompile Include="..\..\source\common\timer.cpp" />
+    <ClCompile Include="..\..\source\common\xmlParser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\common\DatabaseNew.h" />
+    <ClInclude Include="..\..\source\common\DatabaseResult.h" />
+    <ClInclude Include="..\..\source\WorldServer\Achievements\Achievements.h" />
+    <ClInclude Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.h" />
+    <ClInclude Include="..\..\source\WorldServer\Chat\Chat.h" />
+    <ClInclude Include="..\..\source\WorldServer\Chat\ChatChannel.h" />
+    <ClInclude Include="..\..\source\WorldServer\classes.h" />
+    <ClInclude Include="..\..\source\WorldServer\client.h" />
+    <ClInclude Include="..\..\source\WorldServer\ClientPacketFunctions.h" />
+    <ClInclude Include="..\..\source\WorldServer\Collections\Collections.h" />
+    <ClInclude Include="..\..\source\WorldServer\Combat.h" />
+    <ClInclude Include="..\..\source\WorldServer\Entity.h" />
+    <ClInclude Include="..\..\source\WorldServer\Factions.h" />
+    <ClInclude Include="..\..\source\WorldServer\GroundSpawn.h" />
+    <ClInclude Include="..\..\source\WorldServer\Guilds\Guild.h" />
+    <ClInclude Include="..\..\source\WorldServer\HeroicOp\HeroicOp.h" />
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRC.h" />
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCChannel.h" />
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCMessage.h" />
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCReplyCodes.h" />
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCServer.h" />
+    <ClInclude Include="..\..\source\WorldServer\Items\Items.h" />
+    <ClInclude Include="..\..\source\WorldServer\Items\Loot.h" />
+    <ClInclude Include="..\..\source\WorldServer\Languages.h" />
+    <ClInclude Include="..\..\source\WorldServer\LoginServer.h" />
+    <ClInclude Include="..\..\source\WorldServer\LuaFunctions.h" />
+    <ClInclude Include="..\..\source\WorldServer\LuaInterface.h" />
+    <ClInclude Include="..\..\source\WorldServer\MutexHelper.h" />
+    <ClInclude Include="..\..\source\WorldServer\MutexList.h" />
+    <ClInclude Include="..\..\source\WorldServer\MutexMap.h" />
+    <ClInclude Include="..\..\source\WorldServer\MutexVector.h" />
+    <ClInclude Include="..\..\source\WorldServer\net.h" />
+    <ClInclude Include="..\..\source\WorldServer\NPC.h" />
+    <ClInclude Include="..\..\source\WorldServer\NPC_AI.h" />
+    <ClInclude Include="..\..\source\WorldServer\Object.h" />
+    <ClInclude Include="..\..\source\WorldServer\Player.h" />
+    <ClInclude Include="..\..\source\WorldServer\PlayerGroups.h" />
+    <ClInclude Include="..\..\source\WorldServer\Quests.h" />
+    <ClInclude Include="..\..\source\WorldServer\races.h" />
+    <ClInclude Include="..\..\source\WorldServer\RaceTypes\RaceTypes.h" />
+    <ClInclude Include="..\..\source\WorldServer\Recipes\Recipe.h" />
+    <ClInclude Include="..\..\source\WorldServer\Rules\Rules.h" />
+    <ClInclude Include="..\..\source\WorldServer\Sign.h" />
+    <ClInclude Include="..\..\source\WorldServer\Skills.h" />
+    <ClInclude Include="..\..\source\WorldServer\Spawn.h" />
+    <ClInclude Include="..\..\source\WorldServer\SpawnLists.h" />
+    <ClInclude Include="..\..\source\WorldServer\SpellProcess.h" />
+    <ClInclude Include="..\..\source\WorldServer\Spells.h" />
+    <ClInclude Include="..\..\source\WorldServer\Titles.h" />
+    <ClInclude Include="..\..\source\WorldServer\Traits\Traits.h" />
+    <ClInclude Include="..\..\source\WorldServer\Variables.h" />
+    <ClInclude Include="..\..\source\WorldServer\VisualStates.h" />
+    <ClInclude Include="..\..\source\WorldServer\Widget.h" />
+    <ClInclude Include="..\..\source\WorldServer\World.h" />
+    <ClInclude Include="..\..\source\WorldServer\WorldDatabase.h" />
+    <ClInclude Include="..\..\source\WorldServer\WorldTCPConnection.h" />
+    <ClInclude Include="..\..\source\WorldServer\zoneserver.h" />
+    <ClInclude Include="..\..\source\WorldServer\Commands\Commands.h" />
+    <ClInclude Include="..\..\source\WorldServer\Commands\ConsoleCommands.h" />
+    <ClInclude Include="..\..\source\WorldServer\Tradeskills\Tradeskills.h" />
+    <ClInclude Include="..\..\source\common\Common_Defines.h" />
+    <ClInclude Include="..\..\source\common\ConfigReader.h" />
+    <ClInclude Include="..\..\source\common\CRC16.h" />
+    <ClInclude Include="..\..\source\common\Crypto.h" />
+    <ClInclude Include="..\..\source\common\database.h" />
+    <ClInclude Include="..\..\source\common\DataBuffer.h" />
+    <ClInclude Include="..\..\source\common\dbcore.h" />
+    <ClInclude Include="..\..\source\common\debug.h" />
+    <ClInclude Include="..\..\source\common\emu_opcodes.h" />
+    <ClInclude Include="..\..\source\common\emu_oplist.h" />
+    <ClInclude Include="..\..\source\common\EQ2_Common_Structs.h" />
+    <ClInclude Include="..\..\source\common\EQEMuError.h" />
+    <ClInclude Include="..\..\source\common\EQPacket.h" />
+    <ClInclude Include="..\..\source\common\EQStream.h" />
+    <ClInclude Include="..\..\source\common\EQStreamFactory.h" />
+    <ClInclude Include="..\..\source\common\GlobalHeaders.h" />
+    <ClInclude Include="..\..\source\common\linked_list.h" />
+    <ClInclude Include="..\..\source\common\Log.h" />
+    <ClInclude Include="..\..\source\common\LogTypes.h" />
+    <ClInclude Include="..\..\source\common\md5.h" />
+    <ClInclude Include="..\..\source\common\misc.h" />
+    <ClInclude Include="..\..\source\common\MiscFunctions.h" />
+    <ClInclude Include="..\..\source\common\Mutex.h" />
+    <ClInclude Include="..\..\source\common\opcodemgr.h" />
+    <ClInclude Include="..\..\source\common\packet_dump.h" />
+    <ClInclude Include="..\..\source\common\packet_functions.h" />
+    <ClInclude Include="..\..\source\common\PacketStruct.h" />
+    <ClInclude Include="..\..\source\common\queue.h" />
+    <ClInclude Include="..\..\source\common\RC4.h" />
+    <ClInclude Include="..\..\source\common\Seperator.h" />
+    <ClInclude Include="..\..\source\common\servertalk.h" />
+    <ClInclude Include="..\..\source\common\TCPConnection.h" />
+    <ClInclude Include="..\..\source\common\timer.h" />
+    <ClInclude Include="..\..\source\common\types.h" />
+    <ClInclude Include="..\..\source\common\version.h" />
+    <ClInclude Include="..\..\source\common\xmlParser.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

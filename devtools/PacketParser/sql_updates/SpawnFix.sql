@@ -1,0 +1,2 @@
+ALTER TABLE `raw_spawn_info` ADD `title` VARCHAR(255) DEFAULT ' ' NOT NULL AFTER `widget_id`;
+ALTER TABLE `raw_spawn_info` DROP INDEX `NewIndex`, ADD UNIQUE `NewIndex` (`name`, `class_`, `race_type`, `race`, `level`, `gender`, `difficulty`, `language_type`, `widget_id`, `title`);

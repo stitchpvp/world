@@ -1,0 +1,89 @@
+<html><head><title>EQ2 Harvesting Bonus Table</title>
+
+<script>
+function twodecimal(n)
+{
+	var s = n + "";
+	var d = s.indexOf(".");
+	return(s.substr(0,d+3));
+}
+
+// Tier	   1    2    3    4    5    6    7    8    9
+var base = 	[  0,  20,  90, 140, 190, 240, 290, 340, 390]; // min skill for harvseting this node
+var bonus = [ 19,  89, 139, 189, 239, 289, 339, 389, 439]; // skill lvl at which you get chance at bonus table
+var skill = [ 45,  95, 145, 195, 245, 295, 345, 395, 445]; // some harvester's skills
+
+function bonusPull()
+{
+	document.write("<P><table border=1 cellpadding=5>");
+
+	document.write("<tr>");
+	document.write("<td rowspan=2>Tier</td><td rowspan=2>Base</td><td rowspan=2>Bonus</td>");
+	document.write("<td colspan=9 align=left>Your Harvesting Skills (maxed for that tier) / Chance at Bonus Table</td>");
+	document.write("</tr>");
+
+	document.write("<tr>");
+	for(var y=0; y<9; ++y)
+		document.write("<td align=right>" + skill[y] + "</td>");
+	document.write("</tr>");
+
+	for(var t=0; t<9; ++t)
+	{
+		document.write("<tr>");
+		document.write("<td align=right>" + (t+1) + "</td>");
+		document.write("<td align=right>" + base[t] + "</td>");
+		document.write("<td align=right>" + bonus[t] + "</td>");
+
+		for(var y=0; y<9; ++y)
+		{
+			if(skill[y] < base[t])
+				document.write("<td><hr></td>");
+			else
+			{
+				var lowroll = base[t];
+				var highroll = (skill[y] >= bonus[t]) ? skill[y] : bonus[t];
+				var range = highroll - lowroll + 1;
+				var rarechance = (skill[y] >= bonus[t]) ? (skill[y]-bonus[t]) : 0;
+
+				document.write("<td align=right>");
+				document.write(lowroll + "-" + highroll);
+				document.write("<BR>" + rarechance + "/" + range);
+				document.write("<BR>" + twodecimal(rarechance/range*100) + "%");
+				document.write("</td>");
+			}
+		}
+
+		document.write("</tr>");
+	}
+
+	document.write("</table>");
+}
+
+</script>
+
+</head>
+
+
+<body>
+
+<h2>EQ2 Harvesting Bonus Table</h2>
+
+<h3>Chance at the Bonus Table</h3>
+
+<script>
+document.write("<P>This is your chance to get a roll in the bonus table. It's based on how high over the lvl x8 skill for that tier Your harvesting skills are. Note that your harvesting skills must be maxed out (ie: x/x) to even get this calculation made.");
+document.write("<P>Table information (line):");
+document.write("<ol>");
+document.write("<LI>random range");
+document.write("<LI>chance of you getting a high enough roll to get a chance at bonus table roll");
+document.write("<LI>2 decimal percent of above");
+document.write("</ol>");
+
+bonusPull();
+
+document.write("<P>&nbsp;");
+base[1] = 40;
+bonus[0] = 39;
+bonusPull();
+
+</script></body></html>

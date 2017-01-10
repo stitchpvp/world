@@ -1,0 +1,14 @@
+2010-03-20:
+==========
+JohnAdams: 
+
+	World.sln now writes all it's intermediate build information to a sub-folder of ./World
+
+	The $(OutDir) is configured for ./trunk/bin/(build type)
+
+	There is a Post-Build event that copies the output exe back to ./Trunk/bin for easy access
+
+	There is a Pre-Compile event that deletes that copied EXE before building again, to avoid confusion on bad compiles
+
+
+	Please be sure you use an ignore-on-commmit for any of the intermediary or output files, we do not want build junk on SVN

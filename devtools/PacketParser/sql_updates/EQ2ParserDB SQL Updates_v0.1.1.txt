@@ -1,0 +1,69 @@
+ALTER TABLE raw_item_effects CHANGE column `name` `effect` VARCHAR(512) NOT NULL DEFAULT 'Unknown' AFTER `item_id`;
+ALTER TABLE raw_item_effects DROP COLUMN `description`;
+ALTER TABLE parser_stats ADD COLUMN `total_skills` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0' AFTER `new_books`;
+ALTER TABLE parser_stats ADD COLUMN `unique_skills` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0' AFTER `total_skills`;
+ALTER TABLE parser_stats ADD COLUMN `new_skills` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0' AFTER `unique_skills`;
+
+CREATE TABLE IF NOT EXISTS `raw_traits` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `level` tinyint(3) unsigned NOT NULL default '0',
+  `selection` tinyint(3) unsigned NOT NULL default '0',
+  `icon_0` smallint(5) unsigned NOT NULL default '0',
+  `icon2_0` smallint(5) unsigned NOT NULL default '0',
+  `trait_id_0` int(10) unsigned NOT NULL default '0',
+  `unknown_0` int(10) unsigned NOT NULL default '0',
+  `name_0` varchar(250) collate latin1_general_ci default NULL,
+  `icon_1` smallint(5) unsigned NOT NULL default '0',
+  `icon2_1` smallint(5) unsigned NOT NULL default '0',
+  `trait_id_1` int(10) unsigned NOT NULL default '0',
+  `unknown_1` int(10) unsigned NOT NULL default '0',
+  `name_1` varchar(250) collate latin1_general_ci default '',
+  `icon_2` smallint(5) unsigned NOT NULL default '0',
+  `icon2_2` smallint(5) unsigned NOT NULL default '0',
+  `trait_id_2` int(10) unsigned NOT NULL default '0',
+  `unknown_2` int(10) unsigned NOT NULL default '0',
+  `name_2` varchar(250) collate latin1_general_ci default '',
+  `icon_3` smallint(5) unsigned NOT NULL default '0',
+  `icon2_3` smallint(5) unsigned NOT NULL default '0',
+  `trait_id_3` int(10) unsigned NOT NULL default '0',
+  `unknown_3` int(10) unsigned NOT NULL default '0',
+  `name_3` varchar(250) collate latin1_general_ci default '',
+  `icon_4` smallint(5) unsigned NOT NULL default '0',
+  `icon2_4` smallint(5) unsigned NOT NULL default '0',
+  `trait_id_4` int(10) unsigned NOT NULL default '0',
+  `unknown_4` int(10) unsigned NOT NULL default '0',
+  `name_4` varchar(250) collate latin1_general_ci default '',
+  `data_version` smallint(5) unsigned NOT NULL,
+  `language_type` tinyint(3) unsigned NOT NULL default '0',
+  `log_file` varchar(250) collate latin1_general_ci default '',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `NewIndex1` (`trait_id_0`,`trait_id_1`,`trait_id_2`,`trait_id_3`,`trait_id_4`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS `raw_skills` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `skill_id` int(10) unsigned NOT NULL default '0',
+  `short_name` varchar(32) default 'Unknown',
+  `name` varchar(255) default 'Unknown',
+  `description` varchar(255) default 'Unknown',
+  `data_version` smallint(5) NOT NULL default '0',
+  `log_file` varchar(250) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `raw_skills_current` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `skill_id` int(10) unsigned NOT NULL default '0',
+  `type` smallint(5) unsigned NOT NULL default '0',
+  `current_val` mediumint(7) unsigned NOT NULL default '0',
+  `base_val` mediumint(7) unsigned NOT NULL default '0',
+  `max_val` mediumint(7) unsigned NOT NULL default '0',
+  `skill_delta` mediumint(7) NOT NULL default '0',
+  `skill_delta2` mediumint(7) NOT NULL default '0',
+  `display_min` tinyint(3) unsigned NOT NULL default '0',
+  `display_max` tinyint(3) unsigned NOT NULL default '0',
+  `unknown` tinyint(3) unsigned NOT NULL default '0',
+  `data_version` smallint(5) unsigned NOT NULL default '0',
+  `log_file` varchar(250) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;

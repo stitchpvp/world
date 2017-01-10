@@ -1,0 +1,679 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{2a766c1a-b509-4fb8-adf7-5f3fa6e561fd}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Tradeskills">
+      <UniqueIdentifier>{4b6b175f-8b3c-47fe-b88f-b02e8cc77dd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Commands">
+      <UniqueIdentifier>{f943b35c-f0dc-4c57-ae71-b75ad1c50c80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Guilds">
+      <UniqueIdentifier>{272ad8c4-ce45-421d-aea2-018885a653a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{a2455786-c1af-4d5a-8b82-ab6944408d56}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Commands">
+      <UniqueIdentifier>{036714f2-2c02-4794-8413-280d479f59a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tradeskills">
+      <UniqueIdentifier>{a71a1ae1-870d-4861-bcbb-3bdb9554a408}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common Source Files">
+      <UniqueIdentifier>{00750afa-2aae-41f3-8523-d1f7acadbf8d}</UniqueIdentifier>
+      <Extensions>*.cpp</Extensions>
+    </Filter>
+    <Filter Include="Common Header Files">
+      <UniqueIdentifier>{f5338a37-e11c-4f63-a52f-835551cc2b8d}</UniqueIdentifier>
+      <Extensions>*.h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Collections">
+      <UniqueIdentifier>{2efcfe15-fe58-431c-a567-d8716784c9b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Collections">
+      <UniqueIdentifier>{255642e4-036a-4f3a-ac34-c371d89a19d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Recipes">
+      <UniqueIdentifier>{0c6782e8-5551-4ffd-957c-ab8f95a7def0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Recipes">
+      <UniqueIdentifier>{02c901f8-7d74-4213-946c-3df4782bfcc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Rules">
+      <UniqueIdentifier>{514d3822-9c0d-48dc-bfad-2a433aba13f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Rules">
+      <UniqueIdentifier>{43c640be-ded7-4115-99f0-bb0a03740546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Guilds">
+      <UniqueIdentifier>{1c53f02e-00f8-4fe4-9737-df9e38062b25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Items">
+      <UniqueIdentifier>{942a4035-6c09-4a19-a5e6-251810220b49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Items">
+      <UniqueIdentifier>{2906af95-7223-437c-b24a-7dde0bb0009e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IRC">
+      <UniqueIdentifier>{380d91b2-642b-4771-880d-af11e41b534f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\IRC">
+      <UniqueIdentifier>{a3fe9b33-f540-4d5b-b1db-7bd7cb249e9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Traits">
+      <UniqueIdentifier>{8c26a024-3626-4d1a-b7ca-c0a812362e62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Traits">
+      <UniqueIdentifier>{51e9b1f6-043e-4c84-9a04-5855211978e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Acheivements">
+      <UniqueIdentifier>{5b5793af-5c85-440c-896e-58b3fd8b7334}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Achievements">
+      <UniqueIdentifier>{c99e6828-a2b6-42b5-af99-e80899001446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Chat">
+      <UniqueIdentifier>{dc6e9750-8b6f-42e6-896f-1c659cfa052e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Chat">
+      <UniqueIdentifier>{4bc8d1da-6979-40d4-bdc2-37c44499de49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AltAdvancement">
+      <UniqueIdentifier>{fb988684-58e6-4c21-bb04-3856f4b3f45c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AltAdvancement">
+      <UniqueIdentifier>{be36d929-d107-4e06-aa58-f76b3c3c20af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Housing">
+      <UniqueIdentifier>{5ffc936d-d1f9-4219-af84-f5ba0375c6cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\HeroicOp">
+      <UniqueIdentifier>{f150d08f-d438-4d95-bd34-e7525ca75f75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RaceTypes">
+      <UniqueIdentifier>{7a3fbf7e-7680-44d6-aad9-c8786edc55e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\HeroicOp">
+      <UniqueIdentifier>{72e17d5c-eff2-4104-894a-a112a8150ab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RaceTypes">
+      <UniqueIdentifier>{efcce842-424b-4cc1-8ec0-598591db11fa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\common\Condition.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\ConfigReader.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\CRC16.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\Crypto.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\database.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\dbcore.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\debug.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\emu_opcodes.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\EQEMuError.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\EQPacket.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\EQStream.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\EQStreamFactory.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\Log.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\md5.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\misc.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\MiscFunctions.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\Mutex.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\opcodemgr.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\packet_dump.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\packet_functions.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\PacketStruct.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\RC4.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\TCPConnection.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\timer.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\xmlParser.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\classes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\ClientPacketFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Combat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Factions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\GroundSpawn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\LoginServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\LuaFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\LuaInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\net.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\NPC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\NPC_AI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Quests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\races.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Sign.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Skills.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Spawn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\SpellProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Spells.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Widget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\World.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\WorldDatabase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\zoneserver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Collections\Collections.cpp">
+      <Filter>Source Files\Collections</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Commands\Commands.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\Tradeskills.cpp">
+      <Filter>Source Files\Tradeskills</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Commands\ConsoleCommands.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Recipes\Recipe.cpp">
+      <Filter>Source Files\Recipes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Recipes\RecipeDB.cpp">
+      <Filter>Source Files\Recipes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Rules\Rules.cpp">
+      <Filter>Source Files\Rules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Rules\RulesDB.cpp">
+      <Filter>Source Files\Rules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Titles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsDB.cpp">
+      <Filter>Source Files\Tradeskills</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Collections\CollectionsDB.cpp">
+      <Filter>Source Files\Collections</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Commands\CommandsDB.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Guilds\Guild.cpp">
+      <Filter>Source Files\Guilds</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Guilds\GuildDB.cpp">
+      <Filter>Source Files\Guilds</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Languages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRC.cpp">
+      <Filter>Source Files\IRC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCChannel.cpp">
+      <Filter>Source Files\IRC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCMessage.cpp">
+      <Filter>Source Files\IRC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\IRC\IRCServer.cpp">
+      <Filter>Source Files\IRC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Achievements\Achievements.cpp">
+      <Filter>Source Files\Acheivements</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Achievements\AchievementsDB.cpp">
+      <Filter>Source Files\Acheivements</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Traits\Traits.cpp">
+      <Filter>Source Files\Traits</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\DatabaseResult.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\common\DatabaseNew.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Chat\Chat.cpp">
+      <Filter>Source Files\Chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Chat\ChatDB.cpp">
+      <Filter>Source Files\Chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Chat\ChatChannel.cpp">
+      <Filter>Source Files\Chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Items\ItemsDB.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Items\Items.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Items\Loot.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Items\LootDB.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.cpp">
+      <Filter>Source Files\AltAdvancement</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsPackets.cpp">
+      <Filter>Source Files\Tradeskills</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancementDB.cpp">
+      <Filter>Source Files\AltAdvancement</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Housing\HousingPackets.cpp">
+      <Filter>Source Files\Housing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Housing\HousingDB.cpp">
+      <Filter>Source Files\Housing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOp.cpp">
+      <Filter>Source Files\HeroicOp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOpDB.cpp">
+      <Filter>Source Files\HeroicOp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\HeroicOp\HeroicOpPackets.cpp">
+      <Filter>Source Files\HeroicOp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\RaceTypes\RaceTypes.cpp">
+      <Filter>Source Files\RaceTypes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\RaceTypes\RaceTypesDB.cpp">
+      <Filter>Source Files\RaceTypes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\PlayerGroups.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\common\Common_Defines.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\ConfigReader.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\CRC16.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\Crypto.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\database.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\DataBuffer.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\dbcore.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\debug.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\emu_opcodes.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\emu_oplist.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\EQ2_Common_Structs.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\EQEMuError.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\EQPacket.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\EQStream.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\EQStreamFactory.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\GlobalHeaders.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\linked_list.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\Log.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\LogTypes.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\md5.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\misc.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\MiscFunctions.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\Mutex.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\opcodemgr.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\packet_dump.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\packet_functions.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\PacketStruct.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\queue.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\RC4.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\Seperator.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\servertalk.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\TCPConnection.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\timer.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\types.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\version.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\xmlParser.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\classes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\ClientPacketFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Combat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Factions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\GroundSpawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\LoginServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\LuaFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\LuaInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\MutexHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\MutexList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\MutexMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\MutexVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\net.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\NPC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\NPC_AI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Quests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\races.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Sign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Skills.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Spawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\SpawnLists.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\SpellProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Spells.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Variables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\VisualStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Widget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\World.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\WorldDatabase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\WorldTCPConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\zoneserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Collections\Collections.h">
+      <Filter>Header Files\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Commands\Commands.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Commands\ConsoleCommands.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Tradeskills\Tradeskills.h">
+      <Filter>Header Files\Tradeskills</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Recipes\Recipe.h">
+      <Filter>Header Files\Recipes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Rules\Rules.h">
+      <Filter>Header Files\Rules</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Titles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Guilds\Guild.h">
+      <Filter>Header Files\Guilds</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Languages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRC.h">
+      <Filter>Header Files\IRC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCChannel.h">
+      <Filter>Header Files\IRC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCMessage.h">
+      <Filter>Header Files\IRC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCReplyCodes.h">
+      <Filter>Header Files\IRC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\IRC\IRCServer.h">
+      <Filter>Header Files\IRC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Achievements\Achievements.h">
+      <Filter>Header Files\Achievements</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Traits\Traits.h">
+      <Filter>Header Files\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\DatabaseResult.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\DatabaseNew.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Chat\Chat.h">
+      <Filter>Header Files\Chat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Chat\ChatChannel.h">
+      <Filter>Header Files\Chat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Items\Items.h">
+      <Filter>Header Files\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Items\Loot.h">
+      <Filter>Header Files\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.h">
+      <Filter>Header Files\AltAdvancement</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\HeroicOp\HeroicOp.h">
+      <Filter>Header Files\HeroicOp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\RaceTypes\RaceTypes.h">
+      <Filter>Header Files\RaceTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\PlayerGroups.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

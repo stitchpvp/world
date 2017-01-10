@@ -1,0 +1,73 @@
+<Struct Name="WS_CharacterSheet" ClientVersion="1" OpcodeName="OP_UpdateCharacterSheetMsg">
+<Data ElementName="character_name" Type="int8" Size="32" /> // 0 - 31
+<Data ElementName="unknown0" Type="int8" Size="11" /> // 31 - 42
+<Data ElementName="unknown1" Type="int8" Size="1" /> // 43 ( 0x10)
+<Data ElementName="unknown2" Type="int8" Size="1" /> // 44 ( 0x01)
+<Data ElementName="unknown3" Type="int8" Size="1" /> // 45 ( 0x00)
+<Data ElementName="unknown4" Type="int8" Size="1" /> // 46 ( 0x1F)
+<Data ElementName="unknown5" Type="int32" Size="1" /> // 47-50 (26) (race/class?)
+<Data ElementName="unknown6" Type="int32" Size="1" /> // 51-54 (27) (race/class?)
+<Data ElementName="unknown7" Type="int8" Size="14" /> // 55-68
+<Data ElementName="unknown8" Type="int16" Size="1" /> // 69-70 (0x01)
+<Data ElementName="unknown9" Type="int16" Size="1" /> // 71-72 (0x01)
+<Data ElementName="unknown10" Type="int16" Size="1" /> // 73-74 (0x01)
+<Data ElementName="unknown11" Type="int32" Size="1" /> // 75-78
+<Data ElementName="unknown12" Type="int16" Size="1" /> // 79-80 (0xDE)
+<Data ElementName="unknown13" Type="int8" Size="1" /> // 81 ( 0x03)
+<Data ElementName="unknown14" Type="int8" Size="9" /> // 82-90
+<Data ElementName="unknown15" Type="int16" Size="1" /> // 91-92 ( 0x5A )
+<Data ElementName="unknown16" Type="int8" Size="8" /> // 93-100
+<Data ElementName="unknown17" Type="int16" Size="1" /> // 101-102 ( 0x5A )
+<Data ElementName="unknown18" Type="int16" Size="1" /> // 103-104 ( 0x5A )
+<Data ElementName="unknown19" Type="int8" Size="14" /> // 105-118
+<Data ElementName="unknown20" Type="int16" Size="1" /> // 119-120 ( 0x4E00 )
+<Data ElementName="unknown21" Type="int8" Size="1" /> // 121 ( 0x6F )
+<Data ElementName="unknown22" Type="int8" Size="1" /> // 122 ( 0x6E )
+<Data ElementName="unknown23" Type="int8" Size="1" /> // 123 ( 0x65 )
+<Data ElementName="unknown24" Type="int8" Size="46" /> // 124-169
+<Data ElementName="unknown25" Type="int32" Size="1" /> // 170-173 ( 0x01 )
+<Data ElementName="unknown26" Type="int32" Size="1" /> // 174-177 ( 0x14 )
+<Data ElementName="unknown27" Type="int32" Size="1" /> // 178-181 ( 0x14 )
+<Data ElementName="unknown28" Type="int32" Size="1" /> // 182-185 ( 0x01 )
+<Data ElementName="unknown29" Type="int32" Size="1" /> // 186-189 ( 0x76 )
+<Data ElementName="unknown30" Type="int32" Size="1" /> // 190-193 ( 0x76 )
+<Data ElementName="unknown31" Type="int32" Size="1" /> // 194-197
+<Data ElementName="unknown32" Type="int8" Size="4876" /> // 198-5074
+</Struct>
+
+<Struct Name="WS_CharacterSheet" ClientVersion="1" OpcodeName="OP_UpdateCharacterSheetMsg">
+<Data ElementName="character_name" Type="int8" Size="32" />
+<Data ElementName="unknown0" Type="int8" Size="11" />
+<Data ElementName="unknown1" Type="int8" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
+<Data ElementName="unknown3" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int32" Size="1" />
+<Data ElementName="unknown6" Type="int32" Size="1" />
+<Data ElementName="unknown7" Type="int8" Size="14" />
+<Data ElementName="unknown8" Type="int16" Size="1" />
+<Data ElementName="unknown9" Type="int16" Size="1" />
+<Data ElementName="unknown10" Type="int16" Size="1" />
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="unknown12" Type="int16" Size="1" />
+<Data ElementName="unknown13" Type="int8" Size="1" />
+<Data ElementName="unknown14" Type="int8" Size="9" />
+<Data ElementName="unknown15" Type="int16" Size="1" />
+<Data ElementName="unknown16" Type="int8" Size="8" />
+<Data ElementName="unknown17" Type="int16" Size="1" />
+<Data ElementName="unknown18" Type="int16" Size="1" />
+<Data ElementName="unknown19" Type="int8" Size="14" />
+<Data ElementName="unknown20" Type="int16" Size="1" />
+<Data ElementName="unknown21" Type="int8" Size="1" />
+<Data ElementName="unknown22" Type="int8" Size="1" />
+<Data ElementName="unknown23" Type="int8" Size="1" />
+<Data ElementName="unknown24" Type="int8" Size="46" />
+<Data ElementName="unknown25" Type="int32" Size="1" />
+<Data ElementName="unknown26" Type="int32" Size="1" />
+<Data ElementName="unknown27" Type="int32" Size="1" />
+<Data ElementName="unknown28" Type="int32" Size="1" />
+<Data ElementName="unknown29" Type="int32" Size="1" />
+<Data ElementName="unknown30" Type="int32" Size="1" />
+<Data ElementName="unknown31" Type="int32" Size="1" />
+<Data ElementName="unknown32" Type="int8" Size="4876" />
+</Struct>

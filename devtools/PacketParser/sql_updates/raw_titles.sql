@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS `raw_titles`;
+CREATE TABLE `raw_titles`(
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title_name` VARCHAR(250) NOT NULL DEFAULT '',
+  `prefix` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `data_version` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
+  `log_file` VARCHAR(250) NOT NULL DEFAULT '',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `NewIndex` (`title_name`)
+) ENGINE=MYISAM;

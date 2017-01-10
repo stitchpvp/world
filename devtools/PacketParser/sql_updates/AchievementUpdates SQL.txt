@@ -1,0 +1,20 @@
+CREATE TABLE `raw_achievement_updates` (
+	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`achievement_id` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+	`completed_date` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+	`num_items` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `achievement_id` (`achievement_id`)
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=MyISAM;
+
+CREATE TABLE `raw_achievement_update_items` (
+	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`achievement_id` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+	`item_update` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`)
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=MyISAM;
+

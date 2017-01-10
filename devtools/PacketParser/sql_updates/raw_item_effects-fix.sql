@@ -1,0 +1,1 @@
+alter table `raw_item_effects` change `name` `name` varchar(512) character set latin1 collate latin1_swedish_ci default 'Unknown' NOT NULL;

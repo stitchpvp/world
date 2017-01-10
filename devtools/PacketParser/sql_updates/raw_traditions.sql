@@ -1,0 +1,1 @@
+ALTER TABLE `raw_traditions` ADD COLUMN `section_name` VARCHAR(250) DEFAULT '' NOT NULL AFTER `name`;
