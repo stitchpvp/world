@@ -1604,7 +1604,7 @@ bool Quest::CheckCategoryYellow(){
 	string category = GetType();
 
 	//Check for these category names, return true to set category as yellow in the quest journal
-	if (category == "Signature" || category == "Heritage" || category == "Language" || category == "Lore and Legend" || category == "World Event" || category == "Tradeskill")
+	if (category == "Signature" || category == "Heritage" || category == "Hallmark" || category == "Deity" || category == "Miscellaneaous" || category == "Language" || category == "Lore and Legend" || category == "World Event" || category == "Tradeskill")
 		ret = true;
 	return ret;
 }

@@ -279,10 +279,12 @@ int EQ2Emu_lua_GetSpawnByGroupID(lua_State* state) {
 int EQ2Emu_lua_GetSpawnByLocationID(lua_State* state) {
 	ZoneServer* zone = lua_interface->GetZone(state);
 	int32 location_id = lua_interface->GetInt32Value(state, 2);
-	Spawn* spawn = zone->GetSpawnByLocationID(location_id);
-	if (zone && spawn) {
-		lua_interface->SetSpawnValue(state, spawn);
-		return 1;
+	if (zone) {
+		Spawn* spawn = zone->GetSpawnByLocationID(location_id);
+		if (spawn) {
+			lua_interface->SetSpawnValue(state, spawn);
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -6920,6 +6922,9 @@ int EQ2Emu_lua_SetSpeeedMultiplier(lua_State* state) {
 	Spawn* target = lua_interface->GetSpawn(state);
 	float val = lua_interface->GetFloatValue(state, 2);
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+	// Added from Gangrenous post
+	if (spell && spell->resisted)
+		return 0;
 
 	if (spell && spell->spell && spell->targets.size() > 0) {
 		ZoneServer* zone = spell->caster->GetZone();

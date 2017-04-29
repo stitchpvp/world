@@ -470,7 +470,7 @@ string GroundSpawn::GetHarvestMessageName(bool present_tense, bool failure){
 	string ret = "";
 	if((collection_skill == "Gathering" ||collection_skill == "Collecting") && !present_tense)
 		ret = "gathered";
-	else if(collection_skill == "Gathering" || collection_skill == "Gathering")
+	else if(collection_skill == "Gathering" || collection_skill == "Collecting")
 		ret = "gather";
 	else if(collection_skill == "Mining" && !present_tense)
 		ret = "mined";

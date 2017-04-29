@@ -402,7 +402,7 @@ Quest* LuaInterface::LoadQuest(int32 id, const char* name, const char* type, con
 		lua_getglobal(state, "Init");
 		SetQuestValue(state, quest);
 		if(lua_pcall(state, 1, 0, 0) != 0){
-			LogError("Error processing Quest: %s", lua_tostring(state, -1));
+			LogError("Error processing Quest \"%s\" (%u): %s", name ? name : "unknown", id, lua_tostring(state, -1));
 			lua_pop(state, 1);
 			safe_delete(quest);
 			return 0;

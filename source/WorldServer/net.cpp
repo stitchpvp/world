@@ -600,18 +600,27 @@ ThreadReturnType EQ2ConsoleListener(void* tmp)
 	THREAD_RETURN(NULL);
 }
 
+#include <fstream>
 void CatchSignal(int sig_num) {
 	// In rare cases this can be called after the log system is shut down causing a deadlock or crash
 	// when the world shuts down, if this happens again comment out the LogWrite and uncomment the printf
-	if(last_signal != sig_num)
-		LogWrite(WORLD__WARNING, 0, "World", "Got signal %i", sig_num);
-		//printf("Got signal %i", sig_num);
-	else {
-		LogWrite(WORLD__WARNING, 0, "World", "Got signal %i", sig_num);
-		Sleep(10);
+	if (last_signal != sig_num){
+		static Mutex lock;
+		static ofstream signal_out;
+
+		lock.lock();
+		if (!signal_out.is_open())
+			signal_out.open("signal_catching.log", ios::trunc);
+		if (signal_out){
+			signal_out << "Caught signal " << sig_num << "\n";
+			signal_out.flush();
+		}
+		printf("Caught signal %i\n", sig_num);
+		lock.unlock();
+
+		last_signal = sig_num;
+		RunLoops = false;
 	}
-	last_signal = sig_num;
-	RunLoops = false;
 }
 
 bool NetConnection::ReadLoginINI() {

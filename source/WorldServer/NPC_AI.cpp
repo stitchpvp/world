@@ -288,6 +288,8 @@ bool Brain::ProcessSpell(Entity* target, float distance) {
 			}
 			if(!spell_target)
 				spell_target = m_body;
+
+			safe_delete(group);
 		}
 		else
 			spell_target = target;

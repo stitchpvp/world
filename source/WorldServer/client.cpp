@@ -480,6 +480,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 		heading = GetCurrentZone()->GetSafeHeading();
 		zone_desc = GetCurrentZone()->GetZoneDescription();
 		location_name = "Zone Safe Point";
+		Zone(GetCurrentZone()->GetZoneName(), false);
 	}
 	else
 	{
@@ -490,6 +491,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 		heading = revive_point->heading;
 		zone_desc = database.GetZoneDescription(revive_point->zone_id);
 		location_name = revive_point->location_name.c_str();
+		Zone(GetCurrentZone()->GetZoneName(), false);
 	}
 
 	player->SetResurrecting(true);

@@ -384,6 +384,7 @@ void MasterAAList::DisplayAA(Client* client) {
 			}
 		}
 	}
+	MMasterAAList.releasereadlock(__FUNCTION__, __LINE__);
 
 	int16	version = 1;
 	int8	num_class_items = 0;

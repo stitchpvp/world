@@ -1668,9 +1668,9 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 				else if (caster->IsNPC()) // caster is NOT a player
 				{
 					// caster is NPC and in a spawn group with other NPCs
-					if (((NPC*)caster)->GetSpawnGroup()) 
+					vector<Spawn*>* group = ((NPC*)caster)->GetSpawnGroup();
+					if (group) 
 					{
-						vector<Spawn*>* group = ((NPC*)caster)->GetSpawnGroup();
 						vector<Spawn*>::iterator itr;
 
 						for (itr = group->begin(); itr != group->end(); itr++) 
@@ -1692,6 +1692,8 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 					}
 					else
 						luaspell->targets.push_back(caster->GetID());
+
+					safe_delete(group);
 				} // end is player
 			} // end is friendly
 		} // end is Group AE
@@ -1751,11 +1753,10 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 				// target is non-player
 				if (target->IsNPC())
 				{
-					// if target NPC is in a spawn group
-					if (((NPC*)target)->GetSpawnGroup()) 
+					// Check to see if the npc is a spawn group by getting the group and checikng if valid
+					vector<Spawn*>* group = ((NPC*)target)->GetSpawnGroup();
+					if (group) 
 					{
-						// get NPC's spawn group members
-						vector<Spawn*>* group = ((NPC*)target)->GetSpawnGroup();
 						vector<Spawn*>::iterator itr;
 
 						// iterate through spawn group members
@@ -1772,6 +1773,8 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 					} // end is spawngroup
 					else
 						luaspell->targets.push_back(target->GetID()); // return single target NPC for non-friendly spell
+
+					safe_delete(group);
 				} // end is NPC
 
 				else if (target->IsPlayer() && caster->IsNPC()) // the NPC is casting on a player
