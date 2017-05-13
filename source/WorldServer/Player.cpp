@@ -84,8 +84,8 @@ Player::Player(){
 	test_time = 0;
 	returning_from_ld = false;
 	away_message = "Sorry, I am A.F.K. (Away From Keyboard)";
-	AddSecondaryEntityCommand("Inspect", 10000, "inspect_player", "", 0, 0);
-	AddSecondaryEntityCommand("Who", 10000, "who", "", 0, 0);
+	//AddSecondaryEntityCommand("Inspect", 10000, "inspect_player", "", 0, 0);
+	//AddSecondaryEntityCommand("Who", 10000, "who", "", 0, 0);
 	//  commented out commands a player canNOT use on themselves... move these to Client::HandleVerbRequest()?
 	//AddSecondaryEntityCommand("Assist", 10, "assist", "", 0, 0);
 	//AddSecondaryEntityCommand("Duel", 10, "duel", "", 0, 0);
@@ -703,8 +703,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("unknown11", -1, 0);
 		packet->setDataByName("unknown11", -1, 1);
 		packet->setDataByName("mitigation2_cur", 2367);
-		packet->setDataByName("mitigation_pct_pve", 392); // Mitigation % vs PvE
-		packet->setDataByName("mitigation_pct_pvp", 559); // Mitigation % vs PvP
+		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage() * 1000); // Mitigation % vs PvE
+		packet->setDataByName("mitigation_pct_pvp", player->GetMitigationPercentage() * 1000); // Mitigation % vs PvP
 		//packet->setDataByName("avoidance", 169); //Avoidance
 		packet->setDataByName("avoidance_base", 0); //Base Avoidance
 		packet->setDataByName("base_avoidance_pct", info_struct->base_avoidance_pct); //Base Avoidance pct
@@ -2319,7 +2319,7 @@ void Player::RemoveMaintainedSpell(LuaSpell* luaspell){
 void Player::RemoveSpellEffect(LuaSpell* spell){
 	bool found = false;
 	GetSpellEffectMutex()->writelock(__FUNCTION__, __LINE__);
-	for(int i=0;i<45;i++){
+	for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
@@ -2327,8 +2327,8 @@ void Player::RemoveSpellEffect(LuaSpell* spell){
 			found = true;
 	}
 	if (found) {
-		memset(&GetInfoStruct()->spell_effects[44], 0, sizeof(SpellEffects));
-		GetInfoStruct()->spell_effects[44].spell_id = 0xFFFFFFFF;
+		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS - 1], 0, sizeof(SpellEffects));
+		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS - 1].spell_id = 0xFFFFFFFF;
 		changed = true;
 		info_changed = true;
 		AddChangedZoneSpawn();
@@ -3683,6 +3683,9 @@ bool Player::ShouldSendSpawn(Spawn* spawn){
 	// Think invalid spawns are coming from the mutex list, if spawn is invalid return false.
 	try
 	{
+		if (spawn->IsPlayer() && CanAttackTarget((Player*)spawn) && ((Player*)spawn)->IsStealthed() && !stats[ITEM_STAT_SEESTEALTH])
+			return false;
+
 		if((WasSentSpawn(spawn->GetID()) == false || NeedsSpawnResent(spawn)) && (!spawn->IsPrivateSpawn() || spawn->AllowedAccess(this)))
 			return true;
 	}
@@ -5024,4 +5027,3 @@ LUAHistory* Player::GetLUAHistory(int32 event_id) {
 
 	return ret;
 }
-

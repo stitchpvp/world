@@ -23,7 +23,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../common/types.h"
 #include "../../common/Mutex.h"
-#include "../Items/Items.h"
+#include "../Items/Items_DoV.h"
 #include <map>
 #include <vector>
 

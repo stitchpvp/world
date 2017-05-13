@@ -156,12 +156,15 @@ extern MasterItemList master_item_list;
 #define ITEM_MENU_TYPE_SCRIBE			32
 #define ITEM_MENU_TYPE_INVALID			128
 #define ITEM_MENU_TYPE_BROKEN			512
+#define ITEM_MENU_TYPE_BROKEN2			268435456
+#define ITEM_MENU_TYPE_DAMAGED			134217728
 #define ITEM_MENU_TYPE_ATTUNED			2048
 #define ITEM_MENU_TYPE_ATTUNEABLE		4096
 #define ITEM_MENU_TYPE_BOOK				8192
 #define ITEM_MENU_TYPE_DISPLAY_CHARGES  16384
 #define ITEM_MENU_TYPE_NAMEPET		    65536
 #define ITEM_MENU_TYPE_CONSUME			262144
+#define ITEM_MENU_TYPE_CONSUME_OFF		1048576
 #define ITEM_MENU_TYPE_USE			    524288
 #define ITEM_MENU_TYPE_DRINK	        8388608
 #define ITEM_MENU_TYPE_REDEEM	        536870912
@@ -478,6 +481,25 @@ extern MasterItemList master_item_list;
 #define ITEM_STAT_TAUNT_AND_COMBAT_ART_DAMAGE			706
 #define ITEM_STAT_ABILITY_MODIFIER			707
 
+// Other stats not listed above (not sent from the server), never send these to the client
+// using type 8 as it is not used by the client as far as we know
+#define ITEM_STAT_DURABILITY_MOD		800
+#define ITEM_STAT_DURABILITY_ADD		801
+#define ITEM_STAT_PROGRESS_ADD			802
+#define ITEM_STAT_PROGRESS_MOD			803
+#define ITEM_STAT_SUCCESS_MOD			804
+#define ITEM_STAT_CRIT_SUCCESS_MOD		805
+#define ITEM_STAT_EX_DURABILITY_MOD		806
+#define ITEM_STAT_EX_DURABILITY_ADD		807
+#define ITEM_STAT_EX_PROGRESS_MOD		808
+#define ITEM_STAT_EX_PROGRESS_ADD		809
+#define ITEM_STAT_EX_SUCCESS_MOD		810
+#define ITEM_STAT_EX_CRIT_SUCCESS_MOD	811
+#define ITEM_STAT_EX_CRIT_FAILURE_MOD	812
+#define ITEM_STAT_RARE_HARVEST_CHANCE	813
+#define ITEM_STAT_MAX_CRAFTING			814
+#define ITEM_STAT_COMPONENT_REFUND		815
+#define ITEM_STAT_BOUNTIFUL_HARVEST		816
 
 
 #pragma pack(1)
@@ -515,6 +537,7 @@ struct ItemStatsValues{
 	sint16			dps;
 	sint16			attackspeed;
 	sint16			multiattackchance;
+	sint16			flurry;
 	sint16			aeautoattackchance;
 	sint16			strikethrough;
 	sint16			accuracy;
@@ -596,6 +619,7 @@ public:
 		int16					adventure_default_level;
 		int16					tradeskill_default_level;
 		int8					usable;
+		int8					harvest;
 	};
 	struct Armor_Info {
 		int16					mitigation_low;
@@ -651,13 +675,16 @@ public:
 		int32					spell_id;
 		int32					spell_tier;
 	};
-	struct House_Info{
+	struct HouseItem_Info{
 		int32					status_rent_reduction;
+		float					coin_rent_reduction;
+		int8					house_only;
 	};
 	struct HouseContainer_Info{
-		int16					disallowed_types;
-		int16					allowed_types;
-		int8					num_slots;
+		int64                   allowed_types;
+		int8                    num_slots;
+		int8                    broker_commission;
+		int8                    fence_commission;
 	};
 	struct RecipeBook_Info{
 		vector<string>			recipes;
@@ -700,6 +727,8 @@ public:
 	Food_Info*				food_info;
 	Bauble_Info*			bauble_info;
 	Book_Info*				book_info;
+	HouseItem_Info*			houseitem_info;
+	HouseContainer_Info*    housecontainer_info;
 	Skill_Info*				skill_info;
 	RecipeBook_Info*		recipebook_info;
 	Thrown_Info*			thrown_info;
@@ -762,6 +791,7 @@ public:
 	bool IsTinkered();
 	bool IsTradeskill();
 	bool IsThrown();
+	bool IsHarvest();
 	void SetItemScript(string name);
 	const char*	GetItemScript();
 	int32 CalculateRepairCost();
@@ -832,22 +862,36 @@ public:
 	bool HasFreeBankSlot();
 	int8 FindFreeBankSlot();
 
-	///<summary>Get the first free slot and stor them in the provided variables</summary>
+	///<summary>Get the first free slot and store them in the provided variables</summary>
 	///<param name='bag_id'>Will contain the bag id of the first free spot</param>
 	///<param name='slot'>Will contain the slot id of the first free slot</param>
 	///<returns>True if a free slot was found</returns>
 	bool GetFirstFreeSlot(sint32* bag_id, sint16* slot);
+
+	/// <summary>Get the first free slot in the bank and store it in the provided variables
+	/// <param name='bag_id'>Will contain the bag id of the first free bank slot</param>
+	/// <param name='slot'>Will contain the slot id of the first free bank slot</param>
+	/// <returns>True if a free bank slot was found</returns>
+	bool GetFirstFreeBankSlot(sint32* bag_id, sint16* slot);
+
+	/// <summary></summary>
+	Item* GetBankBag(int8 inventory_slot, bool lock = true);
+
+	/// <summary></summary>
+	bool AddOverflowItem(Item* item);
+
+	Item* GetOverflowItem();
+
+	void RemoveOverflowItem(Item* item);
+
+	vector<Item*>* GetOverflowItemList();
+
 private:
+	void AddItemToPacket(PacketStruct* packet, Player* player, Item* item, int16 i, bool overflow = false);
 	void Stack(Item* orig_item, Item* item);
 	Mutex MPlayerItems;
 	int16 packet_count;
-};
-class OverFlowItemList : public PlayerItemList {
-public:
-	bool OverFlowSlotFull();
-	int8 GetNextOverFlowSlot();
-	bool AddItem(Item* item);
-	Item* GetOverFlowItem();
+	vector<Item*> overflowItems;
 };
 class EquipmentItemList{
 public:
@@ -870,7 +914,7 @@ public:
 	bool	CanItemBeEquippedInSlot(Item* tmp, int8 slot);
 	int8	GetFreeSlot(Item* tmp, int8 slot_id = 255);
 	ItemStatsValues*	CalculateEquipmentBonuses(Entity* entity = 0);
-	EQ2Packet* serialize(int16 version);
+	EQ2Packet* serialize(int16 version, Player* player = 0);
 	uchar* xor_packet;
 	uchar* orig_packet;
 private:
@@ -878,4 +922,3 @@ private:
 };
 
 #endif
-

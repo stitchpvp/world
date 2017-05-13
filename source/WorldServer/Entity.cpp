@@ -19,10 +19,11 @@
 */
 #include "Entity.h"
 #include <math.h>
-#include "Items/Items.h"
+#include "Items/Items_DoV.h"
 #include "zoneserver.h"
 #include "World.h"
 #include "../common/Log.h"
+#include "Rules/Rules.h"
 #include "Spells.h"
 #include "SpellProcess.h"
 #include "classes.h"
@@ -32,6 +33,7 @@
 extern World world;
 extern MasterItemList master_item_list;
 extern MasterSpellList master_spell_list;
+extern RuleManager rule_manager;
 extern Classes classes;
 
 Entity::Entity(){
@@ -223,6 +225,10 @@ int16 Entity::GetDiseaseResistanceBase(){
 
 int16 Entity::GetPoisonResistanceBase(){
 	return GetInfoStruct()->poison_base;
+}
+
+void Entity::SetAlignment(sint8 new_value) {
+	GetInfoStruct()->alignment = new_value;
 }
 
 sint8 Entity::GetAlignment(){
@@ -589,7 +595,7 @@ void Entity::RemoveMaintainedSpell(LuaSpell* luaspell){
 void Entity::RemoveSpellEffect(LuaSpell* spell) {
 	bool found = false;
 	MSpellEffects.writelock(__FUNCTION__, __LINE__);
-	for(int i=0;i<45;i++) {
+	for(int i=0; i < NUM_SPELL_EFFECTS; i++) {
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
@@ -787,6 +793,9 @@ void Entity::CalculateBonuses(){
 	info->divine += values->vs_divine;
 	info->heat += values->vs_heat;
 	info->magic += values->vs_magic;
+	info->cur_mitigation += values->vs_slash;
+	info->cur_mitigation += values->vs_pierce;
+	info->cur_mitigation += values->vs_crush;
 	int32 sta_hp_bonus = 0.0;
 	int32 prim_power_bonus = 0.0;
 	float bonus_mod = 0.0;
@@ -871,7 +880,7 @@ bool Entity::CheckSpellBonusRemoval(LuaSpell* spell, int16 type){
 }
 
 void Entity::AddSpellBonus(LuaSpell* spell, int16 type, sint32 value, int64 class_req){
-	CheckSpellBonusRemoval(spell, type); 
+	//CheckSpellBonusRemoval(spell, type);
 	BonusValues* bonus = new BonusValues;
 	bonus->luaspell = spell;
 	bonus->type = type;
@@ -1191,32 +1200,32 @@ float Entity::CalculateDPSMultiplier(){
 	return 1;
 }	
 
-void Entity::AddWard(int32 spellID, WardInfo* ward) {
-	if (m_wardList.count(spellID) == 0) {
-		m_wardList[spellID] = ward;
+void Entity::AddWard(LuaSpell* luaspell, WardInfo* ward) {
+	if (m_wardList.count(luaspell) == 0) {
+		m_wardList[luaspell] = ward;
 	}
 }
 
-WardInfo* Entity::GetWard(int32 spellID) {
+WardInfo* Entity::GetWard(LuaSpell* luaspell) {
 	WardInfo* ret = 0;
 
-	if (m_wardList.count(spellID) > 0)
-		ret = m_wardList[spellID];
+	if (m_wardList.count(luaspell) > 0)
+		ret = m_wardList[luaspell];
 
 	return ret;
 }
 
-void Entity::RemoveWard(int32 spellID) {
-	if (m_wardList.count(spellID) > 0) {
+void Entity::RemoveWard(LuaSpell* luaspell) {
+	if (m_wardList.count(luaspell) > 0) {
 		// Delete the ward info
-		safe_delete(m_wardList[spellID]);
+		safe_delete(m_wardList[luaspell]);
 		// Remove from the ward list
-		m_wardList.erase(spellID);
+		m_wardList.erase(luaspell);
 	}
 }
 
 int32 Entity::CheckWards(int32 damage, int8 damage_type) {
-	map<int32, WardInfo*>::iterator itr;
+	map<LuaSpell*, WardInfo*>::iterator itr;
 	WardInfo* ward = 0;
 	LuaSpell* spell = 0;
 
@@ -1240,23 +1249,26 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 		if (damage >= ward->DamageLeft) {
 			// Damage is greater than or equal to the amount left on the ward
 			damage -= ward->DamageLeft;
+
+			GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
+
 			ward->DamageLeft = 0;
 			spell->damage_remaining = 0;
-			GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
+
 			if (!ward->keepWard) {
-				RemoveWard(spell->spell->GetSpellID());
+				RemoveWard(spell);
 				GetZone()->GetSpellProcess()->DeleteCasterSpell(spell);
 			}
-		}
-		else {
+		} else {
 			// Damage is less then the amount left on the ward
 			ward->DamageLeft -= damage;
 			spell->damage_remaining = ward->DamageLeft;
-			if (spell->caster->IsPlayer())
-				ClientPacketFunctions::SendMaintainedExamineUpdate(GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, ward->DamageLeft, 1);
 			GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
 			damage = 0;
 		}
+
+		if (spell->caster->IsPlayer())
+			ClientPacketFunctions::SendMaintainedExamineUpdate(GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, ward->DamageLeft, 1);
 
 		// Reset ward pointer
 		ward = 0;
@@ -1585,6 +1597,26 @@ void Entity::CancelAllStealth() {
 	}
 }
 
+bool Entity::CanAttackTarget(Spawn *target) {
+	if (target->IsPlayer() || target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer()) {
+		bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+
+		Entity* entity_target = (Entity*)target;
+
+		if (target->IsPet())
+			entity_target = ((NPC*)target)->GetOwner();
+
+		// Alignment of 0 is currently "neutral"
+		// Not attackable by either - only meant for GM, perhaps.
+		if (entity_target->GetAlignment() == 0)
+			return false;
+
+		return (pvp_allowed && this->GetAlignment() != entity_target->GetAlignment());
+	} else {
+		return target->GetAttackable();
+	}
+}
+
 bool Entity::IsStealthed(){
 	MutexList<LuaSpell*>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
 	return  (!stealth_list || stealth_list->size(true) == 0) == false;
@@ -1818,6 +1850,17 @@ bool Entity::IsRooted(){
 bool Entity::IsFeared(){
 	MutexList<LuaSpell*>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
 	return (!fear_list || fear_list->size(true) == 0 || IsFearImmune()) == false;
+}
+
+bool Entity::IsWarded() {
+	map<LuaSpell*, WardInfo*>::iterator itr;
+
+	for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
+		if (itr->second->DamageLeft > 0)
+			return true;
+	}
+	
+	return false;
 }
 
 void Entity::AddWaterwalkSpell(LuaSpell* spell){

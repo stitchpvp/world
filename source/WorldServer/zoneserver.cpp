@@ -223,7 +223,7 @@ void ZoneServer::Init()
 
 	tracking_timer.Start(5000);
 
-	movement_timer.Start(100);
+	movement_timer.Start(5);
 	location_prox_timer.Start(1000);
 	location_grid_timer.Start(1000);
 
@@ -1122,10 +1122,11 @@ void ZoneServer::CheckRemoveSpawnFromClient(Spawn* spawn) {
 				packet = configReader.getStruct("WS_DestroyGhostCmd", packet_version);
 			}
 
-			if(spawn && spawn != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && client->GetPlayer()->WasSpawnRemoved(spawn) == false && (spawn_range_map.Get(client)->Get(spawn->GetID()) > REMOVE_SPAWN_DISTANCE && !spawn->IsWidget())){
-				SendRemoveSpawn(client, spawn, packet);
+			if (spawn && spawn != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && client->GetPlayer()->WasSpawnRemoved(spawn) == false) {
+			  if ((spawn_range_map.Get(client)->Get(spawn->GetID()) > REMOVE_SPAWN_DISTANCE && !spawn->IsWidget())) {
+					SendRemoveSpawn(client, spawn, packet);
+				}
 			}
-
 		}
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
@@ -1705,7 +1706,17 @@ void ZoneServer::SendSpawnChanges(Spawn* spawn){
 			MClientList.readlock(__FUNCTION__, __LINE__);
 			for (itr = clients.begin(); itr != clients.end(); itr++) {
 				client = *itr;
-				SendSpawnChanges(spawn, client);
+
+				if (spawn->IsPlayer() && client->GetPlayer()->CanAttackTarget((Player*)spawn) && ((Player*)spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH]) {
+					int16 packet_version = client->GetVersion();
+					PacketStruct *packet = configReader.getStruct("WS_DestroyGhostCmd", packet_version);
+
+					SendRemoveSpawn(client, (Player*)spawn, packet);
+
+					safe_delete(packet);
+				} else {
+					SendSpawnChanges(spawn, client);
+				}
 			}
 			MClientList.releasereadlock(__FUNCTION__, __LINE__);
 		}
@@ -1834,9 +1845,10 @@ void ZoneServer::SendPlayerPositionChanges(Player* player){
 		MClientList.readlock(__FUNCTION__, __LINE__);
 		for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 			client = *client_itr;
-			if(player != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(player->GetID()) && client->GetPlayer()->WasSpawnRemoved(player) == false){
+
+			if (player != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(player->GetID()) && client->GetPlayer()->WasSpawnRemoved(player) == false) {
 				EQ2Packet* outapp = player->player_position_update_packet(client->GetPlayer(), client->GetVersion());
-				if(outapp)
+				if (outapp)
 					client->QueuePacket(outapp);
 			}
 		}
@@ -3909,16 +3921,6 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 
 	if(dead->IsEntity())
 	{
-		((Entity*)dead)->InCombat(false);
-		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
-		dead->SetHP(0);
-		dead->SetSpawnType(3);
-		dead->appearance.attackable = 0;
-
-
-		// Remove hate towards dead from all npc's in the zone
-		ClearHate((Entity*)dead);
-
 		// Check kill and death procs
 		if (killer && dead != killer){
 			if (dead->IsEntity())
@@ -3931,6 +3933,27 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		if (dead->Alive())
 			return;
 
+		if (killer->IsPlayer()) {
+			client = GetClientBySpawn(killer);
+
+			((Player*)killer)->InCombat(false);
+
+			PacketStruct* packet = configReader.getStruct("WS_EnterCombat", client->GetVersion());
+			if (packet) {
+				client->QueuePacket(packet->serialize());
+			}
+			safe_delete(packet);
+		}
+
+		((Entity*)dead)->InCombat(false);
+		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
+		dead->SetHP(0);
+		dead->SetSpawnType(3);
+		dead->appearance.attackable = 0;
+
+		// Remove hate towards dead from all npc's in the zone
+		ClearHate((Entity*)dead);
+
 		RemoveSpellTimersFromSpawn(dead, true, !dead->IsPlayer());
 
 		if(dead->IsPlayer()) 
@@ -3939,7 +3962,6 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 			client = GetClientBySpawn(dead);
 
 			if(client) {
-
 				if(client->GetPlayer()->DamageEquippedItems(10, client))
 					client->QueuePacket(client->GetPlayer()->GetEquipmentList()->serialize(client->GetVersion()));
 
@@ -4385,18 +4407,25 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster){
 	safe_delete(packet);
 }
 
-void ZoneServer::SendCastSpellPacket(int32 spell_visual, Spawn* target) {
+void ZoneServer::SendCastSpellPacket(int32 spell_visual, Spawn* target, Spawn* caster) {
 	if (target) {
 		vector<Client*>::iterator client_itr;
+		EQ2Packet* outapp = 0;
+		PacketStruct* packet = 0;
 
 		MClientList.readlock(__FUNCTION__, __LINE__);
 		for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 			Client* client = *client_itr;
 			if (!client)
 				continue;
-			PacketStruct* packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
+			packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
 			if (packet) {
-				packet->setDataByName("spawn_id", 0xFFFFFFFF);
+				int32 caster_id = 0xFFFFFFFF;
+				if (caster) {
+					caster_id = client->GetPlayer()->GetIDWithPlayerSpawn(caster);
+				}
+
+				packet->setDataByName("spawn_id", caster_id);
 				packet->setArrayLengthByName("num_targets", 1);
 				packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(target));
 				packet->setDataByName("spell_id", 0xFFFFFFFF);
@@ -4405,11 +4434,13 @@ void ZoneServer::SendCastSpellPacket(int32 spell_visual, Spawn* target) {
 				packet->setDataByName("spell_id", 0);
 				packet->setDataByName("spell_level", 0);
 				packet->setDataByName("spell_tier", 0);
-				client->QueuePacket(packet->serialize());
+				outapp = packet->serialize();
+				client->QueuePacket(outapp);
 				safe_delete(packet);
 			}
 		}
 		MClientList.releasereadlock(__FUNCTION__, __LINE__);
+		safe_delete(packet);
 	}
 }
 
@@ -5675,7 +5706,7 @@ vector<Spawn*> ZoneServer::GetAttackableSpawnsByDistance(Spawn* caster, float di
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
-		if (spawn && spawn->IsNPC() && spawn->appearance.attackable > 0 && spawn != caster && spawn->Alive() && spawn->GetDistance(caster, true) <= distance) 
+		if (spawn && ((spawn->IsNPC() && spawn->appearance.attackable > 0) || (spawn->IsPlayer() && ((Player*)caster)->CanAttackTarget((Player*)spawn))) && spawn != caster && spawn->Alive() && spawn->GetDistance(caster, true) <= distance)
 			ret.push_back(spawn);
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);

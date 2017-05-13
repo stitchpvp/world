@@ -444,7 +444,10 @@ void LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, bool preca
 	else
 		SetSpawnValue(spell->state, spell->caster);
 
-	temp_spawn = 0;
+	if (spell->initial_target && precast)
+		SetSpawnValue(spell->state, spell->caster->GetZone()->GetSpawnByID(spell->initial_target));
+
+	/*temp_spawn = 0;
 
 	if (timer && timer->target)
 		temp_spawn = spell->caster->GetZone()->GetSpawnByID(timer->target);
@@ -458,7 +461,7 @@ void LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, bool preca
 			SetSpawnValue(spell->state, spell->caster->GetTarget());
 		else
 			SetSpawnValue(spell->state, 0);
-	}
+	}(*/
 }
 
 LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state) {
@@ -553,28 +556,32 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 	return 0;
 }
 
-void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete) {
+void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_function, bool can_delete) {
 	if(shutting_down)
 		return;
+
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
+
+		current_spells[spell->state] = spell;
+
 		LUASpawnWrapper* spawn_wrapper = new LUASpawnWrapper();
 		spawn_wrapper->spawn = spell->caster;
 		AddUserDataPtr(spawn_wrapper);
 		lua_pushlightuserdata(spell->state, spawn_wrapper);
-		if(spell->caster && (spell->initial_target || spell->caster->GetTarget())){
+
+		if(spawn) {
 			spawn_wrapper = new LUASpawnWrapper();
-			if(!spell->initial_target)
-				spawn_wrapper->spawn = spell->caster->GetTarget();
-			else
-				spawn_wrapper->spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
+			spawn_wrapper->spawn = spawn;
 			AddUserDataPtr(spawn_wrapper);
 			lua_pushlightuserdata(spell->state, spawn_wrapper);
-		}
-		else
+		} else {
 			lua_pushlightuserdata(spell->state, 0);
+		}
+
 		lua_pcall(spell->state, 2, 0, 0);
 	}
+
 	if (can_delete) {
 		MSpellDelete.lock();
 		spells_pending_delete[spell] = Timer::GetCurrentTime2() + 10000;

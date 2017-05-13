@@ -69,7 +69,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../common/EQ2_Common_Structs.h"
 #include "net.h"
 #include "../common/MiscFunctions.h"
-#include "Items/Items.h"
+#include "Items/Items_DoV.h"
 #include "Skills.h"
 #include "LuaInterface.h"
 #include "Quests.h"
@@ -114,7 +114,7 @@ extern MasterAAList master_tree_nodes;
 
 using namespace std;
 
-Client::Client(EQStream* ieqs) : pos_update(200), quest_pos_timer(2000), lua_debug_timer(30000){
+Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug_timer(30000){
 	eqs = ieqs;
 	ip = eqs->GetrIP();
 	port = ntohs(eqs->GetrPort());
@@ -601,7 +601,7 @@ void Client::SendCharInfo(){
 	PacketStruct* packet = configReader.getStruct("WS_SetControlGhost",GetVersion());
 	if(packet){
 		packet->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(player));
-		packet->setDataByName("size", .56);
+		packet->setDataByName("size", 0.56);
 		packet->setDataByName("unknown2", 255);
 		EQ2Packet* app = packet->serialize();
 		QueuePacket(app);
@@ -1278,7 +1278,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 					safe_height += (skill->current_val + 1)/5;
 
 				if (height > safe_height) {
-					int16 damage = (int16)ceil((height-safe_height)*125);
+					int16 damage = (int16)ceil((height-safe_height)*25);
 					if(height >= 80)
 						damage = 30000;
 					//cout << "Detected fall height:" << height << " damage:" << damage << endl;
@@ -1524,13 +1524,13 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 					float x = player->GetX();
 					float y = player->GetY();
 					float z = player->GetZ();
-					player->PrepareIncomingMovementPacket(app->size-offset,app->pBuffer+offset,version);
+					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
 					distance = player->GetDistance(x, y, z, false);
 					if(distance > .5)
 						current_zone->Interrupted(player, 0, SPELL_ERROR_INTERRUPTED, false, true);
 				}
 				else
-					player->PrepareIncomingMovementPacket(app->size-offset,app->pBuffer+offset,version);
+					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
 				player_pos_changed = true;
 				LogWrite(CCLIENT__PACKET, 0, "Client", "Dump/Print Packet in func: %s, line: %i", __FUNCTION__, __LINE__);
 				//DumpPacket(app);
@@ -3297,30 +3297,43 @@ void Client::HandleVerbRequest(EQApplicationPacket* app){
 		Spawn* spawn = GetPlayer()->GetSpawnWithPlayerID(spawn_id);
 		vector<EntityCommand*> commands;
 		vector<EntityCommand*> delete_commands;
-		if(out && spawn){
+		if(out && spawn) {
 			for(int32 i=0;i<spawn->primary_command_list.size();i++)
 				commands.push_back(spawn->primary_command_list[i]);
+
 			for(int32 i=0;i<spawn->secondary_command_list.size();i++)
 				commands.push_back(spawn->secondary_command_list[i]);
-			if(spawn->IsPlayer()){
-				if(player->IsFriend(spawn->GetName()))
-					delete_commands.push_back(player->CreateEntityCommand("remove from friends list", 10000, "friend_remove", "", 0, 0));
-				else
-					delete_commands.push_back(player->CreateEntityCommand("add to friends list", 10000, "friend_add", "", 0, 0));
-				if(player->IsIgnored(spawn->GetName()))
-					delete_commands.push_back(player->CreateEntityCommand("remove from ignore list", 10000, "ignore_remove", "", 0, 0));
-				else
-					delete_commands.push_back(player->CreateEntityCommand("add to ignore list", 10000, "ignore_add", "", 0, 0));
-				if(((Player*)spawn)->GetGroupMemberInfo()) {
-					if(player->IsGroupMember((Player*)spawn) && player->GetGroupMemberInfo()->leader) { //group leader
-						delete_commands.push_back(player->CreateEntityCommand("kick from group", 10000, "kickfromgroup", "", 0, 0));
-						delete_commands.push_back(player->CreateEntityCommand("make group leader", 10000, "makeleader", "", 0, 0));
+
+			if (spawn->IsPlayer()) {
+				if (!player->CanAttackTarget((Player*)spawn)) {
+					delete_commands.push_back(player->CreateEntityCommand("Inspect", 10000, "inspect_player", "", 0, 0));
+					delete_commands.push_back(player->CreateEntityCommand("Who", 10000, "who", "", 0, 0));
+
+					if (player->IsFriend(spawn->GetName())) {
+						delete_commands.push_back(player->CreateEntityCommand("remove from friends list", 10000, "friend_remove", "", 0, 0));
+					}	else {
+						delete_commands.push_back(player->CreateEntityCommand("add to friends list", 10000, "friend_add", "", 0, 0));
+					}
+
+					if (player->IsIgnored(spawn->GetName())) {
+						delete_commands.push_back(player->CreateEntityCommand("remove from ignore list", 10000, "ignore_remove", "", 0, 0));
+					} else {
+						delete_commands.push_back(player->CreateEntityCommand("add to ignore list", 10000, "ignore_add", "", 0, 0));
+					}
+
+					if (((Player *)spawn)->GetGroupMemberInfo()) {
+						if (player->IsGroupMember((Player *)spawn) && player->GetGroupMemberInfo()->leader) { //group leader
+							delete_commands.push_back(player->CreateEntityCommand("kick from group", 10000, "kickfromgroup", "", 0, 0));
+							delete_commands.push_back(player->CreateEntityCommand("make group leader", 10000, "makeleader", "", 0, 0));
+						}
+					} else if (!player->GetGroupMemberInfo() || (player->GetGroupMemberInfo()->leader && world.GetGroupManager()->GetGroupSize(player->GetGroupMemberInfo()->group_id) < 6)) {
+						delete_commands.push_back(player->CreateEntityCommand("invite to group", 10000, "invite", "", 0, 0));
 					}
 				}
-				else if(!player->GetGroupMemberInfo() || (player->GetGroupMemberInfo()->leader && world.GetGroupManager()->GetGroupSize(player->GetGroupMemberInfo()->group_id) < 6))
-					delete_commands.push_back(player->CreateEntityCommand("invite to group", 10000, "invite", "", 0, 0));
-				commands.insert(commands.end(), delete_commands.begin(), delete_commands.end());
 			}
+
+			commands.insert(commands.end(), delete_commands.begin(), delete_commands.end());
+
 			out->setDataByName("spawn_id", spawn_id);
 			out->setArrayLengthByName("num_verbs", commands.size());
 			
@@ -7549,7 +7562,7 @@ void Client::SendResurrectionWindow() {
 	if(!packet)
 		return;
 
-	char* tmp = new char[60];
+	char* tmp = new char[80];
 	sprintf(tmp, "%s would like to cast '%s' on you. Do you accept?", caster->GetName(), current_rez.spell_name.c_str());
 
 	packet->setMediumStringByName("text", tmp);

@@ -268,7 +268,7 @@ int8 PlayerGroupManager::Invite(Player* leader, Entity* member) {
 	MPendingInvites.writelock(__FUNCTION__, __LINE__);
 
 	// Disable npc's in group until we are ready for mercs
-	if (!member || member->IsNPC())
+	if (!member || member->IsNPC() || member->CanAttackTarget(leader))
 		ret = 6; // failure, not a valid target
 	else if (leader == member)
 		ret = 5; // failure, can't invite yourself
@@ -590,7 +590,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 
 						has_effect = false;
 
-						if (group_member->GetSpellEffect(spell->GetSpellID()), caster)
+						if (group_member->GetSpellEffect(spell->GetSpellID(), caster))
 							has_effect = true;
 
 						// Check if player is within range of the caster

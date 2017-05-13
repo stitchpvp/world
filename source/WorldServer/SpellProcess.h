@@ -379,7 +379,7 @@ private:
 	/// <param name='spell'>LuaSpell to call the lua script for</param>
 	/// <param name='first_cast'>No clue, not currently used</param>
 	/// <returns>True if the spell script was called successfully</returns>
-	bool ProcessSpell(LuaSpell* spell, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
+	bool ProcessSpell(LuaSpell* spell, Spawn * target, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
 	Mutex MSpellProcess;
 	MutexMap<Entity*,Spell*> spell_que;
 	MutexList<LuaSpell*> active_spells;

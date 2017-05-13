@@ -654,6 +654,7 @@ public:
 	void AddFearSpell(LuaSpell* spell);
 	void RemoveFearSpell(LuaSpell* spell);
 	bool IsFeared();
+	bool IsWarded();
 	void AddSnareSpell(LuaSpell* spell);
 	void RemoveSnareSpell(LuaSpell* spell);
 	void SetSnareValue(LuaSpell* spell, float snare_val);
@@ -684,16 +685,16 @@ public:
 	/// <summary>Add a ward to the entities ward list</summary>
 	/// <param name='spellID'>Spell id of the ward to add</param>
 	/// <param name='ward'>WardInfo* of the ward we are adding</parma>
-	void AddWard(int32 spellID, WardInfo* ward);
+	void AddWard(LuaSpell* luaspell, WardInfo* ward);
 
 	/// <summary>Gets ward info for the given spell id</summary>
 	/// <param name='spellID'>The spell id of the ward we want to get</param>
 	/// <returns>WardInfo for the given spell id</returns>
-	WardInfo* GetWard(int32 spellID);
+	WardInfo* GetWard(LuaSpell * luaspell);
 
 	/// <summary>Removes the ward with the given spell id</summary>
 	/// <param name='spellID'>The spell id of the ward to remove</param>
-	void RemoveWard(int32 spellID);
+	void RemoveWard(LuaSpell* luaspell);
 
 	/// <summary>Subtracts the given damage from the wards</summary>
 	/// <param name='damage'>The damage to subtract from the wards</param>
@@ -748,6 +749,7 @@ public:
 	void RemoveEffectsFromLuaSpell(LuaSpell* spell);
 	virtual void RemoveSkillBonus(int32 spell_id);
 	void CancelAllStealth();
+	bool CanAttackTarget(Spawn* target);
 	bool IsStealthed();
 	bool IsInvis();
 	void AddInvisSpell(LuaSpell* spell);
@@ -790,6 +792,8 @@ public:
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
 	void UpdateGroupMemberInfo();
 
+	float GetMitigationPercentage() { return info_struct.cur_mitigation / (GetLevel() * 100.0); }
+
 protected:
 	bool	in_combat;
 
@@ -823,8 +827,7 @@ private:
 	Entity* deityPet;
 	Entity* cosmeticPet;
 
-	// int32 = spell id, WardInfo* = pointer to ward info
-	map<int32, WardInfo*> m_wardList;
+	map<LuaSpell*, WardInfo*> m_wardList;
 
 	// int8 = type, vector<Proc*> = list of pointers to proc info
 	map <int8, vector<Proc*> > m_procList;

@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Items.h"
+#include "Items_DoV.h"
 #include "../Spells.h"
 #include "../Quests.h"
 #include "../Player.h"

@@ -174,7 +174,7 @@ public:
 	bool			LoadSpawnScript(const char* name);
 	bool			LoadZoneScript(string name);
 	bool			LoadZoneScript(const char* name);
-	void			RemoveSpell(LuaSpell* spell, bool call_remove_function = true, bool can_delete = true);
+	void			RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_function = true, bool can_delete = true);
 	Spawn*			GetSpawn(lua_State* state, int8 arg_num = 1);
 	Item*			GetItem(lua_State* state, int8 arg_num = 1);
 	Quest*			GetQuest(lua_State* state, int8 arg_num = 1);

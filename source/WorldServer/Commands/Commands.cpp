@@ -1534,6 +1534,30 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			}
 			break;
 						  }
+		case COMMAND_SIZE: {
+			if (sep && sep->arg[0] && sep->IsNumber(0)) {
+				client->GetPlayer()->SetSize(atoi(sep->arg[0]));
+				client->GetPlayer()->vis_changed = true;
+			} else {
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /size {size}");
+			}
+			break;
+		}
+		case COMMAND_VISUAL: {
+			if (sep && sep->arg[0] && sep->IsNumber(0)) {
+				int32 visual_id = atoi(sep->arg[0]);
+				Spawn* target = client->GetPlayer();
+				
+				if (client->GetPlayer()->HasTarget()) {
+					target = client->GetPlayer()->GetTarget();
+				}
+
+				client->GetCurrentZone()->SendCastSpellPacket(visual_id, target, client->GetPlayer());
+			} else {
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /visual {spell_visual}");
+			}
+			break;
+		}
 		case COMMAND_BANK_DEPOSIT:{
 			if(client->GetBanker() && sep && sep->arg[0]){
 				int64 amount = 0;
@@ -2970,6 +2994,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				client->Message(CHANNEL_COLOR_YELLOW, "Emote State: %i, Pitch: %f, Roll: %f, Hide Hood: %i", spawn->GetEmoteState(), spawn->GetPitch(), spawn->GetRoll(), spawn->appearance.hide_hood);
 				if (spawn->IsNPC())
 					client->Message(CHANNEL_COLOR_YELLOW, "Randomize: %u", ((NPC*)spawn)->GetRandomize());
+				if (spawn->IsPlayer())
+					client->Message(CHANNEL_COLOR_YELLOW, "Alignment: %i", ((Player*)spawn)->GetAlignment());
 			}
 			else{
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Syntax: /spawn details ");

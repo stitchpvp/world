@@ -304,7 +304,7 @@ int16 PlayerSkillList::CalculateSkillMaxValue(int32 skill_id, int16 max_val) {
 		map<int32, SkillBonusValue*>::iterator sbv_itr;
 		for (sbv_itr = sb->skills.begin(); sbv_itr != sb->skills.end(); sbv_itr++) {
 			SkillBonusValue* sbv = sbv_itr->second;
-			if (sbv->skill_id == skill_id)
+			if (sbv->skill_id == skill_id && sbv->value > 0)
 				new_val += (int16)sbv->value;
 		}
 	}

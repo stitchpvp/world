@@ -21,7 +21,7 @@
 #define __EQ2_PLAYER__
 
 #include "Entity.h"
-#include "Items/Items.h"
+#include "Items/Items_DoV.h"
 #include "Factions.h"
 #include "Skills.h"
 #include "Quests.h"
@@ -113,7 +113,7 @@
 #define UPDATE_ACTIVITY_DROWNING2		14336
 
 #define NUM_MAINTAINED_EFFECTS	30
-#define NUM_SPELL_EFFECTS		45
+#define NUM_SPELL_EFFECTS		30
 
 /* Character History Type Defines */
 #define HISTORY_TYPE_NONE		0

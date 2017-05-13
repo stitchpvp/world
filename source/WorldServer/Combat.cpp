@@ -102,21 +102,13 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 			target = ((NPC*)target)->GetOwner();
 	}
 
-	bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
-	LogWrite(COMBAT__DEBUG, 3, "PVP", "PVP is: %s", pvp_allowed ? "ENABLED!" : "Disabled.");
-
 	if (attacker == target) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: attacker tried to attack himself or his pet.");
 		return false;
 	}
 
-	if (IsPlayer() && target->GetAttackable() == 0) {
+	if (attacker->IsPlayer() && !attacker->CanAttackTarget(target)) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: target is not attackable");
-		return false;
-	}
-
-	if (!pvp_allowed && (attacker->IsPlayer() && target->IsPlayer())) {
-		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: pvp is not allowed");
 		return false;
 	}
 
@@ -176,6 +168,7 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		min_damage = GetSecondaryWeaponMinDamage();
 		max_damage = GetSecondaryWeaponMaxDamage();
 	}
+
 	if (IsStealthed() || IsInvis())
 		CancelAllStealth();
 		
@@ -260,6 +253,9 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack) {
 	if(!victim)
 		return;
+
+	if (IsStealthed() || IsInvis())
+		CancelAllStealth();
 
 	if(weapon && weapon->IsRanged() && ammo && ammo->IsAmmo() && ammo->IsThrown()) {
 		if(weapon->ranged_info->range_low <= distance && (weapon->ranged_info->range_high + ammo->thrown_info->range) >= distance) {
@@ -364,88 +360,39 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 	int8 hit_result = 0;
 	bool is_tick = false; // if spell is already active, this is a tick
 	if (GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell)){
-		hit_result = DAMAGE_PACKET_RESULT_SUCCESSFUL;
 		is_tick = true;
 	}
-	else if(spell->GetSpellData()->type == SPELL_BOOK_TYPE_COMBAT_ART)
-		hit_result = DetermineHit(victim, damage_type, 0, false);
-	else
-		hit_result = DetermineHit(victim, damage_type, 0, true);
 		
-	if(hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {
-		luaspell->last_spellattack_hit = true;
-		//If this spell is a tick and has already crit, force the tick to crit
-		if(is_tick){
-			if(luaspell->crit)
-				crit_mod = 1;
-			else
-				crit_mod = 2;
-		}
-		if(DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, spell->GetName(), crit_mod, is_tick, no_calcs) && !luaspell->crit)
-			luaspell->crit = true;
-		CheckProcs(PROC_TYPE_OFFENSIVE, victim);
-		CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
+	luaspell->last_spellattack_hit = true;
+	//If this spell is a tick and has already crit, force the tick to crit
+	if(is_tick){
+		if(luaspell->crit)
+			crit_mod = 1;
+		else
+			crit_mod = 2;
+	}
+	if(DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, spell->GetName(), crit_mod, is_tick, no_calcs) && !luaspell->crit)
+		luaspell->crit = true;
 
-		if(spell->GetSpellData()->success_message.length() > 0){
-			Client* client = 0;
-			if(IsPlayer())
-				client = GetZone()->GetClientBySpawn(this);
-			if(client){
-				string success_message = spell->GetSpellData()->success_message;
-				if(success_message.find("%t") < 0xFFFFFFFF)
-					success_message.replace(success_message.find("%t"), 2, victim->GetName());
-				client->Message(CHANNEL_COLOR_SPELL, success_message.c_str());
-			}
-		}
-		if(spell->GetSpellData()->effect_message.length() > 0){
-			string effect_message = spell->GetSpellData()->effect_message;
-			if(effect_message.find("%t") < 0xFFFFFFFF)
-				effect_message.replace(effect_message.find("%t"), 2, victim->GetName());
-			GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_message.c_str(), victim, 50);
+	CheckProcs(PROC_TYPE_OFFENSIVE, victim);
+	CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
+
+	if(spell->GetSpellData()->success_message.length() > 0){
+		Client* client = 0;
+		if(IsPlayer())
+			client = GetZone()->GetClientBySpawn(this);
+		if(client){
+			string success_message = spell->GetSpellData()->success_message;
+			if(success_message.find("%t") < 0xFFFFFFFF)
+				success_message.replace(success_message.find("%t"), 2, victim->GetName());
+			client->Message(CHANNEL_COLOR_SPELL, success_message.c_str());
 		}
 	}
-	else {
-		if(hit_result == DAMAGE_PACKET_RESULT_RESIST)
-			luaspell->resisted = true;
-		if(victim->IsNPC())
-			((NPC*)victim)->AddHate(this, 5);
-		luaspell->last_spellattack_hit = false;
-		GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, hit_result, damage_type, 0, spell->GetName());
-	}
-	if(EngagedInCombat() == false)
-	{
-		LogWrite(MISC__TODO, 1, "TODO", "//It would probably be better to add a column to the spells table for 'starts autoattack'\nfile: %s, func: %s, Line: %i", __FILE__, __FUNCTION__, __LINE__);
-		if(GetInfoStruct()->class1 == COMMONER ||
-			GetInfoStruct()->class1 == FIGHTER ||
-			GetInfoStruct()->class1 == WARRIOR ||
-			GetInfoStruct()->class1 == GUARDIAN ||
-			GetInfoStruct()->class1 == BERSERKER ||
-			GetInfoStruct()->class1 == BRAWLER ||
-			GetInfoStruct()->class1 == MONK ||
-			GetInfoStruct()->class1 == BRUISER ||
-			GetInfoStruct()->class1 == CRUSADER ||
-			GetInfoStruct()->class1 == SHADOWKNIGHT ||
-			GetInfoStruct()->class1 == PALADIN ||
-			GetInfoStruct()->class1 == SCOUT ||
-			GetInfoStruct()->class1 == ROGUE ||
-			GetInfoStruct()->class1 == SWASHBUCKLER ||
-			GetInfoStruct()->class1 == BRIGAND ||
-			GetInfoStruct()->class1 == BARD ||
-			GetInfoStruct()->class1 == TROUBADOR ||
-			GetInfoStruct()->class1 == DIRGE ||
-			GetInfoStruct()->class1 == PREDATOR ||
-			GetInfoStruct()->class1 == RANGER ||
-			GetInfoStruct()->class1 == ASSASSIN ||
-			GetInfoStruct()->class1 == ANIMALIST ||
-			GetInfoStruct()->class1 == BEASTLORD ||
-			GetInfoStruct()->class1 == SHAPER || 
-			GetInfoStruct()->class1 == CHANNELER) //note: it would probably be better to add a column to the spells table for "starts autoattack".
-		{
-			if (victim->IsNPC())
-				((NPC*)victim)->AddHate(this, 5);
-			else
-				InCombat(true);
-		}
+	if(spell->GetSpellData()->effect_message.length() > 0){
+		string effect_message = spell->GetSpellData()->effect_message;
+		if(effect_message.find("%t") < 0xFFFFFFFF)
+			effect_message.replace(effect_message.find("%t"), 2, victim->GetName());
+		GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_message.c_str(), victim, 50);
 	}
 
 	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
@@ -846,11 +793,9 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			}
 		}
 
-		// TODO: Mitigation equation from http://www.guildportal.com/Guild.aspx?GuildID=20881&TabID=189653&ForumID=95908&TopicID=9024250
-		
+    // Rudimentary mitigation
+		damage *= 1 - victim->GetMitigationPercentage();
 	}
-
-	LogWrite(MISC__TODO, 3, "TODO", "Take players armor into account\nfile: %s, func: %s, line: %i)", __FILE__, __FUNCTION__, __LINE__);
 
 	if(damage <= 0){
 		hit_result = DAMAGE_PACKET_RESULT_NO_DAMAGE;
@@ -889,11 +834,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	if(victim->IsNPC() && victim->GetHP() > 0)
 		((Entity*)victim)->AddHate(this, damage);
 
-	if (damage > 0){
-		GetZone()->SendDamagePacket(this, victim, type, hit_result, damage_type, damage, spell_name);
-		if (IsStealthed() || IsInvis())
-			CancelAllStealth();		
-	}
+	GetZone()->SendDamagePacket(this, victim, type, hit_result, damage_type, damage, spell_name);	
 
 	if(victim->IsEntity())
 		((Entity*)victim)->CheckInterruptSpell(this);
@@ -972,35 +913,29 @@ bool Entity::CheckInterruptSpell(Entity* attacker) {
 	if(!spell || spell->GetSpellData()->interruptable == 0)
 		return false;
 
-	//base of 30 percent chance to continue casting if attacked (RULE)
-	int8 percent = 30;
+	if (this->IsWarded())
+		return false;
+
+	int8 interrupt_chance = 10;
+
 	Skill* skill = GetSkillByName("Focus", true);
-	if(skill)
-		percent += ((skill->current_val + 1)/6);
-	if(MakeRandomInt(1, 100) > percent) {
-		LogWrite(COMBAT__DEBUG, 0, "Combat", "'%s' interrupted spell for '%s': %i%%", attacker->GetName(), GetName(), percent);
+
+	if (skill)
+		interrupt_chance -= interrupt_chance * (max(skill->current_val, (int16)1) / (5 * GetLevel()));
+
+	if (MakeRandomInt(1, 100) < interrupt_chance) {
+		LogWrite(COMBAT__DEBUG, 0, "Combat", "'%s' interrupted spell for '%s': %i%%", attacker->GetName(), GetName(), interrupt_chance);
 		GetZone()->Interrupted(this, attacker, SPELL_ERROR_INTERRUPTED);
 		return true;
 	}
 
-	LogWrite(COMBAT__DEBUG, 0, "Combat", "'%s' failed to interrupt spell for '%s': %i%%", attacker->GetName(), GetName(), percent);
+	LogWrite(COMBAT__DEBUG, 0, "Combat", "'%s' failed to interrupt spell for '%s': %i%%", attacker->GetName(), GetName(), interrupt_chance);
 	return false;
 }
 
 void Entity::KillSpawn(Spawn* dead, int8 damage_type, int16 kill_blow_type) {
 	if(!dead)
 		return;
-
-	if (IsPlayer()) {
-		Client* client = GetZone()->GetClientBySpawn(this);
-		PacketStruct* packet = configReader.getStruct("WS_EnterCombat", client->GetVersion());
-		if (packet) {
-			client->QueuePacket(packet->serialize());
-		}
-		safe_delete(packet);
-
-		((Player*)this)->InCombat(false);
-	}
 
 	if (IsPlayer() && dead->IsEntity())
 		GetZone()->GetSpellProcess()->KillHOBySpawnID(dead->GetID());
@@ -1073,13 +1008,11 @@ void Player::ProcessCombat() {
 	combat_target = 0;
 
 	if (Target->HasTarget()) {
-		if (Target->IsPlayer() || (Target->IsNPC() && Target->IsPet() && ((NPC*)Target)->GetOwner()->IsPlayer())){
+		if (!CanAttackTarget(Target)) {
 			Spawn* secondary_target = Target->GetTarget();
-			if (secondary_target->IsNPC() && secondary_target->appearance.attackable) {
-				if (!secondary_target->IsPet() || (secondary_target->IsPet() && ((NPC*)secondary_target)->GetOwner()->IsNPC())) {
-					combat_target = secondary_target;
-				}
-			}
+
+			if (CanAttackTarget(secondary_target))
+				combat_target = secondary_target;
 		}
 	}
 	

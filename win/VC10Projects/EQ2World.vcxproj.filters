@@ -675,5 +675,8 @@
     <ClInclude Include="..\..\source\WorldServer\PlayerGroups.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Items\Items_DoV.h">
+      <Filter>Header Files\Items</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

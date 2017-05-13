@@ -25,7 +25,7 @@
 #include <assert.h>
 #include "../../common/Log.h"
 #include "../WorldDatabase.h"
-#include "Items.h"
+#include "Items_DoV.h"
 #include "../World.h"
 
 extern World world;

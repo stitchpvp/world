@@ -847,4 +847,7 @@ private:
 #define COMMAND_MODIFY_SPELL		1008
 #define COMMAND_MODIFY_ZONE			1009
 
+#define COMMAND_SIZE 2000
+#define COMMAND_VISUAL 2001
+
 #endif

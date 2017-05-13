@@ -23,7 +23,7 @@
 #include "../../common/database.h"
 #include "Recipe.h"
 #include "../../common/ConfigReader.h"
-#include "../Items/Items.h"
+#include "../Items/Items_DoV.h"
 
 extern ConfigReader configReader;
 extern MasterItemList master_item_list;

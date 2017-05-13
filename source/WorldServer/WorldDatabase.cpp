@@ -28,7 +28,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../common/debug.h"
 #include "../common/packet_dump.h"
 #include "../common/GlobalHeaders.h"
-#include "Items/Items.h"
+#include "Items/Items_DoV.h"
 #include "Factions.h"
 #include "World.h"
 #include "Variables.h"
@@ -1421,7 +1421,7 @@ bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, Client*
 	MYSQL_ROW row, row4;
 	int32 id = 0;
 	query.escaped_name = getEscapeString(ch_name);
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, current_zone_id, x, y, z, heading, admin_status, race, model_type, class, deity, level, gender, tradeskill_class, tradeskill_level, wing_type, hair_type, chest_type, legs_type, soga_wing_type, soga_hair_type, soga_chest_type, soga_legs_type, 0xFFFFFFFF - crc32(name), facial_hair_type, soga_facial_hair_type,instance_id,last_saved, DATEDIFF(curdate(), created_date) as accage FROM characters where name='%s' and account_id=%i AND deleted = 0", query.escaped_name, account_id);
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, current_zone_id, x, y, z, heading, admin_status, race, model_type, class, deity, level, gender, tradeskill_class, tradeskill_level, wing_type, hair_type, chest_type, legs_type, soga_wing_type, soga_hair_type, soga_chest_type, soga_legs_type, 0xFFFFFFFF - crc32(name), facial_hair_type, soga_facial_hair_type,instance_id,last_saved, DATEDIFF(curdate(), created_date) as accage, alignment FROM characters where name='%s' and account_id=%i AND deleted = 0", query.escaped_name, account_id);
 	// no character found
 	if ( result == NULL ) {
 		LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character for '%s'", ch_name);
@@ -1513,6 +1513,7 @@ SOGA chars looked ok in LoginServer screen tho... odd.
 		//LoadPlayerAchievements(client->GetPlayer());
 		LoadPlayerAchievementsUpdates(client->GetPlayer());
 		LoadAppearances(client->GetCurrentZone(), client);
+		client->GetPlayer()->SetAlignment(atoi(row[29]));
 		return LoadCharacterStats(id, account_id, client);
 	}
 
@@ -1872,7 +1873,20 @@ int32 WorldDatabase::SaveCharacter(PacketStruct* create, int32 loginID){
 	else
 		auto_admin_status = 0;
 
-	string create_char = string("Insert into characters (account_id, server_id, name, race, class, gender, deity, body_size, body_age, soga_wing_type, soga_chest_type, soga_legs_type, soga_hair_type, soga_model_type, legs_type, chest_type, wing_type, hair_type, model_type, facial_hair_type, soga_facial_hair_type, created_date, last_saved, admin_status) values(%i, %i, '%s', %i, %i, %i, %i, %f, %f, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, now(), unix_timestamp(), %i)");
+  int8 choice = create->getType_int8_ByName("starting_zone");
+	int alignment = -1;
+
+	// 1 = Q
+	// 2 = FP
+	// 4 = Gfay
+	// 8 = Neriak
+	// 16 = TD
+	// 32 = Halas
+	if (choice == 4 || choice == 32) {
+		alignment = 1;
+	}
+
+	string create_char = string("Insert into characters (account_id, server_id, name, race, class, gender, deity, body_size, body_age, soga_wing_type, soga_chest_type, soga_legs_type, soga_hair_type, soga_model_type, legs_type, chest_type, wing_type, hair_type, model_type, facial_hair_type, soga_facial_hair_type, created_date, last_saved, admin_status, alignment) values(%i, %i, '%s', %i, %i, %i, %i, %f, %f, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, now(), unix_timestamp(), %i, %i)");
 
 	query.RunQuery2(Q_INSERT, create_char.c_str(), 
 						loginID, 
@@ -1896,7 +1910,8 @@ int32 WorldDatabase::SaveCharacter(PacketStruct* create, int32 loginID){
 						GetAppearanceID(create->getType_EQ2_16BitString_ByName("race_file").data), 
 						GetAppearanceID(create->getType_EQ2_16BitString_ByName("face_file").data), 
 						GetAppearanceID(create->getType_EQ2_16BitString_ByName("soga_face_file").data),
-						auto_admin_status);
+						auto_admin_status,
+						alignment);
 
 	if(query.GetError() && strlen(query.GetError()) > 0)
 	{

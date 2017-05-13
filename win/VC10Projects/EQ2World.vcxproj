@@ -22,13 +22,14 @@
     <ProjectName>EQ2World</ProjectName>
     <ProjectGuid>{FC063D75-089D-4470-B255-032A80DE3CCE}</ProjectGuid>
     <RootNamespace>EQ2World</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -501,6 +502,7 @@
     <ClInclude Include="..\..\source\WorldServer\IRC\IRCReplyCodes.h" />
     <ClInclude Include="..\..\source\WorldServer\IRC\IRCServer.h" />
     <ClInclude Include="..\..\source\WorldServer\Items\Items.h" />
+    <ClInclude Include="..\..\source\WorldServer\Items\Items_DoV.h" />
     <ClInclude Include="..\..\source\WorldServer\Items\Loot.h" />
     <ClInclude Include="..\..\source\WorldServer\Languages.h" />
     <ClInclude Include="..\..\source\WorldServer\LoginServer.h" />

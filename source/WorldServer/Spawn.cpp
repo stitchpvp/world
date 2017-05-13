@@ -127,7 +127,17 @@ Spawn::~Spawn(){
 void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int16 index) {
 	header->setDataByName("index", index);
 
-	if (primary_command_list.size() > 0){
+	if (IsPlayer() && player->CanAttackTarget((Player*)this)) {
+		header->setArrayLengthByName("command_list", 1);
+
+		header->setArrayDataByName("command_list_name", "attack", 0);
+		header->setArrayDataByName("command_list_max_distance", 10000, 0);
+		header->setArrayDataByName("command_list_error", "", 0);
+		header->setArrayDataByName("command_list_command", "attack", 0);
+
+		header->setMediumStringByName("default_command", "attack");
+		header->setDataByName("max_distance", 10000);
+	} else if (primary_command_list.size() > 0){
 		if (primary_command_list.size() > 1) {
 			header->setArrayLengthByName("command_list", primary_command_list.size());
 			for (int32 i = 0; i < primary_command_list.size(); i++) {
@@ -171,9 +181,15 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			sint8 npc_con = player->GetFactions()->GetCon(faction_id);
 			if (appearance.attackable == 1)
 				arrow_color = player->GetArrowColor(GetLevel());
+
+			if (IsPlayer() && player->CanAttackTarget((Player*)this)) {
+				arrow_color = player->GetArrowColor(GetLevel());
+				npc_con = -4;
+			}
+
 			vis_packet->setDataByName("arrow_color", arrow_color);
 			vis_packet->setDataByName("locked_no_loot", appearance.locked_no_loot);
-			if (player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY)
+			if (IsNPC() && player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY)
 				if (npc_con == -4)
 					npc_con = -3;
 			vis_packet->setDataByName("npc_con", npc_con);
@@ -188,7 +204,7 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 
 	int8 vis_flags = 0;
 	if (MeetsSpawnAccessRequirements(player)){
-		if (appearance.attackable == 1)
+		if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget((Player*)this)))
 			vis_flags += 64; //attackable icon
 		if (appearance.show_level == 1)
 			vis_flags += 32;
@@ -198,22 +214,17 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			vis_flags += 4;
 		if (appearance.show_command_icon == 1)
 			vis_flags += 2;
-	}
-	else{
-		//Check to see if there's an override value set
-		if (req_quests_override > 0)
+	} else if (req_quests_override > 0) {
 			vis_flags = req_quests_override & 0xFF;
 	}
 
 	vis_packet->setDataByName("vis_flags", vis_flags);
 
-	if (MeetsSpawnAccessRequirements(player))
+	if (MeetsSpawnAccessRequirements(player)) {
 		vis_packet->setDataByName("hand_flag", appearance.display_hand_icon);
-	else {
-		if ((req_quests_override & 256) > 0)
+	} else if ((req_quests_override & 256) > 0) {
 			vis_packet->setDataByName("hand_flag", 1);
 	}
-
 }
 
 void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
@@ -252,12 +263,16 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	footer->setMediumStringByName("prefix", appearance.prefix_title);
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
-	if (appearance.attackable == 0 && GetLevel() > 0)
-		footer->setDataByName("spawn_type", 1);
-	else if (appearance.attackable == 0)
-		footer->setDataByName("spawn_type", 6);
-	else
+
+	if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget((Player*)this))) {
 		footer->setDataByName("spawn_type", 3);
+	} else if (appearance.attackable == 0 && GetLevel() > 0) {
+		footer->setDataByName("spawn_type", 1);
+	} else if (appearance.attackable == 0) {
+		footer->setDataByName("spawn_type", 6);
+	} else {
+		footer->setDataByName("spawn_type", 3);
+	}
 }
 
 EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version){
@@ -743,6 +758,9 @@ void Spawn::SetHP(sint32 new_val, bool setUpdateFlags){
 			player->SetCharSheetChanged(true);
 		}
 	}
+
+	if (IsPlayer())
+		((Player*)this)->SetCharSheetChanged(true);
 }
 void Spawn::SetTotalHP(sint32 new_val){
 	if(basic_info.hp_base == 0)
@@ -1418,10 +1436,19 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("heroic_flag", appearance.heroic_flag);
  	if(!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
 		packet->setDataByName("interaction_flag", 12); //this makes NPCs head turn to look at you
-	if (version >= 1188 && IsPlayer())
-		packet->setDataByName("spawn_type", 0);
-	else
-		packet->setDataByName("spawn_type", spawn_type);
+		if (version >= 1188 && IsPlayer()) {
+			if (spawn->CanAttackTarget((Player*)this)) {
+				packet->setDataByName("spawn_type", 6);
+			} else {
+				packet->setDataByName("spawn_type", 0);
+			}
+		} else {
+			if (IsPlayer() && spawn->CanAttackTarget((Player*)this)) {
+				packet->setDataByName("spawn_type", 6);
+			} else {
+				packet->setDataByName("spawn_type", spawn_type);
+			}
+		}
 	packet->setDataByName("class", appearance.adventure_class);
 
 	int16 model_type = appearance.model_type;
@@ -1557,12 +1584,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setColorByName("soga_skin_color", empty);
 		packet->setColorByName("soga_eye_color", empty);
 	}
-	if(appearance.icon == 0){
-		if(appearance.attackable == 1)
+	if (appearance.attackable == 1 || (IsPlayer() && spawn->CanAttackTarget((Player*)this))) {
 			appearance.icon = 0;
-		else if(appearance.encounter_level > 0)
+	} else if (appearance.encounter_level > 0) {
 			appearance.icon = 4;
-		else
+	} else {
 			appearance.icon = 6;
 	}
 	

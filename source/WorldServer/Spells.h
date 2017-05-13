@@ -29,7 +29,7 @@
 #include "AltAdvancement/AltAdvancement.h"
 
 #define SPELL_TARGET_SELF			0
-#define SPELL_TARGET_ENEMY			1
+#define SPELL_TARGET_OTHER			1
 #define SPELL_TARGET_GROUP_AE		2
 #define SPELL_TARGET_CASTER_PET		3
 #define SPELL_TARGET_ENEMY_PET		4
