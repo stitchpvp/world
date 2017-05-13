@@ -1126,22 +1126,13 @@ int EQ2Emu_lua_SpellDamage(lua_State* state){
 			float distance = caster->GetDistance(target, true);
 			distance -= caster->appearance.pos.collision_radius/10;
 			distance -= target->appearance.pos.collision_radius/10;
-			if (((Entity*)caster)->SpellAttack(target, distance, luaspell, type, min_damage, max_damage, crit_mod, no_calcs))
-				success = true;
-		}
-
-		if (success) {
-			Spell* spell = luaspell->spell;
-
-			if(caster->IsPlayer() && spell && spell->GetSpellData()->target_type == 1 && spell->GetSpellData()->spell_book_type == 1){ //offense combat art
-				((Player*)caster)->InCombat(true);
-				if(caster->GetZone())
-					caster->GetZone()->TriggerCharSheetTimer();
-			}
+			((Entity*)caster)->SpellAttack(target, distance, luaspell, type, min_damage, max_damage, crit_mod, no_calcs);
 		}
 	}
+
 	return 0;
 }
+
 int EQ2Emu_lua_ModifyPower(lua_State* state){
 	if(!lua_interface)
 		return 0;

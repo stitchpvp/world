@@ -1171,6 +1171,19 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 			if (caster->IsStealthed() || caster->IsInvis())
 				caster->CancelAllStealth();
 
+			if (!caster->EngagedInCombat()) {
+				if (caster->IsPlayer()) {
+					((Player*)caster)->InCombat(true);
+					((Player*)caster)->SetCharSheetChanged(true);
+
+					if (caster->GetZone()) {
+						caster->GetZone()->TriggerCharSheetTimer();
+					}
+				} else {
+					caster->InCombat(true);
+				}
+			}
+
 			SendStartCast(lua_spell, client);
 
 			if (spell->GetSpellData()->cast_time > 0)
@@ -1279,9 +1292,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 				if (target->IsNPC())
 					((NPC*)target)->AddHate(spell->caster, 1);
-
-				if (!spell->caster->EngagedInCombat())
-					spell->caster->InCombat(true);
 			}
 
 			if (spell->spell->GetSpellData()->friendly_spell || hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {

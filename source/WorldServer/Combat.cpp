@@ -1237,11 +1237,11 @@ void Entity::CheckProcs(int8 type, Spawn* target) {
 		return;
 	}
 
-	float roll = MakeRandomFloat(0, 100);
-
 	MProcList.readlock(__FUNCTION__, __LINE__);
 	for (int8 i = 0; i < m_procList[type].size(); i++) {
 		Proc* proc = m_procList[type].at(i);
+		float roll = MakeRandomFloat(0, 100);
+
 		if (roll <= proc->chance)
 			CastProc(proc, type, target);
 	}
