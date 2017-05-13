@@ -174,7 +174,7 @@ struct InfoStruct{
 	char			deity[32];
 	int32			weight;
 	int32			max_weight;
-	SpellEffects	spell_effects[45];
+	SpellEffects	spell_effects[30];
 	MaintainedEffects maintained_effects[30];
 	int8			tradeskill_class1;
 	int8			tradeskill_class2;

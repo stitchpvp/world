@@ -509,21 +509,17 @@ PacketStruct* PlayerInfo::serialize2(int16 version){
 		packet->setDataByName("unknown20", 50, 75);
 		*/
 		packet->setDataByName("rain2", -102.24);
-		for(int i=0;i<45;i++){
-			if(i < 30){
-				packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "target", info_struct->maintained_effects[i].target, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "expire_timestamp", info_struct->maintained_effects[i].expire_timestamp, i, 0);
-			}
-			else if(version < 942)//version 942 added 15 additional spell effect slots
-				break;
+		for(int i=0;i<NUM_SPELL_EFFECTS;i++){
+			packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "target", info_struct->maintained_effects[i].target, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "expire_timestamp", info_struct->maintained_effects[i].expire_timestamp, i, 0);
 			packet->setSubstructDataByName("spell_effects", "spell_id", info_struct->spell_effects[i].spell_id, i, 0);
 			if(info_struct->spell_effects[i].spell_id > 0 && info_struct->spell_effects[i].spell_id < 0xFFFFFFFF)
 				packet->setSubstructDataByName("spell_effects", "unknown2", 514, i, 0);
@@ -897,27 +893,23 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		Spawn* maintained_target = 0;
 		player->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
 		player->GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
-		for(int i=0;i<45;i++){
-			if(i < 30){
-				maintained_target = player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target);
-				packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
-				if (maintained_target)
-					packet->setSubstructDataByName("maintained_effects", "target", player->GetIDWithPlayerSpawn(maintained_target), i, 0);
-				packet->setSubstructDataByName("maintained_effects", "target_type", info_struct->maintained_effects[i].target_type, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
-				packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
-				expireTimestamp = info_struct->maintained_effects[i].expire_timestamp;
-				if(expireTimestamp == 0xFFFFFFFF)
-					expireTimestamp = 0;
-				packet->setSubstructDataByName("maintained_effects", "expire_timestamp", expireTimestamp, i, 0);
-			}
-			else if(version < 942)//version 942 added 15 additional spell effect slots
-				break;
+		for(int i=0;i<NUM_SPELL_EFFECTS;i++){
+			maintained_target = player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target);
+			packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
+			if (maintained_target)
+				packet->setSubstructDataByName("maintained_effects", "target", player->GetIDWithPlayerSpawn(maintained_target), i, 0);
+			packet->setSubstructDataByName("maintained_effects", "target_type", info_struct->maintained_effects[i].target_type, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
+			expireTimestamp = info_struct->maintained_effects[i].expire_timestamp;
+			if(expireTimestamp == 0xFFFFFFFF)
+				expireTimestamp = 0;
+			packet->setSubstructDataByName("maintained_effects", "expire_timestamp", expireTimestamp, i, 0);
 			packet->setSubstructDataByName("spell_effects", "spell_id", info_struct->spell_effects[i].spell_id, i, 0);
 			/*if(info_struct->spell_effects[i].spell_id > 0 && info_struct->spell_effects[i].spell_id < 0xFFFFFFFF)
 				packet->setSubstructDataByName("spell_effects", "unknown2", 514, i, 0);*/
@@ -985,23 +977,12 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 			packet->setSubstructDataByName("detrimental_spell_effects", "expire_timestamp", expireTimestamp, i);
 			packet->setSubstructDataByName("detrimental_spell_effects", "unknown2", 2, i);
 			if(i == 30){
-				if(version < 942)
-					break;
-			}
-			else if(i == 45)
 				break;
-		}
-		if(version < 942){
-			while(i<30){
-				packet->setSubstructDataByName("detrimental_spell_effects", "spell_id", 0xFFFFFFFF, i);
-				i++;
 			}
 		}
-		else{
-			while(i<45){
+		while(i<NUM_SPELL_EFFECTS){
 				packet->setSubstructDataByName("detrimental_spell_effects", "spell_id", 0xFFFFFFFF, i);
 				i++;
-			}
 		}
 		player->GetDetrimentMutex()->releasereadlock(__FUNCTION__, __LINE__);
 
@@ -2070,13 +2051,15 @@ PlayerInfo::PlayerInfo(Player* in_player){
 
 	LogWrite(MISC__TODO, 1, "TODO", "Fix info_struct.tradeskill_level = player->GetArtLevel();\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
-	for(int i=0;i<45;i++){
-		if(i<30){
-			info_struct->maintained_effects[i].spell_id = 0xFFFFFFFF;
-			info_struct->maintained_effects[i].icon = 0xFFFF;
-		}
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;	
 	}
+	for(int i=0; i<NUM_MAINTAINED_EFFECTS; i++)
+	{
+		info_struct->maintained_effects[i].spell_id = 0xFFFFFFFF;
+		info_struct->maintained_effects[i].icon = 0xFFFF;
+	}
+
 	house_zone_id = 0;
 	bind_zone_id = 0;
 	bind_x = 0;
@@ -2141,7 +2124,7 @@ SpellEffects* Player::GetFreeSpellEffectSlot(){
 	SpellEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
-	for(int i=0;i<45;i++){
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		if(info->spell_effects[i].spell_id == 0xFFFFFFFF){
 			ret = &info->spell_effects[i];
 			ret->spell_id = 0;
@@ -2319,7 +2302,7 @@ void Player::RemoveMaintainedSpell(LuaSpell* luaspell){
 void Player::RemoveSpellEffect(LuaSpell* spell){
 	bool found = false;
 	GetSpellEffectMutex()->writelock(__FUNCTION__, __LINE__);
-	for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
@@ -2327,8 +2310,8 @@ void Player::RemoveSpellEffect(LuaSpell* spell){
 			found = true;
 	}
 	if (found) {
-		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS - 1], 0, sizeof(SpellEffects));
-		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS - 1].spell_id = 0xFFFFFFFF;
+		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1], 0, sizeof(SpellEffects));
+		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1].spell_id = 0xFFFFFFFF;
 		changed = true;
 		info_changed = true;
 		AddChangedZoneSpawn();

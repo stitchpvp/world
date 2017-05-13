@@ -68,13 +68,13 @@ Entity::Entity(){
 	control_effects.clear();
 	immunities.clear();
 
-	for(int i=0;i<45;i++){
-		if(i<NUM_MAINTAINED_EFFECTS){
-			info_struct.maintained_effects[i].spell_id = 0xFFFFFFFF;
-			if (IsPlayer())
-				info_struct.maintained_effects[i].icon = 0xFFFF;
-		}
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;	
+	}
+	for(int i=0;i<NUM_MAINTAINED_EFFECTS;i++) {
+		info_struct.maintained_effects[i].spell_id = 0xFFFFFFFF;
+		if (IsPlayer())
+			info_struct.maintained_effects[i].icon = 0xFFFF;
 	}
 }
 
@@ -595,7 +595,7 @@ void Entity::RemoveMaintainedSpell(LuaSpell* luaspell){
 void Entity::RemoveSpellEffect(LuaSpell* spell) {
 	bool found = false;
 	MSpellEffects.writelock(__FUNCTION__, __LINE__);
-	for(int i=0; i < NUM_SPELL_EFFECTS; i++) {
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++) {
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
@@ -603,8 +603,8 @@ void Entity::RemoveSpellEffect(LuaSpell* spell) {
 			found = true;
 	}
 	if (found) {
-		memset(&GetInfoStruct()->spell_effects[44], 0, sizeof(SpellEffects));
-		GetInfoStruct()->spell_effects[44].spell_id = 0xFFFFFFFF;
+		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1], 0, sizeof(SpellEffects));
+		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1].spell_id = 0xFFFFFFFF;
 		changed = true;
 		info_changed = true;
 		AddChangedZoneSpawn();
@@ -656,7 +656,7 @@ SpellEffects* Entity::GetFreeSpellEffectSlot(){
 	SpellEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	MSpellEffects.readlock(__FUNCTION__, __LINE__);
-	for(int i=0;i<45;i++){
+	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		if(info->spell_effects[i].spell_id == 0xFFFFFFFF){
 			ret = &info->spell_effects[i];
 			ret->spell_id = 0;
@@ -671,7 +671,7 @@ SpellEffects* Entity::GetSpellEffect(int32 id, Entity* caster) {
 	SpellEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	MSpellEffects.readlock(__FUNCTION__, __LINE__);
-	for(int i = 0; i < 45; i++) {
+	for(int i = 0; i < NUM_SPELL_EFFECTS; i++) {
 		if(info->spell_effects[i].spell_id == id) {
 			if (!caster || info->spell_effects[i].caster == caster){
 				ret = &info->spell_effects[i];
