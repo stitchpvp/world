@@ -1171,7 +1171,7 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 			if (caster->IsStealthed() || caster->IsInvis())
 				caster->CancelAllStealth();
 
-			if (!caster->EngagedInCombat()) {
+			if (!lua_spell->spell->GetSpellData()->friendly_spell && !caster->EngagedInCombat()) {
 				if (caster->IsPlayer()) {
 					((Player*)caster)->InCombat(true);
 					((Player*)caster)->SetCharSheetChanged(true);
