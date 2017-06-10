@@ -6244,7 +6244,7 @@ void ZoneServer::LoadGroundSpawnEntries(){
 void ZoneServer::LoadGroundSpawnItems() {
 }
 
-void ZoneServer::AddGroundSpawnEntry(int32 groundspawn_id, int16 min_skill_level, int16 min_adventure_level, int8 bonus_table, float harvest1, float harvest3, float harvest5, float harvest10, float harvest_imbue, float harvest_rare, int32 harvest_coin) {
+void ZoneServer::AddGroundSpawnEntry(int32 groundspawn_id, int16 min_skill_level, int16 min_adventure_level, int8 bonus_table, float harvest1, float harvest3, float harvest5, float harvest_imbue, float harvest_rare, float harvest10, int32 harvest_coin) {
 	GroundSpawnEntry* entry = new GroundSpawnEntry;
 	entry->min_skill_level = min_skill_level;
 	entry->min_adventure_level = min_adventure_level;

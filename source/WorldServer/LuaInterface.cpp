@@ -579,6 +579,8 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_f
 			lua_pushlightuserdata(spell->state, 0);
 		}
 
+
+		current_spells[spell->state] = spell;
 		lua_pcall(spell->state, 2, 0, 0);
 	}
 

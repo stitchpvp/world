@@ -928,7 +928,7 @@ public:
 
 	/* Groundspawns */
 	// JA: groundspawn revamp
-	void AddGroundSpawnEntry(int32 groundspawn_id, int16 min_skill_level, int16 min_adventure_level, int8 bonus_table, float harvest1, float harvest3, float harvest5, float harvest10, float harvest_imbue, float harvest_rare, int32 harvest_coin);
+	void AddGroundSpawnEntry(int32 groundspawn_id, int16 min_skill_level, int16 min_adventure_level, int8 bonus_table, float harvest1, float harvest3, float harvest5, float harvest_imbue, float harvest_rare, float harvest10, int32 harvest_coin);
 	void AddGroundSpawnItem(int32 groundspawn_id, int32 item_id, int8 is_rare, int32 grid_id);
 	vector<GroundSpawnEntry*>* GetGroundSpawnEntries(int32 id);
 	vector<GroundSpawnEntryItem*>* GetGroundSpawnEntryItems(int32 id);
