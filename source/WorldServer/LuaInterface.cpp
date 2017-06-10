@@ -895,6 +895,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "IsEpic", EQ2Emu_lua_IsEpic);
 	lua_register(state, "IsHeroic", EQ2Emu_lua_IsHeroic);
 	lua_register(state, "ProcDamage", EQ2Emu_lua_ProcDamage);
+	lua_register(state, "ProcHeal", EQ2Emu_lua_ProcHeal);
 	lua_register(state, "LastSpellAttackHit", EQ2Emu_lua_LastSpellAttackHit);
 	lua_register(state, "IsBehind", EQ2Emu_lua_IsBehind);
 	lua_register(state, "IsFlanking", EQ2Emu_lua_IsFlanking);
