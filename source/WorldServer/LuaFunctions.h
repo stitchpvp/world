@@ -337,6 +337,7 @@ int EQ2Emu_lua_Knockback(lua_State* state);
 int EQ2Emu_lua_IsEpic(lua_State* state);
 int EQ2Emu_lua_IsHeroic(lua_State* state);
 int EQ2Emu_lua_ProcDamage(lua_State* state);
+int EQ2Emu_lua_ProcHeal(lua_State* state);
 int EQ2Emu_lua_LastSpellAttackHit(lua_State* state);
 
 int EQ2Emu_lua_IsBehind(lua_State* state);

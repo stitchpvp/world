@@ -582,6 +582,44 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	return true;
 }
 
+bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, string name) {
+	int32 heal_amt = 0;
+	bool crit = false;
+
+	if (high_heal < low_heal)
+		high_heal = low_heal;
+	if (high_heal == low_heal)
+		heal_amt = high_heal;
+	else
+		heal_amt = MakeRandomInt(low_heal, high_heal);
+
+	int16 type = 0;
+	if (heal_type == "Heal") {
+		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
+			target->SetHP(target->GetTotalHP());
+		else
+			target->SetHP(target->GetHP() + heal_amt);
+	}
+	else if (heal_type == "Power") {
+		if (target->GetPower() + (sint32)heal_amt > target->GetTotalPower())
+			target->SetPower(target->GetTotalPower());
+		else
+			target->SetPower(GetPower() + heal_amt);
+	} else {
+		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
+			target->SetHP(target->GetTotalHP());
+		else
+			target->SetHP(target->GetHP() + heal_amt);
+	}
+
+	target->GetZone()->TriggerCharSheetTimer();
+
+	if (heal_amt > 0)
+		GetZone()->SendHealPacket(this, target, type, heal_amt, name.c_str());
+
+	return true;
+}
+
 int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell){
 	if(!victim) {
 		return DAMAGE_PACKET_RESULT_MISS;

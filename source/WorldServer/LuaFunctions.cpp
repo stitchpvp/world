@@ -6175,6 +6175,46 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_ProcHeal(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* caster = lua_interface->GetSpawn(state);
+	Spawn* target = lua_interface->GetSpawn(state, 2);
+	string heal_type = lua_interface->GetStringValue(state, 3);
+	string name = lua_interface->GetStringValue(state, 4);
+	int32 low_heal = lua_interface->GetInt32Value(state, 5);
+	int32 high_heal = lua_interface->GetInt32Value(state, 6);
+
+	if (!caster) {
+		lua_interface->LogError("LUA ProcHeal command error: caster is not a valid spawn");
+		return 0;
+	}
+
+	if (!caster->IsEntity()) {
+		lua_interface->LogError("LUA ProcHeal command error: caster is not an entity");
+		return 0;
+	}
+
+	if (!target) {
+		lua_interface->LogError("LUA ProcHeal command error: target is not a valid spawn");
+		return 0;
+	}
+
+	if (!target->IsEntity()) {
+		lua_interface->LogError("LUA ProcHeal command error: target is not an entity");
+		return 0;
+	}
+
+	if (name.length() == 0) {
+		lua_interface->LogError("LUA ProcHeal command error: name is empty");
+		return 0;
+	}
+
+	((Entity*)caster)->ProcHeal(target, heal_type, low_heal, high_heal, name);
+	return 0;
+}
+
 int EQ2Emu_lua_GetSkillIDByName(lua_State* state) {
 	if(!lua_interface)
 		return 0;

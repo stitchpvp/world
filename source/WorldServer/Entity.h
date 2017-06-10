@@ -449,6 +449,7 @@ public:
 	void			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);
 	bool			SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false);
 	bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg);
+	bool			ProcHeal(Spawn* victim, string heal_type, int32 low_heal, int32 high_heal, string name);
 	bool            SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false);
 	int8			DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell);
 	float			GetDamageTypeResistPercentage(int8 damage_type);
