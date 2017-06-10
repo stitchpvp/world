@@ -6181,8 +6181,8 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 
 	Spawn* caster = lua_interface->GetSpawn(state);
 	Spawn* target = lua_interface->GetSpawn(state, 2);
-	string heal_type = lua_interface->GetStringValue(state, 3);
-	string name = lua_interface->GetStringValue(state, 4);
+	string name = lua_interface->GetStringValue(state, 3);
+	string heal_type = lua_interface->GetStringValue(state, 4);
 	int32 low_heal = lua_interface->GetInt32Value(state, 5);
 	int32 high_heal = lua_interface->GetInt32Value(state, 6);
 
