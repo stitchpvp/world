@@ -595,17 +595,20 @@ bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 hig
 
 	int16 type = 0;
 	if (heal_type == "Heal") {
+		type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
 		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
 			target->SetHP(target->GetTotalHP());
 		else
 			target->SetHP(target->GetHP() + heal_amt);
 	}
 	else if (heal_type == "Power") {
+		type = HEAL_PACKET_TYPE_SIMPLE_MANA;
 		if (target->GetPower() + (sint32)heal_amt > target->GetTotalPower())
 			target->SetPower(target->GetTotalPower());
 		else
 			target->SetPower(GetPower() + heal_amt);
 	} else {
+		type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
 		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
 			target->SetHP(target->GetTotalHP());
 		else
