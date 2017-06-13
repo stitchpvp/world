@@ -56,15 +56,16 @@ No mitigation equations yet
 bool Entity::PrimaryWeaponReady() {
 	//Can only be ready if no ranged timer
 	if(GetPrimaryLastAttackTime() == 0 || (Timer::GetCurrentTime2() >= (GetPrimaryLastAttackTime() + GetPrimaryAttackDelay())))
-		return true;
+		if (GetRangeLastAttackTime() == 0 || Timer::GetCurrentTime2() >= GetRangeLastAttackTime() + GetRangeAttackDelay())
+			return true;
 
 	return false;
 }
 
 bool Entity::SecondaryWeaponReady() {
 	//Can only be ready if no ranged timer
-	if(IsDualWield() && (GetPrimaryLastAttackTime() == 0 || (Timer::GetCurrentTime2() >= (GetSecondaryLastAttackTime() + GetSecondaryAttackDelay())))) {
-		if(GetRangeLastAttackTime() == 0  || Timer::GetCurrentTime2() >= GetRangeLastAttackTime() + GetRangeAttackDelay())
+	if(IsDualWield() && (GetSecondaryLastAttackTime() == 0 || (Timer::GetCurrentTime2() >= (GetSecondaryLastAttackTime() + GetSecondaryAttackDelay())))) {
+		if(GetRangeLastAttackTime() == 0 || Timer::GetCurrentTime2() >= GetRangeLastAttackTime() + GetRangeAttackDelay())
 			return true;
 	}
 
