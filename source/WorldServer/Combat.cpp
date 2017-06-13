@@ -834,8 +834,10 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			}
 		}
 
-    // Rudimentary mitigation
-		damage *= 1 - victim->GetMitigationPercentage();
+		// Rudimentary mitigation
+		if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE) {
+			damage *= 1 - victim->GetMitigationPercentage();
+		}
 	}
 
 	if(damage <= 0){
