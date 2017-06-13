@@ -2588,10 +2588,8 @@ void Player::InCombat(bool val, bool range) {
 	in_combat = val;
 	if (in_combat) {
 		AddIconValue(64);
-		SetTempVisualState(11420);
 	} else {
 		RemoveIconValue(64);
-		SetTempVisualState(0);
 	}
 
 	charsheet_changed = true;
