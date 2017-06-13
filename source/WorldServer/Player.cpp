@@ -2586,10 +2586,13 @@ void Player::InCombat(bool val, bool range) {
 		GetInfoStruct()->flags &= ~(1 << (range?CF_RANGED_AUTO_ATTACK:CF_AUTO_ATTACK));
 
 	in_combat = val;
-	if(in_combat)
+	if (in_combat) {
 		AddIconValue(64);
-	else
+		SetTempVisualState(11420);
+	} else {
 		RemoveIconValue(64);
+		SetTempVisualState(0);
+	}
 
 	charsheet_changed = true;
 }
