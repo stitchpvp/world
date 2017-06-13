@@ -1067,8 +1067,8 @@ void Player::ProcessCombat() {
 
 	float distance = 0;
 	distance = GetDistance(combat_target);
-	distance -= combat_target->appearance.pos.collision_radius / 10;
-	distance -= appearance.pos.collision_radius / 10;
+	//distance -= combat_target->appearance.pos.collision_radius / 10;
+	//distance -= appearance.pos.collision_radius / 10;
 
 	// Check to see if we are doing ranged auto attacks if not check to see if we are in melee range
 	if (GetRangeAttack()) {
