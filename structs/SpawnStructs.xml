@@ -1013,12 +1013,10 @@
 <Data ElementName="difficulty" Type="int8" Size="1" />
 <Data ElementName="unknown20" Type="int8" Size="3" />
 </Struct>
-<Struct Name="Substruct_SpawnInfoStruct" ClientVersion="1096" >
-<Data ElementName="hp_remaining" Type="int8" Size="1" />
-<Data ElementName="unknown2a" Type="int8" Size="3" />
-<Data ElementName="power_percent" Type="int8" Size="1" />
-<Data ElementName="unknown2b" Type="int8" Size="1" />
-<Data ElementName="unknown3" Type="int8" Size="242" />
+<Struct Name="Substruct_SpawnInfoStruct" ClientVersion="1096">
+<Data ElementName="hp_remaining" Type="int32" Size="1" />
+<Data ElementName="power_percent" Type="int32" Size="1" />
+<Data ElementName="spell_effects" Substruct="Substruct_TargetSpellEffects" Size="30" />
 <Data ElementName="target_id" Type="int32" />
 <Data ElementName="follow_target" Type="int32" />
 <Data ElementName="unknown3b" Type="int8" Size="7" />

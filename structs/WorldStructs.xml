@@ -26514,6 +26514,11 @@ to zero and treated like placeholders." />
 <Data ElementName="ip_address" Type="EQ2_16Bit_String" />
 <Data ElementName="port" Type="int16" Size="1" />
 </Struct>
+<Struct Name="Substruct_TargetSpellEffects" ClientVersion="1">
+<Data ElementName="spell_id" Type="int32" />
+<Data ElementName="spell_icon" Type="int16" />
+<Data ElementName="spell_icon_backdrop" Type="int16" />
+</Struct>
 <Struct Name="Substruct_TargetSpellEffects" ClientVersion="1188">
 <Data ElementName="spell_id" Type="int32" />
 <Data ElementName="spell_icon" Type="int16" />
