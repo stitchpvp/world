@@ -3807,6 +3807,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_DECLINE_RESURRECTION:{ Command_DeclineResurrection(client, sep); break; }
 		case COMMAND_TEST				: { Command_Test(client, command_parms); break; }
 		case COMMAND_SPEED				: { Command_Speed(client, sep); break; }
+		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
 
 		default: 
 		{
@@ -8194,4 +8195,14 @@ void Commands::Command_DeclineResurrection(Client* client, Seperator* sep) {
 	if(client->GetCurrentRez()->active)
 		client->GetCurrentRez()->should_delete = true;
 	client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
+}
+
+void Commands::Command_ServerFlag(Client* client, Seperator* sep) {
+	if (sep && sep->arg[0] && sep->arg[1] && sep->arg[2]) {
+		client->GetPlayer()->SetPlayerControlFlag(atoi(sep->arg[0]), atoi(sep->arg[1]), atoi(sep->arg[2]));
+	}
+	else {
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /speed {new speed value}");
+	}
+
 }

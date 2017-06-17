@@ -455,6 +455,8 @@ public:
 	void Command_AcceptResurrection(Client* client, Seperator* sep);
 	void Command_DeclineResurrection(Client* client, Seperator* set);
 
+	void Command_ServerFlag(Client* client, Seperator* sep);
+
 private:
 	RemoteCommands* remote_commands;
 	map<string, int8> spawn_set_values;
@@ -849,5 +851,6 @@ private:
 
 #define COMMAND_SIZE 2000
 #define COMMAND_VISUAL 2001
+#define COMMAND_SERVER_FLAG 2002
 
 #endif
