@@ -8237,6 +8237,23 @@ int EQ2Emu_lua_GetPlayersInZone(lua_State* state) {
 	return 1;
 }
 
+int EQ2Emu_lua_GetWeaponDamageType(lua_State * state)
+{
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (spawn) {
+		if (spawn->IsEntity()) {
+			lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetPrimaryWeaponType());
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 	if (!lua_interface)
 		return 0;
