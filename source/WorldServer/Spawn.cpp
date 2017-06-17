@@ -1584,12 +1584,17 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setColorByName("soga_skin_color", empty);
 		packet->setColorByName("soga_eye_color", empty);
 	}
-	if (appearance.attackable == 1 || (IsPlayer() && spawn->CanAttackTarget((Player*)this))) {
+
+	if (appearance.icon == 0) {
+		if (appearance.attackable == 1 || (IsPlayer() && spawn->CanAttackTarget((Player*)this))) {
 			appearance.icon = 0;
-	} else if (appearance.encounter_level > 0) {
+		}
+		else if (appearance.encounter_level > 0) {
 			appearance.icon = 4;
-	} else {
+		}
+		else {
 			appearance.icon = 6;
+		}
 	}
 	
 	// If Coe+ clients modify the values before we send
