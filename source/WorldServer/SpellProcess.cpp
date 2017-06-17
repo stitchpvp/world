@@ -1350,6 +1350,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 					target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_CASTED_ON, spell->caster, spell->spell->GetName());
 				}
 			} else {
+				spell->targets.erase(spell->targets.begin() + i);
 				spell->last_spellattack_hit = false;
 
 				zone->SendDamagePacket(spell->caster, target, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, hit_result, damage_type, 0, spell->spell->GetName());
