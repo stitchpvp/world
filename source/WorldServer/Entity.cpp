@@ -278,7 +278,7 @@ void Entity::SetPrimaryLastAttackTime(int32 new_time){
 }
 
 int32 Entity::GetSecondaryLastAttackTime(){
-	return melee_combat_data.primary_last_attack_time;
+	return melee_combat_data.secondary_last_attack_time;
 }
 
 int16 Entity::GetSecondaryAttackDelay(){
