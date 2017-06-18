@@ -3221,8 +3221,9 @@ int EQ2Emu_lua_ApplySpellVisual(lua_State* state) {
 	if (lua_interface) {
 		Spawn* target = lua_interface->GetSpawn(state);
 		int32 spell_visual = lua_interface->GetInt32Value(state, 2);
+		Spawn* caster = lua_interface->GetSpawn(state, 3);
 		if (target && target->GetZone())
-			target->GetZone()->SendCastSpellPacket(spell_visual, target);
+			target->GetZone()->SendCastSpellPacket(spell_visual, target, caster);
 	}
 	return 0;
 }
