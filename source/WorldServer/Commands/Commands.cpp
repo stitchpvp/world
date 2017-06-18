@@ -1559,7 +1559,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SIZE: {
 			if (sep && sep->arg[0] && sep->IsNumber(0)) {
 				client->GetPlayer()->SetSize(atoi(sep->arg[0]));
-				client->GetPlayer()->vis_changed = true;
+				client->GetCurrentZone()->SendPlayerPositionChanges(client->GetPlayer());
 			} else {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /size {size}");
 			}
