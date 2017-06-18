@@ -26595,6 +26595,13 @@ to zero and treated like placeholders." />
 <Data ElementName="gender" Type="int8" />
 <Data ElementName="unknown" Type="int8" Size="3" />
 </Struct>
+<Struct Name="WS_UpdateMaintainedExamine" ClientVersion="1096" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
+<Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
+<Data ElementName="time_stamp" Type="int32" />
+<Data ElementName="slot_pos" Type="int32" />
+<Data ElementName="update_value" Type="int32" />
+<Data ElementName="update_type" Type="int64" />
+</Struct>
 <Struct Name="WS_UpdateMaintainedExamine" ClientVersion="1188" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
 <Data ElementName="time_stamp" Type="int32" />
