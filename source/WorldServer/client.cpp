@@ -905,13 +905,18 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 								client->GetCurrentZone()->RemoveClientImmediately(client);
 							}
 
+							client->GetPlayer()->SetResurrecting(true);
+
 							GroupMemberInfo* info = 0;
 							if (info = client->GetPlayer()->GetGroupMemberInfo()) {
 								info->client = this;
-								info->member = this->GetPlayer();
+								info->member = GetPlayer();
 
 								client->GetPlayer()->SetGroupMemberInfo(0);
 								GetPlayer()->SetGroupMemberInfo(info);
+
+								GetPlayer()->UpdateGroupMemberInfo();
+								world.GetGroupManager()->SendGroupUpdate(GetPlayer()->GetGroupMemberInfo()->group_id, this);
 							}
 						}
 						MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);						

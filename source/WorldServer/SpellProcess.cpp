@@ -1784,8 +1784,14 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 							Entity* group_member = (*itr)->member;
 
 							// if the group member is in the casters zone, and is alive
-							if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive()){
+							if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive()) {
+								Client* client = caster->GetZone()->GetClientBySpawn(group_member);
+
+								if (((Player*)group_member)->IsResurrecting() || !client || client->IsZoning())
+									continue;
+
 								luaspell->targets.push_back(group_member->GetID());
+
 								if (group_member->HasPet()){
 									Entity* pet = group_member->GetPet();
 									if (!pet)
