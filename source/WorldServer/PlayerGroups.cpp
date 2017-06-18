@@ -112,7 +112,7 @@ void PlayerGroup::SendGroupUpdate(Client* exclude) {
 	deque<GroupMemberInfo*>::iterator itr;
 	for (itr = m_members.begin(); itr != m_members.end(); itr++) {
 		GroupMemberInfo* gmi = *itr;
-		if (gmi->client && gmi->client != exclude)
+		if (gmi->client && gmi->client != exclude && !gmi->client->IsZoning())
 			gmi->client->GetPlayer()->SetCharSheetChanged(true);
 	}
 }
