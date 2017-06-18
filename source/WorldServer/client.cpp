@@ -888,6 +888,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 						if(client){
 							if(client->getConnection())
 								client->getConnection()->SendDisconnect();
+
 							if(client->GetCurrentZone() && !client->IsZoning()){
 								//swap players, allowing the client to resume his LD'd player (ONLY if same version of the client)
 								if(client->GetVersion() == version){
@@ -903,6 +904,15 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 								}
 								client->GetCurrentZone()->RemoveClientImmediately(client);
 							}
+
+							GroupMemberInfo* info = 0;
+							if (info = client->GetPlayer()->GetGroupMemberInfo()) {
+								info->client = this;
+								info->member = this->GetPlayer();
+
+								client->GetPlayer()->SetGroupMemberInfo(0);
+								GetPlayer()->SetGroupMemberInfo(info);
+							}
 						}
 						MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);						
 						if(!GetCurrentZone()){
@@ -915,7 +925,6 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 							client_list.Remove(this); //remove from master client list
 							new_client_login = true;
 							GetCurrentZone()->AddClient(this); //add to zones client list
-							world.RejoinGroup(this);
 							zone_list.AddClientToMap(player->GetName(), this);
 						}
 						else{
