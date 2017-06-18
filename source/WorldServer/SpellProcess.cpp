@@ -1304,7 +1304,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 					if (!target)
 						continue;
 
-					if (client->IsZoning())
+					if (client && client->IsZoning())
 						continue;
 
 					if (spell->spell->GetSpellData()->success_message.length() > 0) {
@@ -1362,7 +1362,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
-	if (client->IsZoning())
+	if (client && client->IsZoning())
 		return true;
 
 	if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_SPELL)
