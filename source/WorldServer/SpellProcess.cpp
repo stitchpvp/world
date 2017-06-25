@@ -1919,7 +1919,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 					safe_delete(group);
 				} // end is NPC
 
-				else if (target->IsPlayer() && caster->IsNPC()) // the NPC is casting on a player
+				else if (target->IsPlayer())
 				{
 					// player is in a group
 					if (((Player*)target)->GetGroupMemberInfo()) 
