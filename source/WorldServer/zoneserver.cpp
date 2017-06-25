@@ -3933,7 +3933,7 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		if (dead->Alive())
 			return;
 
-		if (killer->IsPlayer()) {
+		if (killer && killer->IsPlayer()) {
 			client = GetClientBySpawn(killer);
 
 			((Player*)killer)->InCombat(false);
