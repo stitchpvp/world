@@ -21273,6 +21273,114 @@ to zero and treated like placeholders." />
 </Data>
 <Data ElementName="unknown" Type="int8" Size="1" />
 </Struct>
+<Struct Name="WS_TraitsList" ClientVersion="63122" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_TraitsList" >
+<Data ElementName="num_traits" Type="int8" Size="1" />
+<Data ElementName="traits_array" Type="Array" ArraySizeVariable="num_traits">
+  <Data ElementName="trait_level" Type="int8" Size="1" />
+  <Data ElementName="trait_line" Type="int8" Size="1" />
+  <Data ElementName="trait0_icon" Type="int16" Size="1" />
+  <Data ElementName="trait0_icon2" Type="int16" Size="1" />
+  <Data ElementName="trait0_id" Type="int32" Size="1" />
+  <Data ElementName="trait0_unknown" Type="int32" Size="1" />
+  <Data ElementName="trait0_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="trait0_unknown2" Type="int8" Size="1" />
+  <Data ElementName="trait1_icon" Type="int16" Size="1" />
+  <Data ElementName="trait1_icon2" Type="int16" Size="1" />
+  <Data ElementName="trait1_id" Type="int32" Size="1" />
+  <Data ElementName="trait1_unknown" Type="int32" Size="1" />
+  <Data ElementName="trait1_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="trait1_unknown2" Type="int8" Size="1" />
+  <Data ElementName="trait2_icon" Type="int16" Size="1" />
+  <Data ElementName="trait2_icon2" Type="int16" Size="1" />
+  <Data ElementName="trait2_id" Type="int32" Size="1" />
+  <Data ElementName="trait2_unknown" Type="int32" Size="1" />
+  <Data ElementName="trait2_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="trait2_unknown2" Type="int8" Size="1" />
+  <Data ElementName="trait3_icon" Type="int16" Size="1" />
+  <Data ElementName="trait3_icon2" Type="int16" Size="1" />
+  <Data ElementName="trait3_id" Type="int32" Size="1" />
+  <Data ElementName="trait3_unknown" Type="int32" Size="1" />
+  <Data ElementName="trait3_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="trait3_unknown2" Type="int8" Size="1" />
+  <Data ElementName="trait4_icon" Type="int16" Size="1" />
+  <Data ElementName="trait4_icon2" Type="int16" Size="1" />
+  <Data ElementName="trait4_id" Type="int32" Size="1" />
+  <Data ElementName="trait4_unknown" Type="int32" Size="1" />
+  <Data ElementName="trait4_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="trait4_unknown2" Type="int8" Size="1" />
+</Data>
+<Data ElementName="num_trainings" Type="int8" Size="1" />
+<Data ElementName="training_array" Type="Array" ArraySizeVariable="num_trainings">
+  <Data ElementName="training_level" Type="int8" Size="1" />
+  <Data ElementName="training_line" Type="int8" Size="1" />
+  <Data ElementName="training0_icon" Type="int16" Size="1" />
+  <Data ElementName="training0_icon2" Type="int16" Size="1" />
+  <Data ElementName="training0_id" Type="int32" Size="1" />
+  <Data ElementName="training0_unknown" Type="int32" Size="1" />
+  <Data ElementName="training0_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="training0_unknown2" Type="int8" Size="1" />
+  <Data ElementName="training1_icon" Type="int16" Size="1" />
+  <Data ElementName="training1_icon2" Type="int16" Size="1" />
+  <Data ElementName="training1_id" Type="int32" Size="1" />
+  <Data ElementName="training1_unknown" Type="int32" Size="1" />
+  <Data ElementName="training1_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="training1_unknown2" Type="int8" Size="1" />
+  <Data ElementName="training2_icon" Type="int16" Size="1" />
+  <Data ElementName="training2_icon2" Type="int16" Size="1" />
+  <Data ElementName="training2_id" Type="int32" Size="1" />
+  <Data ElementName="training2_unknown" Type="int32" Size="1" />
+  <Data ElementName="training2_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="training2_unknown2" Type="int8" Size="1" />
+  <Data ElementName="training3_icon" Type="int16" Size="1" />
+  <Data ElementName="training3_icon2" Type="int16" Size="1" />
+  <Data ElementName="training3_id" Type="int32" Size="1" />
+  <Data ElementName="training3_unknown" Type="int32" Size="1" />
+  <Data ElementName="training3_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="training3_unknown2" Type="int8" Size="1" />
+  <Data ElementName="training4_icon" Type="int16" Size="1" />
+  <Data ElementName="training4_icon2" Type="int16" Size="1" />
+  <Data ElementName="training4_id" Type="int32" Size="1" />
+  <Data ElementName="training4_unknown" Type="int32" Size="1" />
+  <Data ElementName="training4_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="training4_unknown2" Type="int8" Size="1" />
+</Data>
+<Data ElementName="num_sections" Type="int8" Size="1" />
+<Data ElementName="sections_array" Type="Array" ArraySizeVariable="num_sections">
+  <Data ElementName="section_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="num_traditions" Type="int8" Size="1" />
+  <Data ElementName="tradition_array" Type="Array" ArraySizeVariable="num_traditions">
+    <Data ElementName="tradition_selected" Type="int8" Size="1" />
+    <Data ElementName="tradition_icon" Type="int16" Size="1" />
+    <Data ElementName="tradition_icon2" Type="int16" Size="1" />
+    <Data ElementName="tradition_id" Type="int32" Size="1" />
+    <Data ElementName="tradition_unknown" Type="int32" Size="1" />
+    <Data ElementName="tradition_name" Type="EQ2_16Bit_String" />
+    <Data ElementName="tradition_unknown2" Type="int8" Size="1" />
+  </Data>
+</Data>
+<Data ElementName="allow_select" Type="int8" Size="1" />
+<Data ElementName="num_abilities" Type="int8" Size="1" />
+<Data ElementName="ability_array" Type="Array" ArraySizeVariable="num_abilities">
+  <Data ElementName="ability_icon" Type="int16" Size="1" />
+  <Data ElementName="ability_icon2" Type="int16" Size="1" />
+  <Data ElementName="ability_id" Type="int32" Size="1" />
+  <Data ElementName="ability_unknown" Type="int32" Size="1" />
+  <Data ElementName="ability_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="ability_unknown2" Type="int8" Size="1" />
+</Data>
+<Data ElementName="num_focuseffects" Type="int8" Size="1" />
+<Data ElementName="focus_array" Type="Array" ArraySizeVariable="num_focuseffects">
+  <Data ElementName="focus_unknown1" Type="int8" Size="1" />
+  <Data ElementName="focus_unknown2" Type="int8" Size="1" />
+  <Data ElementName="focus_icon" Type="int16" Size="1" />
+  <Data ElementName="focus_icon2" Type="int16" Size="1" />
+  <Data ElementName="focus_spell_crc" Type="int32" Size="1" />
+  <Data ElementName="focus_unknown3" Type="int32" Size="1" />
+  <Data ElementName="focus_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="focus_unknown4" Type="int8" Size="1" />
+</Data>
+<Data ElementName="unknown" Type="int8" Size="1" />
+</Struct>
 <Struct Name="WS_AdventureList" ClientVersion="1" OpcodeName="OP_AdventureList">
 <Data ElementName="unknown" Type="int8" Size="1" />
 <Data ElementName="unknown2" Type="int32" Size="1" />
