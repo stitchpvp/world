@@ -259,6 +259,7 @@ public:
 	void	AddSpawnGroupChance(int32 group_id, float percent);
 	
 	void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true, bool respawn = true, bool lock = true);
+	void RemoveSpawnFromClient(Spawn* spawn);
 	void	ProcessSpawnLocations();
 	void	SendQuestUpdates(Client* client, Spawn* spawn = 0);
 	

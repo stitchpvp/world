@@ -3663,6 +3663,42 @@ void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool
 	LogWrite(ZONE__DEBUG, 3, "Zone", "Done processing RemoveSpawn function...");
 }
 
+void ZoneServer::RemoveSpawnFromClient(Spawn* spawn) {
+	Client* client = 0;
+	PacketStruct* packet = 0;
+	int16 packet_version = 0;
+
+	vector<Client*>::iterator client_itr;
+
+	MClientList.readlock(__FUNCTION__, __LINE__);
+	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
+		client = *client_itr;
+
+		if (client) {
+			if (!client->IsConnected())
+				continue;
+
+			if (client->GetPlayer() == spawn)
+				continue;
+
+			if (!packet || packet_version != client->GetVersion())
+			{
+				safe_delete(packet);
+				packet = configReader.getStruct("WS_DestroyGhostCmd", client->GetVersion());
+			}
+
+			if (client->GetPlayer()->HasTarget() && client->GetPlayer()->GetTarget() == spawn)
+				client->GetPlayer()->SetTarget(0);
+
+			SendRemoveSpawn(client, spawn, packet);
+
+			if (spawn_range_map.count(client) > 0)
+				spawn_range_map.Get(client)->erase(spawn->GetID());
+		}
+	}
+	MClientList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
 Spawn* ZoneServer::GetClosestSpawn(Spawn* spawn, int32 spawn_id){
 	Spawn* closest_spawn = 0;
 	Spawn* test_spawn = 0;

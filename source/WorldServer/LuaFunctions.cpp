@@ -1258,27 +1258,50 @@ int EQ2Emu_lua_SetMaxPowerBase(lua_State* state){
 int EQ2Emu_lua_SetPosition(lua_State* state){
 	if(!lua_interface)
 		return 0;
+
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	float x = lua_interface->GetFloatValue(state, 2);
 	float y = lua_interface->GetFloatValue(state, 3);
 	float z = lua_interface->GetFloatValue(state, 4);
 	float heading = lua_interface->GetFloatValue(state, 5);
+	bool should_zone = lua_interface->GetBooleanValue(state, 6);
+
 	lua_interface->ResetFunctionStack(state);
+
 	if(spawn){
 		spawn->SetX(x);
 		spawn->SetY(y);
 		spawn->SetZ(z);
+
 		if (heading != 0)
 			spawn->SetHeading(heading);
+
 		spawn->SetSpawnOrigX(spawn->GetX());
 		spawn->SetSpawnOrigY(spawn->GetY());
 		spawn->SetSpawnOrigZ(spawn->GetZ());
 		spawn->SetSpawnOrigHeading(spawn->GetHeading());
+
 		if(spawn->IsPlayer()){
 			Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
-			if(client){
-				EQ2Packet* packet = client->GetPlayer()->Move(x, y, z, client->GetVersion(), (heading == 0 ? -1.0f : (heading + 180.0f)));
-				client->QueuePacket(packet);
+
+			if (client) {
+				if (should_zone) {
+					PacketStruct* packet = configReader.getStruct("WS_TeleportWithinZone", client->GetVersion());
+					if (packet)
+					{
+						packet->setDataByName("x", x);
+						packet->setDataByName("y", y);
+						packet->setDataByName("z", z);
+						client->QueuePacket(packet->serialize());
+					}
+					safe_delete(packet);
+
+					client->GetCurrentZone()->RemoveSpawnFromClient(spawn);
+				} else {
+					EQ2Packet* packet = client->GetPlayer()->Move(x, y, z, client->GetVersion(), (heading == 0 ? -1.0f : (heading + 180.0f)));
+					client->QueuePacket(packet);
+					safe_delete(packet);
+				}
 			}
 		}
 		
