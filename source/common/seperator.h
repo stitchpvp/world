@@ -34,7 +34,6 @@ public:
 	Seperator(const char* message, char div = ' ', int16 in_maxargnum = 10, int16 arglen = 100, bool iObeyQuotes = false, char div2 = '\t', char div3 = 0, bool iSkipEmpty = true) {
 		int i;
 		argnum = 0;
-		msg = strdup(message);
 		this->maxargnum = in_maxargnum;
 		argplus = new const char *[maxargnum+1];
 		arg = new char *[maxargnum+1];
@@ -103,13 +102,10 @@ public:
 			safe_delete_array(arg[i]);
 		safe_delete_array(arg);
 		safe_delete_array(argplus);
-		if (msg)
-			free(msg);
 	}
 	int16 argnum;
 	char** arg;
 	const char** argplus;
-	char * msg;
 	bool IsSet(int num) const {
 		return IsSet(arg[num]);
 	}
