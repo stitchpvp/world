@@ -71,6 +71,7 @@ NPC_AI.o \
 Object.o \
 Player.o \
 PlayerGroups.o \
+PVP.o \
 Quests.o \
 races.o \
 RaceTypes/RaceTypes.o \
