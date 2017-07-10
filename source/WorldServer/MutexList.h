@@ -155,9 +155,8 @@ public:
 	bool PendingContains(T key){
 		if(!has_pending_data)
 			return false;
-		bool ret = false;
 		PendingLock.lock();
-		ret = (pending_data.count(key) > 0 && pending_data[key] == false);
+		bool ret = (pending_data.count(key) > 0 && pending_data[key] == false);
 		PendingLock.unlock();
 		return ret;
 	}

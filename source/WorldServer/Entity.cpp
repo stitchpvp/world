@@ -29,11 +29,11 @@
 #include "classes.h"
 #include "LuaInterface.h"
 #include "ClientPacketFunctions.h"
+#include "PVP.h"
 
 extern World world;
 extern MasterItemList master_item_list;
 extern MasterSpellList master_spell_list;
-extern RuleManager rule_manager;
 extern Classes classes;
 
 Entity::Entity(){
@@ -1598,20 +1598,8 @@ void Entity::CancelAllStealth() {
 }
 
 bool Entity::CanAttackTarget(Spawn *target) {
-	if (target->IsPlayer() || target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer()) {
-		bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
-
-		Entity* entity_target = (Entity*)target;
-
-		if (target->IsPet())
-			entity_target = ((NPC*)target)->GetOwner();
-
-		// Alignment of 0 is currently "neutral"
-		// Not attackable by either - only meant for GM, perhaps.
-		if (entity_target->GetAlignment() == 0)
-			return false;
-
-		return (pvp_allowed && this->GetAlignment() != entity_target->GetAlignment());
+	if (IsPlayer() && (target->IsPlayer() || target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer())) {
+		return PVP::CanAttack((Player*)this, target);
 	} else {
 		return target->GetAttackable();
 	}

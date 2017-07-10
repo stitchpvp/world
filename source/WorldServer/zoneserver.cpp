@@ -143,9 +143,16 @@ ZoneServer::ZoneServer(const char* name) {
 	dawn_minute = 0;
 	reloading_spellprocess = false;
 	MMasterZoneLock = new CriticalSection(MUTEX_ATTRIBUTE_RECURSIVE);
-	
-	
-	
+	weather_allowed = true;
+	spawnthread_active = false;
+	combatthread_active = false;
+	client_thread_active = false;
+	spellProcess = 0;
+	tradeskillMgr = 0;
+	InstanceType = PUBLIC_INSTANCE;
+	isInstance = false;
+	zone_file;
+
 	reloading = true;
 }
 
@@ -346,7 +353,7 @@ void ZoneServer::DeleteSpellProcess(){
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
 		if(spawn && spawn->IsNPC())
-			((NPC*)spawn)->SetSpells(0);
+			static_cast<NPC*>(spawn)->SetSpells(0);
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 
@@ -362,12 +369,14 @@ void ZoneServer::LoadSpellProcess(){
 
 	// Reload NPC's spells
 	Spawn* spawn = 0;
+	NPC* npc = 0;
 	map<int32, Spawn*>::iterator itr;
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
-		if(spawn && spawn->IsNPC())
-			((NPC*)spawn)->SetSpells(GetNPCSpells(((NPC*)spawn)->GetPrimarySpellList(), ((NPC*)spawn)->GetSecondarySpellList()));
+		if (spawn && spawn->IsNPC())
+			npc = static_cast<NPC*>(spawn);
+			npc->SetSpells(GetNPCSpells(npc->GetPrimarySpellList(), npc->GetSecondarySpellList()));
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 }
@@ -3760,7 +3769,7 @@ void ZoneServer::SendQuestUpdates(Client* client, Spawn* spawn){
 	else{
 		map<int32, Spawn*>::iterator itr;
 		MSpawnList.readlock(__FUNCTION__, __LINE__);
-		for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
+		for (itr = spawn_list.begin(); itr != spawn_list.end(); ++itr) {
 			spawn = itr->second;
 
 			spawn->m_requiredQuests.readlock(__FUNCTION__, __LINE__);
@@ -5197,7 +5206,7 @@ void ZoneServer::HandleEmote(Client* originator, string name) {
 	MClientList.readlock(__FUNCTION__, __LINE__);
 	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 		client = *client_itr;
-		if(!client || (client && client->GetPlayer()->IsIgnored(originator->GetPlayer()->GetName())))
+		if(!client || client->GetPlayer()->IsIgnored(originator->GetPlayer()->GetName()))
 			continue;
 		packet = configReader.getStruct("WS_CannedEmote", client->GetVersion());
 		if(packet){
@@ -6598,10 +6607,8 @@ void ZoneServer::AddTransportMap(int32 id, string name) {
 }
 
 bool ZoneServer::TransportHasMap(int32 id) {
-	bool ret = false;
-
 	MTransportMaps.readlock(__FUNCTION__, __LINE__);
-	ret = m_transportMaps.count(id) > 0;
+	bool ret = m_transportMaps.count(id) > 0;
 	MTransportMaps.releasereadlock(__FUNCTION__, __LINE__);
 
 	return ret;

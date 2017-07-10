@@ -108,7 +108,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		return false;
 	}
 
-	if (attacker->IsPlayer() && !attacker->CanAttackTarget(target)) {
+	if (!attacker->CanAttackTarget(target)) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: target is not attackable");
 		return false;
 	}

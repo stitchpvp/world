@@ -503,7 +503,6 @@ public:
 			AddPtrData(&buffer, num_queries);
 		AddPtrData(&buffer, columns_size);
 		AddPtrData(&buffer, columns, columns_size);
-		vector<TableData*>::iterator query_iterator;
 		int16 count = 0;
 		for(int i=GetTotalQueries() - 1;i >=0 && count < 200;i--){
 			AddPtrData(&buffer, queries[i]->size);

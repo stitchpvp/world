@@ -150,31 +150,31 @@ public:
 	void renameSubstructArray(const char* substruct, int32 index);
 	template<class Data> void setSubstructSubstructDataByName(const char* substruct_name1, const char* substruct_name2, const char* name, Data data, int32 substruct_index1 = 0, int32 substruct_index2 = 0, int32 index = 0){
 		char tmp[15] = {0};
-		sprintf(tmp,"_%i_%i",substruct_index1, substruct_index2);
+		sprintf(tmp,"_%u_%u",substruct_index1, substruct_index2);
 		string name2 = string(substruct_name1).append("_").append(substruct_name2).append("_").append(name).append(tmp);
 		setData(findStruct(name2.c_str(), index), data, index);
 	}
 	template<class Data> void setSubstructDataByName(const char* substruct_name, const char* name, Data data, int32 substruct_index = 0, int32 index = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",substruct_index);
+		sprintf(tmp,"_%u",substruct_index);
 		string name2 = string(substruct_name).append("_").append(name).append(tmp);
 		setData(findStruct(name2.c_str(), index), data, index);
 	}
 	template<class Data> void setSubstructColorByName(const char* substruct_name, const char* name, Data data, int32 substruct_index = 0, int32 index = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",substruct_index);
+		sprintf(tmp,"_%u",substruct_index);
 		string name2 = string(substruct_name).append("_").append(name).append(tmp);
 		setColor(findStruct(name2.c_str(), index), data, index);
 	}
 	template<class Data> void setSubstructArrayDataByName(const char* substruct_name, const char* name, Data data, int32 index = 0, int32 substruct_index = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",substruct_index);
+		sprintf(tmp,"_%u",substruct_index);
 		string name2 = string(substruct_name).append("_").append(name).append(tmp);
 		setData(findStruct(name2.c_str(), substruct_index, index), data, index);
 	}
 	template<class Data> void setSubstructArrayColorByName(const char* substruct_name, const char* name, Data data, int32 substruct_index = 0, int32 index = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",substruct_index);
+		sprintf(tmp,"_%u",substruct_index);
 		string name2 = string(substruct_name).append("_").append(name).append(tmp);
 		setColor(findStruct(name2.c_str(), index, substruct_index), data, index);
 	}
@@ -186,19 +186,19 @@ public:
 	}
 	template<class Data> void setSubArrayDataByName(const char* name, Data data, int32 index1 = 0, int32 index2 = 0, int32 index3 = 0){
 		char tmp[20] = {0};
-		sprintf(tmp,"%i_%i", index1, index2);
+		sprintf(tmp,"%u_%u", index1, index2);
 		string name2 = string(name).append(tmp);
 		setData(findStruct(name2.c_str(), index2, index3), data, index3);
 	}
 	template<class Data> void setArrayDataByName(const char* name, Data data, int32 index1 = 0, int32 index2 = 0, bool use_second_type = false){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",index1);
+		sprintf(tmp,"_%u",index1);
 		string name2 = string(name).append(tmp);
 		setData(findStruct(name2.c_str(), index1, index2), data, index2, use_second_type);
 	}
 	void setArrayAddToPacketByName(const char* name, bool new_val, int32 index1 = 0, int32 index2 = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",index1);
+		sprintf(tmp,"_%u",index1);
 		string name2 = string(name).append(tmp);
 		DataStruct* data = findStruct(name2.c_str(), index2);
 		if(data)
@@ -363,7 +363,7 @@ public:
 
 	template<class Data> void setSubArrayLengthByName(const char* name, Data data, int32 index1 = 0, int32 index2 = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",index1);
+		sprintf(tmp,"_%u",index1);
 		string name2 = string(name).append(tmp);
 		DataStruct* data_struct = findStruct(name2.c_str(), index2);
 		setData(data_struct, data, index2);
@@ -376,7 +376,7 @@ public:
 	}
 	template<class Data> void setSubstructArrayLengthByName(const char* substruct_name, const char* name, Data data, int32 substruct_index = 0, int32 index = 0){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%i",substruct_index);
+		sprintf(tmp,"_%u",substruct_index);
 		string name2 = string(substruct_name).append("_").append(name).append(tmp);
 
 		DataStruct* data_struct = findStruct(name2.c_str(), index);
@@ -397,7 +397,7 @@ public:
 	}
 	void setColor(DataStruct* data_struct, EQ2_Color data, int32 index = 0){
 		if(data_struct){
-			EQ2_Color* ptr = (EQ2_Color*)struct_data[data_struct];
+			EQ2_Color* ptr = static_cast<EQ2_Color*>(struct_data[data_struct]);
 			ptr[index] = data;
 		}
 	}
@@ -407,7 +407,7 @@ public:
 	void setColor(DataStruct* data, int8 red, int8 green, int8 blue, int32 index);
 	void setEquipmentByName(DataStruct* data_struct, EQ2_EquipmentItem data, int32 index = 0){
 		if(data_struct){
-			EQ2_EquipmentItem* ptr = (EQ2_EquipmentItem*)struct_data[data_struct];
+			EQ2_EquipmentItem* ptr = static_cast<EQ2_EquipmentItem*>(struct_data[data_struct]);
 			ptr[index] = data;
 		}
 	}

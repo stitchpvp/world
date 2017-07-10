@@ -499,7 +499,7 @@ void PacketStruct::deletePacketArrays(PacketStruct* packet){
 void PacketStruct::renameSubstructArray(const char* substruct, int32 index){
 	vector<PacketStruct*>::iterator itr;
 	char tmp[10] = {0};
-	sprintf(tmp, "%i", index);
+	sprintf(tmp, "%u", index);
 	for(itr=arrays.begin();itr!=arrays.end();itr++) {
 		(*itr)->SetName(string(substruct).append("_").append((*itr)->GetName()).append("_").append(tmp).c_str());
 	}
@@ -812,7 +812,7 @@ void PacketStruct::add(DataStruct* data){
 			for(int32 i=1;i<data->GetLength();i++){
 				DataStruct* new_data = new DataStruct(data);
 				char blah[10] = {0};
-				sprintf(blah,"%i",i);
+				sprintf(blah,"%u",i);
 				name2.append("_").append(blah);
 				new_data->SetName(name2.c_str());
 				new_data->SetLength(1);
@@ -832,7 +832,7 @@ void PacketStruct::add(DataStruct* data){
 			for(int32 i=1;i<data->GetLength();i++){
 				DataStruct* new_data = new DataStruct(data);
 				char blah[10] = {0};
-				sprintf(blah,"%i",i);
+				sprintf(blah,"%u",i);
 				name2.append("_").append(blah);
 				new_data->SetName(name2.c_str());
 				new_data->SetLength(1);
@@ -852,7 +852,7 @@ void PacketStruct::add(DataStruct* data){
 			for(int32 i=1;i<data->GetLength();i++){
 				DataStruct* new_data = new DataStruct(data);
 				char blah[10] = {0};
-				sprintf(blah,"%i",i);
+				sprintf(blah,"%u",i);
 				name2.append("_").append(blah);
 				new_data->SetName(name2.c_str());
 				new_data->SetLength(1);
@@ -924,7 +924,7 @@ DataStruct* PacketStruct::findStruct(const char* name, int32 index1, int32 index
 	string name2 = string(name);
 	if(index1 < 0xFFFF){
 		char blah[10] = {0};
-		sprintf(blah,"_%i",index1);
+		sprintf(blah,"_%u",index1);
 		name2.append(blah);
 	}
 	if(struct_map.count(name2) > 0){
