@@ -894,8 +894,7 @@ int EQ2Emu_lua_HasItem(lua_State* state) {
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
 	bool include_bank = lua_interface->GetInt8Value(state, 3);
 	if (player && player->IsPlayer()) {
-		bool hasItem = false;
-		hasItem = ((Player*)player)->item_list.HasItem(item_id, include_bank);
+		bool hasItem = ((Player*)player)->item_list.HasItem(item_id, include_bank);
 		if (!hasItem)
 			hasItem = ((Player*)player)->GetEquipmentList()->HasItem(item_id);
 		lua_interface->SetBooleanValue(state, hasItem);
@@ -1119,9 +1118,7 @@ int EQ2Emu_lua_SpellDamage(lua_State* state){
 
 	lua_interface->ResetFunctionStack(state);
 
-	if(caster && caster->IsEntity()){
-		bool success = false;
-		
+	if(caster && caster->IsEntity()){		
 		if (target) {
 			float distance = caster->GetDistance(target, true);
 			distance -= caster->appearance.pos.collision_radius/10;
@@ -2767,6 +2764,7 @@ int EQ2Emu_lua_AddQuestStepLocation(lua_State* state){
 		int i = 7;
 		while(true) {
 			Location loc;
+			loc.id = 0;
 			loc.x = lua_interface->GetFloatValue(state, i);
 			loc.y = lua_interface->GetFloatValue(state, i + 1);
 			loc.z = lua_interface->GetFloatValue(state, i + 2);
@@ -3426,7 +3424,7 @@ int EQ2Emu_lua_GetGroup(lua_State* state) {
 		deque<GroupMemberInfo*>::iterator itr;
 		deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(((Player*)spawn)->GetGroupMemberInfo()->group_id);
 		GroupMemberInfo* info = 0;
-		for(itr = members->begin(); itr != members->end(); itr++){
+		for(itr = members->begin(); itr != members->end(); ++itr){
 			info = *itr;
 			if(info->client)
 				groupMembers.push_back(info->client->GetPlayer());
@@ -3494,7 +3492,7 @@ int EQ2Emu_lua_SendOptionWindow(lua_State* state) {
 		packet->setArrayLengthByName("num_selections", option_window->size());
 		vector<OptionWindowOption>::iterator itr;
 		int8 i = 0;
-		for (itr = option_window->begin(); itr != option_window->end(); itr++) {
+		for (itr = option_window->begin(); itr != option_window->end(); ++itr) {
 			OptionWindowOption opt = *itr;
 			packet->setArrayDataByName("tradeskill_name", opt.optionName.c_str(), i);
 			packet->setArrayDataByName("tradeskill_description", opt.optionDescription.c_str(), i);
@@ -4595,7 +4593,6 @@ int EQ2Emu_lua_Interrupt(lua_State* state)
 
 	Spawn* caster = lua_interface->GetSpawn(state); // Second param in lua_interface->get functions defaults to 1
 	Spawn* target = lua_interface->GetSpawn(state, 2);
-	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 
 	if (!caster)
 	{
@@ -5656,7 +5653,7 @@ int EQ2Emu_lua_CanHarvest(lua_State* state) {
 	sint32 min_skill = -1;
 
 	// first, iterate through groundspawn_entries, discard tables player cannot use
-	for(itr = groundspawn_entries->begin(); itr != groundspawn_entries->end(); itr++) 
+	for(itr = groundspawn_entries->begin(); itr != groundspawn_entries->end(); ++itr)
 	{
 		entry = *itr;
 
@@ -5858,12 +5855,12 @@ int EQ2Emu_lua_SpawnMove(lua_State* state){
 	float max_distance = lua_interface->GetFloatValue(state, 3);
 	string type = lua_interface->GetStringValue(state, 4);
 
-	if(!spawn || (spawn && spawn->IsPlayer())){
+	if(!spawn || spawn->IsPlayer()) {
 		lua_interface->LogError("LUA SpawnMove command error: first param spawn is not valid or is player");
 		return 0;
 	}
 
-	if(!player || (player && !player->IsPlayer())){
+	if(!player || !player->IsPlayer()) {
 		lua_interface->LogError("LUA SpawnMove command error: second param is not player");
 		return 0;
 	}
@@ -6107,11 +6104,9 @@ int EQ2Emu_lua_Knockback(lua_State* state) {
 
 	Spawn* target_spawn = lua_interface->GetSpawn(state);
 	Spawn* spawn = lua_interface->GetSpawn(state, 2);
-	int32 duration = lua_interface->GetInt32Value(state, 3);
 	float vertical = lua_interface->GetFloatValue(state, 4);
 	float horizontal = lua_interface->GetFloatValue(state, 5);
 	bool use_heading = lua_interface->GetInt8Value(state, 6) == 1 ? true : false;
-	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 
 	if (!target_spawn) {
 		lua_interface->LogError("LUA Knockback command error: target_spawn is not valid");
@@ -7085,7 +7080,7 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 
 				deque<GroupMemberInfo*>::iterator itr;
 				deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(((Entity*)caster)->GetGroupMemberInfo()->group_id);
-				for (itr = members->begin(); itr != members->end(); itr++) {
+				for (itr = members->begin(); itr != members->end(); ++itr) {
 					if ((*itr)->client)
 						ClientPacketFunctions::SendHeroicOPUpdate((*itr)->client, ho);
 				}
@@ -8296,7 +8291,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 
 	vector<Spawn*> group;
 
-	for (itr = locs->begin(); itr != locs->end(); itr++){
+	for (itr = locs->begin(); itr != locs->end(); ++itr){
 		SpawnLocation* location = zone->GetSpawnLocation(itr->second);
 		if (!location) {
 			lua_interface->LogError("LUA SpawnByLocationID command error: no location found for the given ID (%u)", itr->second);

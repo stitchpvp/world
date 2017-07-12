@@ -385,6 +385,9 @@
     <ClCompile Include="..\..\source\WorldServer\PlayerGroups.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\PVP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\common\Common_Defines.h">
@@ -677,6 +680,9 @@
     </ClInclude>
     <ClInclude Include="..\..\source\WorldServer\Items\Items_DoV.h">
       <Filter>Header Files\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\PVP.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

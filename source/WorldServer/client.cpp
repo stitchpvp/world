@@ -312,9 +312,8 @@ void Client::SendLoginInfo() {
 	SendBiography();
 
 	map<int32, Quest*>::iterator itr;
-	Quest* quest = 0;
-	for (itr = player->player_quests.begin(); itr != player->player_quests.end(); itr++) {
-		quest = itr->second;
+	for (itr = player->player_quests.begin(); itr != player->player_quests.end(); ++itr) {
+		Quest* quest = itr->second;
 		if (quest->IsTracked()) {
 			quest->SetTracked(false);
 			QueuePacket(itr->second->QuestJournalReply(version, GetNameCRC(), player));
@@ -377,12 +376,11 @@ void Client::SendPlayerDeathWindow()
 		if (packet)
 		{
 			packet->setArrayLengthByName("location_count", results->size());
-			RevivePoint* point = 0;
 			int32 i=0;
 
-			for (itr=results->begin();itr!=results->end();itr++, i++)
+			for (itr=results->begin(); itr!=results->end(); ++itr, ++i)
 			{
-				point = *itr;
+				RevivePoint* point = *itr;
 				if(point)
 				{
 					packet->setArrayDataByName("location_id", point->id, i);
@@ -1242,7 +1240,6 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 			if(packet){
 				if(packet->LoadPacketData(app->pBuffer, app->size)){
 					int num_updates = packet->getType_int16_ByName("spell_count");
-					int32 spell_id = 0;
 					int16 slot_id = 0;
 					char tmp_spell_id[15];
 					char tmp_slot[15];
@@ -1251,7 +1248,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 						memset(tmp_slot, 0, 15);
 						sprintf(tmp_spell_id, "spell_id_%i", i);
 						sprintf(tmp_slot, "slot_id_%i", i);
-						spell_id = packet->getType_int32_ByName(tmp_spell_id);
+						int32 spell_id = packet->getType_int32_ByName(tmp_spell_id);
 						if(spell_id > 0){
 							slot_id = packet->getType_int16_ByName(tmp_slot);
 							SpellBookEntry* spell = player->GetSpellBookSpell(spell_id);
@@ -1873,7 +1870,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				vector<DataStruct*>* d_structs = packet->getStructs();
 				vector<DataStruct*>::iterator itr;
 				int32 i = 0;
-				for (itr = d_structs->begin(); itr != d_structs->end(); itr++){
+				for (itr = d_structs->begin(); itr != d_structs->end(); ++itr){
 					DataStruct* ds = (*itr);
 					if (strcmp(ds->GetName(), "pngData_0") != 0)
 						i += ds->GetDataSizeInBytes();
@@ -2032,10 +2029,10 @@ void Client::HandleLoot(EQApplicationPacket* app){
 		bool loot_all = (packet->getType_int8_ByName("loot_all") == 1);
 		safe_delete(packet);
 		int32 item_id = 0;
-		Item* item = 0;
 		Spawn* spawn = GetCurrentZone()->GetSpawnByID(loot_id);
 		if(player->HasPendingLootItems(loot_id)){
 			Item* master_item = 0;
+			Item* item = 0;
 			if(loot_all){
 				vector<Item*>* items = player->GetPendingLootItems(loot_id);
 				if(items){
@@ -2354,18 +2351,17 @@ void Client::HandleQuickbarUpdateRequest(EQApplicationPacket* app){
 		int32 type = request->getType_int32_ByName("type");
 		int8 tier = request->getType_int32_ByName("unique_id");
 		EQ2_16BitString text = request->getType_EQ2_16BitString_ByName("text");
-		Spell* spell = 0;
-		if(type == 0xFFFFFFFF)
+		if (type == 0xFFFFFFFF) {
 			GetPlayer()->RemoveQuickbarItem(bar, slot);
-		else{
-			if(type == QUICKBAR_NORMAL)
-				spell =  master_spell_list.GetSpell(id, tier);
-			if(spell)
-				GetPlayer()->AddQuickbarItem(bar, slot, type, spell->GetSpellIcon(), spell->GetSpellIconBackdrop(), id, tier, 0, text.data.c_str());
-			else
+		} else {
+			if (type == QUICKBAR_NORMAL) {
+				Spell* spell = master_spell_list.GetSpell(id, tier);
+				if (spell)
+					GetPlayer()->AddQuickbarItem(bar, slot, type, spell->GetSpellIcon(), spell->GetSpellIconBackdrop(), id, tier, 0, text.data.c_str());
+			} else {
 				GetPlayer()->AddQuickbarItem(bar, slot, type, 0, 0, id, 0, 0, text.data.c_str());
+			}
 		}
-
 		safe_delete(request);
 	}
 
@@ -2438,10 +2434,9 @@ bool Client::Process(bool zone_process) {
 	if(player->GetSkills()->HasSkillUpdates()){
 		vector<Skill*>* skills = player->GetSkills()->GetSkillUpdates();
 		if(skills){
-			Skill* skill = 0;
 			vector<Skill*>::iterator itr;
-			for(itr = skills->begin(); itr != skills->end(); itr++){
-				skill = *itr;
+			for(itr = skills->begin(); itr != skills->end(); ++itr){
+				Skill* skill = *itr;
 				SkillChanged(skill, skill->previous_val, skill->current_val);
 			}
 			safe_delete(skills);
@@ -2479,7 +2474,7 @@ bool Client::Process(bool zone_process) {
 	if (quest_timers.size() > 0) {
 		vector<int32>::iterator itr;
 		map<int32, Quest*>* player_quests = player->GetPlayerQuests();
-		for (itr = quest_timers.begin(); itr != quest_timers.end(); itr++) {
+		for (itr = quest_timers.begin(); itr != quest_timers.end(); ++itr) {
 			if (player_quests->count(*itr) > 0 && player_quests->at(*itr)->GetStepTimer() != 0) {
 				Quest* quest = player_quests->at(*itr);
 				if (Timer::GetUnixTimeStamp() >= quest->GetStepTimer()) {
@@ -2501,7 +2496,7 @@ bool Client::Process(bool zone_process) {
 	if (player->ControlFlagsChanged())
 		player->SendControlFlagUpdates(this);
 
-	if (!eqs || (eqs && !eqs->CheckActive()))
+	if (!eqs || !eqs->CheckActive())
 		ret = false;
 
 	if(!ret)
@@ -2520,10 +2515,9 @@ ClientList::~ClientList() {
 
 void ClientList::ReloadQuests() {
 	list<Client*>::iterator client_iter;
-	Client* client = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_iter!=client_list.end(); client_iter++){
-		client = *client_iter;
+	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
+		Client* client = *client_iter;
 		if(client)
 			client->ReloadQuests();
 	}
@@ -2547,7 +2541,7 @@ Client* ClientList::FindByAccountID(int32 account_id) {
 	Client* client = 0;
 	Client* ret = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); client_iter++){
+	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
 		client = *client_iter;
 		if (client->GetAccountID() == account_id) {
 			ret =  client;
@@ -2564,7 +2558,7 @@ Client* ClientList::FindByName(char* charName) {
 	Client* client = 0;
 	Client* ret = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); client_iter++){
+	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
 		client = *client_iter;
 		if (!client || !client->GetPlayer())
 			continue;
@@ -2584,7 +2578,7 @@ Client* ClientList::Get(int32 ip, int16 port) {
 	Client* client = 0;
 	Client* ret = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); client_iter++){
+	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
 		client = *client_iter;
 		if(client->GetIP() == ip && client->GetPort() == port){
 			ret = client;
@@ -2603,7 +2597,7 @@ void ClientList::Process() {
 	Client* client = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
 	erase_iter = client_list.end();
-	for(client_iter=client_list.begin(); client_iter!=client_list.end();client_iter++){
+	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
 		client = *client_iter;
 		// have a sanity check because the client list can sometimes obtain null client pointers
 		if (!client || (!client->Process() || client->remove_from_list)) {
@@ -2628,13 +2622,11 @@ void ClientList::Process() {
 }
 
 void ClientList::RemoveConnection(EQStream* eqs){
-	Client *client;
-
 	if(eqs){
 		list<Client*>::iterator client_iter;
 		MClients.readlock(__FUNCTION__, __LINE__);
-		for(client_iter=client_list.begin(); client_iter!=client_list.end(); client_iter++){
-			client = *client_iter;
+		for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
+			Client* client = *client_iter;
 			if(client->getConnection() == eqs)
 				client->Disconnect(false);
 		}
@@ -2650,7 +2642,7 @@ bool ClientList::ContainsStream(EQStream* eqs){
 	list<Client*>::iterator client_iter;
 	bool ret = false;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_iter!=client_list.end(); client_iter++){
+	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
 		if((*client_iter)->getConnection() && (*client_iter)->getConnection()->GetRemotePort() == eqs->GetRemotePort() && (*client_iter)->getConnection()->GetRemoteIP() == eqs->GetRemoteIP()){
 			ret = true;
 			break;
@@ -2802,11 +2794,10 @@ bool Client::Summon(const char* search_name){
 }
 
 bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
-	ZoneServer* instance_zone = NULL;
-	int8 instanceType = 0;
-	
 	// determine if this is a group instanced zone that already exists
-	instance_zone = GetPlayer()->GetGroupMemberInZone(zoneID);
+	ZoneServer* instance_zone = GetPlayer()->GetGroupMemberInZone(zoneID);
+
+	int8 instanceType = 0;
 
 	if ( instance_zone != NULL )
 		Zone(instance_zone->GetInstanceID(),zone_coords_valid, true);
@@ -3130,12 +3121,7 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords){
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->GetZoneName());
 	SetCurrentZone(new_zone);
 
-	if(player->GetGroupMemberInfo())
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Player in group, updating group info...", __FUNCTION__);
-		player->UpdateGroupMemberInfo();
-		world.GetGroupManager()->SendGroupUpdate(player->GetGroupMemberInfo()->group_id, this);
-	}
+	// Do smoething with group to show that the person is ozning
 
 	UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
 
@@ -3768,7 +3754,7 @@ void Client::Loot(int32 total_coins, vector<Item*>* items, Entity* entity){
 		safe_delete(tmpPacket);
 		Item* item = 0;
 		if(items && items->size() > 0){
-			for(itr = items->begin(); itr != items->end(); itr++){
+			for(itr = items->begin(); itr != items->end(); ++itr){
 				item = *itr;
 				memcpy(ptr, &item->details.item_id, sizeof(int32));
 				ptr += sizeof(int32);
@@ -3885,8 +3871,8 @@ void Client::Bank(Spawn* banker, bool cancel){
 }
 
 void Client::BankWithdrawal(int64 amount){
-	bool cheater = false;
-	if(GetBanker() && amount > 0){
+	if (GetBanker() && amount > 0) {
+		bool cheater = false;
 		string withdrawal = "";
 		char withdrawal_data[512] = {0};
 		int32 tmp = 0;
@@ -3968,8 +3954,8 @@ void Client::BankWithdrawal(int64 amount){
 }
 
 void Client::BankDeposit(int64 amount){
-	bool cheater = false;
-	if(GetBanker() && amount > 0){
+	if (GetBanker() && amount > 0) {
+		bool cheater = false;
 		int32 tmp = 0;
 		char deposit_data[512] = {0};
 		string deposit = "";
@@ -4075,8 +4061,8 @@ void Client::ProcessQuestUpdates(){
 		MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
 		map<int32, map<int32, int32> >::iterator quest_itr;
 		map<int32, int32>::iterator step_itr;
-		for(quest_itr = tmp_quest_updates.begin(); quest_itr != tmp_quest_updates.end(); quest_itr++){
-			for(step_itr = quest_itr->second.begin(); step_itr != quest_itr->second.end(); step_itr++){
+		for(quest_itr = tmp_quest_updates.begin(); quest_itr != tmp_quest_updates.end(); ++quest_itr){
+			for(step_itr = quest_itr->second.begin(); step_itr != quest_itr->second.end(); ++step_itr){
 				if(step_itr->second == 0xFFFFFFFF){
 					SetStepComplete(quest_itr->first, step_itr->first);
 					player->SendQuestRequiredSpawns(quest_itr->first);
@@ -4093,7 +4079,7 @@ void Client::ProcessQuestUpdates(){
 		tmp_quest_rewards.insert(tmp_quest_rewards.begin(), quest_pending_reward.begin(), quest_pending_reward.end());
 		quest_pending_reward.clear();
 		MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
-		for(itr = tmp_quest_rewards.begin(); itr != tmp_quest_rewards.end(); itr++){
+		for(itr = tmp_quest_rewards.begin(); itr != tmp_quest_rewards.end(); ++itr){
 			GiveQuestReward(*itr);
 		}		
 	}
@@ -4105,9 +4091,8 @@ void Client::CheckQuestQueue(){
 	MQuestQueue.writelock();
 	last_update_time = 0;
 	vector<QueuedQuest*>::iterator itr;
-	QueuedQuest* queued_quest = 0;
-	for(itr = quest_queue.begin(); itr != quest_queue.end(); itr++){
-		queued_quest = *itr;
+	for(itr = quest_queue.begin(); itr != quest_queue.end(); ++itr){
+		QueuedQuest* queued_quest = *itr;
 		SendQuestUpdateStepImmediately(queued_quest->quest, queued_quest->step, queued_quest->display_quest_helper);
 		safe_delete(queued_quest);
 	}
@@ -4235,10 +4220,9 @@ void Client::SetPlayerQuest(Quest* quest, map<int32, int32>* progress){
 			return;
 	}
 	map<int32, int32>::iterator itr;
-	QuestStep* step = 0;
 	player->SetZone(GetCurrentZone());
-	for(itr = progress->begin(); itr != progress->end(); itr++){
-		step = quest->GetQuestStep(itr->first);
+	for(itr = progress->begin(); itr != progress->end(); ++itr){
+		QuestStep* step = quest->GetQuestStep(itr->first);
 		if(step && itr->second > 0){
 			step->SetStepProgress(itr->second);
 			if(lua_interface && step->GetQuestCurrentQuantity() >= step->GetQuestNeededQuantity())
@@ -4327,10 +4311,9 @@ void Client::SendQuestUpdateStep(Quest* quest, int32 step, bool display_quest_he
 
 void Client::SendQuestFailure(Quest* quest){
 	vector<QuestStep*>* failures = quest->GetQuestFailures();
-	if(failures){
-		QuestStep* step = 0;
+	if (failures) {
 		for(int32 i=0;i<failures->size();i++){
-			step = failures->at(i);
+			QuestStep* step = failures->at(i);
 			QueuePacket(quest->QuestJournalReply(GetVersion(), GetNameCRC(), player, step, 1, false, true));
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 			SendQuestJournal();
@@ -4343,9 +4326,8 @@ void Client::SendQuestFailure(Quest* quest){
 void Client::SendQuestUpdate(Quest* quest){
 	vector<QuestStep*>* updates = quest->GetQuestUpdates();
 	if(updates){
-		QuestStep* step = 0;
 		for(int32 i=0;i<updates->size();i++){
-			step = updates->at(i);
+			QuestStep* step = updates->at(i);
 			if(lua_interface && step->Complete() && quest->GetCompleteAction(step->GetStepID()))
 				lua_interface->CallQuestFunction(quest, quest->GetCompleteAction(step->GetStepID()), player);
 			if(step->WasUpdated()){
@@ -4391,9 +4373,8 @@ void Client::SendQuestJournalUpdate(Quest* quest) {
 
 void Client::ReloadQuests(){
 	vector<int32> ids = player->GetQuestIDs();
-	Quest* quest = 0;
 	for(int32 i=0;i<ids.size();i++){
-		quest = master_quest_list.GetQuest(ids[i]);
+		Quest* quest = master_quest_list.GetQuest(ids[i]);
 		if(quest)
 			AddPlayerQuest(quest, false);
 		else
@@ -4405,12 +4386,11 @@ void Client::ReloadQuests(){
 Quest*	Client::GetPendingQuestAcceptance(int32 item_id){
 	bool found_quest = false;
 	vector<Quest*>::iterator itr;
-	vector<Item*>* items = 0;
 	Quest* quest = 0;
 	MPendingQuestAccept.lock();
-	for(itr = pending_quest_accept.begin(); itr != pending_quest_accept.end(); itr++){
+	for(itr = pending_quest_accept.begin(); itr != pending_quest_accept.end(); ++itr){
 		quest = *itr;
-		items = quest->GetSelectableRewardItems();
+		vector<Item*>* items = quest->GetSelectableRewardItems();
 		if(items && items->size() > 0){
 			for(int32 i=0;i<items->size();i++){
 				if(items->at(i)->details.item_id == item_id){
@@ -4456,7 +4436,7 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id){
 			QueuePacket(outapp);
 		map<int32, sint32>* reward_factions = quest->GetRewardFactions();
 		map<int32, sint32>::iterator itr;
-		for (itr = reward_factions->begin(); itr != reward_factions->end(); itr++) {
+		for (itr = reward_factions->begin(); itr != reward_factions->end(); ++itr) {
 			int32 faction_id = itr->first;
 			sint32 amount = itr->second;
 			if (amount > 0)
@@ -4531,7 +4511,7 @@ void Client::DisplayQuestComplete(Quest* quest){
 			packet->setArrayLengthByName("num_factions", reward_factions->size());
 			map<int32, sint32>::iterator itr;
 			int16 index = 0;
-			for (itr = reward_factions->begin(); itr != reward_factions->end(); itr++) {
+			for (itr = reward_factions->begin(); itr != reward_factions->end(); ++itr) {
 				int32 faction_id = itr->first;
 				sint32 amount = itr->second;
 				const char* faction_name = master_faction_list.GetFactionNameByID(faction_id);
@@ -4767,7 +4747,7 @@ int32 Client::GetConversationID(Spawn* spawn, Item* item){
 	int32 conversation_id = 0;
 	if(spawn){
 		map<int32, Spawn*>::iterator itr;
-		for(itr = conversation_spawns.begin(); itr != conversation_spawns.end(); itr++){
+		for(itr = conversation_spawns.begin(); itr != conversation_spawns.end(); ++itr){
 			if(itr->second == spawn){
 				conversation_id = itr->first;
 				break;
@@ -4776,7 +4756,7 @@ int32 Client::GetConversationID(Spawn* spawn, Item* item){
 	}
 	else if(item){
 		map<int32, Item*>::iterator itr;
-		for(itr = conversation_items.begin(); itr != conversation_items.end(); itr++){
+		for(itr = conversation_items.begin(); itr != conversation_items.end(); ++itr){
 			if(itr->second == item){
 				conversation_id = itr->first;
 				break;
@@ -5024,9 +5004,7 @@ float Client::CalculateSellMultiplier(int32 merchant_id){
 void Client::SellItem(int32 item_id, int8 quantity, int32 unique_id){
 	Spawn* spawn = GetMerchantTransaction();
 	if(spawn && spawn->GetMerchantID() > 0){
-		int32 total_sell_price = 0;
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
-		int32 sell_price = 0;
 		Item* master_item = master_item_list.GetItem(item_id);
 		Item* item = 0;
 		if (unique_id == 0)
@@ -5037,12 +5015,12 @@ void Client::SellItem(int32 item_id, int8 quantity, int32 unique_id){
 		if(!item)
 			player->item_list.GetItemFromID(item_id);
 		if(item && master_item){
-			sell_price = (int32)(master_item->sell_price * multiplier);
+			int32 sell_price = (int32)(master_item->sell_price * multiplier);
 			if(sell_price > item->sell_price)
 				sell_price = item->sell_price;
 			if(quantity > item->details.count)
 				quantity = item->details.count;
-			total_sell_price = sell_price * quantity;
+			int32 total_sell_price = sell_price * quantity;
 			if(quantity > 1)
 				Message(CHANNEL_COLOR_MERCHANT, "You sell %i \\aITEM %u 0:%s\\/a to %s for %s.", quantity, master_item->details.item_id, master_item->name.c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str());
 			else
@@ -5076,7 +5054,7 @@ void Client::BuyBack(int32 item_id, int8 quantity){
 		BuyBackItem* buyback = 0;
 		BuyBackItem* closest = 0;
 		MBuyBack.readlock(__FUNCTION__, __LINE__);
-		for(itr = buy_back_items.begin(); itr != buy_back_items.end(); itr++){
+		for(itr = buy_back_items.begin(); itr != buy_back_items.end(); ++itr){
 			buyback = *itr;
 			if(buyback->unique_id == item_id){
 				closest = buyback;
@@ -5101,7 +5079,7 @@ void Client::BuyBack(int32 item_id, int8 quantity){
 				bool removed = false;
 				if(closest->quantity == quantity){
 					MBuyBack.writelock(__FUNCTION__, __LINE__);
-					for(itr = buy_back_items.begin(); itr != buy_back_items.end(); itr++){
+					for(itr = buy_back_items.begin(); itr != buy_back_items.end(); ++itr){
 						if(*itr == closest){
 							buy_back_items.erase(itr);
 							removed = true;
@@ -5139,19 +5117,15 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 	Spawn* spawn = GetMerchantTransaction();
 	// Make sure the spawn has a merchant list
 	if(spawn && spawn->GetMerchantID() > 0){
-		int32 total_buy_price = 0;
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
-		int32 sell_price = 0;
 		Item* master_item = master_item_list.GetItem(item_id);
-		Item* item = 0;
-		int16 total_available = 0;
 
 		vector<MerchantItemInfo>* temp;
 		vector<MerchantItemInfo>::iterator itr;
 		MerchantItemInfo* ItemInfo = 0;
 		temp = world.GetMerchantList(spawn->GetMerchantID());
 		
-		for (itr = temp->begin(); itr != temp->end(); itr++) {
+		for (itr = temp->begin(); itr != temp->end(); ++itr) {
 			if ((*itr).item_id == item_id) {
 				ItemInfo = &(*itr);
 				break;
@@ -5159,6 +5133,9 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 		}
 
 		if(master_item && ItemInfo){
+			int32 sell_price = 0;
+			int16 total_available = 0;
+
 			if (spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO) {
 				quantity = 1;
 				total_available = 0xFFFF;
@@ -5170,8 +5147,8 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 				if(quantity > total_available)
 					quantity = total_available;
 			}
-			total_buy_price = sell_price * quantity;
-			item = new Item(master_item);
+			int32 total_buy_price = sell_price * quantity;
+			Item* item = new Item(master_item);
 			item->details.count = quantity;
 			if(!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item)){
 				SimpleMessage(CHANNEL_COLOR_RED, "You do not have any slots available for this item.");
@@ -5351,11 +5328,11 @@ void Client::RepairAllItems() {
 		if (repairable_items && repairable_items->size() > 0) {
 			vector<Item*>::iterator itr;
 			int64 total_cost = 0;
-			for (itr = repairable_items->begin(); itr != repairable_items->end(); itr++)
+			for (itr = repairable_items->begin(); itr != repairable_items->end(); ++itr)
 					total_cost += (*itr)->CalculateRepairCost();
 			if (player->RemoveCoins((int32)total_cost)) {
 				Message(CHANNEL_COLOR_MERCHANT, "You give %s to repair all of your items.", GetCoinMessage((int32)total_cost).c_str());
-				for (itr = repairable_items->begin(); itr != repairable_items->end(); itr++) {
+				for (itr = repairable_items->begin(); itr != repairable_items->end(); ++itr) {
 					Item* item = *itr;
 					if (item) {
 						item->generic_info.condition = 100;
@@ -5456,7 +5433,6 @@ void Client::SendAchievementUpdate(bool first_login) {
 	AchievementUpdateItems *update_item;
 
 	int16 i = 0;
-	int16 j = 0;
 
 	PacketStruct *packet;
 	
@@ -5466,14 +5442,14 @@ void Client::SendAchievementUpdate(bool first_login) {
 	
 	packet->setDataByName("unknown1", first_login ? 1 : 0);
 	packet->setArrayLengthByName("num_achievements", updates->size());
-	for (itr = updates->begin(); itr != updates->end(); itr++) {
+	for (itr = updates->begin(); itr != updates->end(); ++itr) {
+		int16 j = 0;
 		update = itr->second;
 		packet->setArrayDataByName("achievement_id", update->GetID(), i);
 		packet->setArrayDataByName("completed_date", update->GetCompletedDate(), i);
 		update_items = update->GetUpdateItems();
-		j = 0;
 		packet->setSubArrayLengthByName("num_items", update_items->size(), i);
-		for (itr2 = update_items->begin(); itr2 != update_items->end(); itr2++) {
+		for (itr2 = update_items->begin(); itr2 != update_items->end(); ++itr2) {
 			update_item = *itr2;
 			packet->setSubArrayDataByName("item_update", update_item->item_update, i, j);
 			j++;
@@ -5505,7 +5481,7 @@ void Client::SendBuyMerchantList(bool sell){
 				int32 sell_price = 0;
 				int i = 0;
 				int tmp_level = 0;
-				for(itr = items->begin(); itr != items->end(); itr++, i++){
+				for(itr = items->begin(); itr != items->end(); ++itr, ++i){
 					MerchantItemInfo ItemInfo = *itr;
 					Item* item = master_item_list.GetItem(ItemInfo.item_id);
 					if (!item)
@@ -5616,7 +5592,7 @@ void Client::SendSellMerchantList(bool sell){
 			if(packet){
 				vector<Item*> sellable_items;
 				map<int32, Item*>::iterator test_itr;
-				for(test_itr = items->begin(); test_itr != items->end(); test_itr++){
+				for(test_itr = items->begin(); test_itr != items->end(); ++test_itr){
 					if(test_itr->second && !test_itr->second->CheckFlag(NO_VALUE))
 						sellable_items.push_back(test_itr->second);
 				}
@@ -5624,15 +5600,13 @@ void Client::SendSellMerchantList(bool sell){
 				packet->setArrayLengthByName("num_items", sellable_items.size());
 				vector<Item*>::iterator itr;
 				Item* item = 0;
-				sint8 item_difficulty = 0;
 				float multiplier = CalculateSellMultiplier(spawn->GetMerchantID());
 				int32 sell_price = 0;
-				Item* master_item = 0;
 				int i = 0;
 				int tmp_level = 0;
-				for(itr = sellable_items.begin(); itr != sellable_items.end(); itr++, i++){
+				for(itr = sellable_items.begin(); itr != sellable_items.end(); ++itr, ++i){
 					item = *itr;
-					master_item = master_item_list.GetItem(item->details.item_id);
+					Item* master_item = master_item_list.GetItem(item->details.item_id);
 					if(master_item)
 						sell_price = (int32)(master_item->sell_price * multiplier);
 					else
@@ -5652,7 +5626,7 @@ void Client::SendSellMerchantList(bool sell){
 					packet->setArrayDataByName("level", tmp_level, i);
 					packet->setArrayDataByName("tier", item->details.tier, i);
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
-					item_difficulty = player->GetArrowColor(tmp_level);
+					sint8 item_difficulty = player->GetArrowColor(tmp_level);
 					if(item_difficulty != ARROW_COLOR_WHITE && item_difficulty != ARROW_COLOR_RED && item_difficulty != ARROW_COLOR_GRAY)
 						item_difficulty = ARROW_COLOR_WHITE;
 					item_difficulty -= 6;
@@ -5685,9 +5659,7 @@ void Client::SendBuyBackList(bool sell){
 	Spawn* spawn = GetMerchantTransaction();
 	if(spawn && spawn->GetMerchantID() > 0){
 		deque<BuyBackItem*>::iterator itr;
-		int i = 0;
 		Item* master_item = 0;
-		BuyBackItem* buyback = 0;
 		PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
 		if(packet){
 			packet->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(spawn));
@@ -5695,8 +5667,9 @@ void Client::SendBuyBackList(bool sell){
 			sint8 item_difficulty = 0;
 			MBuyBack.readlock(__FUNCTION__, __LINE__);
 			int tmp_level = 0;
-			for(itr = buy_back_items.begin(); itr != buy_back_items.end(); itr++, i++){
-				buyback = *itr;
+			int i = 0;
+			for(itr = buy_back_items.begin(); itr != buy_back_items.end(); ++itr, ++i){
+				BuyBackItem* buyback = *itr;
 				master_item = master_item_list.GetItem(buyback->item_id);
 				if(master_item){
 					packet->setArrayDataByName("item_name", master_item->name.c_str(), i);
@@ -5749,12 +5722,10 @@ void Client::SendRepairList() {
 		if (packet) {
 			packet->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(spawn));
 			packet->setArrayLengthByName("num_items", repairable_items->size());
-			Item* item = 0;
-			sint8 item_difficulty = 0;
 			int32 i = 0;
 			vector<Item*>::iterator itr;
-			for (itr = repairable_items->begin(); itr != repairable_items->end(); itr++, i++) {
-				item = *itr;
+			for (itr = repairable_items->begin(); itr != repairable_items->end(); ++itr, ++i) {
+				Item* item = *itr;
 				packet->setArrayDataByName("item_name", item->name.c_str(), i);
 				packet->setArrayDataByName("price", item->CalculateRepairCost(), i);
 				packet->setArrayDataByName("item_id", item->details.item_id, i);
@@ -5768,7 +5739,7 @@ void Client::SendRepairList() {
 				packet->setArrayDataByName("level", item->generic_info.adventure_default_level, i);
 				packet->setArrayDataByName("tier", item->details.tier, i);
 				packet->setArrayDataByName("item_id2", item->details.item_id, i);
-				item_difficulty = player->GetArrowColor(item->generic_info.adventure_default_level);
+				sint8 item_difficulty = player->GetArrowColor(item->generic_info.adventure_default_level);
 				if(item_difficulty != ARROW_COLOR_WHITE && item_difficulty != ARROW_COLOR_RED && item_difficulty != ARROW_COLOR_GRAY)
 					item_difficulty = ARROW_COLOR_WHITE;
 				item_difficulty -= 6;
@@ -5937,7 +5908,7 @@ void Client::PlayLotto(int32 price, int32 ticket_item_id) {
 		if (num_matches == 6) {
 			world.PickRandomLottoDigits(lottery_digits);
 			for (int32 i = 0; i < 12; i+=2)
-				sprintf(new_jackpot_str + i, "%02d", lottery_digits[i / 2]);
+				sprintf(new_jackpot_str + i, "%02u", lottery_digits[i / 2]);
 			winning_numbers->SetValue(new_jackpot_str);
 			jackpot_var->SetValue("10000");
 			database.SaveVariable(winning_numbers->GetName(), winning_numbers->GetValue(), winning_numbers->GetComment());
@@ -5996,7 +5967,7 @@ vector<Item*>* Client::GetRepairableItems() {
 	}
 	if (items && items->size() > 0) {
 		map<int32, Item*>::iterator itr;
-		for (itr = items->begin(); itr != items->end(); itr++) {
+		for (itr = items->begin(); itr != items->end(); ++itr) {
 			Item* item = itr->second;
 			if (item && item->generic_info.condition < 100)
 				repairable_items->push_back(item);
@@ -6460,7 +6431,7 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 	vector<TransportDestination*> transport_list;
 	vector<TransportDestination*>::iterator itr;
 	TransportDestination* destination = 0;
-	for(itr = destinations->begin(); itr != destinations->end(); itr++){
+	for(itr = destinations->begin(); itr != destinations->end(); ++itr){
 		destination = *itr;
 		if(has_map || (destination->type == TRANSPORT_TYPE_ZONE && ((destination->destination_zone_id != GetCurrentZone()->GetZoneID()) || GetPlayer()->GetDistance(destination->destination_x, destination->destination_y, destination->destination_z) > 100)))
 			transport_list.push_back(destination);
@@ -6571,7 +6542,7 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app){
 				destinations = GetCurrentZone()->GetTransporters(spawn->GetTransporterID());
 			if(destinations){
 				vector<TransportDestination*>::iterator itr;
-				for(itr = destinations->begin(); itr != destinations->end(); itr++){
+				for(itr = destinations->begin(); itr != destinations->end(); ++itr){
 					if((*itr)->unique_id == unique_id && (*itr)->display_name == zone_name && (*itr)->cost == cost){
 						destination=*itr;
 						break;
@@ -6616,10 +6587,9 @@ void Client::SendNewSpells(int8 class_id){
 	if(class_id > 0){
 		vector<Spell*>* spells = master_spell_list.GetSpellListByAdventureClass(class_id, player->GetLevel(), 1);
 		vector<Spell*>::iterator itr;
-		Spell* spell = 0;
 		bool send_updates = false;
-		for(itr = spells->begin(); itr != spells->end(); itr++){
-			spell = *itr;
+		for(itr = spells->begin(); itr != spells->end(); ++itr){
+			Spell* spell = *itr;
 			if(spell && !player->HasSpell(spell->GetSpellID(), spell->GetSpellTier(), true) && spell->GetSpellData()->lua_script.length() > 0){
 				send_updates = true;
 				SendSpellUpdate(spell);
@@ -6671,12 +6641,11 @@ void Client::SearchStore(int32 page){
 				packet->setDataByName("per_page", 8);
 				packet->setDataByName("num_pages", search_items->size()/8+1);
 				packet->setDataByName("page", page);
-				Item* item = 0;
 				int32 limit = search_items->size() > 8 ? 8 : search_items->size();
 				for(int32 i=0;i<limit;i++, x++){
 					if(x >= search_items->size())
 						break;
-					item = search_items->at(x);
+					Item* item = search_items->at(x);
 					packet->setArrayDataByName("item_id", item->details.item_id, i);
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
 					packet->setArrayDataByName("icon", item->details.icon, i);
@@ -6744,16 +6713,15 @@ void Client::SendFriendList(){
 		map<string, int8>::iterator itr;
 		map<string, int8>* friends = player->GetFriends();
 		if(friends && friends->size() > 0){		
-			Client* client = 0;
 			vector<string> names;
-			for(itr = friends->begin(); itr != friends->end(); itr++){
+			for(itr = friends->begin(); itr != friends->end(); ++itr){
 				if(itr->second == 2)
 					continue;
 				names.push_back(itr->first);
 			}
 			packet->setArrayLengthByName("num_names", names.size());
 			for(int32 i=0;i<names.size();i++){
-				client = zone_list.GetClientByCharName(names[i]);
+				Client* client = zone_list.GetClientByCharName(names[i]);
 				packet->setArrayDataByName("name", names[i].c_str(), i);
 				if(client){
 					packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName(), i);
@@ -6776,7 +6744,7 @@ void Client::SendIgnoreList(){
 		map<string, int8>* ignored = player->GetIgnoredPlayers();
 		if(ignored && ignored->size() > 0){
 			vector<string> names;
-			for(itr = ignored->begin(); itr != ignored->end(); itr++){
+			for(itr = ignored->begin(); itr != ignored->end(); ++itr){
 				if(itr->second == 2)
 					continue;
 				names.push_back(itr->first);
@@ -6930,7 +6898,7 @@ void Client::ShowClaimWindow() {
 			packet->setArrayLengthByName("num_claim_items", 10);
 		else
 			packet->setArrayLengthByName("num_claim_items", items->size());
-		for (itr = items->begin(); itr != items->end(); itr++) {
+		for (itr = items->begin(); itr != items->end(); ++itr) {
 			if (i == 10)
 				break;
 			Item* item = itr->second;
@@ -6993,7 +6961,7 @@ void Client::ShowDressingRoom(Item *item, sint32 crc) {
 	}
 
 	slot_data = &item->slot_data;
-	for (itr = slot_data->begin(); itr != slot_data->end(); itr++) {
+	for (itr = slot_data->begin(); itr != slot_data->end(); ++itr) {
 		if (version >= 1188)
 			slots = *itr;
 		else
@@ -7051,7 +7019,7 @@ void Client::SendCollectionList() {
 		return;
 
 	packet->setArrayLengthByName("num_collections", collections->size());
-	for (itr = collections->begin(); itr != collections->end(); itr++) {
+	for (itr = collections->begin(); itr != collections->end(); ++itr) {
 		collection = itr->second;
 		collection_items = collection->GetCollectionItems();
 		
@@ -7097,7 +7065,7 @@ bool Client::SendCollectionsForItem(Item *item) {
 
 	/* get any collections required by this item that the player already has */
 	collections = player->GetCollectionList()->GetCollections();
-	for (itr = collections->begin(); itr != collections->end(); itr++) {
+	for (itr = collections->begin(); itr != collections->end(); ++itr) {
 		collection = itr->second;
 		if (!collection->GetCompleted() && !collection->GetIsReadyToTurnIn() && collection->NeedsItem(item)) {
 			LogWrite(COLLECTION__DEBUG, 0, "Collect", "Adding collection from player list %u\n", collection->GetID());
@@ -7107,7 +7075,7 @@ bool Client::SendCollectionsForItem(Item *item) {
 
 	/* get any collections required by this item that the player does not have and send it to the client */
 	collections = master_collection_list.GetCollections();
-	for (itr = collections->begin(); itr != collections->end(); itr++) {
+	for (itr = collections->begin(); itr != collections->end(); ++itr) {
 		collection = itr->second;
 		if (collection->NeedsItem(item) && !player->GetCollectionList()->GetCollection(collection->GetID())) {
 			if (!(packet = configReader.getStruct("WS_CollectionUpdate", version))) {
@@ -7153,7 +7121,7 @@ bool Client::SendCollectionsForItem(Item *item) {
 
 		i = 0;
 		packet->setArrayLengthByName("num_filters", collections_to_send.size());
-		for (itr = collections_to_send.begin(); itr != collections_to_send.end(); itr++) {
+		for (itr = collections_to_send.begin(); itr != collections_to_send.end(); ++itr) {
 			collection = itr->second;
 
 			packet->setArrayDataByName("collection_id", collection->GetID(), i);
@@ -7299,7 +7267,6 @@ void Client::DisplayCollectionComplete(Collection *collection) {
 void Client::HandInCollections() {
 	map<int32, Collection *> *collections;
 	map<int32, Collection *>::iterator itr;
-	Collection *collection;
 
 	/* only show 1 collection reward dialog at a time */
 	if (player->GetPendingCollectionReward()) {
@@ -7310,8 +7277,8 @@ void Client::HandInCollections() {
 
 	/* we only want to display 1 collection reward dialog at a time. so once we find one to display, send it and return. once the player accepts the reward
 	for this collection, this function gets called again and the process repeats until there are no more collections to hand in */
-	for (itr = collections->begin(); itr != collections->end(); itr++) {
-		collection = itr->second;
+	for (itr = collections->begin(); itr != collections->end(); ++itr) {
+		Collection* collection = itr->second;
 		if (collection->GetIsReadyToTurnIn()) {
 			player->SetPendingCollectionReward(collection);
 			DisplayCollectionComplete(collection);
@@ -7345,7 +7312,7 @@ void Client::AcceptCollectionRewards(Collection *collection, int32 selectable_it
 	}
 
 	/* add manditory items */
-	for (itr = reward_items->begin(); itr != reward_items->end(); itr++) {
+	for (itr = reward_items->begin(); itr != reward_items->end(); ++itr) {
 		reward_item = *itr;
 		AddItem(reward_item->item->details.item_id, reward_item->quantity);
 	}
@@ -7353,7 +7320,7 @@ void Client::AcceptCollectionRewards(Collection *collection, int32 selectable_it
 	/* find and add the selectable item if there's one */
 	if (selectable_item_id > 0) {
 		reward_items = collection->GetSelectableRewardItems();
-		for (itr = reward_items->begin(); itr != reward_items->end(); itr++) {
+		for (itr = reward_items->begin(); itr != reward_items->end(); ++itr) {
 			reward_item = *itr;
 			if (reward_item->item->details.item_id == selectable_item_id) {
 				AddItem(reward_item->item->details.item_id, reward_item->quantity);
@@ -7392,12 +7359,11 @@ void Client::SendRecipeList() {
 	}
 	map<int32, Recipe *> *recipes = player->GetRecipeList()->GetRecipes();
 	map<int32, Recipe *>::iterator itr;
-	Recipe *recipe;
 	int16 i = 0;
 
 	packet->setArrayLengthByName("num_recipes", recipes->size());
-	for (itr = recipes->begin(); itr != recipes->end(); itr++){
-		recipe = itr->second;
+	for (itr = recipes->begin(); itr != recipes->end(); ++itr){
+		Recipe* recipe = itr->second;
 		packet->setArrayDataByName("id", recipe->GetID(), i);
 		packet->setArrayDataByName("tier", recipe->GetTier(), i);
 		packet->setArrayDataByName("level", recipe->GetLevel(), i);
@@ -7453,15 +7419,14 @@ void Client::ShowRecipeBook() {
 void Client::SendTitleUpdate(){
 	list<Title*> *titles = player->GetPlayerTitles()->GetAllTitles();
 	list<Title*>::iterator itr;
-	Title *title;
-	int16 i = 0;
 	sint16 prefix_index = database.GetCharPrefixIndex(GetCharacterID(), player);
 	sint16 suffix_index = database.GetCharSuffixIndex(GetCharacterID(), player);
 	PacketStruct* packet = configReader.getStruct("WS_TitleUpdate", GetVersion());
 	if(packet){
+		int16 i = 0;
 		packet->setArrayLengthByName("num_titles", titles->size());
-		for(itr = titles->begin(); itr != titles->end(); itr++){
-			title = *itr;
+		for(itr = titles->begin(); itr != titles->end(); ++itr){
+			Title* title = *itr;
 			packet->setArrayDataByName("title", title->GetName(), i);
 			packet->setArrayDataByName("prefix", title->GetPrefix(), i);
 			i++;
@@ -7502,13 +7467,12 @@ void Client::SendUpdateTitles(sint16 prefix, sint16 suffix){
 void Client::SendLanguagesUpdate(int32 id){
 	list<Language*> *languages = player->GetPlayerLanguages()->GetAllLanguages();
 	list<Language*>::iterator itr;
-	Language* language;
-	int32 i = 0;
 	PacketStruct* packet = configReader.getStruct("WS_Languages", GetVersion());
 	if(packet){
+		int32 i = 0;
 		packet->setArrayLengthByName("num_languages", languages->size());
-		for(itr = languages->begin(); itr != languages->end(); itr++){
-			language = *itr;
+		for(itr = languages->begin(); itr != languages->end(); ++itr){
+			Language* language = *itr;
 			packet->setArrayDataByName("language_id", language->GetID(), i);
 			i++;
 		}
@@ -7655,7 +7619,7 @@ void Client::AddQuestTimer(int32 quest_id) {
 void Client::RemoveQuestTimer(int32 quest_id) {
 	MQuestTimers.writelock(__FUNCTION__, __LINE__);
 	vector<int32>::iterator itr;
-	for (itr = quest_timers.begin(); itr != quest_timers.end(); itr++) {
+	for (itr = quest_timers.begin(); itr != quest_timers.end(); ++itr) {
 		if ((*itr) == quest_id) {
 			quest_timers.erase(itr);
 			break;

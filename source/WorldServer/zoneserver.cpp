@@ -76,6 +76,7 @@ extern int errno;
 #include "Tradeskills/Tradeskills.h"
 #include "RaceTypes/RaceTypes.h"
 #include <algorithm>
+#include "PVP.h"
 
 #ifdef WIN32
 #define snprintf	_snprintf
@@ -364,6 +365,8 @@ void ZoneServer::DeleteSpellProcess(){
 }
 
 void ZoneServer::LoadSpellProcess(){
+	if (spellProcess) safe_delete(spellProcess);
+
 	spellProcess = new SpellProcess();
 	reloading_spellprocess = false;
 
@@ -3772,10 +3775,12 @@ void ZoneServer::SendQuestUpdates(Client* client, Spawn* spawn){
 		for (itr = spawn_list.begin(); itr != spawn_list.end(); ++itr) {
 			spawn = itr->second;
 
-			spawn->m_requiredQuests.readlock(__FUNCTION__, __LINE__);
-			if(spawn && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && !client->GetPlayer()->WasSpawnRemoved(spawn) && (client->GetPlayer()->CheckQuestRemoveFlag(spawn) || client->GetPlayer()->CheckQuestFlag(spawn) != 0 || (spawn->GetQuestsRequired()->size() > 0 && client->GetPlayer()->CheckQuestRequired(spawn))))
-				SendSpawnChanges(spawn, client, false, true);
-			spawn->m_requiredQuests.releasereadlock(__FUNCTION__, __LINE__);
+			if (spawn) {
+				spawn->m_requiredQuests.readlock(__FUNCTION__, __LINE__);
+				if (client->GetPlayer()->WasSentSpawn(spawn->GetID()) && !client->GetPlayer()->WasSpawnRemoved(spawn) && (client->GetPlayer()->CheckQuestRemoveFlag(spawn) || client->GetPlayer()->CheckQuestFlag(spawn) != 0 || (spawn->GetQuestsRequired()->size() > 0 && client->GetPlayer()->CheckQuestRequired(spawn))))
+					SendSpawnChanges(spawn, client, false, true);
+				spawn->m_requiredQuests.releasereadlock(__FUNCTION__, __LINE__);
+			}
 		}
 		MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -3988,6 +3993,30 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 				client->QueuePacket(packet->serialize());
 			}
 			safe_delete(packet);
+
+			if (dead->IsPlayer() && PVP::IsEnabled()) {
+				Player* dead_player = static_cast<Player*>(dead);
+				Player* killer_player = static_cast<Player*>(killer);
+				int ranking_difference = PVP::GetRankIndex(dead_player) - PVP::GetRankIndex(static_cast<Player*>(killer));
+				
+				if (ranking_difference == 1) {
+					dead_player->SetFame(dead_player->GetFame() - 10);
+					killer_player->SetFame(killer_player->GetFame() + 10);
+				} else if (ranking_difference <= 0 && ranking_difference >= -1) {
+					dead_player->SetFame(dead_player->GetFame() - 5);
+					killer_player->SetFame(killer_player->GetFame() + 5);
+				}
+
+				dead_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
+				killer_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has increased your fame.");
+
+				int difference_after_change = PVP::GetRankIndex(dead_player) - PVP::GetRankIndex(static_cast<Player*>(killer));
+
+				if (ranking_difference != difference_after_change) {
+					dead_player->GetZone()->GetClientBySpawn(dead_player)->SendTitleUpdate();
+					killer_player->GetZone()->GetClientBySpawn(killer_player)->SendTitleUpdate();
+				}
+			}
 		}
 
 		((Entity*)dead)->InCombat(false);
@@ -5456,12 +5485,11 @@ void ZoneServer::SendUpdateTitles(Spawn *spawn, Title *suffix, Title *prefix) {
 		return;
 
 	vector<Client*>::iterator itr;
-	PacketStruct *packet;
-	Client* current_client;
 
 	MClientList.readlock(__FUNCTION__, __LINE__);
-	for (itr = clients.begin(); itr != clients.end(); itr++) {
-		current_client = *itr;
+	for (itr = clients.begin(); itr != clients.end(); ++itr) {
+		Client* current_client = *itr;
+		PacketStruct *packet;
 
 		if (!(packet = configReader.getStruct("WS_UpdateTitle", current_client->GetVersion())))
 			break;
@@ -5473,10 +5501,22 @@ void ZoneServer::SendUpdateTitles(Spawn *spawn, Title *suffix, Title *prefix) {
 			packet->setDataByName("suffix_title", suffix->GetName());
 		else
 			packet->setDataByName("suffix_title", spawn->GetSuffixTitle());
-		if(prefix)
-			packet->setDataByName("prefix_title", prefix->GetName());
+
+		string prefix_title;
+		if (prefix)
+			prefix_title = prefix->GetName();
 		else
-			packet->setDataByName("prefix_title", spawn->GetPrefixTitle());
+			prefix_title = spawn->GetPrefixTitle();
+		if (spawn->IsPlayer()) {
+			string pvp_title = PVP::GetRank(static_cast<Player*>(spawn));
+			if (pvp_title.length() > 0) {
+				if (prefix_title.length() > 0)
+					prefix_title = pvp_title + " " + prefix_title;
+				else
+					prefix_title = pvp_title;
+			}
+		}
+		packet->setDataByName("prefix_title", prefix_title.c_str());
 		packet->setDataByName("last_name", spawn->GetLastName());
 		packet->setDataByName("sub_title", spawn->GetSubTitle());
 		current_client->QueuePacket(packet->serialize());

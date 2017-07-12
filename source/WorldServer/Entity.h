@@ -225,6 +225,7 @@ struct InfoStruct{
 	float			rain;
 	float			wind;
 	sint8			alignment;
+	int16			fame;
 
 	int32			pet_id;
 	char			pet_name[32];

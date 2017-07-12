@@ -29,13 +29,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -429,6 +430,7 @@
     <ClCompile Include="..\..\source\WorldServer\Object.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Player.cpp" />
     <ClCompile Include="..\..\source\WorldServer\PlayerGroups.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\PVP.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Quests.cpp" />
     <ClCompile Include="..\..\source\WorldServer\races.cpp" />
     <ClCompile Include="..\..\source\WorldServer\RaceTypes\RaceTypes.cpp" />
@@ -518,6 +520,7 @@
     <ClInclude Include="..\..\source\WorldServer\Object.h" />
     <ClInclude Include="..\..\source\WorldServer\Player.h" />
     <ClInclude Include="..\..\source\WorldServer\PlayerGroups.h" />
+    <ClInclude Include="..\..\source\WorldServer\PVP.h" />
     <ClInclude Include="..\..\source\WorldServer\Quests.h" />
     <ClInclude Include="..\..\source\WorldServer\races.h" />
     <ClInclude Include="..\..\source\WorldServer\RaceTypes\RaceTypes.h" />

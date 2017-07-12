@@ -448,6 +448,7 @@ public:
 	void Command_Aquaman(Client* client, Seperator* sep);
 	void Command_Attune_Inv(Client* client, Seperator* sep);
 	void Command_Player(Client* client, Seperator* sep);
+	void Command_Player_Set(Client* client, Seperator* sep);
 	void Command_Player_Coins(Client* client, Seperator* sep);
 	void Command_Reset_Zone_Timer(Client* client, Seperator* sep);
 	void Command_AchievementAdd(Client* client, Seperator* sep);
@@ -852,5 +853,6 @@ private:
 #define COMMAND_SIZE 2000
 #define COMMAND_VISUAL 2001
 #define COMMAND_SERVER_FLAG 2002
+#define COMMAND_PLAYER_SET 2003
 
 #endif

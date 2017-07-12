@@ -1151,8 +1151,6 @@ vector<MerchantItemInfo>* World::GetMerchantList(int32 merchant_id){
 		for(int i=info->inventory_ids.size()-1;i>=0;i--){
 			inventory_id = info->inventory_ids[i];
 			if(merchant_inventory_items.count(inventory_id) > 0){
-				if (!ret)
-					ret = new vector<MerchantItemInfo>;
 				ret = &merchant_inventory_items[inventory_id];
 			}
 		}

@@ -264,7 +264,7 @@ char myIsTextWideChar(const void *b, int len) { return FALSE; }
     #else
         char *myWideCharToMultiByte(const wchar_t *s)
         {
-            const wchar_t *ss=s;
+			const wchar_t *ss=s;
             int i=(int)wcsrtombs(NULL,&ss,0,NULL);
             if (i<0) return NULL;
             char *d=(char *)malloc(i+1);
@@ -2957,7 +2957,16 @@ unsigned char XMLParserBase64Tool::decode(XMLCSTR data, unsigned char *buf, int 
 void XMLParserBase64Tool::alloc(int newsize)
 {
     if ((!buf)&&(newsize)) { buf=malloc(newsize); buflen=newsize; return; }
-    if (newsize>buflen) { buf=realloc(buf,newsize); buflen=newsize; }
+    if (newsize>buflen) {
+		void* newbuf = realloc(buf, newsize);
+		buflen = newsize;
+
+		if (!newbuf) {
+			free(buf);
+		} else {
+			buf = newbuf;
+		}
+	}
 }
 
 unsigned char *XMLParserBase64Tool::decode(XMLCSTR data, int *outlen, XMLError *xe)

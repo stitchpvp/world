@@ -18,7 +18,7 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../common/debug.h"
-#include "../common/Log.h"
+#include "../common/Log.h" 
 
 #include <iostream>
 using namespace std;
@@ -450,6 +450,7 @@ int main(int argc, char** argv) {
 		}
 		Sleep(1);
 	}
+
 	LogWrite(WORLD__DEBUG, 0, "World", "The world is ending!");
 
 	LogWrite(WORLD__DEBUG, 0, "IRC", "Shutting IRC down");

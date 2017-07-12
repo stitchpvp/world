@@ -6,6 +6,7 @@
 class PVP {
 public:
 	static bool CanAttack(Player*, Spawn*);
-	static std::string GetRank(Player*);
+	static string GetRank(Player*);
+	static int GetRankIndex(Player* player);
 	static bool IsEnabled();
 };

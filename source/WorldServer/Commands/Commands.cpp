@@ -3712,6 +3712,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_ATTUNE_INV			: { Command_Attune_Inv(client, sep); break; }
 		case COMMAND_PLAYER				: { Command_Player(client, sep); break; }
 		case COMMAND_PLAYER_COINS		: { Command_Player_Coins(client, sep); break; }
+		case COMMAND_PLAYER_SET			: { Command_Player_Set(client, sep); break; }
 		case COMMAND_RESET_ZONE_TIMER	: { Command_Reset_Zone_Timer(client, sep); break; }
 		case COMMAND_ACHIEVEMENT_ADD	: { Command_AchievementAdd(client, sep); break; }
 		case COMMAND_EDITOR				: { Command_Editor(client, sep); break; }
@@ -7961,6 +7962,35 @@ void Commands::Command_Reset_Zone_Timer(Client* client, Seperator* sep) {
 void Commands::Command_Player(Client* client, Seperator* sep) {
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, " -- /player syntax --");
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/player coins");
+}
+
+void Commands::Command_Player_Set(Client* client, Seperator* sep) {
+	Player* player = client->GetPlayer();
+	if (player->HasTarget() && player->GetTarget()->IsPlayer())
+		player = static_cast<Player*>(player->GetTarget());
+
+	if (sep && sep->arg[0] && sep->arg[1]) {
+		const char* attribute = sep->arg[0];
+		int value = 0;
+
+		if (strncasecmp(attribute, "alignment", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				value = atoi(sep->arg[1]);
+				player->SetAlignment(value);
+				return;
+			}
+		} else if (strncasecmp(attribute, "fame", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				value = atoi(sep->arg[1]);
+				player->SetFame(value);
+				player->GetZone()->GetClientBySpawn(player)->SendTitleUpdate();
+				return;
+			}
+		}
+	}
+
+	client->SimpleMessage(CHANNEL_COLOR_YELLOW, " -- /player set syntax --");
+	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/player set [attribute] [value] - sets the given attribute to the provided value");
 }
 
 void Commands::Command_Player_Coins(Client* client, Seperator* sep) {

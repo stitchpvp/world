@@ -801,6 +801,9 @@ public:
 	void UpdateLUAHistory(int32 event_id, int32 value, int32 value2);
 	LUAHistory* GetLUAHistory(int32 event_id);
 
+	int16 GetFame();
+	void SetFame(sint16 value);
+
 private:
 	bool range_attack;
 	int16 last_movement_activity;
