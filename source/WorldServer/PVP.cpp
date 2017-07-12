@@ -65,15 +65,15 @@ string PVP::GetRank(Player* player)
 int PVP::GetRankIndex(Player* player) {
 	const char* rank = PVP::GetRank(player).c_str();
 
-	if (strcmp(rank, "Dreadnaught")) {
+	if (strcmp(rank, "Dreadnaught") == 0) {
 		return 5;
-	} else if (strcmp(rank, "Champion")) {
+	} else if (strcmp(rank, "Champion") == 0) {
 		return 4;
-	} else if (strcmp(rank, "Destroyer")) {
+	} else if (strcmp(rank, "Destroyer") == 0) {
 		return 3;
-	} else if (strcmp(rank, "Slayer")) {
+	} else if (strcmp(rank, "Slayer") == 0) {
 		return 2;
-	} else if (strcmp(rank, "Hunter")) {
+	} else if (strcmp(rank, "Hunter") == 0) {
 		return 1;
 	} else {
 		return 0;

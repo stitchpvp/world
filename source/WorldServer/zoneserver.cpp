@@ -4008,7 +4008,7 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 				}
 
 				dead_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
-				killer_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has increased your fame.");
+				killer_player->GetZone()->GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has increased your fame.");
 
 				int difference_after_change = PVP::GetRankIndex(dead_player) - PVP::GetRankIndex(static_cast<Player*>(killer));
 
