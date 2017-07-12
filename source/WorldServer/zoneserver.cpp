@@ -4002,13 +4002,14 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 				if (ranking_difference == 1) {
 					dead_player->SetFame(dead_player->GetFame() - 10);
 					killer_player->SetFame(killer_player->GetFame() + 10);
+					dead_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
+					killer_player->GetZone()->GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
 				} else if (ranking_difference <= 0 && ranking_difference >= -1) {
 					dead_player->SetFame(dead_player->GetFame() - 5);
 					killer_player->SetFame(killer_player->GetFame() + 5);
+					dead_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
+					killer_player->GetZone()->GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
 				}
-
-				dead_player->GetZone()->GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
-				killer_player->GetZone()->GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
 
 				int difference_after_change = PVP::GetRankIndex(dead_player) - PVP::GetRankIndex(static_cast<Player*>(killer));
 
