@@ -30,6 +30,7 @@
 #include "Rules/Rules.h"
 #include "World.h"
 #include "LuaInterface.h"
+#include "PVP.h"
 
 extern ConfigReader configReader;
 extern RuleManager rule_manager;
@@ -260,7 +261,19 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 
 	footer->setMediumStringByName("name", appearance.name);
 	footer->setMediumStringByName("guild", appearance.sub_title);
-	footer->setMediumStringByName("prefix", appearance.prefix_title);
+	if (IsPlayer()) {
+		string prefix_title = GetPrefixTitle();
+		string pvp_title = PVP::GetRank(static_cast<Player*>(this));
+		if (pvp_title.length() > 0) {
+			if (prefix_title.length() > 0)
+				prefix_title = pvp_title + " " + prefix_title;
+			else
+				prefix_title = pvp_title;
+		}
+		footer->setMediumStringByName("prefix", prefix_title.c_str());
+	} else {
+		footer->setMediumStringByName("prefix", appearance.prefix_title);
+	}
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
