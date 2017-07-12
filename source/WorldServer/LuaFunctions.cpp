@@ -77,7 +77,7 @@ int EQ2Emu_lua_PlayFlavor(lua_State* state){
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client){
-			if(((Player*)player)->WasSentSpawn(spawn->GetID()) && !((Player*)player)->WasSpawnRemoved(spawn))
+			if(static_cast<Player*>(player)->WasSentSpawn(spawn->GetID()) && !static_cast<Player*>(player)->WasSpawnRemoved(spawn))
 				spawn->GetZone()->PlayFlavor(client, spawn, mp3, text, emote, key1, key2, language);
 		}
 		else
@@ -326,7 +326,7 @@ int EQ2Emu_lua_GetSpawnLocationPlacementID(lua_State* state) {
 }
 
 int EQ2Emu_lua_GetFactionAmount(lua_State* state) {
-	Player* player = (Player*)lua_interface->GetSpawn(state);
+	Player* player = static_cast<Player*>(lua_interface->GetSpawn(state));
 	int32 faction_id = lua_interface->GetInt32Value(state, 2);
 	if (player && player->IsPlayer() && faction_id > 0) {
 		lua_interface->SetInt32Value(state, player->GetFactions()->GetFactionValue(faction_id));
@@ -346,8 +346,8 @@ int EQ2Emu_lua_GetGender(lua_State* state) {
 
 int EQ2Emu_lua_GetTarget(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
-	if (spawn && spawn->IsEntity() && ((Entity*)spawn)->GetTarget()) {
-		lua_interface->SetSpawnValue(state, ((Entity*)spawn)->GetTarget());
+	if (spawn && spawn->IsEntity() && static_cast<Entity*>(spawn)->GetTarget()) {
+		lua_interface->SetSpawnValue(state, static_cast<Entity*>(spawn)->GetTarget());
 		return 1;
 	}
 	return 0;
@@ -366,7 +366,7 @@ int EQ2Emu_lua_PlayVoice(lua_State* state){
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client){
-			if(((Player*)player)->WasSentSpawn(spawn->GetID()) && !((Player*)player)->WasSpawnRemoved(spawn))
+			if(static_cast<Player*>(player)->WasSentSpawn(spawn->GetID()) && !static_cast<Player*>(player)->WasSpawnRemoved(spawn))
 				spawn->GetZone()->PlayVoice(client, spawn, mp3_string.c_str(), key1, key2);
 		}
 		else
@@ -397,7 +397,7 @@ int EQ2Emu_lua_AddLootItem(lua_State* state){
 		int16 charges = lua_interface->GetInt16Value(state, 3);
 		if(charges == 0)
 			charges = 1;
-		((Entity*)spawn)->AddLootItem(item_id, charges);
+		static_cast<Entity*>(spawn)->AddLootItem(item_id, charges);
 	}
 	return 0;
 }
@@ -408,7 +408,7 @@ int EQ2Emu_lua_RemoveLootItem(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
 		int32 item_id = lua_interface->GetInt32Value(state, 2);
-		((Entity*)spawn)->LootItem(item_id);
+		static_cast<Entity*>(spawn)->LootItem(item_id);
 	}
 	return 0;
 }
@@ -419,7 +419,7 @@ int EQ2Emu_lua_AddLootCoin(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
 		int32 val = lua_interface->GetInt32Value(state, 2);
-		((Entity*)spawn)->AddLootCoins(val);
+		static_cast<Entity*>(spawn)->AddLootCoins(val);
 	}
 	return 0;
 }
@@ -444,8 +444,8 @@ int EQ2Emu_lua_GiveLoot(lua_State* state){
 		Client* client = 0;
 		client = entity->GetZone()->GetClientBySpawn(player);
 		if(client){
-			((Player*)player)->AddPendingLootItems(entity->GetID(), items);
-			client->Loot(coins, ((Player*)player)->GetPendingLootItems(entity->GetID()), (Entity*)entity);
+			static_cast<Player*>(player)->AddPendingLootItems(entity->GetID(), items);
+			client->Loot(coins, static_cast<Player*>(player)->GetPendingLootItems(entity->GetID()), static_cast<Entity*>(entity));
 		}
 		safe_delete(items);
 	}
@@ -459,7 +459,7 @@ int EQ2Emu_lua_HasPendingLootItem(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state, 2);
 	int32 item_id = lua_interface->GetInt32Value(state, 3);
 	if(entity && entity->IsEntity() && player && player->IsPlayer() && item_id > 0){
-		lua_interface->SetBooleanValue(state, ((Player*)player)->HasPendingLootItem(entity->GetID(), item_id));
+		lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->HasPendingLootItem(entity->GetID(), item_id));
 		return 1;
 	}
 	return 0;
@@ -471,7 +471,7 @@ int EQ2Emu_lua_HasPendingLoot(lua_State* state){
 	Spawn* entity = lua_interface->GetSpawn(state);
 	Spawn* player = lua_interface->GetSpawn(state, 2);
 	if(entity && entity->IsEntity() && player && player->IsPlayer()){
-		lua_interface->SetBooleanValue(state, ((Player*)player)->HasPendingLootItems(entity->GetID()));
+		lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->HasPendingLootItems(entity->GetID()));
 		return 1;
 	}
 	return 0;
@@ -554,9 +554,9 @@ int EQ2Emu_lua_StartDialogConversation(lua_State* state) {
 					type++;
 
 				if (mp3.length() > 0)
-					client->DisplayConversation((Entity*)spawn, type, conversation, const_cast<char*>(text.c_str()), mp3.c_str(), key1, key2);
+					client->DisplayConversation(static_cast<Entity*>(spawn), type, conversation, const_cast<char*>(text.c_str()), mp3.c_str(), key1, key2);
 				else
-					client->DisplayConversation((Entity*)spawn, type, conversation, const_cast<char*>(text.c_str()));
+					client->DisplayConversation(static_cast<Entity*>(spawn), type, conversation, const_cast<char*>(text.c_str()));
 			}
 			else {
 				if (mp3.length() > 0)
@@ -606,9 +606,9 @@ int EQ2Emu_lua_StartConversation(lua_State* state){
 	if(conversation && text.length() > 0 && npc && npc->IsEntity() && player && player->IsPlayer()){
 		Client* client = npc->GetZone()->GetClientBySpawn(player);
 		if(mp3.length() > 0)
-			client->DisplayConversation((Entity*)npc, 1, conversation, text.c_str(), mp3.c_str(), key1, key2);
+			client->DisplayConversation(static_cast<Entity*>(npc), 1, conversation, text.c_str(), mp3.c_str(), key1, key2);
 		else
-			client->DisplayConversation((Entity*)npc, 1, conversation, text.c_str());
+			client->DisplayConversation(static_cast<Entity*>(npc), 1, conversation, text.c_str());
 		safe_delete(conversation);
 	}
 	return 0;
@@ -645,7 +645,7 @@ int EQ2Emu_lua_SetLootCoin(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
 		int32 val = lua_interface->GetInt32Value(state, 2);
-		((Entity*)spawn)->SetLootCoins(val);
+		static_cast<Entity*>(spawn)->SetLootCoins(val);
 	}
 	return 0;
 }
@@ -655,7 +655,7 @@ int EQ2Emu_lua_GetLootCoin(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetLootCoins());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetLootCoins());
 		return 1;
 	}
 	return 0;
@@ -697,7 +697,7 @@ int EQ2Emu_lua_FaceTarget(lua_State* state){
 	Spawn* target = lua_interface->GetSpawn(state, 2);
 	if(spawn && target){
 		if(spawn->IsEntity())
-			((Entity*)spawn)->FaceTarget(target);
+			static_cast<Entity*>(spawn)->FaceTarget(target);
 	}
 	lua_interface->ResetFunctionStack(state);
 	return 0;
@@ -830,7 +830,7 @@ int EQ2Emu_lua_SpellHeal(lua_State* state){
          float distance = caster->GetDistance(target, true);
          distance -= caster->appearance.pos.collision_radius/10;
          distance -= target->appearance.pos.collision_radius/10;
-         if (((Entity*)caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs))
+         if (static_cast<Entity*>(caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs))
             success = true;
       }
 
@@ -872,11 +872,11 @@ int EQ2Emu_lua_RemoveItem(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
 	Client *client;
-	Item *item;
 
 	if (spawn && spawn->IsPlayer() && item_id > 0) {
 		if ((client = spawn->GetZone()->GetClientBySpawn(spawn))) {
-			if ((item = client->GetPlayer()->item_list.GetItemFromID(item_id))) {
+			Item *item = client->GetPlayer()->item_list.GetItemFromID(item_id);
+			if (item) {
 				if (client->RemoveItem(item, 1)) {
 					lua_interface->SetBooleanValue(state, true);
 					return 1;
@@ -894,9 +894,9 @@ int EQ2Emu_lua_HasItem(lua_State* state) {
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
 	bool include_bank = lua_interface->GetInt8Value(state, 3);
 	if (player && player->IsPlayer()) {
-		bool hasItem = ((Player*)player)->item_list.HasItem(item_id, include_bank);
+		bool hasItem = static_cast<Player*>(player)->item_list.HasItem(item_id, include_bank);
 		if (!hasItem)
-			hasItem = ((Player*)player)->GetEquipmentList()->HasItem(item_id);
+			hasItem = static_cast<Player*>(player)->GetEquipmentList()->HasItem(item_id);
 		lua_interface->SetBooleanValue(state, hasItem);
 		return 1;
 	}
@@ -1005,7 +1005,7 @@ int EQ2Emu_lua_AddHate(lua_State* state) {
 			entity->GetZone()->SendThreatPacket(entity, npc, amount, luaspell->spell->GetName());
 		
 		if (npc && npc->IsNPC() && npc->GetZone())
-			((NPC*)npc)->AddHate((Entity*)entity, amount);
+			static_cast<NPC*>(npc)->AddHate(static_cast<Entity*>(entity), amount);
 	}
 	return 0;
 } 
@@ -1095,7 +1095,7 @@ int EQ2Emu_lua_CastSpell(lua_State* state){
 	if (!caster)
 		caster = target;
 
-	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), (Entity*)caster, (Entity*)target);
+	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target));
 	return 0;
 }
 
@@ -1123,7 +1123,7 @@ int EQ2Emu_lua_SpellDamage(lua_State* state){
 			float distance = caster->GetDistance(target, true);
 			distance -= caster->appearance.pos.collision_radius/10;
 			distance -= target->appearance.pos.collision_radius/10;
-			((Entity*)caster)->SpellAttack(target, distance, luaspell, type, min_damage, max_damage, crit_mod, no_calcs);
+			static_cast<Entity*>(caster)->SpellAttack(target, distance, luaspell, type, min_damage, max_damage, crit_mod, no_calcs);
 		}
 	}
 
@@ -1204,7 +1204,7 @@ int EQ2Emu_lua_SetMaxHP(lua_State* state){
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity() && value > 0)
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_HEALTH, value - spawn->GetTotalHP());
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_HEALTH, value - spawn->GetTotalHP());
 	return 0;
 }
 
@@ -1215,7 +1215,7 @@ int EQ2Emu_lua_SetMaxHPBase(lua_State* state){
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	lua_interface->ResetFunctionStack(state);
 	if(spawn && spawn->IsEntity() && value > 0)
-		((Entity*)spawn)->SetTotalHPBase(value);
+		static_cast<Entity*>(spawn)->SetTotalHPBase(value);
 	return 0;
 }
 
@@ -1239,7 +1239,7 @@ int EQ2Emu_lua_SetMaxPower(lua_State* state){
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	lua_interface->ResetFunctionStack(state);
 	if(spawn && spawn->IsEntity() && value > 0)
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_POWER, value - spawn->GetTotalPower());
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_POWER, value - spawn->GetTotalPower());
 	return 0;
 }
 int EQ2Emu_lua_SetMaxPowerBase(lua_State* state){
@@ -1249,7 +1249,7 @@ int EQ2Emu_lua_SetMaxPowerBase(lua_State* state){
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	lua_interface->ResetFunctionStack(state);
 	if(spawn && spawn->IsEntity() && value > 0)
-		((Entity*)spawn)->SetTotalPowerBase(value);
+		static_cast<Entity*>(spawn)->SetTotalPowerBase(value);
 	return 0;
 }
 int EQ2Emu_lua_SetPosition(lua_State* state){
@@ -1341,7 +1341,7 @@ int EQ2Emu_lua_SetAdventureClass(lua_State* state){
 	lua_interface->ResetFunctionStack(state);
 	if(spawn){		
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetPlayerAdventureClass(value);
+			static_cast<Player*>(spawn)->SetPlayerAdventureClass(value);
 		else
 			spawn->SetAdventureClass(value);
 	}
@@ -1356,12 +1356,12 @@ int EQ2Emu_lua_SetTradeskillClass(lua_State* state){
 	if(spawn) {
 		spawn->SetTradeskillClass(value);
 		if (spawn->IsEntity()) {
-			((Entity*)spawn)->GetInfoStruct()->tradeskill_class1 = classes.GetTSBaseClass(spawn->GetTradeskillClass());
-			((Entity*)spawn)->GetInfoStruct()->tradeskill_class2 = classes.GetSecondaryTSBaseClass(spawn->GetTradeskillClass());
-			((Entity*)spawn)->GetInfoStruct()->tradeskill_class3 = spawn->GetTradeskillClass();
+			static_cast<Entity*>(spawn)->GetInfoStruct()->tradeskill_class1 = classes.GetTSBaseClass(spawn->GetTradeskillClass());
+			static_cast<Entity*>(spawn)->GetInfoStruct()->tradeskill_class2 = classes.GetSecondaryTSBaseClass(spawn->GetTradeskillClass());
+			static_cast<Entity*>(spawn)->GetInfoStruct()->tradeskill_class3 = spawn->GetTradeskillClass();
 		}
 		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1371,13 +1371,13 @@ int EQ2Emu_lua_SetMount(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->SetMount(value);
+		static_cast<Entity*>(spawn)->SetMount(value);
 		EQ2_Color color;
 		color.red = 255;
 		color.green = 255;
 		color.blue = 255;
-		((Entity*)spawn)->SetMountColor(&color);
-		((Entity*)spawn)->SetMountSaddleColor(&color);
+		static_cast<Entity*>(spawn)->SetMountColor(&color);
+		static_cast<Entity*>(spawn)->SetMountSaddleColor(&color);
 	}
 	return 0;
 }
@@ -1394,8 +1394,8 @@ int EQ2Emu_lua_SetMountColor(lua_State* state){
 	saddle_color.green = lua_interface->GetInt8Value(state, 6);
 	saddle_color.blue = lua_interface->GetInt8Value(state, 7);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->SetMountColor(&mount_color);
-		((Entity*)spawn)->SetMountSaddleColor(&saddle_color);
+		static_cast<Entity*>(spawn)->SetMountColor(&mount_color);
+		static_cast<Entity*>(spawn)->SetMountSaddleColor(&saddle_color);
 	}
 	return 0;
 }
@@ -1404,7 +1404,7 @@ int EQ2Emu_lua_GetMount(lua_State* state){
 		return 0;
    Spawn* spawn = lua_interface->GetSpawn(state);
    if(spawn && spawn->IsEntity()){
-      lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetMount());
+      lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetMount());
       return 1;
    }
    return 0;
@@ -1502,13 +1502,13 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state){
 		}
 			
 		if (spawn && spawn->IsEntity()) {
-			((Entity*)spawn)->AddSpellBonus(luaspell, type, value, class_req);
+			static_cast<Entity*>(spawn)->AddSpellBonus(luaspell, type, value, class_req);
 
 			if (spawn->IsPlayer()) {
-				if (((Player*)spawn)->GetGroupMemberInfo())
-					((Player*)spawn)->UpdateGroupMemberInfo();
+				if (static_cast<Player*>(spawn)->GetGroupMemberInfo())
+					static_cast<Player*>(spawn)->UpdateGroupMemberInfo();
 
-				((Player*)spawn)->SetCharSheetChanged(true);
+				static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 			}
 		}
 		else
@@ -1562,11 +1562,11 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state){
 		i++;
 	}
 
-	((Entity*)spawn)->AddSpellBonus(luaspell, type, value, class_req);
+	static_cast<Entity*>(spawn)->AddSpellBonus(luaspell, type, value, class_req);
 	if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS))
 		luaspell->effect_bitmask += EFFECT_FLAG_SPELLBONUS;
 	if(spawn->IsPlayer())
-		((Player*)spawn)->SetCharSheetChanged(true);
+		static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 
 	return 0;
 }
@@ -1579,10 +1579,10 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state){
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 
 	if (spawn && spawn->IsEntity()) {
-		((Entity*)spawn)->RemoveSpellBonus(luaspell);
+		static_cast<Entity*>(spawn)->RemoveSpellBonus(luaspell);
 
 		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 
 	return 0;
@@ -1598,28 +1598,26 @@ int EQ2Emu_lua_AddSkillBonus(lua_State* state) {
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 
 	if (value != 0) {
-		int32 spell_id = 0;
-
 		if (luaspell && luaspell->spell && luaspell->caster) {
-			spell_id = luaspell->spell->GetSpellID();
+			int32 spell_id = luaspell->spell->GetSpellID();
 
 			if (target && target->Alive()) {
 				if (!(luaspell->effect_bitmask & EFFECT_FLAG_SKILLBONUS))
 					luaspell->effect_bitmask += EFFECT_FLAG_SKILLBONUS;
 
 				if (target->IsPlayer()) {
-					((Player*)target)->AddSkillBonus(spell_id, skill_id, value);
+					static_cast<Player*>(target)->AddSkillBonus(spell_id, skill_id, value);
 
 					Client* client = target->GetZone()->GetClientBySpawn(target);
 
 					if (client) {
-						EQ2Packet* packet = ((Player*)target)->GetSkills()->GetSkillPacket(client->GetVersion());
+						EQ2Packet* packet = static_cast<Player*>(target)->GetSkills()->GetSkillPacket(client->GetVersion());
 						if (packet)
 							client->QueuePacket(packet);
 					}
 				}
 				else if (target->IsNPC()) {
-					((NPC*)target)->AddSkillBonus(spell_id, skill_id, value);
+					static_cast<NPC*>(target)->AddSkillBonus(spell_id, skill_id, value);
 				}
 				else
 					LogWrite(LUA__ERROR, 0, "LUA", "Error applying bonus buff on '%s'.  Not a NPC or player.", target->GetName());
@@ -1640,18 +1638,18 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 	
 	if (spawn) {
 		if (spawn->IsPlayer()) {
-			((Player*)spawn)->RemoveSkillBonus(luaspell->spell->GetSpellID());
+			static_cast<Player*>(spawn)->RemoveSkillBonus(luaspell->spell->GetSpellID());
 
 			Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 
 			if (client) {
-				EQ2Packet* packet = ((Player*)spawn)->GetSkills()->GetSkillPacket(client->GetVersion());
+				EQ2Packet* packet = static_cast<Player*>(spawn)->GetSkills()->GetSkillPacket(client->GetVersion());
 				if (packet)
 					client->QueuePacket(packet);
 			}
 		}
 		else if (spawn->IsNPC())
-			((NPC*)spawn)->RemoveSkillBonus(luaspell->spell->GetSpellID());
+			static_cast<NPC*>(spawn)->RemoveSkillBonus(luaspell->spell->GetSpellID());
 		else
 			LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 	}
@@ -1670,62 +1668,62 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	
 	if (spawn && spawn->IsEntity()) {
 		if (type == CONTROL_EFFECT_TYPE_MEZ){
-			((Entity*)spawn)->AddMezSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddMezSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ))
 				luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STIFLE){
-			((Entity*)spawn)->AddStifleSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddStifleSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE))
 				luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_DAZE){
-			((Entity*)spawn)->AddDazeSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddDazeSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE))
 				luaspell->effect_bitmask += EFFECT_FLAG_DAZE;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STUN){
-			((Entity*)spawn)->AddStunSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddStunSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN))
 				luaspell->effect_bitmask += EFFECT_FLAG_STUN;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_ROOT){
-			((Entity*)spawn)->AddRootSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddRootSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT))
 				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_FEAR){
-			((Entity*)spawn)->AddFearSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddFearSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR))
 				luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
-			((Entity*)spawn)->AddWaterwalkSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddWaterwalkSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK))
 				luaspell->effect_bitmask += EFFECT_FLAG_WATERWALK;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER){
-			((Entity*)spawn)->AddWaterjumpSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddWaterjumpSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP))
 				luaspell->effect_bitmask += EFFECT_FLAG_WATERJUMP;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_SNARE){
-			((Entity*)spawn)->AddSnareSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddSnareSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE))
 				luaspell->effect_bitmask += EFFECT_FLAG_SNARE;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_FLIGHT){
-			((Entity*)spawn)->AddFlightSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddFlightSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT))
 				luaspell->effect_bitmask += EFFECT_FLAG_FLIGHT;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_GLIDE){
-			((Entity*)spawn)->AddGlideSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddGlideSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE))
 				luaspell->effect_bitmask += EFFECT_FLAG_GLIDE;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_SAFEFALL){
-			((Entity*)spawn)->AddSafefallSpell(luaspell);
+			static_cast<Entity*>(spawn)->AddSafefallSpell(luaspell);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL))
 				luaspell->effect_bitmask += EFFECT_FLAG_SAFEFALL;
 		}
@@ -1749,29 +1747,29 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 	if (spawn && spawn->IsEntity()) {
 
 		if (type == CONTROL_EFFECT_TYPE_MEZ)
-			((Entity*)spawn)->RemoveMezSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveMezSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_STIFLE)
-			((Entity*)spawn)->RemoveStifleSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveStifleSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_DAZE)
-			((Entity*)spawn)->RemoveDazeSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveDazeSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_STUN)
-			((Entity*)spawn)->RemoveStunSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveStunSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_ROOT)
-			((Entity*)spawn)->RemoveRootSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveRootSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_FEAR)
-			((Entity*)spawn)->RemoveFearSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveFearSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER)
-			((Entity*)spawn)->RemoveWaterwalkSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveWaterwalkSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER)
-			((Entity*)spawn)->RemoveWaterjumpSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveWaterjumpSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_SNARE)
-			((Entity*)spawn)->RemoveSnareSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveSnareSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_FLIGHT)
-			((Entity*)spawn)->RemoveFlightSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveFlightSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_GLIDE)
-			((Entity*)spawn)->RemoveGlideSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveGlideSpell(luaspell);
 		else if (type == CONTROL_EFFECT_TYPE_SAFEFALL)
-			((Entity*)spawn)->RemoveSafefallSpell(luaspell);
+			static_cast<Entity*>(spawn)->RemoveSafefallSpell(luaspell);
 		else
 			lua_interface->LogError("Unhandled control effect type of %u.", type);
 	}
@@ -1784,9 +1782,9 @@ int EQ2Emu_lua_SetIntBase(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->GetInfoStruct()->intel_base = value;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->intel_base = value;
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1797,9 +1795,9 @@ int EQ2Emu_lua_SetAgiBase(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->GetInfoStruct()->agi_base = value;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->agi_base = value;
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1810,9 +1808,9 @@ int EQ2Emu_lua_SetWisBase(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->GetInfoStruct()->wis_base = value;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->wis_base = value;
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1823,9 +1821,9 @@ int EQ2Emu_lua_SetStaBase(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->GetInfoStruct()->sta_base = value;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->sta_base = value;
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1836,9 +1834,9 @@ int EQ2Emu_lua_SetStrBase(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->GetInfoStruct()->str_base = value;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->str_base = value;
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1849,9 +1847,9 @@ int EQ2Emu_lua_SetInt(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_INT, value);
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_INT, value);
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1862,9 +1860,9 @@ int EQ2Emu_lua_SetWis(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_WIS, value);
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_WIS, value);
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1874,9 +1872,9 @@ int EQ2Emu_lua_SetSta(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_STA, value);
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_STA, value);
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1886,9 +1884,9 @@ int EQ2Emu_lua_SetStr(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_STR, value);
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_STR, value);
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -1898,9 +1896,9 @@ int EQ2Emu_lua_SetAgi(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	sint32 value = lua_interface->GetSInt32Value(state, 2);
 	if(spawn && spawn->IsEntity()){
-		((Entity*)spawn)->AddSpellBonus(0, ITEM_STAT_AGI, value);
+		static_cast<Entity*>(spawn)->AddSpellBonus(0, ITEM_STAT_AGI, value);
 		if(spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -2075,7 +2073,7 @@ int EQ2Emu_lua_HasMoved(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetBooleanValue(state, ((Entity*)spawn)->HasMoved(false));
+		lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->HasMoved(false));
 		return 1;
 	}
 	return 0;
@@ -2085,7 +2083,7 @@ int EQ2Emu_lua_GetInt(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetInt());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetInt());
 		return 1;
 	}
 	return 0;
@@ -2095,7 +2093,7 @@ int EQ2Emu_lua_GetWis(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetWis());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetWis());
 		return 1;
 	}
 	return 0;
@@ -2105,7 +2103,7 @@ int EQ2Emu_lua_GetSta(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetSta());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetSta());
 		return 1;
 	}
 	return 0;
@@ -2115,7 +2113,7 @@ int EQ2Emu_lua_GetStr(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetStr());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetStr());
 		return 1;
 	}
 	return 0;
@@ -2125,7 +2123,7 @@ int EQ2Emu_lua_GetAgi(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetAgi());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetAgi());
 		return 1;
 	}
 	return 0;
@@ -2136,7 +2134,7 @@ int EQ2Emu_lua_GetIntBase(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetIntBase());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetIntBase());
 		return 1;
 	}
 	return 0;
@@ -2147,7 +2145,7 @@ int EQ2Emu_lua_GetWisBase(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetWisBase());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetWisBase());
 		return 1;
 	}
 	return 0;
@@ -2158,7 +2156,7 @@ int EQ2Emu_lua_GetStaBase(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetStaBase());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetStaBase());
 		return 1;
 	}
 	return 0;
@@ -2169,7 +2167,7 @@ int EQ2Emu_lua_GetStrBase(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetStrBase());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetStrBase());
 		return 1;
 	}
 	return 0;
@@ -2180,7 +2178,7 @@ int EQ2Emu_lua_GetAgiBase(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn && spawn->IsEntity()){
-		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetAgiBase());
+		lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetAgiBase());
 		return 1;
 	}
 	return 0;
@@ -2219,7 +2217,7 @@ int EQ2Emu_lua_GetTaskGroupStep(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetInt32Value(state, ((Player*)player)->GetTaskGroupStep(quest_id));
+		lua_interface->SetInt32Value(state, static_cast<Player*>(player)->GetTaskGroupStep(quest_id));
 		return 1;
 	}
 	return 0;
@@ -2232,7 +2230,7 @@ int EQ2Emu_lua_QuestStepIsComplete(lua_State* state){
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	int32 step_id = lua_interface->GetInt32Value(state, 3);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetBooleanValue(state, ((Player*)player)->GetQuestStepComplete(quest_id, step_id));
+		lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->GetQuestStepComplete(quest_id, step_id));
 		return 1;
 	}
 	return 0;
@@ -2244,7 +2242,7 @@ int EQ2Emu_lua_GetQuestStep(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetInt32Value(state, ((Player*)player)->GetQuestStep(quest_id));
+		lua_interface->SetInt32Value(state, static_cast<Player*>(player)->GetQuestStep(quest_id));
 		return 1;
 	}
 	return 0;
@@ -2335,7 +2333,7 @@ int EQ2Emu_lua_HasQuest(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetBooleanValue(state, (((Player*)player)->player_quests.count(quest_id) > 0));
+		lua_interface->SetBooleanValue(state, (static_cast<Player*>(player)->player_quests.count(quest_id) > 0));
 		return 1;
 	}
 	return 0;
@@ -2396,7 +2394,7 @@ int EQ2Emu_lua_GetQuest(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetQuestValue(state, ((Player*)player)->player_quests[quest_id]);
+		lua_interface->SetQuestValue(state, static_cast<Player*>(player)->player_quests[quest_id]);
 		return 1;
 	}
 	return 0;
@@ -2408,7 +2406,7 @@ int EQ2Emu_lua_QuestIsComplete(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		Quest* quest = ((Player*)player)->player_quests[quest_id];
+		Quest* quest = static_cast<Player*>(player)->player_quests[quest_id];
 		if(quest)
 			lua_interface->SetBooleanValue(state, quest->GetCompleted());
 		return 1;
@@ -2422,7 +2420,7 @@ int EQ2Emu_lua_HasCompletedQuest(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	if(player && player->IsPlayer() && quest_id > 0){
-		lua_interface->SetBooleanValue(state, (((Player*)player)->GetCompletedQuest(quest_id) != 0));
+		lua_interface->SetBooleanValue(state, (static_cast<Player*>(player)->GetCompletedQuest(quest_id) != 0));
 		return 1;
 	}
 	return 0;
@@ -2993,11 +2991,11 @@ int EQ2Emu_lua_Harvest(lua_State* state){
 	Spawn* node = lua_interface->GetSpawn(state, 2);
 	if(player && node && player->IsPlayer() && node->IsGroundSpawn()){
 		Client* client = player->GetZone()->GetClientBySpawn(player);
-		if(client){
 
+		if(client){
 			LogWrite(MISC__TODO, 1, "TODO", "Cancel harvest if skill insufficient; Func: %s, Line: %i", __FUNCTION__, __LINE__);
-			((GroundSpawn*)node)->ProcessHarvest(client);
-			if(((GroundSpawn*)node)->GetNumberHarvests() == 0)
+			static_cast<GroundSpawn*>(node)->ProcessHarvest(client);
+			if(static_cast<GroundSpawn*>(node)->GetNumberHarvests() == 0)
 				player->GetZone()->RemoveSpawn(node, true);
 		}
 	}
@@ -3087,7 +3085,7 @@ int EQ2Emu_lua_IsInCombat(lua_State* state) {
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if (spawn && spawn->IsEntity()) {
-		lua_interface->SetBooleanValue(state, ((Entity*)spawn)->EngagedInCombat());
+		lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->EngagedInCombat());
 		return 1;
 	}
 	return 0;
@@ -3097,10 +3095,10 @@ int EQ2Emu_lua_SendMessage(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	string message = lua_interface->GetStringValue(state, 2);
 	string color_str = lua_interface->GetStringValue(state, 3);
-	int8 color = CHANNEL_COLOR_WHITE;
 	if (spawn && spawn->IsPlayer() && message.length() > 0) {
 		Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 		if (client) {
+			int8 color = CHANNEL_COLOR_WHITE;
 			if (color_str.length() > 0) {
 				if (strncasecmp(color_str.c_str(), "red", 3) == 0)
 					color = CHANNEL_COLOR_RED;
@@ -3170,10 +3168,10 @@ int EQ2Emu_lua_SetServerControlFlag(lua_State* state) {
 int EQ2Emu_lua_ToggleTracking(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if (spawn && spawn->IsPlayer()) {
-		if (((Player*)spawn)->GetIsTracking())
-			spawn->GetZone()->AddPlayerTracking((Player*)spawn);
+		if (static_cast<Player*>(spawn)->GetIsTracking())
+			spawn->GetZone()->AddPlayerTracking(static_cast<Player*>(spawn));
 		else
-			spawn->GetZone()->RemovePlayerTracking((Player*)spawn, TRACKING_STOP);
+			spawn->GetZone()->RemovePlayerTracking(static_cast<Player*>(spawn), TRACKING_STOP);
 	}
 	return 0;
 }
@@ -3208,8 +3206,8 @@ int EQ2Emu_lua_AddSpellBookEntry(lua_State* state) {
 	if (player && spell && player->IsPlayer()) {
 		Client* client = player->GetZone()->GetClientBySpawn(player);
 		if (client ) {
-			((Player*)player)->AddSpellBookEntry(spell->GetSpellID(), spell->GetSpellTier(), ((Player*)player)->GetFreeSpellBookSlot(spell->GetSpellData()->spell_book_type), spell->GetSpellData()->spell_book_type, spell->GetSpellData()->linked_timer, true);
-			EQ2Packet* outapp = ((Player*)player)->GetSpellBookUpdatePacket(client->GetVersion());
+			static_cast<Player*>(player)->AddSpellBookEntry(spell->GetSpellID(), spell->GetSpellTier(), static_cast<Player*>(player)->GetFreeSpellBookSlot(spell->GetSpellData()->spell_book_type), spell->GetSpellData()->spell_book_type, spell->GetSpellData()->linked_timer, true);
+			EQ2Packet* outapp = static_cast<Player*>(player)->GetSpellBookUpdatePacket(client->GetVersion());
 			if (outapp)
 				client->QueuePacket(outapp);
 		}
@@ -3222,7 +3220,7 @@ int EQ2Emu_lua_HasFreeSlot(lua_State* state) {
 		return 0;
 	Spawn* player = lua_interface->GetSpawn(state);
 	if(player && player->IsPlayer()) {
-		lua_interface->SetBooleanValue(state, ((Player*)player)->item_list.HasFreeSlot());
+		lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->item_list.HasFreeSlot());
 		return 1;
 	}
 	return 0;
@@ -3233,7 +3231,7 @@ int EQ2Emu_lua_Attack(lua_State* state) {
 		Spawn* npc = lua_interface->GetSpawn(state);
 		Spawn* player = lua_interface->GetSpawn(state, 2);
 		if (npc && player && npc->IsNPC() && player->IsPlayer())
-			((NPC*)npc)->AddHate((Entity*)player, 100);
+			static_cast<NPC*>(npc)->AddHate(static_cast<Entity*>(player), 100);
 	}
 	return 0;
 }
@@ -3250,12 +3248,10 @@ int EQ2Emu_lua_ApplySpellVisual(lua_State* state) {
 }
 
 int EQ2Emu_lua_HasCollectionsToHandIn(lua_State *state) {
-	Spawn *player;
-
 	if (lua_interface) {
-		player = lua_interface->GetSpawn(state);
+		Spawn *player = lua_interface->GetSpawn(state);
 		if (player && player->IsPlayer()) {
-			lua_interface->SetBooleanValue(state, ((Player *)player)->GetCollectionList()->HasCollectionsToHandIn());
+			lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->GetCollectionList()->HasCollectionsToHandIn());
 			return 1;
 		}
 	}
@@ -3265,46 +3261,41 @@ int EQ2Emu_lua_HasCollectionsToHandIn(lua_State *state) {
 
 int EQ2Emu_lua_HandInCollections(lua_State *state) {
 	Spawn *player;
-	Client *client;
 
 	if (lua_interface) {
 		player = lua_interface->GetSpawn(state);
-		if (player && ((Player *)player)->IsPlayer() && ((Player *)player)->GetCollectionList()->HasCollectionsToHandIn())
-			if ((client = player->GetZone()->GetClientBySpawn(player)))
+		if (player && static_cast<Player*>(player)->IsPlayer() && static_cast<Player*>(player)->GetCollectionList()->HasCollectionsToHandIn()) {
+			Client *client = player->GetZone()->GetClientBySpawn(player);
+			if (client)
 				client->HandInCollections();
+		}
 	}
 
 	return 0;
 }
 
 int EQ2Emu_lua_UseWidget(lua_State* state) {
-	Spawn* widget;
-
 	if (lua_interface) {
-		widget = lua_interface->GetSpawn(state);
+		Spawn* widget = lua_interface->GetSpawn(state);
 		if (widget && widget->IsWidget())
-			((Widget*)widget)->HandleUse(NULL, "");
+			static_cast<Widget*>(widget)->HandleUse(NULL, "");
 	}
 
 	return 0;
 }
 
 int EQ2Emu_lua_SetSpellList(lua_State* state) {
-	Spawn* spawn = 0;
-	int32 primary_list = 0;
-	int32 secondary_list = 0;
-
 	if (lua_interface) {
-		spawn = lua_interface->GetSpawn(state);
-		primary_list = lua_interface->GetInt32Value(state, 2);
-		secondary_list = lua_interface->GetInt32Value(state, 3);
+		Spawn* spawn = lua_interface->GetSpawn(state);
+		int32 primary_list = lua_interface->GetInt32Value(state, 2);
+		int32 secondary_list = lua_interface->GetInt32Value(state, 3);
 
-		if (!spawn->IsNPC()) {
+		if (!spawn || !spawn->IsNPC()) {
 			lua_interface->LogError("LUA SetSpellList command error: Spawn was not a valid NPC");
 			return 0;
 		}
 
-		NPC* npc = (NPC*)spawn;
+		NPC* npc = static_cast<NPC*>(spawn);
 		npc->SetPrimarySpellList(primary_list);
 		npc->SetSecondarySpellList(secondary_list);
 		npc->SetSpells(npc->GetZone()->GetNPCSpells(npc->GetPrimarySpellList(), npc->GetSecondarySpellList()));
@@ -3317,8 +3308,8 @@ int EQ2Emu_lua_GetPet(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn) {
-		if (spawn->IsEntity() && ((Entity*)spawn)->GetPet()) {
-			lua_interface->SetSpawnValue(state, ((Entity*)spawn)->GetPet());
+		if (spawn->IsEntity() && static_cast<Entity*>(spawn)->GetPet()) {
+			lua_interface->SetSpawnValue(state, static_cast<Entity*>(spawn)->GetPet());
 			return 1;
 		}
 	}
@@ -3330,8 +3321,8 @@ int EQ2Emu_lua_GetCharmedPet(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn) {
-		if (spawn->IsEntity() && ((Entity*)spawn)->GetCharmedPet()) {
-			lua_interface->SetSpawnValue(state, ((Entity*)spawn)->GetCharmedPet());
+		if (spawn->IsEntity() && static_cast<Entity*>(spawn)->GetCharmedPet()) {
+			lua_interface->SetSpawnValue(state, static_cast<Entity*>(spawn)->GetCharmedPet());
 			return 1;
 		}
 	}
@@ -3343,8 +3334,8 @@ int EQ2Emu_lua_GetDeityPet(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn) {
-		if (spawn->IsEntity() && ((Entity*)spawn)->GetDeityPet()) {
-			lua_interface->SetSpawnValue(state, ((Entity*)spawn)->GetDeityPet());
+		if (spawn->IsEntity() && static_cast<Entity*>(spawn)->GetDeityPet()) {
+			lua_interface->SetSpawnValue(state, static_cast<Entity*>(spawn)->GetDeityPet());
 			return 1;
 		}
 	}
@@ -3356,8 +3347,8 @@ int EQ2Emu_lua_GetCosmeticPet(lua_State* state){
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn) {
-		if (spawn->IsEntity() && ((Entity*)spawn)->GetCosmeticPet()) {
-			lua_interface->SetSpawnValue(state, ((Entity*)spawn)->GetCosmeticPet());
+		if (spawn->IsEntity() && static_cast<Entity*>(spawn)->GetCosmeticPet()) {
+			lua_interface->SetSpawnValue(state, static_cast<Entity*>(spawn)->GetCosmeticPet());
 			return 1;
 		}
 	}
@@ -3371,13 +3362,13 @@ int EQ2Emu_lua_Charm(lua_State* state){
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 
 	if (owner && pet && owner->IsEntity() && pet->IsNPC()) {
-		((Entity*)owner)->SetCharmedPet((Entity*)pet);
+		static_cast<Entity*>(owner)->SetCharmedPet(static_cast<Entity*>(pet));
 		pet->SetPet(true);
-		((NPC*)pet)->SetPetType(PET_TYPE_CHARMED);
-		((NPC*)pet)->SetOwner((Entity*)owner);
+		static_cast<NPC*>(pet)->SetPetType(PET_TYPE_CHARMED);
+		static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(owner));
 		// If owner is player and player does not have a summoned pet set the players charsheet
-		if (owner->IsPlayer() && !((Entity*)owner)->GetPet()) {
-			Player* player = (Player*)owner;
+		if (owner->IsPlayer() && !static_cast<Entity*>(owner)->GetPet()) {
+			Player* player = static_cast<Player*>(owner);
 				player->GetInfoStruct()->pet_id = player->GetIDWithPlayerSpawn(pet);
 				strcpy(player->GetInfoStruct()->pet_name, pet->GetName());
 				player->GetInfoStruct()->pet_movement = 2;
@@ -3392,14 +3383,14 @@ int EQ2Emu_lua_Charm(lua_State* state){
 		// Set faction to the same as the owner
 		pet->SetFactionID(owner->GetFactionID());
 
-		((NPC*)pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
-		((NPC*)pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+		static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+		static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
 
 		// Clear hate list
-		((NPC*)pet)->Brain()->ClearHate();
+		static_cast<NPC*>(pet)->Brain()->ClearHate();
 
 		// Set the brain to a pet brain
-		((NPC*)pet)->SetBrain(new CombatPetBrain((NPC*)pet));
+		static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
 	}
 	return 0;
 }
@@ -3418,15 +3409,14 @@ int EQ2Emu_lua_GetGroup(lua_State* state) {
 	if (!spawn->IsPlayer() && spawn->HasSpawnGroup()) {
 		groupMembers = *spawn->GetSpawnGroup();
 	}
-	else if (spawn->IsPlayer() && ((Player*)spawn)->GetGroupMemberInfo()) {
+	else if (spawn->IsPlayer() && static_cast<Player*>(spawn)->GetGroupMemberInfo()) {
 		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 
 		deque<GroupMemberInfo*>::iterator itr;
-		deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(((Player*)spawn)->GetGroupMemberInfo()->group_id);
-		GroupMemberInfo* info = 0;
+		deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(static_cast<Player*>(spawn)->GetGroupMemberInfo()->group_id);
 		for(itr = members->begin(); itr != members->end(); ++itr){
-			info = *itr;
-			if(info->client)
+			GroupMemberInfo* info = *itr;
+			if(info && info->client)
 				groupMembers.push_back(info->client->GetPlayer());
 		}
 
@@ -3603,7 +3593,7 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	}
 
 	// Check to make sure the spawn doesn't already have a pet of this type
-	if (((Entity*)spawn)->GetPet()) {
+	if (static_cast<Entity*>(spawn)->GetPet()) {
 		if (spawn->IsPlayer()) {
 			Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
@@ -3662,7 +3652,7 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 
 	// If player set various values for the char sheet (pet window)
 	if (spawn->IsPlayer()) {
-		Player* player = (Player*)spawn;
+		Player* player = static_cast<Player*>(spawn);
 		player->GetInfoStruct()->pet_id = player->GetIDWithPlayerSpawn(pet);
 		strcpy(player->GetInfoStruct()->pet_name, random_pet_name.c_str());
 		player->GetInfoStruct()->pet_movement = 2;
@@ -3681,25 +3671,25 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	else
 		pet->SetLevel(spawn->GetLevel());
 	// Set the max level this pet can reach
-	((NPC*)pet)->SetMaxPetLevel(max_level);
+	static_cast<NPC*>(pet)->SetMaxPetLevel(max_level);
 	// Set the faction of the pet to the same faction as the owner
 	pet->SetFactionID(spawn->GetFactionID());
 	// Set the spawn as a pet
 	pet->SetPet(true);
 	// Give a pointer of the owner to the pet
-	((NPC*)pet)->SetOwner((Entity*)spawn);
+	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
 	// Give a pointer of the pet to the owner
-	((Entity*)spawn)->SetCombatPet((Entity*)pet);
+	static_cast<Entity*>(spawn)->SetCombatPet(static_cast<Entity*>(pet));
 	// Set the pet type
-	((NPC*)pet)->SetPetType(PET_TYPE_COMBAT);
+	(static_cast<NPC*>(pet))->SetPetType(PET_TYPE_COMBAT);
 	// Set the spell id used to create this pet
-	((NPC*)pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	(static_cast<NPC*>(pet))->SetPetSpellID(luaspell->spell->GetSpellData()->id);
 	// Set the spell tier used to create this pet
-	((NPC*)pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	(static_cast<NPC*>(pet))->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
 	// Set the pets spawn type to 6
 	pet->SetSpawnType(6);
 	// Set the pets brain
-	((NPC*)pet)->SetBrain(new CombatPetBrain((NPC*)pet));
+	static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
 	// Check to see if the pet has a subtitle
 	if (strlen(pet->GetSubTitle()) > 0) {
 		// Add the players name to the front of the sub title
@@ -3733,7 +3723,7 @@ int EQ2Emu_lua_SummonDeityPet(lua_State* state){
 		return 0;
 	}
 
-	if (((Entity*)spawn)->GetDeityPet()) {
+	if (static_cast<Entity*>(spawn)->GetDeityPet()) {
 		if (spawn->IsPlayer()) {
 			Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
@@ -3781,13 +3771,13 @@ int EQ2Emu_lua_SummonDeityPet(lua_State* state){
 	pet->SetLevel(spawn->GetLevel());
 	pet->SetFactionID(spawn->GetFactionID());
 	pet->SetPet(true);
-	((NPC*)pet)->SetPetType(PET_TYPE_DEITY);
-	((NPC*)pet)->SetOwner((Entity*)spawn);
-	((Entity*)spawn)->SetDeityPet((Entity*)pet);
+	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DEITY);
+	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
+	static_cast<Entity*>(spawn)->SetDeityPet(static_cast<Entity*>(pet));
 	pet->SetSpawnType(6);
-	((NPC*)pet)->SetBrain(new NonCombatPetBrain((NPC*)pet));
-	((NPC*)pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
-	((NPC*)pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	static_cast<NPC*>(pet)->SetBrain(new NonCombatPetBrain(static_cast<NPC*>(pet)));
+	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
 	
 	if (strlen(pet->GetSubTitle()) > 0) {
 		string pet_subtitle;
@@ -3820,7 +3810,7 @@ int EQ2Emu_lua_SummonCosmeticPet(lua_State* state){
 		return 0;
 	}
 
-	if (((Entity*)spawn)->GetCosmeticPet()) {
+	if (static_cast<Entity*>(spawn)->GetCosmeticPet()) {
 		if (spawn->IsPlayer()) {
 			Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
@@ -3868,13 +3858,13 @@ int EQ2Emu_lua_SummonCosmeticPet(lua_State* state){
 	pet->SetLevel(spawn->GetLevel());
 	pet->SetFactionID(spawn->GetFactionID());
 	pet->SetPet(true);
-	((NPC*)pet)->SetPetType(PET_TYPE_COSMETIC);
-	((NPC*)pet)->SetOwner((Entity*)spawn);
-	((Entity*)spawn)->SetCosmeticPet((Entity*)pet);
+	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_COSMETIC);
+	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
+	static_cast<Entity*>(spawn)->SetCosmeticPet(static_cast<Entity*>(pet));
 	pet->SetSpawnType(6);
-	((NPC*)pet)->SetBrain(new NonCombatPetBrain((NPC*)pet));
-	((NPC*)pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
-	((NPC*)pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	static_cast<NPC*>(pet)->SetBrain(new NonCombatPetBrain(static_cast<NPC*>(pet)));
+	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
 
 	if (strlen(pet->GetSubTitle()) > 0) {
 		string pet_subtitle;
@@ -3905,8 +3895,8 @@ int EQ2Emu_lua_DismissPet(lua_State* state) {
 		return 0;
 	}
 
-	if (!((NPC*)spawn)->IsDismissing())
-		((NPC*)spawn)->GetOwner()->DismissPet((NPC*)spawn);
+	if (!static_cast<NPC*>(spawn)->IsDismissing())
+		static_cast<NPC*>(spawn)->GetOwner()->DismissPet(static_cast<NPC*>(spawn));
 
 	return 0;
 }
@@ -3973,8 +3963,8 @@ int EQ2Emu_lua_SpawnByLocationID(lua_State* state) {
 		return 0;
 	}
 
-	Spawn* spawn = 0;
 	if (location->entities[0]) {
+		Spawn* spawn = 0;
 		if(location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
 			spawn = zone->AddNPCSpawn(location, location->entities[0]);
 		else if(location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
@@ -4054,7 +4044,7 @@ int EQ2Emu_lua_CastEntityCommand(lua_State* state) {
 		return 0;
 	}
 
-	client->GetCurrentZone()->ProcessEntityCommand(entity_command, (Player*)caster, target);
+	client->GetCurrentZone()->ProcessEntityCommand(entity_command, static_cast<Player*>(caster), target);
 
 	return 0;
 }
@@ -4075,7 +4065,7 @@ int EQ2Emu_lua_SetLuaBrain(lua_State* state) {
 		return 0;
 	}
 
-	((NPC*)spawn)->SetBrain(new LuaBrain((NPC*)spawn));
+	static_cast<NPC*>(spawn)->SetBrain(new LuaBrain(static_cast<NPC*>(spawn)));
 
 	return 0;
 }
@@ -4102,7 +4092,7 @@ int EQ2Emu_lua_SetBrainTick(lua_State* state) {
 		return 0;
 	}
 
-	((NPC*)spawn)->Brain()->SetTick(tick);
+	static_cast<NPC*>(spawn)->Brain()->SetTick(tick);
 
 	return 0;
 }
@@ -4210,7 +4200,7 @@ int EQ2Emu_lua_SetTempVariable(lua_State* state) {
 	if (lua_islightuserdata(state, 3)) {
 		// It is light user data so we will grab the param with lua_touserdata(lua_State*, index)
 		// and convert it to LUAUserData*
-		LUAUserData* data = (LUAUserData*)lua_touserdata(state, 3);
+		LUAUserData* data = static_cast<LUAUserData*>(lua_touserdata(state, 3));
 		// Check to make sure the data we got is valid, if not give an error
 		if(!data || !data->IsCorrectlyInitialized()){
 			lua_interface->LogError("LUA SetTempVariable command error while processing %s", lua_tostring(state, -1));
@@ -4419,11 +4409,11 @@ int EQ2Emu_lua_GiveQuestItem(lua_State* state)
 		packet->setArrayDataByName("reward_id", item->details.item_id);
 		
 		if (client->GetVersion() < 860)
-			packet->setItemArrayDataByName("item", item, (Player*)spawn, 0, 0, -1);
+			packet->setItemArrayDataByName("item", item, static_cast<Player*>(spawn), 0, 0, -1);
 		else if (client->GetVersion() < 1193)
-			packet->setItemArrayDataByName("item", item, (Player*)spawn);
+			packet->setItemArrayDataByName("item", item, static_cast<Player*>(spawn));
 		else
-			packet->setItemArrayDataByName("item", item, (Player*)spawn, 0, 0, 2);
+			packet->setItemArrayDataByName("item", item, static_cast<Player*>(spawn), 0, 0, 2);
 
 		client->QueuePacket(packet->serialize());
 		safe_delete(packet);
@@ -4490,8 +4480,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 	if (target->IsEntity()) {
 		// If the ward is already active remove it
-		if (((Entity*)target)->GetWard(spell))
-			((Entity*)target)->RemoveWard(spell);
+		if (static_cast<Entity*>(target)->GetWard(spell))
+			static_cast<Entity*>(target)->RemoveWard(spell);
 
 		// Create new ward info
 		WardInfo* ward = new WardInfo;
@@ -4505,7 +4495,7 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 			ward->DamageType = damageTypes;
 
 		// Add the ward to the entity
-		((Entity*)target)->AddWard(spell, ward);
+		static_cast<Entity*>(target)->AddWard(spell, ward);
 		ward_was_added = true;
 	}
 
@@ -4528,7 +4518,7 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 	ZoneServer* zone = spell->caster->GetZone();
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 	if (zone->GetSpawnByID(spell->targets.at(0))->IsEntity()) {
-		Entity* target = (Entity*)spell->targets.at(0);
+		Entity* target = static_cast<Entity*>(zone->GetSpawnByID(spell->targets.at(0)));
 		ward = target->GetWard(spell);
 		if (ward) {
 			ward->DamageLeft += amount;
@@ -4562,7 +4552,7 @@ int EQ2Emu_lua_GetWardAmountLeft(lua_State* state) {
 	Spawn* target = lua_interface->GetSpawn(state);
 
 	if (target->IsEntity()) {
-		WardInfo* ward = ((Entity*)target)->GetWard(spell);
+		WardInfo* ward = static_cast<Entity*>(target)->GetWard(spell);
 		if (ward) {
 			lua_interface->SetInt32Value(state, ward->DamageLeft);
 			return 1;
@@ -4580,7 +4570,7 @@ int EQ2Emu_lua_RemoveWard(lua_State* state) {
 	Spawn* target = lua_interface->GetSpawn(state);
 
 	if (target && target->IsEntity()) {
-		((Entity*)target)->RemoveWard(spell);
+		static_cast<Entity*>(target)->RemoveWard(spell);
 	}
 
 	return 0;
@@ -4612,7 +4602,7 @@ int EQ2Emu_lua_Interrupt(lua_State* state)
 		return 0;
 	}
 
-	caster->GetZone()->GetSpellProcess()->Interrupted((Entity*)target, caster, SPELL_ERROR_INTERRUPTED);
+	caster->GetZone()->GetSpellProcess()->Interrupted(static_cast<Entity*>(target), caster, SPELL_ERROR_INTERRUPTED);
 	
 	return 0;
 }
@@ -4635,12 +4625,12 @@ int EQ2Emu_lua_Stealth(lua_State* state){
 	if (spawn){
 		if (spawn->IsEntity()){
 			if (type == 1){
-				((Entity*)spawn)->AddStealthSpell(spell);
+				static_cast<Entity*>(spawn)->AddStealthSpell(spell);
 				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
 					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
 				}
 			else if (type == 2){
-				((Entity*)spawn)->AddInvisSpell(spell);
+				static_cast<Entity*>(spawn)->AddInvisSpell(spell);
 				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
 					spell->effect_bitmask += EFFECT_FLAG_INVIS;
 			}
@@ -4659,12 +4649,12 @@ int EQ2Emu_lua_Stealth(lua_State* state){
 				continue;
 
 			if (type == 1){
-				((Entity*)spawn)->AddStealthSpell(spell);
+				static_cast<Entity*>(spawn)->AddStealthSpell(spell);
 				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
 					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
 			}
 			else if (type == 2){
-				((Entity*)spawn)->AddInvisSpell(spell);
+				static_cast<Entity*>(spawn)->AddInvisSpell(spell);
 				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
 					spell->effect_bitmask += EFFECT_FLAG_INVIS;
 			}
@@ -4687,7 +4677,7 @@ int EQ2Emu_lua_IsStealthed(lua_State* state){
 		return 0;}
 
 	if(spawn->IsEntity()){
-		lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsStealthed());
+		lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsStealthed());
 		return 1;
 	}
 	else
@@ -4704,7 +4694,7 @@ int EQ2Emu_lua_IsInvis(lua_State* state){
 		return 0;}
 
 	if(spawn->IsEntity()){
-		lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsInvis());
+		lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsInvis());
 		return 1;
 	}
 	else
@@ -4721,7 +4711,7 @@ int EQ2Emu_lua_HasItemEquipped(lua_State* state){
 		lua_interface->LogError("LUA HasItemEquipped command error: spawn is not player");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Player*)player)->GetEquipmentList()->HasItem(item_id));
+	lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->GetEquipmentList()->HasItem(item_id));
 	return 1;
 }
 
@@ -4739,7 +4729,7 @@ int	EQ2Emu_lua_GetEquippedItemBySlot(lua_State* state){
 		lua_interface->LogError("LUA GetEquippedItemBySlot command error: spawn is not player");
 		return 0;
 	}
-	Item* item = ((Player*)player)->GetEquipmentList()->GetItem(slot);
+	Item* item = static_cast<Player*>(player)->GetEquipmentList()->GetItem(slot);
 	if(!item){
 		lua_interface->LogError("LUA GetEquippedItemBySlot command error: item was not found in slot");
 		return 0;
@@ -4762,7 +4752,7 @@ int	EQ2Emu_lua_GetEquippedItemByID(lua_State* state){
 		lua_interface->LogError("LUA GetEquippedItemByID command error: spawn is not player");
 		return 0;
 	}
-	Item* item = ((Player*)player)->GetEquipmentList()->GetItemFromItemID(id);
+	Item* item = static_cast<Player*>(player)->GetEquipmentList()->GetItemFromItemID(id);
 	if(!item){
 		lua_interface->LogError("LUA GetEquippedItemByID command error: equipped item with used id not found");
 		return 0;
@@ -4789,7 +4779,7 @@ int	EQ2Emu_lua_GetItemByID(lua_State* state){
 	}
 	if(!count)
 		count = 1;
-	Item* item = ((Player*)player)->GetPlayerItemList()->GetItemFromID(id, count, include_bank);
+	Item* item = static_cast<Player*>(player)->GetPlayerItemList()->GetItemFromID(id, count, include_bank);
 	if(!item){
 		lua_interface->LogError("LUA GetItemByID command error: item with used id not found");
 		return 0;
@@ -4856,8 +4846,8 @@ int EQ2Emu_lua_GetOwner(lua_State* state){
 		lua_interface->LogError("LUA GetOwner command error: spawn is not a NPC");
 		return 0;
 	}
-	if(((NPC*)spawn)->GetOwner()){
-		lua_interface->SetSpawnValue(state, ((NPC*)spawn)->GetOwner());
+	if(static_cast<NPC*>(spawn)->GetOwner()){
+		lua_interface->SetSpawnValue(state, static_cast<NPC*>(spawn)->GetOwner());
 		return 1;
 	}
 	return 0;
@@ -4874,7 +4864,7 @@ int EQ2Emu_lua_SetTarget(lua_State* state){
 	}
 
 	if (spawn->IsPlayer()) {
-		((Player*)spawn)->GetZone()->GetClientBySpawn(spawn)->TargetSpawn(target);
+		static_cast<Player*>(spawn)->GetZone()->GetClientBySpawn(spawn)->TargetSpawn(target);
 	} else {
 		spawn->SetTarget(target);
 	}
@@ -4894,7 +4884,7 @@ int EQ2Emu_lua_SetInCombat(lua_State* state){
 		lua_interface->LogError("LUA SetInCombat command error: spawn is not an entity");
 		return 0;
 	}
-	((Entity*)spawn)->InCombat(val);
+	static_cast<Entity*>(spawn)->InCombat(val);
 
 	if (val) {
 		spawn->ClearRunningLocations();
@@ -4932,7 +4922,7 @@ int EQ2Emu_lua_Runback(lua_State* state){
 		lua_interface->LogError("LUA Runback command error: spawn is not an NPC");
 		return 0;
 	}
-	((NPC*)spawn)->Runback();
+	static_cast<NPC*>(spawn)->Runback();
 	return 0;
 }
 
@@ -4948,7 +4938,7 @@ int EQ2Emu_lua_GetRunbackDistance(lua_State* state){
 		lua_interface->LogError("LUA GetRunbackDistance command error: spawn is not an NPC");
 		return 0;
 	}
-	lua_interface->SetFloatValue(state, ((NPC*)spawn)->GetRunbackDistance());
+	lua_interface->SetFloatValue(state, static_cast<NPC*>(spawn)->GetRunbackDistance());
 	return 1;
 }
 
@@ -4964,7 +4954,7 @@ int EQ2Emu_lua_IsCasting(lua_State* state){
 		lua_interface->LogError("LUA IsCasting command error: spawn is not an entity");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsCasting());
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsCasting());
 	return 1;
 }
 
@@ -4980,7 +4970,7 @@ int EQ2Emu_lua_IsMezzed(lua_State* state){
 		lua_interface->LogError("LUA IsMezzed command error: spawn is not an entity");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsMezzed());
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsMezzed());
 	return 1;
 }
 
@@ -4996,7 +4986,7 @@ int EQ2Emu_lua_IsStunned(lua_State* state){
 		lua_interface->LogError("LUA IsStunned command error: spawn is not an entity");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsStunned());
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsStunned());
 	return 1;
 }
 
@@ -5012,7 +5002,7 @@ int EQ2Emu_lua_IsMezzedOrStunned(lua_State* state){
 		lua_interface->LogError("LUA IsMezzedOrStunned command error: spawn is not an entity");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->IsMezzedOrStunned());
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->IsMezzedOrStunned());
 	return 1;
 }
 
@@ -5038,7 +5028,7 @@ int EQ2Emu_lua_ProcessSpell(lua_State* state){
 		lua_interface->LogError("LUA ProcessSpell command error: target is not an entity");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((NPC*)spawn)->Brain()->ProcessSpell(((Entity*)target), distance));
+	lua_interface->SetBooleanValue(state, static_cast<NPC*>(spawn)->Brain()->ProcessSpell(static_cast<Entity*>(target), distance));
 	return 1;
 }
 
@@ -5064,7 +5054,7 @@ int EQ2Emu_lua_ProcessMelee(lua_State* state){
 		lua_interface->LogError("LUA ProcessMelee command error: target is not an entity");
 		return 0;
 	}
-	((NPC*)spawn)->Brain()->ProcessMelee(((Entity*)target), distance);
+	static_cast<NPC*>(spawn)->Brain()->ProcessMelee(static_cast<Entity*>(target), distance);
 	return 0;
 }
 
@@ -5080,7 +5070,7 @@ int EQ2Emu_lua_HasRecovered(lua_State* state){
 		lua_interface->LogError("LUA HasRecovered command error: spawn is not an NPC");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((NPC*)spawn)->Brain()->HasRecovered());
+	lua_interface->SetBooleanValue(state, static_cast<NPC*>(spawn)->Brain()->HasRecovered());
 	return 1;
 }
 
@@ -5096,7 +5086,7 @@ int EQ2Emu_lua_GetEncounterSize(lua_State* state){
 		lua_interface->LogError("LUA GetEncounterSize command error: spawn is not an NPC");
 		return 0;
 	}
-	lua_interface->SetInt32Value(state, ((NPC*)spawn)->Brain()->GetEncounterSize());
+	lua_interface->SetInt32Value(state, static_cast<NPC*>(spawn)->Brain()->GetEncounterSize());
 	return 1;
 }
 
@@ -5113,7 +5103,7 @@ int EQ2Emu_lua_GetMostHated(lua_State* state){
 		return 0;
 	}
 
-	Entity* hated = ((NPC*)spawn)->Brain()->GetMostHated();
+	Entity* hated = static_cast<NPC*>(spawn)->Brain()->GetMostHated();
 	if (hated) {
 		lua_interface->SetSpawnValue(state, hated);
 		return 1;
@@ -5136,7 +5126,7 @@ int EQ2Emu_lua_ClearHate(lua_State* state){
 		return 0;
 	}
 	if(!hated){
-		((NPC*)spawn)->Brain()->ClearHate();
+		static_cast<NPC*>(spawn)->Brain()->ClearHate();
 		return 0;
 	}
 	else
@@ -5145,7 +5135,7 @@ int EQ2Emu_lua_ClearHate(lua_State* state){
 			lua_interface->LogError("LUA ClearHate command error: second param is not entity");
 			return 0;
 		}
-		((NPC*)spawn)->Brain()->ClearHate(((Entity*)hated));
+		static_cast<NPC*>(spawn)->Brain()->ClearHate(static_cast<Entity*>(hated));
 		return 0;
 	}
 	return 0;
@@ -5163,7 +5153,7 @@ int EQ2Emu_lua_ClearEncounter(lua_State* state){
 		lua_interface->LogError("LUA ClearEncounter command error: spawn is not an NPC");
 		return 0;
 	}
-	((NPC*)spawn)->Brain()->ClearEncounter();
+	static_cast<NPC*>(spawn)->Brain()->ClearEncounter();
 	return 0;
 }
 
@@ -5183,7 +5173,7 @@ int EQ2Emu_lua_GetEncounter(lua_State* state) {
 	}
 
 	// Temp list to store hate list
-	vector<int32>* encounterList = ((NPC*)spawn)->Brain()->GetEncounter();
+	vector<int32>* encounterList = static_cast<NPC*>(spawn)->Brain()->GetEncounter();
 
 	if (encounterList->size() == 0) {
 		safe_delete(encounterList);
@@ -5219,7 +5209,7 @@ int EQ2Emu_lua_GetHateList(lua_State* state) {
 	}
 
 	// Temp list to store hate list
-	vector<Entity*>* hateList = ((NPC*)spawn)->Brain()->GetHateList();
+	vector<Entity*>* hateList = static_cast<NPC*>(spawn)->Brain()->GetHateList();
 
 	if (hateList->size() == 0) {
 		safe_delete(hateList);
@@ -5248,7 +5238,7 @@ int EQ2Emu_lua_HasGroup(lua_State* state) {
 	}
 
 	if (spawn->IsPlayer()) {
-		if (((Player*)spawn)->GetGroupMemberInfo() && world.GetGroupManager()->GetGroupSize(((Player*)spawn)->GetGroupMemberInfo()->group_id) > 1)
+		if (static_cast<Player*>(spawn)->GetGroupMemberInfo() && world.GetGroupManager()->GetGroupSize(static_cast<Player*>(spawn)->GetGroupMemberInfo()->group_id) > 1)
 			lua_interface->SetBooleanValue(state, true);
 		else
 			lua_interface->SetBooleanValue(state, false);
@@ -5298,7 +5288,7 @@ int EQ2Emu_lua_HasSpellEffect(lua_State* state) {
 		return 0;
 	}
 
-	SpellEffects* effect = ((Entity*)spawn)->GetSpellEffect(spellID);
+	SpellEffects* effect = static_cast<Entity*>(spawn)->GetSpellEffect(spellID);
 	if (effect) {
 		if (tier > 0) {
 			// If a tier was passed chec to see if it is the same as the effect
@@ -5328,7 +5318,6 @@ int EQ2Emu_lua_AddSpawnIDAccess(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int32 id = lua_interface->GetInt32Value(state, 2);
 	ZoneServer* zone = lua_interface->GetZone(state, 3);
-	Spawn* spawn2 = 0;
 	vector<Spawn*> list;
 
 	if(!spawn){
@@ -5347,7 +5336,7 @@ int EQ2Emu_lua_AddSpawnIDAccess(lua_State* state){
 
 	vector<Spawn*>::iterator itr = list.begin();
 	for (int8 i=0; i < list.size(); i++){
-		spawn2 = itr[i];
+		Spawn* spawn2 = itr[i];
 		if(spawn2)
 			spawn2->AddAllowAccessSpawn(spawn);
 	}
@@ -5361,7 +5350,6 @@ int EQ2Emu_lua_RemoveSpawnIDAccess(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int32 id = lua_interface->GetInt32Value(state, 2);
 	ZoneServer* zone = lua_interface->GetZone(state, 3);
-	Spawn* spawn2 = 0;
 
 	if(!spawn){
 		lua_interface->LogError("LUA RemoveSpawnIDAccess command error: spawn is not valid");
@@ -5378,7 +5366,7 @@ int EQ2Emu_lua_RemoveSpawnIDAccess(lua_State* state){
 		return 0;
 	}
 	for (int8 i=0; i < list.size(); i++){
-		spawn2 = itr[i];
+		Spawn* spawn2 = itr[i];
 		if(spawn2)
 			spawn2->RemoveSpawnAccess(spawn);
 	}
@@ -5411,7 +5399,7 @@ int EQ2Emu_lua_CanReceiveQuest(lua_State* state){
 		lua_interface->LogError("LUA CanReceieveQuest command error: spawn is not player");
 		return 0;
 	}
-	lua_interface->SetBooleanValue(state, ((Player*)spawn)->CanReceiveQuest(quest_id));
+	lua_interface->SetBooleanValue(state, static_cast<Player*>(spawn)->CanReceiveQuest(quest_id));
 	return 1;
 }
 
@@ -5443,14 +5431,14 @@ int EQ2Emu_lua_SetSuccessTimer(lua_State* state) {
 		iType == SOLO_PERSIST_INSTANCE ||
 		iType == GROUP_PERSIST_INSTANCE ||
 		iType == RAID_PERSIST_INSTANCE) {
-			InstanceData* data = ((Player*)spawn)->GetCharacterInstances()->FindInstanceByZoneID(spawn->GetZone()->GetZoneID());
+			InstanceData* data = static_cast<Player*>(spawn)->GetCharacterInstances()->FindInstanceByZoneID(spawn->GetZone()->GetZoneID());
 			if (data) {
 				// Check to see if the timer has already been set, if it has return out.
 				if (Timer::GetUnixTimeStamp() <= data->last_success_timestamp + data->success_lockout_time)
 					return 0;
 
 
-				database.UpdateCharacterInstance(((Player*)spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 1, Timer::GetUnixTimeStamp());
+				database.UpdateCharacterInstance(static_cast<Player*>(spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 1, Timer::GetUnixTimeStamp());
 				data->last_success_timestamp = Timer::GetUnixTimeStamp();
 				Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 				if (client) {
@@ -5529,13 +5517,13 @@ int EQ2Emu_lua_SetFailureTimer(lua_State* state) {
 		iType == SOLO_PERSIST_INSTANCE ||
 		iType == GROUP_PERSIST_INSTANCE ||
 		iType == RAID_PERSIST_INSTANCE) {
-			InstanceData* data = ((Player*)spawn)->GetCharacterInstances()->FindInstanceByZoneID(spawn->GetZone()->GetZoneID());
+			InstanceData* data = static_cast<Player*>(spawn)->GetCharacterInstances()->FindInstanceByZoneID(spawn->GetZone()->GetZoneID());
 			if (data) {
 				// Check to see if the timer has already been set, if it has return out.
 				if (Timer::GetUnixTimeStamp() <= data->last_failure_timestamp + data->failure_lockout_time)
 					return 0;
 
-				database.UpdateCharacterInstance(((Player*)spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 2, Timer::GetUnixTimeStamp());
+				database.UpdateCharacterInstance(static_cast<Player*>(spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 2, Timer::GetUnixTimeStamp());
 				data->last_failure_timestamp = Timer::GetUnixTimeStamp();
 				Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 				if (client) {
@@ -5626,19 +5614,19 @@ int EQ2Emu_lua_CanHarvest(lua_State* state) {
 		return 0;
 	}
 
-	vector<GroundSpawnEntry*>* groundspawn_entries = player->GetZone()->GetGroundSpawnEntries(((GroundSpawn*)ground)->GetGroundSpawnEntryID());
+	vector<GroundSpawnEntry*>* groundspawn_entries = player->GetZone()->GetGroundSpawnEntries(static_cast<GroundSpawn*>(ground)->GetGroundSpawnEntryID());
 
 	if(!groundspawn_entries) {
-		lua_interface->LogError("LUA CanHarvest command error: No groundspawn entries assigned to groundspawn id: %u", ((GroundSpawn*)ground)->GetGroundSpawnEntryID());
+		lua_interface->LogError("LUA CanHarvest command error: No groundspawn entries assigned to groundspawn id: %u", static_cast<GroundSpawn*>(ground)->GetGroundSpawnEntryID());
 		return 0;
 	}
 
 	Skill* skill = 0;
-	string collection_skill = string(((GroundSpawn*)ground)->GetCollectionSkill());
+	string collection_skill = string(static_cast<GroundSpawn*>(ground)->GetCollectionSkill());
 	if (collection_skill == "Collecting")
-		skill = ((Player*)player)->GetSkillByName("Gathering");
+		skill = static_cast<Player*>(player)->GetSkillByName("Gathering");
 	else
-		skill = ((Player*)player)->GetSkillByName(collection_skill.c_str());
+		skill = static_cast<Player*>(player)->GetSkillByName(collection_skill.c_str());
 	
 	if(!skill) {
 		lua_interface->LogError("LUA CanHarvest command error: Player '%s' lacks the skill: '%s'", player->GetName(), collection_skill.c_str());
@@ -5712,7 +5700,7 @@ int EQ2Emu_lua_HasRecipeBook(lua_State* state){
 		return 0;
 	}
 	
-	bool ret = ((Player*)player)->HasRecipeBook(recipe_id);
+	bool ret = static_cast<Player*>(player)->HasRecipeBook(recipe_id);
 	lua_interface->SetBooleanValue(state, ret);
 	return 1;
 }
@@ -5820,18 +5808,18 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 	// Set the spawn as a pet
 	pet->SetPet(true);
 	// Give a pointer of the owner to the pet
-	((NPC*)pet)->SetOwner((Entity*)spawn);
+	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
 	
 	// Set the pet type
-	((NPC*)pet)->SetPetType(PET_TYPE_DUMBFIRE);
+	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DUMBFIRE);
 	// Set the spell id used to create this pet
-	((NPC*)pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
 	// Set the spell tier used to create this pet
-	((NPC*)pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
 	// Set the pets spawn type to 6
 	pet->SetSpawnType(6);
 	// Set the pets brain
-	((NPC*)pet)->SetBrain(new DumbFirePetBrain((NPC*)pet, (Entity*)target, luaspell->spell->GetSpellDuration() * 100));
+	static_cast<NPC*>(pet)->SetBrain(new DumbFirePetBrain(static_cast<NPC*>(pet), static_cast<Entity*>(target), luaspell->spell->GetSpellDuration() * 100));
 	// Check to see if the pet has a subtitle
 	if (strlen(pet->GetSubTitle()) > 0) {
 		// Add the players name to the front of the sub title
@@ -5888,7 +5876,7 @@ int EQ2Emu_lua_SpawnMove(lua_State* state){
 		else if(type == "ceiling")
 			placement_mode = 1;
 		packet->setDataByName("placement_mode", placement_mode);
-		packet->setDataByName("spawn_id", ((Player*)player)->GetIDWithPlayerSpawn(spawn));
+		packet->setDataByName("spawn_id", static_cast<Player*>(player)->GetIDWithPlayerSpawn(spawn));
 		packet->setDataByName("model_type", spawn->GetModelType());
 		packet->setDataByName("unknown", 1); //size
 		packet->setDataByName("unknown2", 1); //size 2
@@ -6030,7 +6018,7 @@ int EQ2Emu_lua_GetSkill(lua_State* state) {
 		return 0;
 	}
 
-	Skill* skill = ((Entity*)spawn)->GetSkillByName(name.c_str());
+	Skill* skill = static_cast<Entity*>(spawn)->GetSkillByName(name.c_str());
 	if (skill) {
 		lua_interface->SetSkillValue(state, skill);
 		return 1;
@@ -6062,7 +6050,7 @@ int EQ2Emu_lua_AddProc(lua_State* state) {
 		return 0;
 	}
 
-	((Entity*)spawn)->AddProc(type, chance, item, spell);
+	static_cast<Entity*>(spawn)->AddProc(type, chance, item, spell);
 
 	return 0;
 }
@@ -6093,7 +6081,7 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 		return 0;
 	}
 
-	((Entity*)spawn)->RemoveProc(item, spell);
+	static_cast<Entity*>(spawn)->RemoveProc(item, spell);
 
 	return 0;
 }
@@ -6190,7 +6178,7 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 		return 0;
 	}
 
-	((Entity*)caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg);
+	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg);
 	return 0;
 }
 
@@ -6230,7 +6218,7 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 		return 0;
 	}
 
-	((Entity*)caster)->ProcHeal(target, heal_type, low_heal, high_heal, name);
+	static_cast<Entity*>(caster)->ProcHeal(target, heal_type, low_heal, high_heal, name);
 	return 0;
 }
 
@@ -6306,7 +6294,7 @@ int EQ2Emu_lua_IsBehind(lua_State* state) {
 		return 0;
 	}
 
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->BehindTarget(target));
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->BehindTarget(target));
 	return 1;
 }
 
@@ -6332,7 +6320,7 @@ int EQ2Emu_lua_IsFlanking(lua_State* state) {
 		return 0;
 	}
 
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->FlankingTarget(target));
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->FlankingTarget(target));
 	return 1;
 }
 
@@ -6383,10 +6371,10 @@ int EQ2Emu_lua_SetItemCount(lua_State* state) {
 		item->details.count = new_count;
 		item->save_needed = true;
 	}
-	else if(((Player*)owner)->GetEquipmentList()->GetItem(item->details.slot_id) == item)
-		((Player*)owner)->GetEquipmentList()->RemoveItem(item->details.slot_id, true);
-	else if(((Player*)owner)->GetPlayerItemList()->GetItemFromUniqueID(item->details.unique_id) == item)
-		((Player*)owner)->GetPlayerItemList()->RemoveItem(item, true);
+	else if(static_cast<Player*>(owner)->GetEquipmentList()->GetItem(item->details.slot_id) == item)
+		static_cast<Player*>(owner)->GetEquipmentList()->RemoveItem(item->details.slot_id, true);
+	else if(static_cast<Player*>(owner)->GetPlayerItemList()->GetItemFromUniqueID(item->details.unique_id) == item)
+		static_cast<Player*>(owner)->GetPlayerItemList()->RemoveItem(item, true);
 	else
 	{
 		lua_interface->LogError("LUA SetItemCount command error: could not remove item from player");
@@ -6398,9 +6386,9 @@ int EQ2Emu_lua_SetItemCount(lua_State* state) {
 	if(!client)
 		return 0;
 
-	((Player*)owner)->SendInventoryUpdate(client->GetVersion());
+	static_cast<Player*>(owner)->SendInventoryUpdate(client->GetVersion());
 
-	EQ2Packet* app = ((Player*)owner)->GetEquipmentList()->serialize(client->GetVersion());
+	EQ2Packet* app = static_cast<Player*>(owner)->GetEquipmentList()->serialize(client->GetVersion());
 	if(app)
 		client->QueuePacket(app);
 
@@ -6471,12 +6459,13 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 	bool no_calcs = lua_interface->GetInt32Value(state, 7) == 1;
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	Entity* caster = spell->caster;
 
-	if(!spell){
+	if (!spell) {
 		lua_interface->LogError("LUA command error: this function must be used in a spellscript");
 		return 0;
 	}
+
+	Entity* caster = spell->caster;
 
 	if(!caster){
 		lua_interface->LogError("LUA command error: could not find caster");
@@ -6595,16 +6584,16 @@ int EQ2Emu_lua_SetVision(lua_State* state) {
 		for (int8 i = 0; i < spell->targets.size(); i++) {
 			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
 			if (target->IsEntity()) {
-				((Entity*)target)->GetInfoStruct()->vision = vision;
+				static_cast<Entity*>(target)->GetInfoStruct()->vision = vision;
 				if (target->IsPlayer())
-					((Player*)target)->SetCharSheetChanged(true);
+					static_cast<Player*>(target)->SetCharSheetChanged(true);
 			}
 		}
 	}
 	else {
-		((Entity*)spawn)->GetInfoStruct()->vision = vision;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->vision = vision;
 		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -6632,16 +6621,16 @@ int EQ2Emu_lua_BlurVision(lua_State* state) {
 		for (int8 i = 0; i < spell->targets.size(); i++) {
 			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
 			if (target && target->IsEntity()) {
-				((Entity*)target)->GetInfoStruct()->drunk = intensity;
+				static_cast<Entity*>(target)->GetInfoStruct()->drunk = intensity;
 				if (target->IsPlayer())
-					((Player*)target)->SetCharSheetChanged(true);
+					static_cast<Player*>(target)->SetCharSheetChanged(true);
 			}
 		}
 	}
 	else {
-		((Entity*)spawn)->GetInfoStruct()->drunk = intensity;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->drunk = intensity;
 		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -6669,16 +6658,16 @@ int EQ2Emu_lua_BreatheUnderwater(lua_State* state) {
 		for (int8 i = 0; i < spell->targets.size(); i++) {
 			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
 			if (target->IsEntity()) {
-				((Entity*)target)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
+				static_cast<Entity*>(target)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
 				if (target->IsPlayer())
-					((Player*)target)->SetCharSheetChanged(true);
+					static_cast<Player*>(target)->SetCharSheetChanged(true);
 			}
 		}
 	}
 	else {
-		((Entity*)spawn)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
+		static_cast<Entity*>(spawn)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
 		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
+			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
@@ -6718,17 +6707,17 @@ int EQ2Emu_lua_SetSpeeedMultiplier(lua_State* state) {
 		for (int32 i = 0; i != spell->targets.size(); i++) {
 			Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i));
 			if (spawn && spawn->IsEntity()) {
-				((Entity*)spawn)->SetSpeedMultiplier(val);
+				static_cast<Entity*>(spawn)->SetSpeedMultiplier(val);
 				if (spawn->IsPlayer())
-					((Player*)spawn)->SetCharSheetChanged(true);
+					static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 			}
 		}
 	}
 	else {
 		if (target && target->IsEntity()) {
-			((Entity*)target)->SetSpeedMultiplier(val);
+			static_cast<Entity*>(target)->SetSpeedMultiplier(val);
 			if (target->IsPlayer())
-				((Player*)target)->SetCharSheetChanged(true);
+				static_cast<Player*>(target)->SetCharSheetChanged(true);
 		}
 	}
 
@@ -6829,7 +6818,7 @@ int EQ2Emu_lua_AddThreatTransfer(lua_State* state) {
 		return 0;
 	}
 
-	if (((Entity*)caster)->GetThreatTransfer()) {
+	if (static_cast<Entity*>(caster)->GetThreatTransfer()) {
 		return 0;
 	}
 
@@ -6838,7 +6827,7 @@ int EQ2Emu_lua_AddThreatTransfer(lua_State* state) {
 	transfer->Amount = chance;
 	transfer->Spell = spell;
 
-	((Entity*)caster)->SetThreatTransfer(transfer);
+	static_cast<Entity*>(caster)->SetThreatTransfer(transfer);
 	return 0;
 }
 
@@ -6859,10 +6848,10 @@ int EQ2Emu_lua_RemoveThreatTransfer(lua_State* state) {
 		return 0;
 	}
 
-	if (((Entity*)spawn)->GetThreatTransfer() && ((Entity*)spawn)->GetThreatTransfer()->Spell == spell) {
-		ThreatTransfer* transfer = ((Entity*)spawn)->GetThreatTransfer();
+	if (static_cast<Entity*>(spawn)->GetThreatTransfer() && static_cast<Entity*>(spawn)->GetThreatTransfer()->Spell == spell) {
+		ThreatTransfer* transfer = static_cast<Entity*>(spawn)->GetThreatTransfer();
 		safe_delete(transfer);
-		((Entity*)spawn)->SetThreatTransfer(0);
+		static_cast<Entity*>(spawn)->SetThreatTransfer(0);
 	}
 
 	return 0;
@@ -6890,8 +6879,8 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 			return 0;
 		}
 
-		if(((Entity*)target)->GetDetTypeCount(cure_type) > 0)
-			((Entity*)target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
+		if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
+			static_cast<Entity*>(target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
 	}
 	else {
 		ZoneServer* zone = spell->caster->GetZone();
@@ -6904,8 +6893,8 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 			if(!target || !target->IsEntity())
 				continue;
 
-			if(((Entity*)target)->GetDetTypeCount(cure_type) > 0)
-				((Entity*)target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
+			if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
+				static_cast<Entity*>(target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -6934,8 +6923,8 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 			return 0;
 		}
 
-		if(((Entity*)target)->GetDetCount() > 0)
-			((Entity*)target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
+		if(static_cast<Entity*>(target)->GetDetCount() > 0)
+			static_cast<Entity*>(target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
 	}
 	else {
 		ZoneServer* zone = spell->caster->GetZone();
@@ -6948,8 +6937,8 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 			if(!target || !target->IsEntity())
 				continue;
 
-			if(((Entity*)target)->GetDetCount() > 0)
-				((Entity*)target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
+			if(static_cast<Entity*>(target)->GetDetCount() > 0)
+				static_cast<Entity*>(target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -6995,7 +6984,7 @@ int EQ2Emu_lua_RemoveStealth(lua_State* state) {
 	}
 
 	if (spawn && spawn->IsEntity())
-		((Entity*)spawn)->RemoveStealthSpell(spell);
+		static_cast<Entity*>(spawn)->RemoveStealthSpell(spell);
 	else{
 		ZoneServer* zone = spell->caster->GetZone();
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
@@ -7004,7 +6993,7 @@ int EQ2Emu_lua_RemoveStealth(lua_State* state) {
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
-			((Entity*)spawn)->RemoveStealthSpell(spell);
+			static_cast<Entity*>(spawn)->RemoveStealthSpell(spell);
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -7024,7 +7013,7 @@ int EQ2Emu_lua_RemoveInvis(lua_State* state) {
 	}
 
 	if (spawn && spawn->IsEntity())
-		((Entity*)spawn)->RemoveInvisSpell(spell);
+		static_cast<Entity*>(spawn)->RemoveInvisSpell(spell);
 	else{
 		ZoneServer* zone = spell->caster->GetZone();
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
@@ -7033,7 +7022,7 @@ int EQ2Emu_lua_RemoveInvis(lua_State* state) {
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
-			((Entity*)spawn)->RemoveInvisSpell(spell);
+			static_cast<Entity*>(spawn)->RemoveInvisSpell(spell);
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -7074,12 +7063,12 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 		ho->SetTarget(target->GetID());
 		LogWrite(SPELL__ERROR, 0, "HO", "caster: %u", caster->GetID());
 		LogWrite(SPELL__ERROR, 0, "HO", "target: %u", target->GetID());
-		if (((Entity*)caster)->GetGroupMemberInfo()) {
+		if (static_cast<Entity*>(caster)->GetGroupMemberInfo()) {
 			if (caster->GetZone()->GetSpellProcess()->AddHO(client, ho)) {
 				world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 
 				deque<GroupMemberInfo*>::iterator itr;
-				deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(((Entity*)caster)->GetGroupMemberInfo()->group_id);
+				deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(static_cast<Entity*>(caster)->GetGroupMemberInfo()->group_id);
 				for (itr = members->begin(); itr != members->end(); ++itr) {
 					if ((*itr)->client)
 						ClientPacketFunctions::SendHeroicOPUpdate((*itr)->client, ho);
@@ -7211,7 +7200,7 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state){
 			lua_interface->LogError("LUA AddImmunitySpell command error: The spawn provided is not an entity");
 			return 0;
 		}
-		Entity* entity = ((Entity*)spawn);
+		Entity* entity = static_cast<Entity*>(spawn);
 		switch (type){
 		case IMMUNITY_TYPE_AOE:
 			entity->AddAOEImmunity(spell);
@@ -7259,7 +7248,7 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state){
 			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
 			if (!spawn || !spawn->IsEntity())
 				continue;
-			Entity* entity = ((Entity*)spawn);
+			Entity* entity = static_cast<Entity*>(spawn);
 			switch (type){
 			case IMMUNITY_TYPE_AOE:
 				entity->AddAOEImmunity(spell);
@@ -7327,7 +7316,7 @@ int EQ2Emu_lua_RemoveImmunitySpell(lua_State* state){
 			lua_interface->LogError("LUA RemoveImmunitySpell command error: The spawn provided is not an entity");
 			return 0;
 		}
-		Entity* entity = ((Entity*)spawn);
+		Entity* entity = static_cast<Entity*>(spawn);
 		switch (type){
 		case IMMUNITY_TYPE_AOE:
 			entity->RemoveAOEImmunity(spell);
@@ -7361,7 +7350,7 @@ int EQ2Emu_lua_RemoveImmunitySpell(lua_State* state){
 			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
 			if (!spawn || !spawn->IsEntity())
 				continue;
-			Entity* entity = ((Entity*)spawn);
+			Entity* entity = static_cast<Entity*>(spawn);
 			switch (type){
 			case IMMUNITY_TYPE_AOE:
 				entity->RemoveAOEImmunity(spell);
@@ -7420,7 +7409,7 @@ int EQ2Emu_lua_SetSpellSnareValue(lua_State* state) {
 			return 0;
 		}
 
-		((Entity*)spawn)->SetSnareValue(spell, val);
+		static_cast<Entity*>(spawn)->SetSnareValue(spell, val);
 	}
 	else {
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
@@ -7429,7 +7418,7 @@ int EQ2Emu_lua_SetSpellSnareValue(lua_State* state) {
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
-			((Entity*)spawn)->SetSnareValue(spell, val);
+			static_cast<Entity*>(spawn)->SetSnareValue(spell, val);
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
@@ -7657,7 +7646,7 @@ int EQ2Emu_lua_RemoveQuestStep(lua_State* state) {
 	}
 
 	if (quest->RemoveQuestStep(step, client)) {
-		client->QueuePacket(quest->QuestJournalReply(client->GetVersion(), client->GetNameCRC(), (Player*)player, 0, 0, 0, true));
+		client->QueuePacket(quest->QuestJournalReply(client->GetVersion(), client->GetNameCRC(), static_cast<Player*>(player), 0, 0, 0, true));
 		client->GetCurrentZone()->SendQuestUpdates(client);
 	}
 	else
@@ -7753,7 +7742,7 @@ int EQ2Emu_lua_SetStepFailed(lua_State* state) {
 		return 0;
 	}
 
-	Quest* quest = ((Player*)player)->GetQuest(quest_id);
+	Quest* quest = static_cast<Player*>(player)->GetQuest(quest_id);
 	if (!quest) {
 		lua_interface->LogError("LUA SetStepFailed command error: unable to get a valid quest from the given id (%u).", quest_id);
 		return 0;
@@ -7785,7 +7774,7 @@ int EQ2Emu_lua_GetQuestCompleteCount(lua_State* state) {
 		return 0;
 	}
 
-	Quest* quest = ((Player*)player)->GetCompletedQuest(quest_id);
+	Quest* quest = static_cast<Player*>(player)->GetCompletedQuest(quest_id);
 	if (!quest) {
 		lua_interface->SetInt32Value(state, 0);
 		return 1;
@@ -7863,7 +7852,7 @@ int EQ2Emu_lua_HasLanguage(lua_State* state) {
 		return 0;
 	}
 
-	lua_interface->SetBooleanValue(state, ((Player*)player)->HasLanguage(language_id));
+	lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->HasLanguage(language_id));
 	return 1;
 }
 
@@ -7886,7 +7875,7 @@ int EQ2Emu_lua_AddLanguage(lua_State* state) {
 
 	Language* language = master_languages_list.GetLanguage(language_id);
 	if (language)
-		((Player*)player)->AddLanguage(language->GetID(), language->GetName(), true);
+		static_cast<Player*>(player)->AddLanguage(language->GetID(), language->GetName(), true);
 
 	return 0;
 }
@@ -7921,7 +7910,7 @@ int EQ2Emu_lua_AddMultiFloorLift(lua_State* state) {
 		return 0;
 	}
 
-	((Widget*)spawn)->SetMultiFloorLift(true);
+	static_cast<Widget*>(spawn)->SetMultiFloorLift(true);
 
 	if (spawn->GetZone())
 		spawn->GetZone()->AddTransportSpawn(spawn);
@@ -7959,9 +7948,9 @@ int EQ2Emu_lua_StartAutoMount(lua_State* state) {
 
 	client->SetPendingFlightPath(path);
 
-	((Player*)player)->SetTempMount(((Entity*)player)->GetMount());
-	((Player*)player)->SetTempMountColor(((Entity*)player)->GetMountColor());
-	((Player*)player)->SetTempMountSaddleColor(((Entity*)player)->GetMountSaddleColor());
+	static_cast<Player*>(player)->SetTempMount(static_cast<Entity*>(player)->GetMount());
+	static_cast<Player*>(player)->SetTempMountColor(static_cast<Entity*>(player)->GetMountColor());
+	static_cast<Player*>(player)->SetTempMountSaddleColor(static_cast<Entity*>(player)->GetMountSaddleColor());
 
 	PacketStruct* packet = configReader.getStruct("WS_ReadyForTakeOff", client->GetVersion());
 	if (packet) {
@@ -8041,7 +8030,7 @@ int EQ2Emu_lua_SetPlayerHistory(lua_State* state) {
 		return 0;
 	}
 
-	((Player*)player)->UpdateLUAHistory(event_id, value, value2);
+	static_cast<Player*>(player)->UpdateLUAHistory(event_id, value, value2);
 	return 0;
 }
 
@@ -8062,7 +8051,7 @@ int EQ2Emu_lua_GetPlayerHistory(lua_State* state) {
 		return 0;
 	}
 
-	LUAHistory* hd = ((Player*)player)->GetLUAHistory(event_id);
+	LUAHistory* hd = static_cast<Player*>(player)->GetLUAHistory(event_id);
 	if (!hd)
 		return 0;
 
@@ -8140,7 +8129,7 @@ int EQ2Emu_lua_GetQuestStepProgress(lua_State* state) {
 		return 0;
 	}
 
-	lua_interface->SetInt32Value(state, ((Player*)player)->GetStepProgress(quest_id, step_id));
+	lua_interface->SetInt32Value(state, static_cast<Player*>(player)->GetStepProgress(quest_id, step_id));
 
 	return 1;
 }
@@ -8202,7 +8191,7 @@ int EQ2Emu_lua_AddCoin(lua_State* state) {
 		return 0;
 	}
 
-	((Player*)player)->AddCoins(amount);
+	static_cast<Player*>(player)->AddCoins(amount);
 	return 0;
 }
 
@@ -8228,7 +8217,7 @@ int EQ2Emu_lua_RemoveCoin(lua_State* state) {
 		return 0;
 	}
 
-	lua_interface->SetBooleanValue(state, ((Player*)player)->RemoveCoins(amount));
+	lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->RemoveCoins(amount));
 	return 1;
 }
 
@@ -8265,7 +8254,7 @@ int EQ2Emu_lua_GetWeaponDamageType(lua_State * state)
 
 	if (spawn) {
 		if (spawn->IsEntity()) {
-			lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetPrimaryWeaponType());
+			lua_interface->SetInt32Value(state, static_cast<Entity*>(spawn)->GetPrimaryWeaponType());
 			return 1;
 		}
 	}
@@ -8298,8 +8287,8 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 			return 0;
 		}
 
-		Spawn* spawn = 0;
 		if (location->entities[0]) {
+			Spawn* spawn = 0;
 			if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
 				spawn = zone->AddNPCSpawn(location, location->entities[0]);
 			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
