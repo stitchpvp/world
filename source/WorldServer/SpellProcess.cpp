@@ -1310,7 +1310,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 						if (client) {
 							string success_message = spell->spell->GetSpellData()->success_message;
 							if (success_message.find("%t") != string::npos)
-								success_message.replace(success_message.find("%t"), 2, target->GetName());
+								success_message.replace(success_message.find("%t"), 2, spell->caster->GetName());
 							client->Message(CHANNEL_COLOR_SPELL, success_message.c_str());
 						}
 					}
