@@ -1297,10 +1297,9 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 			if (spell->spell->GetSpellData()->friendly_spell || hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {
 				processedSpell = ProcessSpell(spell, target);
 
-				if (!hit_target && ((Entity*)target)->Alive())
+				if (processedSpell) {
 					hit_target = true;
 
-				if (processedSpell) {
 					if (!target)
 						continue;
 
