@@ -3329,6 +3329,8 @@ void Client::HandleVerbRequest(EQApplicationPacket* app){
 					} else if (!player->GetGroupMemberInfo() || (player->GetGroupMemberInfo()->leader && world.GetGroupManager()->GetGroupSize(player->GetGroupMemberInfo()->group_id) < 6)) {
 						delete_commands.push_back(player->CreateEntityCommand("invite to group", 10000, "invite", "", 0, 0));
 					}
+				} else {
+					delete_commands.push_back(player->CreateEntityCommand("attack", 10000, "attack", "", 0, 0));
 				}
 			}
 

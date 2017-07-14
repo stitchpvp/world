@@ -128,17 +128,7 @@ Spawn::~Spawn(){
 void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int16 index) {
 	header->setDataByName("index", index);
 
-	if (IsPlayer() && player->CanAttackTarget((Player*)this)) {
-		header->setArrayLengthByName("command_list", 1);
-
-		header->setArrayDataByName("command_list_name", "attack", 0);
-		header->setArrayDataByName("command_list_max_distance", 10000, 0);
-		header->setArrayDataByName("command_list_error", "", 0);
-		header->setArrayDataByName("command_list_command", "attack", 0);
-
-		header->setMediumStringByName("default_command", "attack");
-		header->setDataByName("max_distance", 10000);
-	} else if (primary_command_list.size() > 0){
+	if (primary_command_list.size() > 0) {
 		if (primary_command_list.size() > 1) {
 			header->setArrayLengthByName("command_list", primary_command_list.size());
 			for (int32 i = 0; i < primary_command_list.size(); i++) {
