@@ -1506,8 +1506,7 @@ bool ZoneServer::SpawnProcess(){
 			if (spawn) {
 				// Process spawn movement
 				if (movement) {
-					if (!spawn->MovementInterrupted())
-						spawn->ProcessMovement();
+					spawn->ProcessMovement();
 
 					// update last_movement_update for all spawns (used for time_step)
 					spawn->last_movement_update = Timer::GetCurrentTime2();
@@ -3126,7 +3125,7 @@ void ZoneServer::ProcessMovement(){
 	while(itr.Next()){
 		spawn = GetSpawnByID(itr->first);
 		if(spawn) {
-			if(spawn->IsNPC() && !spawn->MovementInterrupted())
+			if(spawn->IsNPC())
 				spawn->ProcessMovement();
 		}
 		else

@@ -1815,7 +1815,7 @@ void Spawn::ProcessMovement(){
 	}
 
 	// Movement loop is only for scripted paths
-	else if(!EngagedInCombat() && !NeedsToResumeMovement() && movement_loop.size() > 0 && movement_index < movement_loop.size() && (!IsNPC() || !((NPC*)this)->m_runningBack)){
+	else if(!MovementInterrupted() && !EngagedInCombat() && !NeedsToResumeMovement() && movement_loop.size() > 0 && movement_index < movement_loop.size() && (!IsNPC() || !((NPC*)this)->m_runningBack)){
 		// Get the target location
 		MovementData* data = movement_loop[movement_index];
 		// need to resume our movement
@@ -1918,10 +1918,10 @@ void Spawn::ProcessMovement(){
 			AddRunningLocation(data->x, data->y, data->z, data->speed);
 		}
 	}
-	else if (IsRunning()) {
+	else if (!MovementInterrupted() && IsRunning()) {
 		CalculateRunningLocation();
 	}
-	else if (IsNPC() && !IsRunning() && !EngagedInCombat() && ((NPC*)this)->GetRunbackLocation()) {
+	else if (IsNPC() && !MovementInterrupted() && !IsRunning() && !EngagedInCombat() && ((NPC*)this)->GetRunbackLocation()) {
 		// Is an npc that is not moving and not engaged in combat but has a run back location set then clear the runback location
 		LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "Clear runback location for %s", GetName());
 		SetPos(&appearance.pos.Dir1, ((NPC*)this)->m_runbackHeading, false);
