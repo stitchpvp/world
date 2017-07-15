@@ -379,7 +379,8 @@ void ZoneServer::LoadSpellProcess(){
 		spawn = itr->second;
 		if (spawn && spawn->IsNPC())
 			npc = static_cast<NPC*>(spawn);
-			npc->SetSpells(GetNPCSpells(npc->GetPrimarySpellList(), npc->GetSecondarySpellList()));
+			if (npc)
+				npc->SetSpells(GetNPCSpells(npc->GetPrimarySpellList(), npc->GetSecondarySpellList()));
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 }
