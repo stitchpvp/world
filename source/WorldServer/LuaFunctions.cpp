@@ -8262,6 +8262,44 @@ int EQ2Emu_lua_GetWeaponDamageType(lua_State * state)
 	return 0;
 }
 
+int EQ2Emu_lua_PauseMovement(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (spawn) {
+		if (spawn->IsNPC()) {
+			static_cast<NPC*>(spawn)->MovementInterrupted(true);
+			return 1;
+		} else {
+			lua_interface->LogError("LUA PauseMovement command error: spawn is not an NPC");
+			return 0;
+		}
+	} else {
+		lua_interface->LogError("LUA PauseMovement command error: spawn is not valid");
+	}
+}
+
+int EQ2Emu_lua_ResumeMovement(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (spawn) {
+		if (spawn->IsNPC()) {
+			static_cast<NPC*>(spawn)->MovementInterrupted(false);
+			return 1;
+		} else {
+			lua_interface->LogError("LUA PauseMovement command error: spawn is not an NPC");
+			return 0;
+		}
+	} else {
+		lua_interface->LogError("LUA PauseMovement command error: spawn is not valid");
+	}
+}
+
 int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 	if (!lua_interface)
 		return 0;

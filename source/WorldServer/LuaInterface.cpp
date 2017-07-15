@@ -957,6 +957,8 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "GetPlayersInZone", EQ2Emu_lua_GetPlayersInZone);
 	lua_register(state, "SpawnGroupByID", EQ2Emu_lua_SpawnGroupByID);
 	lua_register(state, "GetWeaponDamageType", EQ2Emu_lua_GetWeaponDamageType);
+	lua_register(state, "PauseMovement", EQ2Emu_lua_PauseMovement);
+	lua_register(state, "ResumeMovement", EQ2Emu_lua_ResumeMovement);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {
