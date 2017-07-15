@@ -475,6 +475,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
+	 if (target->GetHP() == target->GetTotalHP())
+		 return true;
+
 	 int32 heal_amt = 0;
 	 bool crit = false;
 
@@ -536,9 +539,8 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 			type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
 		//apply heal
 		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			target->SetHP(target->GetTotalHP());
-		else
-			target->SetHP(target->GetHP() + heal_amt);
+			heal_amt = target->GetTotalHP() - target->GetHP();
+		target->SetHP(target->GetHP() + heal_amt);
 	}
 	else if (heal_type == "Power"){
 		if(crit)
@@ -547,9 +549,8 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 			type = HEAL_PACKET_TYPE_SIMPLE_MANA;
 		//give power
 		if (target->GetPower() + (sint32)heal_amt > target->GetTotalPower())
-			target->SetPower(target->GetTotalPower());
-		else
-			target->SetPower(GetPower() + heal_amt);
+			heal_amt = target->GetTotalPower() - target->GetPower();
+		target->SetPower(GetPower() + heal_amt);
 	}
 	/*else if (heal_type == "Savagery"){
 		if(crit)
@@ -569,9 +570,8 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 		else
 			type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
 		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			target->SetHP(target->GetTotalHP());
-		else
-			target->SetHP(target->GetHP() + heal_amt);
+			heal_amt = target->GetTotalHP() - target->GetHP();
+		target->SetHP(target->GetHP() + heal_amt);
 	}	
 
 	target->GetZone()->TriggerCharSheetTimer();
