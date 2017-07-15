@@ -1506,7 +1506,9 @@ bool ZoneServer::SpawnProcess(){
 			if (spawn) {
 				// Process spawn movement
 				if (movement) {
-					spawn->ProcessMovement();
+					if (!spawn->MovementInterrupted())
+						spawn->ProcessMovement();
+
 					// update last_movement_update for all spawns (used for time_step)
 					spawn->last_movement_update = Timer::GetCurrentTime2();
 				}

@@ -8271,6 +8271,12 @@ int EQ2Emu_lua_PauseMovement(lua_State* state) {
 	if (spawn) {
 		if (spawn->IsNPC()) {
 			static_cast<NPC*>(spawn)->MovementInterrupted(true);
+			spawn->SetPos(&spawn->appearance.pos.X, spawn->GetX());
+			spawn->SetPos(&spawn->appearance.pos.Y, spawn->GetY());
+			spawn->SetPos(&spawn->appearance.pos.Z, spawn->GetZ());
+			spawn->SetPos(&spawn->appearance.pos.X2, spawn->GetX());
+			spawn->SetPos(&spawn->appearance.pos.Y2, spawn->GetY());
+			spawn->SetPos(&spawn->appearance.pos.Z2, spawn->GetZ());
 			return 1;
 		} else {
 			lua_interface->LogError("LUA PauseMovement command error: spawn is not an NPC");
