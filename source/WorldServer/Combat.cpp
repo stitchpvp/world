@@ -378,24 +378,6 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 	CheckProcs(PROC_TYPE_OFFENSIVE, victim);
 	CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
 
-	if(spell->GetSpellData()->success_message.length() > 0){
-		Client* client = 0;
-		if(IsPlayer())
-			client = GetZone()->GetClientBySpawn(this);
-		if(client){
-			string success_message = spell->GetSpellData()->success_message;
-			if(success_message.find("%t") < 0xFFFFFFFF)
-				success_message.replace(success_message.find("%t"), 2, victim->GetName());
-			client->Message(CHANNEL_COLOR_SPELL, success_message.c_str());
-		}
-	}
-	if(spell->GetSpellData()->effect_message.length() > 0){
-		string effect_message = spell->GetSpellData()->effect_message;
-		if(effect_message.find("%t") < 0xFFFFFFFF)
-			effect_message.replace(effect_message.find("%t"), 2, victim->GetName());
-		GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_message.c_str(), victim, 50);
-	}
-
 	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
 		Entity* pet = 0;
 		bool AddHate = false;
