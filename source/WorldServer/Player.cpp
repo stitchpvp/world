@@ -1824,8 +1824,12 @@ void Player::ModifySpellStatus(SpellBookEntry* spell, sint16 value, bool modify_
 		spell->recast_available = Timer::GetCurrentTime2()	+ (recast * 100);
 	}
 
-	if (modify_recast || spell->recast_available <= Timer::GetCurrentTime2() || value == 4)
-		spell->status += value;
+	if (modify_recast || spell->recast_available <= Timer::GetCurrentTime2() || value == 4 || value == -4) {
+		int32 new_value = spell->status + value;
+		if (new_value < 161 || new_value > 165 && new_value < 227 || new_value > 231)
+			return;
+		spell->status = new_value;
+	}
 }
 
 void Player::SetSpellStatus(Spell* spell, int8 status){

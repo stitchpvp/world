@@ -325,7 +325,7 @@ void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_overrid
 				vector<Spell*> linkedSpells = ((Player*)caster)->GetSpellBookSpellsByTimer(spell->GetSpellData()->linked_timer);
 				for (int8 i = 0; i < linkedSpells.size(); i++) {
 					Spell* spell2 = linkedSpells.at(i);
-					if (spell2)
+					if (spell2 && spell2 != spell)
 						CheckRecast(spell2, caster, timer_override, false);
 				}
 			}
@@ -552,8 +552,10 @@ void SpellProcess::UnlockAllSpells(Client* client){
 
 void SpellProcess::UnlockSpell(Client* client, Spell* spell){
 	if(client && client->GetPlayer() && spell) {
-		client->GetPlayer()->UnlockSpell(spell);
-		SendSpellBookUpdate(client);
+		if (!client->GetPlayer()->IsCasting()) {
+			client->GetPlayer()->UnlockSpell(spell);
+			SendSpellBookUpdate(client);
+		}
 	}
 }
 
