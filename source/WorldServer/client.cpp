@@ -79,7 +79,8 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Recipes/Recipe.h"
 #include "Tradeskills/Tradeskills.h"
 #include "AltAdvancement/AltAdvancement.h"
-
+#include "zoneserver.h";
+#include "SpellProcess.h";
 extern WorldDatabase database;
 extern const char* ZONE_NAME;
 extern LoginServer loginserver;
@@ -2448,6 +2449,8 @@ bool Client::Process(bool zone_process) {
 	}
 	m_resurrect.writelock(__FUNCTION__, __LINE__);
 	if(current_rez.should_delete || (current_rez.expire_timer && current_rez.expire_timer->Check(false))){
+		GetCurrentZone()->GetSpellProcess()->DeleteCasterSpell(current_rez.spell, false);
+
 		if(current_rez.expire_timer)
 			safe_delete(current_rez.expire_timer);
 		current_rez.expire_timer = 0;

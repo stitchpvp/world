@@ -364,7 +364,7 @@ bool SpellProcess::DeleteCasterSpell(Spawn* caster, Spell* spell){
 	return ret;
 }
 
-bool SpellProcess::DeleteCasterSpell(LuaSpell* spell){
+bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function){
 	Spawn* target = 0;
 	bool ret = false;
 
@@ -389,7 +389,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell){
 				target = zone->GetSpawnByID(spell->targets.at(i));
 
 				if (target && lua_interface)
-					lua_interface->RemoveSpell(spell, target, true, SpellScriptTimersHasSpell(spell));
+					lua_interface->RemoveSpell(spell, target, call_remove_function, SpellScriptTimersHasSpell(spell));
 
 				if (target && target->IsEntity()) {
 					((Entity*)target)->RemoveSpellEffect(spell);

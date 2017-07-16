@@ -107,6 +107,7 @@ struct PendingGuildInvite {
 };
 
 struct PendingResurrection {
+	LuaSpell* spell;
 	Spawn* caster;
 	Timer* expire_timer;
 	string spell_name;

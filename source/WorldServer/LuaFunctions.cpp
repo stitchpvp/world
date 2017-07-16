@@ -6512,6 +6512,7 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 				rez->no_calcs = no_calcs;
 				rez->crit_mod = crit_mod;
 				rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
+				rez->spell = spell;
 				if(send_window)
 					client->SendResurrectionWindow();
 				else{
@@ -6550,6 +6551,7 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 		rez->no_calcs = no_calcs;
 		rez->crit_mod = crit_mod;
 		rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
+		rez->spell = spell;
 		if(send_window)
 			client->SendResurrectionWindow();
 		else{

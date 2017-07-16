@@ -5939,6 +5939,8 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, Client* client) {
 	spawn->SendSpawnChanges(true);
 	spawn->SetTempActionState(-1);
 	spawn->appearance.attackable = 1;
+
+	caster->GetZone()->GetSpellProcess()->DeleteCasterSpell(rez->spell, true);
 }
 
 void ZoneServer::SendDispellPacket(Entity* caster, Spawn* target, string dispell_name, string spell_name, int8 dispell_type){
