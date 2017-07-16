@@ -8321,7 +8321,7 @@ int EQ2Emu_lua_GetProcPercentageForWeapon(lua_State* state) {
 
 	float times_per_minute = lua_interface->GetFloatValue(state, 2);
 
-	lua_interface->SetInt32Value(state, times_per_minute / (60 / item->weapon_info->delay));
+	lua_interface->SetInt32Value(state, times_per_minute / (60 / (item->weapon_info->delay / 10.0)));
 	return 1;
 }
 
