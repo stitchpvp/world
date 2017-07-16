@@ -8284,6 +8284,7 @@ int EQ2Emu_lua_PauseMovement(lua_State* state) {
 		}
 	} else {
 		lua_interface->LogError("LUA PauseMovement command error: spawn is not valid");
+		return 0;
 	}
 }
 
@@ -8303,7 +8304,25 @@ int EQ2Emu_lua_ResumeMovement(lua_State* state) {
 		}
 	} else {
 		lua_interface->LogError("LUA PauseMovement command error: spawn is not valid");
+		return 0;
 	}
+}
+
+int EQ2Emu_lua_GetProcPercentageForWeapon(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Item* item = lua_interface->GetItem(state);
+
+	if (!item || !item->IsWeapon()) {
+		lua_interface->LogError("LUA GetProcPercentageForWeapon command error: item is not valid or is not weapon");
+		return 0;
+	}
+
+	float times_per_minute = lua_interface->GetFloatValue(state, 2);
+
+	lua_interface->SetInt32Value(state, times_per_minute / (60 / item->weapon_info->delay));
+	return 1;
 }
 
 int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
