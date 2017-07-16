@@ -2276,11 +2276,11 @@ void Player::RemoveMaintainedSpell(LuaSpell* luaspell){
 		    //Update the maintained window uses_remaining and damage_remaining values
 			if (current_spell && current_spell->num_triggers > 0)
 				ClientPacketFunctions::SendMaintainedExamineUpdate(client, i - 1, current_spell->num_triggers, 0);
-			else if (current_spell && current_spell->damage_remaining > 0)
-				ClientPacketFunctions::SendMaintainedExamineUpdate(client, i - 1, current_spell->damage_remaining, 1);
+			else if (current_spell && GetWard(current_spell) && GetWard(current_spell)->DamageLeft > 0)
+				ClientPacketFunctions::SendMaintainedExamineUpdate(client, i - 1, GetWard(current_spell)->DamageLeft, 1);
 			else if (old_spell && old_spell->had_triggers)
 				ClientPacketFunctions::SendMaintainedExamineUpdate(client, i - 1, 0, 0);
-			else if (old_spell && old_spell->had_dmg_remaining)
+			else if (old_spell && GetWard(old_spell) && GetWard(old_spell)->DamageLeft > 0)
 				ClientPacketFunctions::SendMaintainedExamineUpdate(client, i - 1, 0, 1);
 
 
