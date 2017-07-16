@@ -1378,8 +1378,8 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		if (spell->num_triggers > 0)
 			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->num_triggers, 0);
 
-		if (spell->damage_remaining > 0)
-			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->damage_remaining, 1);
+		if (client->GetPlayer()->GetWard(spell) && client->GetPlayer()->GetWard(spell)->DamageLeft > 0)
+			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, client->GetPlayer()->GetWard(spell)->DamageLeft, 1);
 
 		spell->caster->GetZone()->TriggerCharSheetTimer();
 	}

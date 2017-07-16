@@ -4473,8 +4473,6 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 
-	bool ward_was_added = false;
-
 	if (!target)
 		return 0;
 
@@ -4496,12 +4494,6 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 		// Add the ward to the entity
 		static_cast<Entity*>(target)->AddWard(spell, ward);
-		ward_was_added = true;
-	}
-
-	if (ward_was_added && spell->caster->IsPlayer()){
-		spell->had_dmg_remaining = true;
-		ClientPacketFunctions::SendMaintainedExamineUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, damage, 1);
 	}
 
 	return 0;
