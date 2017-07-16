@@ -982,6 +982,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		}
 		while(i<NUM_SPELL_EFFECTS){
 				packet->setSubstructDataByName("detrimental_spell_effects", "spell_id", 0xFFFFFFFF, i);
+				packet->setSubstructDataByName("detrimental_spell_effects", "icon", 0xFFFF, i);
 				i++;
 		}
 		player->GetDetrimentMutex()->releasereadlock(__FUNCTION__, __LINE__);
