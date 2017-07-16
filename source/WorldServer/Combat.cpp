@@ -457,6 +457,13 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
+	 bool is_tick = GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell);
+
+	 if (!is_tick) {
+		 CheckProcs(PROC_TYPE_HEALING, target);
+		 CheckProcs(PROC_TYPE_BENEFICIAL, target);
+	 }
+
 	 if (target->GetHP() == target->GetTotalHP())
 		 return true;
 
@@ -471,9 +478,6 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 		 heal_amt = MakeRandomInt(low_heal, high_heal);
 
 	 if(!no_calcs){
-		// if spell is already active, this is a tick
-		bool is_tick = GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell);
-
 		//if is a tick and the spell has crit, force crit, else disable
 		if(is_tick){
 			if(luaspell->crit)
@@ -559,8 +563,6 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	target->GetZone()->TriggerCharSheetTimer();
 	if (heal_amt > 0)
 		GetZone()->SendHealPacket(this, target, type, heal_amt, luaspell->spell->GetName());
-	CheckProcs(PROC_TYPE_HEALING, target);
-	CheckProcs(PROC_TYPE_BENEFICIAL, target);
 
 	return true;
 }
