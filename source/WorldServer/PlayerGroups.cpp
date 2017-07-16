@@ -424,7 +424,6 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
 				spell = luaspell->spell;
 				/* is this a friendly group spell? */
 				if (spell && spell->GetSpellData()->group_spell && spell->GetSpellData()->friendly_spell) {
-
 					//Remove all group buffs not cast by this player
 					player->RemoveSpellEffect(luaspell);
 					player->RemoveSpellBonus(luaspell);
@@ -435,7 +434,7 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
 					charmed_pet = 0;
 					if (player->HasPet()){
 						pet = player->GetPet();
-						pet = player->GetCharmedPet();
+						charmed_pet = player->GetCharmedPet();
 					}
 					if (pet){
 						pet->RemoveSpellEffect(luaspell);
@@ -618,9 +617,6 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 							}
 							continue;
 						}
-
-						//this group member is a target of the spell
-						new_target_list.push_back(group_member->GetID());
 
 						if (has_effect)
 							continue;
