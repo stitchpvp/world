@@ -1173,19 +1173,6 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 			if (caster->IsStealthed() || caster->IsInvis())
 				caster->CancelAllStealth();
 
-			if (!lua_spell->spell->GetSpellData()->friendly_spell && !caster->EngagedInCombat()) {
-				if (caster->IsPlayer()) {
-					((Player*)caster)->InCombat(true);
-					((Player*)caster)->SetCharSheetChanged(true);
-
-					if (caster->GetZone()) {
-						caster->GetZone()->TriggerCharSheetTimer();
-					}
-				} else {
-					caster->InCombat(true);
-				}
-			}
-
 			SendStartCast(lua_spell, client);
 
 			if (spell->GetSpellData()->cast_time > 0)
@@ -1386,6 +1373,19 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 	if (!passive)
 		SendFinishedCast(spell, client);
+
+	if (!spell->spell->GetSpellData()->friendly_spell && !spell->caster->EngagedInCombat()) {
+		if (spell->caster->IsPlayer()) {
+			static_cast<Player*>(spell->caster)->InCombat(true);
+			static_cast<Player*>(spell->caster)->SetCharSheetChanged(true);
+
+			if (spell->caster->GetZone()) {
+				spell->caster->GetZone()->TriggerCharSheetTimer();
+			}
+		} else {
+			spell->caster->InCombat(true);
+		}
+	}
 
 
 	/*MutexList<LuaSpell*>::iterator itr = active_spells.begin();

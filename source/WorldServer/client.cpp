@@ -79,8 +79,8 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Recipes/Recipe.h"
 #include "Tradeskills/Tradeskills.h"
 #include "AltAdvancement/AltAdvancement.h"
-#include "zoneserver.h";
-#include "SpellProcess.h";
+#include "zoneserver.h"
+#include "SpellProcess.h"
 extern WorldDatabase database;
 extern const char* ZONE_NAME;
 extern LoginServer loginserver;
