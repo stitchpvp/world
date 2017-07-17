@@ -579,9 +579,26 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_f
 			lua_pushlightuserdata(spell->state, 0);
 		}
 
+		vector<LUAData*>* data = spell->spell->GetLUAData();
+		for (int32 i = 0; i<data->size(); i++) {
+			switch (data->at(i)->type) {
+			case 0:
+				lua_pushinteger(spell->state, data->at(i)->int_value);
+				break;
+			case 1:
+				lua_pushnumber(spell->state, data->at(i)->float_value);
+				break;
+			case 2:
+				lua_pushboolean(spell->state, data->at(i)->bool_value);
+				break;
+			case 3:
+				lua_pushstring(spell->state, data->at(i)->string_value.c_str());
+				break;
+			}
+		}
 
 		current_spells[spell->state] = spell;
-		lua_pcall(spell->state, 2, 0, 0);
+		lua_pcall(spell->state, data->size() + 2, 0, 0);
 	}
 
 	if (can_delete) {
