@@ -985,7 +985,7 @@ void Entity::KillSpawn(Spawn* dead, int8 damage_type, int16 kill_blow_type) {
 	if(dead->EngagedInCombat() == false && dead->IsNPC() && ((NPC*)dead)->Brain()->GetEncounterSize() == 0)
 		((NPC*)dead)->Brain()->AddToEncounter(this);
 
-	if (IsCasting())
+	if (IsCasting() && GetTarget() && GetTarget() == dead)
 		GetZone()->Interrupted(this, dead, SPELL_ERROR_NOT_ALIVE);
 
 	LogWrite(COMBAT__DEBUG, 3, "Combat", "Killing '%s'", dead->GetName());
