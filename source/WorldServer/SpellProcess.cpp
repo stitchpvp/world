@@ -1268,7 +1268,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 			int8 hit_result = 0;
 
 			target = zone->GetSpawnByID(spell->targets[i]);
-			spell->initial_target = target->GetID();
 
 			if (!spell->spell->GetSpellData()->friendly_spell) {
 				if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_COMBAT_ART) {
