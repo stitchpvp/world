@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "PVP.h"
 #include "Rules/Rules.h"
+#include "zoneserver.h"
 
 extern RuleManager rule_manager;
 
@@ -19,7 +20,7 @@ void Player::SetFame(sint16 value) {
 
 bool PVP::CanAttack(Player* attacker, Spawn* target)
 {
-	if (PVP::IsEnabled()) {
+	if (PVP::IsEnabled(attacker->GetZone())) {
 		Entity* entity_target = static_cast<Entity*>(target);
 
 		if (target->IsPet())
@@ -80,7 +81,11 @@ int PVP::GetRankIndex(Player* player) {
 	}
 }
 
-bool PVP::IsEnabled()
+bool PVP::IsEnabled(ZoneServer* zone)
 {
-	return rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+	if (zone && rule_manager.GetZoneRule(zone->GetZoneID(), R_PVP, AllowPVP)) {
+		return rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool() && rule_manager.GetZoneRule(zone->GetZoneID(), R_PVP, AllowPVP)->GetBool();
+	} else {
+		return rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+	}
 }
