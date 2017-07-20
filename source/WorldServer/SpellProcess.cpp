@@ -1244,6 +1244,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 	Client* client = 0;
 	bool hit_target = false;
+	bool living_target = false;
 
 	if (spell->caster && spell->caster->IsPlayer())
 		client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
@@ -1293,6 +1294,10 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 					if (client && client->IsZoning())
 						continue;
+
+					if (!living_target && target->Alive())
+						living_target = true;
+						
 
 					if (spell->spell->GetSpellData()->success_message.length() > 0) {
 						if (client) {
@@ -1355,7 +1360,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_SPELL)
 		spell->resisted = !hit_target;
 
-	if (hit_target) {
+	if (hit_target && living_target) {
 		if ((spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel) && !spell->spell->GetSpellData()->not_maintained)
 			spell->caster->AddMaintainedSpell(spell);
 
