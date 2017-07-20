@@ -458,6 +458,10 @@ public:
 
 	void Command_ServerFlag(Client* client, Seperator* sep);
 
+	void Command_PVPRange(Client* client);
+
+	void Command_PVP(Client* client);
+
 private:
 	RemoteCommands* remote_commands;
 	map<string, int8> spawn_set_values;
@@ -854,5 +858,7 @@ private:
 #define COMMAND_VISUAL 2001
 #define COMMAND_SERVER_FLAG 2002
 #define COMMAND_PLAYER_SET 2003
+#define COMMAND_PVP_RANGE 2004
+#define COMMAND_PVP 2005
 
 #endif

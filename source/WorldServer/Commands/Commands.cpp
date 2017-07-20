@@ -44,6 +44,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Rules/Rules.h"
 #include "../AltAdvancement/AltAdvancement.h"
 #include "../RaceTypes/RaceTypes.h"
+#include "../PVP.h"
 
 extern WorldDatabase database;
 extern MasterSpellList master_spell_list;
@@ -3721,6 +3722,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_TEST				: { Command_Test(client, command_parms); break; }
 		case COMMAND_SPEED				: { Command_Speed(client, sep); break; }
 		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
+		case COMMAND_PVP_RANGE			: { Command_PVPRange(client); break; }
+		case COMMAND_PVP				: { Command_PVP(client); break; }
 
 		default: 
 		{
@@ -8156,7 +8159,26 @@ void Commands::Command_ServerFlag(Client* client, Seperator* sep) {
 		client->GetPlayer()->SetPlayerControlFlag(atoi(sep->arg[0]), atoi(sep->arg[1]), atoi(sep->arg[2]));
 	}
 	else {
-		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /speed {new speed value}");
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /server_flag param1 param2 [0/1]");
 	}
+}
 
+void Commands::Command_PVPRange(Client* client) {
+	if (PVP::IsEnabled()) {
+		if (PVP::IsEnabled(client->GetCurrentZone())) {
+			client->SimpleMessage(CHANNEL_COLOR_WHITE, "PVP is enabled in this zone.");
+			client->SimpleMessage(CHANNEL_COLOR_WHITE, "Level Range: Unlimited");
+		} else {
+			client->SimpleMessage(CHANNEL_COLOR_WHITE, "PVP is disabled in this zone.");
+		}
+	}
+}
+
+void Commands::Command_PVP(Client* client) {
+	if (!PVP::IsEnabled())
+		return;
+
+	client->SimpleMessage(CHANNEL_COLOR_WHITE, "PVP Statistics");
+	client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));
+	client->Message(CHANNEL_COLOR_WHITE, "Deaths: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_DEATHS));
 }

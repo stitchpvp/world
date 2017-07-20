@@ -4036,6 +4036,9 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 					client->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
 					client->SendTitleUpdate();
 				}
+
+				dead_player->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_DEATHS, 1);
+				killer_player->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_KILLS, 1);
 			}
 		}
 
