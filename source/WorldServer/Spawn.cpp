@@ -267,9 +267,7 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
-	if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget((Player*)this))) {
-		footer->setDataByName("spawn_type", 3);
-	} else if (appearance.attackable == 0 && GetLevel() > 0) {
+	if (appearance.attackable == 0 && GetLevel() > 0) {
 		footer->setDataByName("spawn_type", 1);
 	} else if (appearance.attackable == 0) {
 		footer->setDataByName("spawn_type", 6);
@@ -1437,21 +1435,21 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("unknown4", (int8)GetLevel());
 	packet->setDataByName("difficulty", appearance.encounter_level); //6);
 	packet->setDataByName("heroic_flag", appearance.heroic_flag);
- 	if(!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
+	if (!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
 		packet->setDataByName("interaction_flag", 12); //this makes NPCs head turn to look at you
-		if (version >= 1188 && IsPlayer()) {
-			if (spawn->CanAttackTarget((Player*)this)) {
-				packet->setDataByName("spawn_type", 6);
-			} else {
-				packet->setDataByName("spawn_type", 0);
-			}
+
+	if (IsPlayer() && Alive()) {
+		if (spawn->CanAttackTarget(this)) {
+			packet->setDataByName("spawn_type", 6);
+		} else if (version >= 1188) {
+			packet->setDataByName("spawn_type", 0);
 		} else {
-			if (IsPlayer() && spawn->CanAttackTarget((Player*)this)) {
-				packet->setDataByName("spawn_type", 6);
-			} else {
-				packet->setDataByName("spawn_type", spawn_type);
-			}
+			packet->setDataByName("spawn_type", spawn_type);
 		}
+	} else {
+		packet->setDataByName("spawn_type", spawn_type);
+	}
+
 	packet->setDataByName("class", appearance.adventure_class);
 
 	int16 model_type = appearance.model_type;

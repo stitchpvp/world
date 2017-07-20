@@ -1402,6 +1402,9 @@ bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, Client* clien
 			client->GetPlayer()->SetDissonance(result.GetSInt16Str("dissonance"));
 			client->GetPlayer()->SetTotalSavageryBase(client->GetPlayer()->GetTotalSavagery());
 			client->GetPlayer()->SetTotalDissonanceBase(client->GetPlayer()->GetTotalDissonance());
+
+			if (client->GetPlayer()->GetHP() == 0)
+				client->GetPlayer()->SetSpawnType(3);
 		}
 
 		return true;
