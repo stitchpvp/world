@@ -8179,6 +8179,6 @@ void Commands::Command_PVP(Client* client) {
 		return;
 
 	client->SimpleMessage(CHANNEL_COLOR_WHITE, "PVP Statistics");
-	client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));
+	client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));
 	client->Message(CHANNEL_COLOR_WHITE, "Deaths: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_DEATHS));
 }
