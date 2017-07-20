@@ -83,7 +83,7 @@ int PVP::GetRankIndex(Player* player) {
 
 bool PVP::IsEnabled(ZoneServer* zone)
 {
-	if (zone && rule_manager.GetZoneRule(zone->GetZoneID(), R_PVP, AllowPVP)) {
+	if (zone && rule_manager.HasZoneRuleSet(zone->GetZoneID())) {
 		return rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool() && rule_manager.GetZoneRule(zone->GetZoneID(), R_PVP, AllowPVP)->GetBool();
 	} else {
 		return rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();

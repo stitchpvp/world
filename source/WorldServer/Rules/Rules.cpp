@@ -398,3 +398,14 @@ void RuleManager::ClearZoneRuleSets() {
 	zone_rule_sets.clear();
 	m_zone_rule_sets.releasewritelock(__FUNCTION__, __LINE__);
 }
+
+bool RuleManager::HasZoneRuleSet(int32 zone_id)
+{
+	m_zone_rule_sets.writelock(__FUNCTION__, __LINE__);
+	if (zone_rule_sets.count(zone_id)) {
+		return true;
+	} else {
+		return false;
+	}
+	m_zone_rule_sets.releasewritelock(__FUNCTION__, __LINE__);
+}

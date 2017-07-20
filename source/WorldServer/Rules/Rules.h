@@ -226,6 +226,7 @@ public:
 	bool SetZoneRuleSet(int32 zone_id, int32 rule_set_id);
 	Rule * GetZoneRule(int32 zone_id, int32 category, int32 type);
 	void ClearZoneRuleSets();
+	bool HasZoneRuleSet(int32 zone_id);
 
 	RuleSet * GetGlobalRuleSet() {return &global_rule_set;}
 	map<int32, map<int32, Rule *> > * GetRules() {return &rules;}
