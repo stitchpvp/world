@@ -141,6 +141,12 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 		header->setMediumStringByName("default_command", primary_command_list[0]->command.c_str());
 		header->setDataByName("max_distance", primary_command_list[0]->distance);
 	}
+
+	if (IsPlayer() && player->CanAttackTarget(this)) {
+		header->setMediumStringByName("default_command", "attack");
+		header->setDataByName("max_distance", 10000.0);
+	}
+
 	if (spawn_group_list && MSpawnGroup){
 		MSpawnGroup->readlock(__FUNCTION__, __LINE__);
 		header->setArrayLengthByName("group_size", spawn_group_list->size());
