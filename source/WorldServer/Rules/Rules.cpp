@@ -401,11 +401,11 @@ void RuleManager::ClearZoneRuleSets() {
 
 bool RuleManager::HasZoneRuleSet(int32 zone_id)
 {
-	m_zone_rule_sets.writelock(__FUNCTION__, __LINE__);
+	m_zone_rule_sets.readlock(__FUNCTION__, __LINE__);
 	if (zone_rule_sets.count(zone_id)) {
+		m_zone_rule_sets.releasereadlock(__FUNCTION__, __LINE__);
 		return true;
 	} else {
+		m_zone_rule_sets.releasereadlock(__FUNCTION__, __LINE__);
 		return false;
-	}
-	m_zone_rule_sets.releasewritelock(__FUNCTION__, __LINE__);
-}
+	}}
