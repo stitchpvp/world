@@ -16296,34 +16296,6 @@ to zero and treated like placeholders." />
 <Data ElementName="packettype" Type="int16" Size="1" />
 <Data ElementName="packetsubtype" Type="int8" Size="1" />
 </Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="57107" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="11"/>
-<Data ElementName="unknown4" Type="int16" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="unknown3" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="60024" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
-<Data ElementName="item_crc" Type="int32" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="63119" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
-<Data ElementName="item_crc" Type="int32" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
 <Struct Name="WS_QuestExamineInfoHeader" ClientVersion="1" >
 <Data ElementName="unknown" Type="int8" Size="1" />
 <Data ElementName="packettype" Type="int16" Size="1" />
@@ -18183,9 +18155,9 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1096" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" />
+<Data ElementName="type" Type="int16" />
+<Data ElementName="unknown_id" Type="int32" />
+<Data ElementName="unknown" Type="int32" />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
@@ -18211,9 +18183,28 @@ to zero and treated like placeholders." />
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="57107" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="unknown2" Type="int8" Size ="11"/>
+<Data ElementName="unknown4" Type="int16" />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown3" Type="int32" />
+<Data ElementName="item_id" Type="int32" />
+<Data ElementName="unknown5" Type="int16" />
+</Struct>
+<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="60024" >
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="2" />
+<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="item_crc" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
+<Data ElementName="item_id" Type="int32" />
+<Data ElementName="unknown5" Type="int16" />
+</Struct>
+<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="63119" >
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="2" />
+<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="item_crc" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
@@ -27342,6 +27333,11 @@ to zero and treated like placeholders." />
 <Data ElementName="ip_address" Type="EQ2_16Bit_String" />
 <Data ElementName="port" Type="int16" Size="1" />
 </Struct>
+<Struct Name="Substruct_TargetSpellEffects" ClientVersion="1">		
+<Data ElementName="spell_id" Type="int32" />		
+<Data ElementName="spell_icon" Type="int16" />		
+<Data ElementName="spell_icon_backdrop" Type="int16" />		
+</Struct>
 <Struct Name="Substruct_TargetSpellEffects" ClientVersion="1188">
 <Data ElementName="spell_id" Type="int32" />
 <Data ElementName="spell_icon" Type="int16" />
@@ -27417,6 +27413,13 @@ to zero and treated like placeholders." />
 <Data ElementName="race_id" Type="int8" />
 <Data ElementName="gender" Type="int8" />
 <Data ElementName="unknown" Type="int8" Size="3" />
+</Struct>
+<Struct Name="WS_UpdateMaintainedExamine" ClientVersion="1096" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">		
+<Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />		
+<Data ElementName="time_stamp" Type="int32" />		
+<Data ElementName="slot_pos" Type="int32" />		
+<Data ElementName="update_value" Type="int32" />		
+<Data ElementName="update_type" Type="int64" />		
 </Struct>
 <Struct Name="WS_UpdateMaintainedExamine" ClientVersion="1188" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
