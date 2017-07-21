@@ -687,11 +687,19 @@
   <Data ElementName="stat_type" Type="int16" OversizedValue="127" OversizedByte="127" Size="1" />
   <Data ElementName="stat_subtype" Type="sint16" OversizedValue="127" OversizedByte="127" IfVariableNotEquals="stat_type_%i" Size="1" />
   <Data ElementName="value" Type="float" Type2="sint32" Type2Criteria="stat_type!=6" OversizedValue="127" OversizedByte="127" Size="1" />
-  <Data ElementName="value2" Type="float" Type2="sint32" Type2Criteria="stat_type!=6" OversizedValue="127" OversizedByte="127" Size="1" />
   <Data ElementName="stat_name" Type="EQ2_8Bit_String" Size="1" />
   <Data ElementName="stat_level" Type="int16" Type2="int8" Type2Criteria="stat_name!>2" />
+  <Data ElementName="value2" Type="float" Type2="sint32" Type2Criteria="stat_type!=6" OversizedValue="127" OversizedByte="127" Size="1" />
 </Data>
-<Data ElementName="unknown20" Type="int16" Size="1" />
+<Data ElementName="unknown20" Type="int8" Size="1" />
+<Data ElementName="mod_count" Type="int8" Size="1" />
+<Data ElementName="mod_array" Type="Array" ArraySizeVariable="mod_count">
+  <Data ElementName="mod_string" Type="EQ2_8Bit_String" Size="1" />
+  <Data ElementName="mod_need" Type="int8" Size="1" />
+  <Data ElementName="mod_have" Type="int8" Size="1" IfVariableSet="header_info_mod_need_0"/>
+  <Data ElementName="mod_unknown" Type="int8" Size="2" />
+</Data>
+
 <Data ElementName="unknown21" Type="int8" Size="4" />
 <Data ElementName="condition" Type="int8" Size="1" />
 <Data ElementName="weight" Type="int32" Size="1" />
@@ -2202,7 +2210,11 @@
   <Data ElementName="effect" Type="EQ2_16Bit_String" Size="1" />
   <Data ElementName="percentage" Type="int8" Size = "1" />
 </Data>
-<Data ElementName="footer_unknown2" Type="int8" Size="1" />
+<Data ElementName="tierline" Type="int8" Size="1" />
+<Data ElementName="tierline_array" Type="Array" ArraySizeVariable="tierline">
+  <Data ElementName="addon" Type="EQ2_16Bit_String" Size="1" />
+  <Data ElementName="tierline_unknwon" Type="int8" Size="5" />
+</Data>
 <Data ElementName="required_classes" Type="int64" Size="1" />
 <Data ElementName="required_classes2" Type="int64" Size="1" />
 <Data ElementName="recommended_level" Type="int8" Size="1" />
@@ -2210,17 +2222,19 @@
 <Data ElementName="stack_size" Type="int8" Size="1" />
 <Data ElementName="footer_unknown3" Type="int8" Size="1" />
 <Data ElementName="adorn_slots" Type="int8" Size="11" />
+<Data ElementName="footer_unknown3mj1" Type="int8" Size="1" />
 <Data ElementName="set_name" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="set_bonus_list_count" Type="int8" IfVariableSet="footer_set_name_0" />
 <Data ElementName="set_bonus_list_array" Type="Array" ArraySizeVariable="set_bonus_list_count">
   <Data ElementName="set_bonus_items_needed" Type="int8" Size="1" />
   <Data ElementName="set_bonus_stats_count" Type="int8" />
-  <Data ElementName="set_bonus_stats_array" Type="Array" ArraySizeVariable="set_bonus_stats_count">
+  <Data ElementName="set_bonus_stats_array" Type="Array" ArraySizeVariable="set_bonus_stats_count" >
     <Data ElementName="set_stat_type" Type="int16" OversizedValue="127" OversizedByte="127" Size="1" />
     <Data ElementName="set_stat_subtype" Type="int16" OversizedValue="127" OversizedByte="127" IfVariableNotEquals="set_stat_type_%i" Size="1" />
-    <Data ElementName="set_value" Type="float" Type2="sint16" Type2Criteria="set_stat_type!=6" OversizedValue="127" OversizedByte="127" />
+    <Data ElementName="set_value" Type="float" Type2="sint32" Type2Criteria="set_stat_type!=6"  />
     <Data ElementName="set_stat_name" Type="EQ2_8Bit_String" Size="1" />
-    <Data ElementName="set_stat_unknown" Type="int8" Size="1" />
+	<Data ElementName="set_stat_unknown" Type="int32" Size="1" />
+	<Data ElementName="set_stat_unknownmj2" Type="int16" Size="1" />
   </Data>
   <Data ElementName="set_bonus_effects_count" Type="int8" />
   <Data ElementName="set_bonus_effects_array" Type="Array" ArraySizeVariable="set_bonus_effects_count">
@@ -2238,6 +2252,8 @@
 <Data ElementName="total_set_items_equipped" Type="int8" Size="1" IfVariableSet="footer_set_name_0" />
 <Data ElementName="total_set_items_in_set" Type="int8" Size="1" IfVariableSet="footer_set_name_0" />
 <Data ElementName="adorn_flag" Type="int8" Size="1" />
+<Data ElementName="adorn_unknown64a" Type="int8" Size="1" IfVariableSet="footer_adorn_flag_0"/>
+<Data ElementName="adorn_unknown64a" Type="int8" Size="1" IfVariableSet="footer_adorn_flag_0"/>
 <Data ElementName="adorn_stats_active" Type="int8" Size="1" IfVariableSet="footer_adorn_flag_0" />
 <Data ElementName="adorn_stats_total" Type="int8" Size="1" IfVariableSet="footer_adorn_flag_0" />
 <Data ElementName="adorn_name" Type="EQ2_16Bit_String" IfVariableSet="footer_adorn_flag_0" />
@@ -2248,22 +2264,22 @@
   <Data ElementName="adorn_stats_array" Type="Array" ArraySizeVariable="num_adorn_stats">
     <Data ElementName="adorn_stat_type" Type="int16" OversizedValue="127" OversizedByte="127" Size="1" />
     <Data ElementName="adorn_stat_subtype" Type="sint16" OversizedValue="127" OversizedByte="127" IfVariableNotEquals="adorn_stat_type_%i_%i" Size="1" />
-    <Data ElementName="adorn_value" Type="float" Type2="sint16" Type2Criteria="stat_type!=6" OversizedValue="127" OversizedByte="127" />
+    <Data ElementName="adorn_value" Type="float" Type2="sint32" Type2Criteria="adorn_stat_type!=6" OversizedValue="127" OversizedByte="127" />
     <Data ElementName="adorn_stat_name" Type="EQ2_8Bit_String" Size="1" />
     <Data ElementName="adorn_stat_level" Type="int8" Size="1" />
   </Data>
 </Data>
 <Data ElementName="footer_unknown4" Type="int8" Size="1" />
-<Data ElementName="unknown60055za" Type="int8" Size="1" IfVariableNotSet="footer_set_name_0" />
-<Data ElementName="collectable" Type="int8" IfVariableNotSet="footer_set_name_0" />
+<Data ElementName="unknown60055za" Type="int8" Size="1" IfVariableSet="foot_set_name_0" />
+<Data ElementName="collectable" Type="int8"  />
 <Data ElementName="collection_needed" Type="int8" IfVariableSet="footer_collectable_0" />
-<Data ElementName="unknown60055z" Type="int8" Size="1" IfVariableNotSet="footer_set_name_0" />
-<Data ElementName="offers_quest" Type="EQ2_8Bit_String" Size="1" IfVariableNotSet="footer_set_name_0" />
-<Data ElementName="part_of_quest" Type="EQ2_8Bit_String" Size="1" IfVariableNotSet="footer_set_name_0" />
+<Data ElementName="unknown60055z" Type="int8" Size="1"  />
+<Data ElementName="offers_quest" Type="EQ2_8Bit_String" Size="1"  />
+<Data ElementName="part_of_quest" Type="EQ2_8Bit_String" Size="1"  />
 <Data ElementName="offers_quest_color" Type="int8" IfVariableSet="footer_offers_quest_0" />
 <Data ElementName="part_of_quest_color" Type="int8" IfVariableSet="footer_part_of_quest_0" />
 <Data ElementName="unknown_set_data1" Type="int8" Size="2" IfVariableSet="footer_set_name_0" />
-<Data ElementName="charges" Type="int8" IfVariableNotSet="footer_set_name_0" />
+<Data ElementName="charges" Type="int8"  />
 <Data ElementName="total_charges" Type="int16" IfVariableSet="footer_charges_0" />
 <Data ElementName="charges_left" Type="int16" IfVariableSet="footer_charges_0" />
 <Data ElementName="unknown_set_info2" Type="int8" Size="1" IfVariableSet="footer_set_name_0" />
@@ -2274,7 +2290,7 @@
 <Data ElementName="unknown60024a" Type="int8" Size="1" />
 <Data ElementName="unknown60024b" Type="int8" Size="3" IfVariableSet="footer_unknown60024a_0" />
 <Data ElementName="transmuted_flag" Type="int8" />
-<Data ElementName="adorn_count" Type="int8" Size="1" IfVariableNotSet="footer_set_name_0" />
+<Data ElementName="adorn_count" Type="int8" Size="1"  />
 <Data ElementName="adorn_array" Type="Array" ArraySizeVariable="adorn_count">
   <Data ElementName="adorn_unknown1" Type="int8" Size="1" />
   <Data ElementName="adorn_slot" Type="int8" />
@@ -2288,8 +2304,9 @@
 <Data ElementName="account_retricted" Type="int8" Size="1" />
 <Data ElementName="footer_unknown6a" Type="int8" Size="1" />
 <Data ElementName="crafting_flag" Type="int8" />
-<Data ElementName="footer_unknown6b" Type="int8" Size="21" />
-
+<Data ElementName="footer_unknown6b" Type="int8" Size="16" />
+<Data ElementName="footer_unknown6c" Type="int32" Size="1" IfVariableNotSet="footer_set_name_0"/>
+<Data ElementName="footer_unknown6d" Type="int8" Size="1" IfVariableNotSet="footer_set_name_0"/>
 <Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="footer_unknown7" Type="int8" Size="1" />
@@ -6476,6 +6493,7 @@
 <Data ElementName="description2" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="spirit_level" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="1" />
+<Data ElementName="unknownadorn_mj1" Type="int8" Size="4" />
 <Data ElementName="footer" Substruct="Substruct_ItemFooter" Size="1" />
 </Struct>
 <Struct Name="WS_ItemArmor" ClientVersion="63119" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
