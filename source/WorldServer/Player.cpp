@@ -2345,9 +2345,6 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 {
 	LogWrite(PLAYER__DEBUG, 7, "Player", "Enter: %s", __FUNCTION__); // trace
 
-	if (IsRooted() || IsMezzedOrStunned())
-		return;
-
 	// XML structs may be to slow to use in this portion of the code as a single
 	// client sends a LOT of these packets when they are moving.  I have commented
 	// out all the code for xml structs, to switch to it just uncomment
