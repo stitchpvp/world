@@ -2038,10 +2038,6 @@ void World::PopulateTOVStatMap() {
 sint16 World::GetItemStatTOVValue(sint16 subtype) {
 	return (tov_itemstat_conversion[subtype] - 600);
 }
-
-sint16 World::GetItemStatTOVValue(sint16 subtype) {
-	return (tov_itemstat_conversion[subtype] - 600);
-}
 sint16 World::GetItemStatDOVValue(sint16 subtype) {
 	return (dov_itemstat_conversion[subtype] - 600);
 }

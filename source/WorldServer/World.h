@@ -494,14 +494,12 @@ public:
 	void SetLottoPlayerNumMatches(int32 character_id, int8 num_matches);
 	void CheckLottoPlayers();
 	void PopulateTOVStatMap();
-	sint16 GetItemStatTOVValue(sint16 subtype);
 
 	int32 LoadItemBlueStats();
 	sint16 GetItemStatTOVValue(sint16 subtype);
 	sint16 GetItemStatDOVValue(sint16 subtype);
 	sint16 GetItemStatCOEValue(sint16 subtype);
 	sint16 GetItemStatKAValue(sint16 subtype);
-	sint16 GetItemStatTESTValue(sint16 subtype);
 	
 	vector<string> biography;
 
