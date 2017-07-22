@@ -1343,22 +1343,67 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 	packet->setSubstructDataByName("header_info", "icon", details.icon);
 	packet->setSubstructDataByName("header_info", "tier", details.tier);
  	packet->setSubstructDataByName("header_info", "flags", generic_info.item_flags);
-	if(item_stats.size() > 0){
-		packet->setSubstructArrayLengthByName("header_info", "stat_count", item_stats.size());
-		for(int32 i=0;i<item_stats.size();i++){
+	if (item_stats.size() > 0) {
+		//packet->setSubstructArrayLengthByName("header_info", "stat_count", item_stats.size());
+		int8 dropstat = 0;
+		for (int32 i = 0; i < item_stats.size(); i++) {
 			ItemStat* stat = item_stats[i];
-			if(stat->stat_name.length() > 0)
-				packet->setArrayDataByName("stat_name", stat->stat_name.c_str(), i);
-			packet->setArrayDataByName("stat_type", stat->stat_type, i);
-			if(client->GetVersion() >= 57107){
-				if(stat->stat_type == 6)//Convert CoE stat values to TOV for now
-					tmp_subtype = world.GetItemStatTOVValue(stat->stat_subtype);
-				else
+			if (stat->stat_type == 6) {		//Convert stats to proper client
+				if (client->GetVersion() >= 63137) {  //TEST
 					tmp_subtype = stat->stat_subtype;
-			}
-			else
+				} else if (client->GetVersion() >= 63119) {  //KA
+					tmp_subtype = world.GetItemStatKAValue(stat->stat_subtype);
+				} else if (client->GetVersion() >= 57107) { //TOV
+					tmp_subtype = world.GetItemStatTOVValue(stat->stat_subtype);
+				} else if (client->GetVersion() >= 1193) { //COE
+					tmp_subtype = world.GetItemStatCOEValue(stat->stat_subtype);
+					//tmp_subtype = stat->stat_subtype;
+				} else if (client->GetVersion() >= 1096) { //DOV
+					tmp_subtype = world.GetItemStatDOVValue(stat->stat_subtype);
+					//tmp_subtype = stat->stat_subtype;  //comment for normal use
+				}
+			} else
 				tmp_subtype = stat->stat_subtype;
-			packet->setArrayDataByName("stat_subtype", tmp_subtype, i);
+			if (tmp_subtype == 255) {
+
+				dropstat += 1;
+
+			}
+
+		}
+		packet->setSubstructArrayLengthByName("header_info", "stat_count", item_stats.size() - dropstat);
+		dropstat = 0;
+		for (int32 i = 0; i<item_stats.size(); i++) {
+			ItemStat* stat = item_stats[i];
+			if (stat->stat_name.length() > 0)
+				packet->setArrayDataByName("stat_name", stat->stat_name.c_str(), i);
+
+			if (stat->stat_type == 6) {		//Convert stats to proper client
+				if (client->GetVersion() >= 63137) {  //TEST
+					tmp_subtype = stat->stat_subtype;
+				} else if (client->GetVersion() >= 63119) {  //KA
+					tmp_subtype = world.GetItemStatKAValue(stat->stat_subtype);
+				} else if (client->GetVersion() >= 57107) { //TOV
+					tmp_subtype = world.GetItemStatTOVValue(stat->stat_subtype);
+				} else if (client->GetVersion() >= 1193) { //COE
+					tmp_subtype = world.GetItemStatCOEValue(stat->stat_subtype);
+					//tmp_subtype = stat->stat_subtype;
+				} else if (client->GetVersion() >= 1096) { //DOV
+					tmp_subtype = world.GetItemStatDOVValue(stat->stat_subtype); //comment out for testing
+																				 //tmp_subtype = stat->stat_subtype;  //comment for normal use
+				}
+			} else
+				tmp_subtype = stat->stat_subtype;
+			if (tmp_subtype == 255) {
+
+				dropstat += 1;
+				//packet->setSubstructArrayLengthByName("header_info", "stat_count", item_stats.size()-dropstat);
+			} else {
+
+				packet->setArrayDataByName("stat_type", stat->stat_type, i - dropstat);
+				packet->setArrayDataByName("stat_subtype", tmp_subtype, i - dropstat);
+
+			}
 			/* SF client */
 			if (client->GetVersion() >= 1028) {
 				if (stat->stat_type == 6)

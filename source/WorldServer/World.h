@@ -495,6 +495,13 @@ public:
 	void CheckLottoPlayers();
 	void PopulateTOVStatMap();
 	sint16 GetItemStatTOVValue(sint16 subtype);
+
+	int32 LoadItemBlueStats();
+	sint16 GetItemStatTOVValue(sint16 subtype);
+	sint16 GetItemStatDOVValue(sint16 subtype);
+	sint16 GetItemStatCOEValue(sint16 subtype);
+	sint16 GetItemStatKAValue(sint16 subtype);
+	sint16 GetItemStatTESTValue(sint16 subtype);
 	
 	vector<string> biography;
 
@@ -559,7 +566,10 @@ private:
 	Mutex MHouseZones;
 	Mutex MPlayerHouses;
 
-	map<int16,int16> tov_itemstat_conversion;
+	map<int16, int16> tov_itemstat_conversion;
+	map<int16, int16> dov_itemstat_conversion;
+	map<int16, int16> coe_itemstat_conversion;
+	map<int16, int16> ka_itemstat_conversion;
 
 	PlayerGroupManager m_playerGroupManager;
 };

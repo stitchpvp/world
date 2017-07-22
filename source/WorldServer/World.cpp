@@ -197,7 +197,7 @@ void World::init(){
 
 	LogWrite(CHAT__DEBUG, 1, "IRC", "-Starting IRC thread...");
 
-	PopulateTOVStatMap();
+	LoadItemBlueStats();
 	group_buff_updates.Start(rule_manager.GetGlobalRule(R_Client, GroupSpellsTimer)->GetInt32());
 	irc.Start();
 }
@@ -2037,6 +2037,46 @@ void World::PopulateTOVStatMap() {
 
 sint16 World::GetItemStatTOVValue(sint16 subtype) {
 	return (tov_itemstat_conversion[subtype] - 600);
+}
+
+sint16 World::GetItemStatTOVValue(sint16 subtype) {
+	return (tov_itemstat_conversion[subtype] - 600);
+}
+sint16 World::GetItemStatDOVValue(sint16 subtype) {
+	return (dov_itemstat_conversion[subtype] - 600);
+}
+sint16 World::GetItemStatCOEValue(sint16 subtype) {
+	return (coe_itemstat_conversion[subtype] - 600);
+}
+sint16 World::GetItemStatKAValue(sint16 subtype) {
+	return (ka_itemstat_conversion[subtype] - 600);
+}
+
+int32 World::LoadItemBlueStats()
+{
+	Query query;
+	MYSQL_ROW row;
+	int32 count = 0;
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT version_range1,version_range2,emu_stat,name,stat from itemstats");
+
+	if (result && mysql_num_rows(result) > 0) {
+		while (result && (row = mysql_fetch_row(result))) {
+			count++;
+
+			if (atoi(row[0]) >= 63137) {
+				ka_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
+			} else if (atoi(row[0]) >= 63119) {
+				ka_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
+			} else if (atoi(row[0]) >= 57101) {
+				tov_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
+			} else if (atoi(row[0]) >= 1193) {
+				coe_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
+			} else if (atoi(row[0]) >= 1096) {
+				dov_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
+			}
+		}
+	}
+	return count;
 }
 
 #ifdef WIN32
