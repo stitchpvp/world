@@ -3979,11 +3979,11 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 				((Entity*)dead)->CheckProcs(PROC_TYPE_DEATH, killer);
 			if (killer->IsEntity())
 				((Entity*)killer)->CheckProcs(PROC_TYPE_KILL, dead);
-		}
 
-		//Check if caster is alive after death proc called, incase of deathsave
-		if (dead->Alive())
-			return;
+			//Check if caster is alive after death proc called, incase of deathsave
+			if (dead->Alive())
+				return;
+		}
 
 		if (killer && killer->IsPlayer()) {
 			client = GetClientBySpawn(killer);
