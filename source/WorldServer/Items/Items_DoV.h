@@ -126,6 +126,26 @@ extern MasterItemList master_item_list;
 #define CRAFTED			512
 #define GOOD_ONLY		1024
 #define EVIL_ONLY		2048
+#define STACK_LORE		4096
+#define LORE_EQUIP		8192
+#define FLAGS_16384		16384
+#define FLAGS_32768		32768
+#define ORNATE			1
+#define HEIRLOOM		2
+#define APPEARANCE_ONLY	4
+#define UNLOCKED		8
+#define REFORGED		16
+#define NO_REPAIR		32
+#define ETHERAL			64
+#define REFINED			128
+#define FLAGS2_256		256 //not used at this time
+#define FLAGS2_512		512//not used at this time
+#define FLAGS2_1024		1024//not used at this time
+#define FLAGS2_2048		2048//not used at this time
+#define FLAGS2_4096		4096//not used at this time
+#define FLAGS2_8192		8192//not used at this time
+#define FLAGS2_16384	16384//not used at this time
+#define FLAGS2_32768	32768//not used at this time
 
 #define ITEM_WIELD_TYPE_DUAL		1
 #define ITEM_WIELD_TYPE_SINGLE		2
@@ -596,6 +616,7 @@ public:
 		int8					show_name;
 		int8					creator_flag;
 		int16					item_flags;
+		int16					item_flags2;
 		int8					condition;
 		int32					weight; // num/10
 		int32					skill_req1;
@@ -804,6 +825,7 @@ public:
 	void AddSlot(int8 slot_id);
 	void SetSlots(int32 slots);
 	bool needs_deletion;
+	bool CheckFlag2(int32 flag);
 };
 class MasterItemList{
 public:

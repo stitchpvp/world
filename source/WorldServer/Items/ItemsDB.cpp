@@ -30,13 +30,13 @@
 
 extern World world;
 
-void WorldDatabase::LoadDataFromRow(MYSQL_ROW row, Item* item) 
+void WorldDatabase::LoadDataFromRow(MYSQL_ROW row, Item* item)
 {
 	LogWrite(ITEM__DEBUG, 5, "Items", "\tSetting details for item ID: %u", strtoul(row[0], NULL, 0));
 	item->details.item_id = strtoul(row[0], NULL, 0);
 	int8 size = strlen(row[1]);
 
-	if(size > 63)
+	if (size > 63)
 		size = 63;
 
 	item->name = string(row[1]);
@@ -46,57 +46,57 @@ void WorldDatabase::LoadDataFromRow(MYSQL_ROW row, Item* item)
 	item->details.tier = atoi(row[4]);
 	item->generic_info.weight = atoi(row[5]);
 
-	if(row[6] && strlen(row[6]))
+	if (row[6] && strlen(row[6]))
 		item->description = string(row[6]);
 
 	item->generic_info.show_name = atoi(row[7]);
 
-	if(atoi(row[8]))
+	if (atoi(row[8]))
 		item->generic_info.item_flags += ATTUNEABLE;
 
-	if(atoi(row[9]))
+	if (atoi(row[9]))
 		item->generic_info.item_flags += ARTIFACT;
 
-	if(atoi(row[10]))
+	if (atoi(row[10]))
 		item->generic_info.item_flags += LORE;
 
-	if(atoi(row[11]))
+	if (atoi(row[11]))
 		item->generic_info.item_flags += TEMPORARY;
 
-	if(atoi(row[12]))
+	if (atoi(row[12]))
 		item->generic_info.item_flags += NO_TRADE;
 
-	if(atoi(row[13]))
+	if (atoi(row[13]))
 		item->generic_info.item_flags += NO_VALUE;
 
-	if(atoi(row[14]))
+	if (atoi(row[14]))
 		item->generic_info.item_flags += NO_ZONE;
 
-	if(atoi(row[15]))
+	if (atoi(row[15]))
 		item->generic_info.item_flags += NO_DESTROY;
 
-	if(atoi(row[16]))
+	if (atoi(row[16]))
 		item->generic_info.item_flags += CRAFTED;
 
-	if(atoi(row[17]))
+	if (atoi(row[17]))
 		item->generic_info.item_flags += GOOD_ONLY;
 
-	if(atoi(row[18]))
+	if (atoi(row[18]))
 		item->generic_info.item_flags += EVIL_ONLY;
 
-	if(atoul(row[19]) == 0)
+	if (atoul(row[19]) == 0)
 		item->generic_info.skill_req1 = 0xFFFFFFFF;
 	else
 		item->generic_info.skill_req1 = atoul(row[19]);
 
-	if(atoul(row[20]) == 0)
+	if (atoul(row[20]) == 0)
 		item->generic_info.skill_req2 = 0xFFFFFFFF;
 	else
 		item->generic_info.skill_req2 = atoul(row[20]);
 
 	item->generic_info.skill_min = atoi(row[21]);
 
-	if(atoul(row[23])>0)
+	if (atoul(row[23])>0)
 		item->SetSlots(atoul(row[23]));
 
 	item->sell_price = atoul(row[24]);
@@ -110,23 +110,23 @@ void WorldDatabase::LoadDataFromRow(MYSQL_ROW row, Item* item)
 	item->generic_info.display_charges = atoi(row[32]);
 	item->generic_info.tradeskill_default_level = atoi(row[33]);
 
-	#ifdef WIN32
-			item->generic_info.adventure_classes = _strtoui64(row[34], NULL, 10);
-			item->generic_info.tradeskill_classes = _strtoui64(row[35], NULL, 10);
-	#else
-			item->generic_info.adventure_classes = strtoull(row[34], 0, 10);
-			item->generic_info.tradeskill_classes = strtoull(row[35], 0, 10);
-	#endif
+#ifdef WIN32
+	item->generic_info.adventure_classes = _strtoui64(row[34], NULL, 10);
+	item->generic_info.tradeskill_classes = _strtoui64(row[35], NULL, 10);
+#else
+	item->generic_info.adventure_classes = strtoull(row[34], 0, 10);
+	item->generic_info.tradeskill_classes = strtoull(row[35], 0, 10);
+#endif
 
-	if(row[36] && strlen(row[36])){
+	if (row[36] && strlen(row[36])) {
 		item->SetItemScript(row[36]);
 		LogWrite(ITEM__DEBUG, 5, "LUA", "\tLoading LUA Item Script: '%s'", item->item_script.c_str());
 	}
 
-	if(item->generic_info.max_charges > 0)
+	if (item->generic_info.max_charges > 0)
 		item->details.count = item->generic_info.max_charges;
 
-	if(item->details.count == 0)
+	if (item->details.count == 0)
 		item->details.count = 1;
 
 	item->generic_info.usable = atoi(row[37]);
@@ -188,6 +188,45 @@ void WorldDatabase::LoadDataFromRow(DatabaseResult* result, Item* item)
 
 	if( result->GetInt8Str("evil_only") == 1 )
 		item->generic_info.item_flags += EVIL_ONLY;
+
+	if (result->GetInt8Str("stacklore") == 1)
+		item->generic_info.item_flags += STACK_LORE;//add this line
+
+	if (result->GetInt8Str("lore_equip") == 1)
+		item->generic_info.item_flags += LORE_EQUIP;//add this line
+
+	if (result->GetInt8Str("flags_16384") == 1)
+		item->generic_info.item_flags += FLAGS_16384;//add this line
+
+	if (result->GetInt8Str("flags_32768") == 1)
+		item->generic_info.item_flags += FLAGS_32768;//add this line
+
+	if (result->GetInt8Str("ornate") == 1)
+		item->generic_info.item_flags2 += ORNATE;
+
+	if (result->GetInt8Str("heirloom") == 1)
+		item->generic_info.item_flags2 += HEIRLOOM;
+
+	if (result->GetInt8Str("appearance_only") == 1)
+		item->generic_info.item_flags2 += APPEARANCE_ONLY;
+
+	if (result->GetInt8Str("unlocked") == 1)
+		item->generic_info.item_flags2 += UNLOCKED;
+
+	if (result->GetInt8Str("reforged") == 1)
+		item->generic_info.item_flags2 += REFORGED;
+
+	if (result->GetInt8Str("norepair") == 1)
+		item->generic_info.item_flags2 += NO_REPAIR;
+
+	if (result->GetInt8Str("etheral") == 1)
+		item->generic_info.item_flags2 += ETHERAL;
+
+	if (result->GetInt8Str("refined") == 1)
+		item->generic_info.item_flags2 += REFINED;
+
+	if (result->GetInt8Str("flags2_256") == 1)
+		item->generic_info.item_flags2 += FLAGS2_256;
 
 	// add more Flags/Flags2 here
 

@@ -1171,36 +1171,87 @@ bool Item::CheckFlag(int32 flag){
 	int32 value = 0;
 	int32 flag_val = generic_info.item_flags;
 	while(flag_val>0){
-		if(flag_val >= EVIL_ONLY)
+		if (flag_val >= FLAGS_32768) //change this
+			value = FLAGS_32768;
+		else if (flag_val >= FLAGS_16384) //change this
+			value = FLAGS_16384;
+		else if (flag_val >= LORE_EQUIP) //change this
+			value = LORE_EQUIP;
+		else if (flag_val >= STACK_LORE) //change this
+			value = STACK_LORE;
+		else if (flag_val >= EVIL_ONLY)
 			value = EVIL_ONLY;
-		else if(flag_val >= GOOD_ONLY)
+		else if (flag_val >= GOOD_ONLY)
 			value = GOOD_ONLY;
-		else if(flag_val >= CRAFTED)
+		else if (flag_val >= CRAFTED)
 			value = CRAFTED;
-		else if(flag_val >= NO_DESTROY)
+		else if (flag_val >= NO_DESTROY)
 			value = NO_DESTROY;
-		else if(flag_val >= NO_ZONE)
+		else if (flag_val >= NO_ZONE)
 			value = NO_ZONE;
-		else if(flag_val >= NO_VALUE)
+		else if (flag_val >= NO_VALUE)
 			value = NO_VALUE;
-		else if(flag_val >= NO_TRADE)
+		else if (flag_val >= NO_TRADE)
 			value = NO_TRADE;
-		else if(flag_val >= TEMPORARY)
+		else if (flag_val >= TEMPORARY)
 			value = TEMPORARY;
-		else if(flag_val >= LORE)
+		else if (flag_val >= LORE)
 			value = LORE;
-		else if(flag_val >= ARTIFACT)
+		else if (flag_val >= ARTIFACT)
 			value = ARTIFACT;
-		else if(flag_val >= ATTUNEABLE)
+		else if (flag_val >= ATTUNEABLE)
 			value = ATTUNEABLE;
-		else if(flag_val >= ATTUNED)
+		else if (flag_val >= ATTUNED)
 			value = ATTUNED;
-		if(value == flag)
+		if (value == flag)
 			return true;
 		else
 			flag_val -= value;
 	}
 	return false;
+}
+
+bool Item::CheckFlag2(int32 flag) {
+	int32 value = 0;
+	int32 flag_val = generic_info.item_flags2;
+	while (flag_val > 0) {
+		if (flag_val >= FLAGS2_32768)
+			value = FLAGS2_32768;
+		else if (flag_val >= FLAGS2_16384)
+			value = FLAGS2_16384;
+		else if (flag_val >= FLAGS2_8192)
+			value = FLAGS2_8192;
+		else if (flag_val >= FLAGS2_4096)
+			value = FLAGS2_4096;
+		else if (flag_val >= FLAGS2_2048)
+			value = FLAGS2_2048;
+		else if (flag_val >= FLAGS2_1024)
+			value = FLAGS2_1024;
+		else if (flag_val >= FLAGS2_512)
+			value = FLAGS2_512;
+		else if (flag_val >= FLAGS2_256)
+			value = FLAGS2_256;
+		else if (flag_val >= REFINED)
+			value = REFINED;
+		else if (flag_val >= ETHERAL)
+			value = ETHERAL;
+		else if (flag_val >= NO_REPAIR)
+			value = NO_REPAIR;
+		else if (flag_val >= REFORGED)
+			value = REFORGED;
+		else if (flag_val >= UNLOCKED)
+			value = UNLOCKED;
+		else if (flag_val >= APPEARANCE_ONLY)
+			value = APPEARANCE_ONLY;
+		else if (flag_val >= HEIRLOOM)
+			value = HEIRLOOM;
+		else if (flag_val >= ORNATE)
+			value = ORNATE;
+		if (value == flag)
+			return true;
+		else
+			flag_val -= value;
+	}
 }
 
 void Item::SetSlots(int32 slots){
@@ -1343,6 +1394,7 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 	packet->setSubstructDataByName("header_info", "icon", details.icon);
 	packet->setSubstructDataByName("header_info", "tier", details.tier);
  	packet->setSubstructDataByName("header_info", "flags", generic_info.item_flags);
+	packet->setSubstructDataByName("header_info", "flags2", generic_info.item_flags2);
 	if (item_stats.size() > 0) {
 		//packet->setSubstructArrayLengthByName("header_info", "stat_count", item_stats.size());
 		int8 dropstat = 0;
