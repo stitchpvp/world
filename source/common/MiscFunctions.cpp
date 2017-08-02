@@ -830,7 +830,9 @@ bool INIReadBool(FILE *f, const char *section, const char *property, bool *out) 
 
 int16 GetItemPacketType(int32 version) {
 	int16 item_version;
-	if (version >= 60024)
+	if (version >= 63119)
+		item_version = 0x56FE;
+	else if (version >= 60024)
 		item_version = 0x51FE;
 	else if (version >= 57107)
 		item_version = 0x4CFE;
