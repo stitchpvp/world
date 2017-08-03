@@ -19,7 +19,7 @@
 */
 #include "Entity.h"
 #include <math.h>
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "zoneserver.h"
 #include "World.h"
 #include "../common/Log.h"

@@ -21,7 +21,7 @@
 #define __EQ2_PLAYER__
 
 #include "Entity.h"
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "Factions.h"
 #include "Skills.h"
 #include "Quests.h"

@@ -22,7 +22,7 @@
 
 #include <map>
 #include <vector>
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 
 #define	QUEST_STEP_TYPE_KILL			1
 #define	QUEST_STEP_TYPE_CHAT			2

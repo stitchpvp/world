@@ -30,7 +30,7 @@
 #include "SpawnLists.h"
 #include <vector>
 #include "../common/ConfigReader.h"
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "../common/Mutex.h"
 #include <deque>
 

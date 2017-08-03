@@ -28,7 +28,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../common/debug.h"
 #include "../common/packet_dump.h"
 #include "../common/GlobalHeaders.h"
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "Factions.h"
 #include "World.h"
 #include "Variables.h"

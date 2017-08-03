@@ -69,7 +69,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../common/EQ2_Common_Structs.h"
 #include "net.h"
 #include "../common/MiscFunctions.h"
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "Skills.h"
 #include "LuaInterface.h"
 #include "Quests.h"

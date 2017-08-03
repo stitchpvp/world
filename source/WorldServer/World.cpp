@@ -19,7 +19,7 @@
 */
 #include <assert.h>
 #include "World.h"
-#include "Items/Items_DoV.h"
+#include "Items/Items.h"
 #include "Items/Items_ToV.h"
 #include "Spells.h"
 #include "client.h"

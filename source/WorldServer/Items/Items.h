@@ -1,21 +1,21 @@
-/*  
-    EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*
+EQ2Emulator:  Everquest II Server Emulator
+Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
 
-    This file is part of EQ2Emulator.
+This file is part of EQ2Emulator.
 
-    EQ2Emulator is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+EQ2Emulator is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    EQ2Emulator is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+EQ2Emulator is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __EQ2_ITEMS__
 #define __EQ2_ITEMS__
@@ -52,7 +52,7 @@ extern MasterItemList master_item_list;
 #define EQ2_AMMO_SLOT 17
 #define EQ2_WAIST_SLOT 18
 #define EQ2_CLOAK_SLOT 19
-#define EQ2_CHARM_SLOT_1 20
+#define EQ2_CHARM_SLOT_1 20   //activate1
 #define EQ2_CHARM_SLOT_2 21
 #define EQ2_FOOD_SLOT 22
 #define EQ2_DRINK_SLOT 23
@@ -114,6 +114,8 @@ extern MasterItemList master_item_list;
 #define BANK_SLOT6 1500
 #define BANK_SLOT7 1600
 #define BANK_SLOT8 1700
+
+
 #define ATTUNED			1
 #define ATTUNEABLE		2
 #define ARTIFACT		4
@@ -126,6 +128,28 @@ extern MasterItemList master_item_list;
 #define CRAFTED			512
 #define GOOD_ONLY		1024
 #define EVIL_ONLY		2048
+#define STACK_LORE		4096  
+#define LORE_EQUIP		8192  
+#define FLAGS_16384		16384
+#define FLAGS_32768		32768
+
+#define ORNATE			1
+#define HEIRLOOM		2
+#define APPEARANCE_ONLY	4
+#define UNLOCKED		8
+#define REFORGED		16
+#define NO_REPAIR		32
+#define ETHERAL			64
+#define REFINED			128
+#define FLAGS2_256		256 //not used at this time
+#define FLAGS2_512		512//not used at this time
+#define FLAGS2_1024		1024//not used at this time
+#define FLAGS2_2048		2048//not used at this time
+#define FLAGS2_4096		4096//not used at this time
+#define FLAGS2_8192		8192//not used at this time
+#define FLAGS2_16384	16384//not used at this time
+#define FLAGS2_32768	32768//not used at this time
+
 
 #define ITEM_WIELD_TYPE_DUAL		1
 #define ITEM_WIELD_TYPE_SINGLE		2
@@ -167,29 +191,35 @@ extern MasterItemList master_item_list;
 #define ITEM_MENU_TYPE_EQUIP			2
 #define ITEM_MENU_TYPE_BAG				4
 #define ITEM_MENU_TYPE_HOUSE			8
+#define ITEM_MENU_TYPE_TEST12			16	
 #define ITEM_MENU_TYPE_SCRIBE			32
+#define ITEM_MENU_TYPE_TEST13			64
 #define ITEM_MENU_TYPE_INVALID			128
+#define ITEM_MENU_TYPE_TEST14			256
 #define ITEM_MENU_TYPE_BROKEN			512
+#define ITEM_MENU_TYPE_TEST15			1024
 #define ITEM_MENU_TYPE_ATTUNED			2048
 #define ITEM_MENU_TYPE_ATTUNEABLE		4096
 #define ITEM_MENU_TYPE_BOOK				8192
 #define ITEM_MENU_TYPE_DISPLAY_CHARGES  16384
-//#define ITEM_MENU_TYPE_CONSUME_OFF0		32768
+#define ITEM_MENU_TYPE_TEST1			32768
 #define ITEM_MENU_TYPE_NAMEPET		    65536
-//#define ITEM_MENU_TYPE_CONSUME_OFF0		131072
+#define ITEM_MENU_TYPE_TEST2			131072 //sets a purple background on item
 #define ITEM_MENU_TYPE_CONSUME			262144
 #define ITEM_MENU_TYPE_USE			    524288
 #define ITEM_MENU_TYPE_CONSUME_OFF		1048576
-//#define ITEM_MENU_TYPE_CONSUME_OFF		1310720
-//#define ITEM_MENU_TYPE_CONSUME_OFF2		2097152
-//#define ITEM_MENU_TYPE_CONSUME_OFF3		4194304
-//#define ITEM_MENU_TYPE_DRINK	        8388608
-//#define ITEM_MENU_TYPE_CONSUME_OFF1		16777216
-//#define ITEM_MENU_TYPE_CONSUME_OFF2		33554432
-//#define ITEM_MENU_TYPE_CONSUME_OFF3		67108864
+#define ITEM_MENU_TYPE_TEST3			1310720// bad number combo of 2 bits
+#define ITEM_MENU_TYPE_TEST4			2097152
+#define ITEM_MENU_TYPE_TEST5			4194304
+#define ITEM_MENU_TYPE_TEST6			8388608 //drink option on menu
+#define ITEM_MENU_TYPE_TEST7			16777216
+#define ITEM_MENU_TYPE_TEST8			33554432 // bit 25 use option in bags
+#define ITEM_MENU_TYPE_TEST9			67108864
 #define ITEM_MENU_TYPE_DAMAGED			134217728
 #define ITEM_MENU_TYPE_BROKEN2			268435456
 #define ITEM_MENU_TYPE_REDEEM	        536870912
+#define ITEM_MENU_TYPE_TEST10			1073741824
+#define ITEM_MENU_TYPE_TEST11			2147483648
 
 #define ITEM_TAG_UNCOMMON				3 //tier tags
 #define ITEM_TAG_TREASURED				4
@@ -332,9 +362,10 @@ extern MasterItemList master_item_list;
 #define ITEM_STAT_CONCENTRATION			502
 #define ITEM_STAT_SAVAGERY				503
 
-
-#define ITEM_STAT_HPREGEN				600
-#define ITEM_STAT_MANAREGEN				601
+//this is the master stat list you should be using and names match what is in census. the comment is what is displayed on items when examining
+//the itemstats table will maintain the custom lists per expansion
+#define ITEM_STAT_HPREGEN				600 //
+#define ITEM_STAT_MANAREGEN				601 //Power Regeneration
 #define ITEM_STAT_HPREGENPPT			602
 #define ITEM_STAT_MPREGENPPT			603
 #define ITEM_STAT_COMBATHPREGENPPT		604
@@ -467,7 +498,7 @@ extern MasterItemList master_item_list;
 
 
 #pragma pack(1)
-struct ItemStatsValues{
+struct ItemStatsValues {
 	sint16			str;
 	sint16			sta;
 	sint16			agi;
@@ -507,12 +538,12 @@ struct ItemStatsValues{
 	sint16			accuracy;
 	sint16			offensivespeed;
 };
-struct ItemCore{
+struct ItemCore {
 	int32	item_id;
 	sint32	soe_id;
 	int32	bag_id;
 	sint32	inv_slot_id;
-	sint16	slot_id;
+	int8	slot_id;
 	int8	index;
 	int16	icon;
 	int16	count;
@@ -523,24 +554,28 @@ struct ItemCore{
 	int16	recommended_level;
 };
 #pragma pack()
-struct ItemStat{
+struct ItemStat {
 	string					stat_name;
 	int8					stat_type;
 	sint16					stat_subtype;
 	int16					stat_type_combined;
 	float					value;
 };
-struct ItemLevelOverride{
+struct Classifications {
+	int32					class_id;  //classifications MJ
+	string					class_name;
+};
+struct ItemLevelOverride {
 	int8					adventure_class;
 	int8					tradeskill_class;
 	int16					level;
 };
-struct ItemClass{
+struct ItemClass {
 	int8					adventure_class;
 	int8					tradeskill_class;
 	int16					level;
 };
-struct ItemAppearance{
+struct ItemAppearance {
 	int16					type;
 	int8					red;
 	int8					green;
@@ -550,16 +585,17 @@ struct ItemAppearance{
 	int8					highlight_blue;
 };
 class PlayerItemList;
-class Item{
+class Item {
 public:
-	#pragma pack(1)
-	struct ItemStatString{
+#pragma pack(1)
+	struct ItemStatString {
 		EQ2_8BitString			stat_string;
 	};
-	struct Generic_Info{
+	struct Generic_Info {
 		int8					show_name;
 		int8					creator_flag;
 		int16					item_flags;
+		int16					item_flags2;
 		int8					condition;
 		int32					weight; // num/10
 		int32					skill_req1;
@@ -589,6 +625,11 @@ public:
 		int16					mitigation_low;
 		int16					mitigation_high;
 	};
+	struct Adornment_Info {
+		float					duration;
+		int16					item_types;
+		int16					slot_type;
+	};
 	struct Weapon_Info {
 		int16					wield_type;
 		int16					damage_low1;
@@ -612,13 +653,13 @@ public:
 		int8					num_slots;
 		int16					weight_reduction;
 	};
-	struct Food_Info{
+	struct Food_Info {
 		int8					type; //0=water, 1=food
 		int8					level;
 		float					duration;
 		int8					satiation;
 	};
-	struct Bauble_Info{
+	struct Bauble_Info {
 		int16					cast;
 		int16					recovery;
 		int32					duration;
@@ -630,42 +671,42 @@ public:
 		int32					max_aoe_targets;
 		int8					display_until_cancelled;
 	};
-	struct Book_Info{
+	struct Book_Info {
 		int8					language;
 		EQ2_16BitString			author;
 		EQ2_16BitString			title;
 	};
-	struct Skill_Info{
+	struct Skill_Info {
 		int32					spell_id;
 		int32					spell_tier;
 	};
-	struct HouseItem_Info{
+	struct HouseItem_Info {
 		int32					status_rent_reduction;
 		float					coin_rent_reduction;
 		int8					house_only;
 	};
-	struct HouseContainer_Info{
+	struct HouseContainer_Info {
 		int64                   allowed_types;
 		int8                    num_slots;
 		int8                    broker_commission;
 		int8                    fence_commission;
 	};
-	struct RecipeBook_Info{
+	struct RecipeBook_Info {
 		vector<string>			recipes;
 		int8					uses;
 	};
-	struct Thrown_Info{
+	struct Thrown_Info {
 		sint32					range;
 		sint32					damage_modifier;
 		float					hit_bonus;
 		int32					damage_type;
 	};
-	struct ItemEffect{
+	struct ItemEffect {
 		EQ2_16BitString			effect;
 		int8					percentage;
 		int8					subbulletflag;
 	};
-	#pragma pack()
+#pragma pack()
 	Item();
 	Item(Item* in_item);
 	~Item();
@@ -674,11 +715,16 @@ public:
 	string					description;
 	int8					stack_count;
 	int32					sell_price;
+	int32					sell_status;
 	int32					max_sell_value;
 	bool					save_needed;
 	int8					weapon_type;
 	string					adornment;
 	string					creator;
+	int32					adorn0;
+	int32					adorn1;
+	int32					adorn2;
+	vector<Classifications*>classifications;  //classifications MJ
 	vector<ItemStat*>		item_stats;
 	vector<ItemStatString*>	item_string_stats;
 	vector<ItemLevelOverride*> item_level_overrides;
@@ -687,6 +733,7 @@ public:
 	Weapon_Info*			weapon_info;
 	Ranged_Info*			ranged_info;
 	Armor_Info*				armor_info;
+	Adornment_Info*			adornment_info;
 	Bag_Info*				bag_info;
 	Food_Info*				food_info;
 	Bauble_Info*			bauble_info;
@@ -720,6 +767,9 @@ public:
 	void SetWeaponType(int8 type);
 	int8 GetWeaponType();
 	bool HasSlot(int8 slot, int8 slot2 = 255);
+	bool HasAdorn0();
+	bool HasAdorn1();
+	bool HasAdorn2();
 	bool IsNormal();
 	bool IsWeapon();
 	bool IsArmor();
@@ -765,14 +815,15 @@ public:
 	EQ2Packet* serialize(int16 version, bool show_name = false, Player* player = 0, bool include_twice = true, int16 packet_type = 0, int8 subtype = 0, bool merchant_item = false, bool loot_item = false);
 	PacketStruct* PrepareItem(int16 version, bool merchant_item = false, bool loot_item = false);
 	bool CheckFlag(int32 flag);
+	bool CheckFlag2(int32 flag);
 	void AddSlot(int8 slot_id);
 	void SetSlots(int32 slots);
 	bool needs_deletion;
 };
-class MasterItemList{
+class MasterItemList {
 public:
 	~MasterItemList();
-	map<int32,Item*> items;
+	map<int32, Item*> items;
 
 	Item* GetItem(int32 id);
 	Item* GetItemByName(const char *name);
@@ -791,11 +842,11 @@ class PlayerItemList {
 public:
 	PlayerItemList();
 	~PlayerItemList();
-//	int16 number;
+	//	int16 number;
 	map<int32, Item*> indexed_items;
 	map<sint32, map<int16, Item*> > items;
-//	map< int8, Item* > inv_items;
-//	map< int8, Item* > bank_items;
+	//	map< int8, Item* > inv_items;
+	//	map< int8, Item* > bank_items;
 	bool  SharedBankAddAllowed(Item* item);
 	vector<Item*>* GetItemsFromBagID(sint32 bag_id);
 	vector<Item*>* GetItemsInBag(Item* bag);
@@ -813,12 +864,12 @@ public:
 	bool  HasFreeBagSlot();
 	void DestroyItem(int16 index);
 	Item* CanStack(Item* item, bool include_bank = false);
-	
+
 	void RemoveItem(Item* item, bool delete_item = false);
 	void AddItem(Item* item);
 
 	Item* GetItem(sint32 bag_slot, int16 slot);
-	
+
 	EQ2Packet*	serialize(Player* player, int16 version);
 	uchar* xor_packet;
 	uchar* orig_packet;
@@ -857,7 +908,7 @@ private:
 	int16 packet_count;
 	vector<Item*> overflowItems;
 };
-class EquipmentItemList{
+class EquipmentItemList {
 public:
 	EquipmentItemList();
 	EquipmentItemList(const EquipmentItemList& list);

@@ -646,6 +646,11 @@ public:
 		int16					mitigation_low;
 		int16					mitigation_high;
 	};
+	struct Adornment_Info {
+		float					duration;
+		int16					item_types;
+		int16					slot_type;
+	};
 	struct Weapon_Info {
 		int16					wield_type;
 		int16					damage_low1;
@@ -731,6 +736,7 @@ public:
 	string					description;
 	int8					stack_count;
 	int32					sell_price;
+	int32					sell_status;
 	int32					max_sell_value;
 	bool					save_needed;
 	int8					weapon_type;
@@ -740,6 +746,7 @@ public:
 	vector<ItemStatString*>	item_string_stats;
 	vector<ItemLevelOverride*> item_level_overrides;
 	vector<ItemEffect*>		item_effects;
+	Adornment_Info*			adornment_info;
 	Generic_Info			generic_info;
 	Weapon_Info*			weapon_info;
 	Ranged_Info*			ranged_info;
