@@ -2059,9 +2059,7 @@ int32 World::LoadItemBlueStats()
 		while (result && (row = mysql_fetch_row(result))) {
 			count++;
 
-			if (atoi(row[0]) >= 63137) {
-				ka_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
-			} else if (atoi(row[0]) >= 63119) {
+			if (atoi(row[0]) >= 63119) {
 				ka_itemstat_conversion[atoi(row[2])] = atoi(row[4]);
 			} else if (atoi(row[0]) >= 57101) {
 				tov_itemstat_conversion[atoi(row[2])] = atoi(row[4]);

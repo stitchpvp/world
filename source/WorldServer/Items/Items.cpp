@@ -1401,9 +1401,7 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 		for (int32 i = 0; i < item_stats.size(); i++) {
 			ItemStat* stat = item_stats[i];
 			if (stat->stat_type == 6) {		//Convert stats to proper client
-				if (client->GetVersion() >= 63137) {  //TEST
-					tmp_subtype = stat->stat_subtype;
-				} else if (client->GetVersion() >= 63119) {  //KA
+				if (client->GetVersion() >= 63119) {  //KA
 					tmp_subtype = world.GetItemStatKAValue(stat->stat_subtype);
 				} else if (client->GetVersion() >= 57107) { //TOV
 					tmp_subtype = world.GetItemStatTOVValue(stat->stat_subtype);
