@@ -1467,11 +1467,23 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 				packet->setArrayDataByName("value", (sint16)stat->value, i);
 		}
 	}
-	if(item_string_stats.size() > 0){
-		packet->setSubstructArrayLengthByName("header_info", "stat_string_count", item_string_stats.size());
-		for(int32 i=0;i<item_string_stats.size();i++){
-			ItemStatString* stat = item_string_stats[i];
-			packet->setArrayDataByName("stat_string", &(stat->stat_string), i);
+	if (item_string_stats.size() > 0) {
+		if (client->GetVersion() >= 63119) {
+			packet->setSubstructArrayLengthByName("header_info", "mod_count", item_string_stats.size());
+			for (int32 i = 0; i < item_string_stats.size(); i++) {
+				ItemStatString* stat = item_string_stats[i];
+				packet->setArrayDataByName("mod_string", &(stat->stat_string), i);
+				packet->setArrayDataByName("mod_need", 0, i);
+			}
+		}
+
+		else if (client->GetVersion() >= 1096) {
+			packet->setSubstructArrayLengthByName("header_info", "stat_string_count", item_string_stats.size());
+			for (int32 i = 0; i < item_string_stats.size(); i++) {
+				ItemStatString* stat = item_string_stats[i];
+				packet->setArrayDataByName("stat_string", &(stat->stat_string), i);
+
+			}
 		}
 	}
 	if(!loot_item && item_effects.size() > 0){
