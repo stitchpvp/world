@@ -1568,23 +1568,23 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 			if (client->GetVersion() >= 63119) {
 				if (stat->stat_type == 6) {
 					packet->setArrayDataByName("value", stat->value, i - dropstat);//63119 or when diety started (this is actually the modified stat
-					//packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value (this is the unmodified stat
+					packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value (this is the unmodified stat
 				} else {
 					packet->setArrayDataByName("value", (sint16)stat->value, i - dropstat, 0U, true);
-					//packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
+					packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
 				}
 			} else if (client->GetVersion() >= 1028) {
 				if (stat->stat_type == 6) {
 					packet->setArrayDataByName("value", stat->value, i - dropstat);//63119 or when diety started (this is actually the infused modified stat
-					//packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value (this is the unmodified stat
+					packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value (this is the unmodified stat
 				} else {
 					packet->setArrayDataByName("value", (sint16)stat->value, i - dropstat, 0U, true);
-					//packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
+					packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
 				}
 
 			} else {
 				packet->setArrayDataByName("value", (sint16)stat->value, i - dropstat);
-				//packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
+				packet->setArrayDataByName("value2", stat->value, i - dropstat);//63119 temp will be replace by modified value
 			}
 		}
 	}
