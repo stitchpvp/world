@@ -5514,8 +5514,10 @@ void Client::SendBuyMerchantList(bool sell){
 					packet->setArrayDataByName("quantity", ItemInfo.quantity, i);
 					packet->setArrayDataByName("unknown5", 255, i);
 					packet->setArrayDataByName("stack_size2", item->stack_count, i);
-					packet->setArrayDataByName("description", item->description.c_str(), i);
 
+					if (GetVersion() <= 1096)
+						packet->setArrayDataByName("description", item->description.c_str(), i);
+					
 					// If no price set in the merchant_inventory table then use the old method
 					if (ItemInfo.price_item_id == 0 && ItemInfo.price_item2_id == 0 && ItemInfo.price_coins == 0 && ItemInfo.price_status == 0 && ItemInfo.price_stationcash == 0) {
 						sell_price = (int32)(item->sell_price * multiplier);
