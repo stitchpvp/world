@@ -1894,7 +1894,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_LOOT_CORPSE:
 		case COMMAND_LOOT:{
 			Spawn* target = client->GetPlayer()->GetTarget();
-			if(target && target->IsEntity()){
+			if(target && target->IsEntity() && target->GetHP() == 0){
 				if (target->GetDistance(client->GetPlayer()) <= 10){
 					client->Loot((Entity*)target);
 					if (!((Entity*)target)->HasLoot()){
@@ -1905,7 +1905,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				else
 					client->Message(CHANNEL_COLOR_YELLOW, "You are too far away to interact with that");
 			}
-			else if(!target || target->GetHP() > 0)
+			else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Invalid target.");
 			break;
 						  }
