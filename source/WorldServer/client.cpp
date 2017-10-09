@@ -2182,28 +2182,27 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 	//DumpPacket(app);
 
 	int8 type = app->pBuffer[0];
-	if(type == 3){
+	if (type == 3) {
 		Spell* spell = 0;
 		bool trait_display;
-		request = configReader.getStruct("WS_ExamineInfoRequest", GetVersion());
-		if(!request) {
-					return;
+		request = configReader.getStruct("WS_ExamineInfoRequest_type3", GetVersion());
+		if (!request) {
+			return;
 		}
 		request->LoadPacketData(app->pBuffer, app->size);
 		int32 id = request->getType_int32_ByName("id");
-		int32 tier = request->getType_int32_ByName("unique_id");
-		int32 trait_tier = request->getType_int32_ByName("unknown_id");
+		int32 tier = request->getType_int32_ByName("tier");
+		int32 trait_tier = request->getType_int32_ByName("trait_tier");
 		//printf("Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)\n",type,tier,trait_tier,id);
-		if (trait_tier != 0xFFFFFFFF){
+		if (trait_tier != 0xFFFFFFFF) {
 			spell = master_spell_list.GetSpell(id, trait_tier);
 			trait_display = true;
-		}
-		else{
+		} else {
 			spell = master_spell_list.GetSpell(id, tier);
 			trait_display = false;
 		}
 
-		if(spell && sent_spell_details.count(id) == 0){
+		if (spell && sent_spell_details.count(id) == 0) {
 			sent_spell_details[id] = true;
 			EQ2Packet* app = spell->SerializeSpell(this, false, trait_display);
 			//DumpPacket(app);
