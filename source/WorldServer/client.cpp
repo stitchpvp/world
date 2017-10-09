@@ -5645,7 +5645,9 @@ void Client::SendSellMerchantList(bool sell){
 					else
 						packet->setArrayDataByName("quantity", item->details.count, i);
 					packet->setArrayDataByName("stack_size2", item->details.count, i);
-					packet->setArrayDataByName("description", item->description.c_str(), i);
+					if (GetVersion() <= 1096) {
+						packet->setArrayDataByName("description", item->description.c_str(), i);
+					}
 				}
 				if (sell)
 					packet->setDataByName("type", 129);
