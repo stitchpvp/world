@@ -87,11 +87,6 @@ NPC::NPC(NPC* old_npc){
 		SetRandomize(old_npc->GetRandomize());	
 		if(appearance.randomize > 0)
 			Randomize(this, appearance.randomize);
-		CalculateBonuses();	
-		SetHP(GetTotalHP());
-		SetPower(GetTotalPower());
-		ChangePrimaryWeapon();
-		ChangeSecondaryWeapon();
 	}
 }
 
@@ -854,8 +849,13 @@ void NPC::SetZone(ZoneServer* in_zone) {
 	Spawn::SetZone(in_zone);
 	if (in_zone){
 		GetZone()->SetNPCEquipment(this);
-		ChangePrimaryWeapon();
 		SetSkills(GetZone()->GetNPCSkills(primary_skill_list, secondary_skill_list));
 		SetSpells(GetZone()->GetNPCSpells(primary_spell_list, secondary_spell_list));
+
+		CalculateBonuses();
+		SetHP(GetTotalHP());
+		SetPower(GetTotalPower());
+		ChangePrimaryWeapon();
+		ChangeSecondaryWeapon();
 	}
 }
