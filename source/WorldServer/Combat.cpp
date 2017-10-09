@@ -630,7 +630,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 
 
 	Entity* entity_victim = (Entity*)victim;
-	float chance = 80 + bonus; //80% base chance that the victim will get hit (plus bonus)
+	float chance = 90 + bonus; // 90% base chance that the victim will get hit (plus bonus)
 	sint16 roll_chance = 100;
 	if(skill)
 		roll_chance -= skill->current_val / 25;
@@ -640,10 +640,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 		if(skill)
 			roll_chance -= skill->current_val / 25;
 
-		skill = entity_victim->GetSkillByName("Defense", true);
-		if(skill)
-			chance -= skill->current_val / 25;
-		if(rand()%roll_chance >= (chance - entity_victim->GetAgi()/50)){
+		if(rand()%roll_chance >= (chance - entity_victim->GetAgi()/125)){
 			entity_victim->CheckProcs(PROC_TYPE_EVADE, this);
 			return DAMAGE_PACKET_RESULT_DODGE;//successfully dodged
 		}
