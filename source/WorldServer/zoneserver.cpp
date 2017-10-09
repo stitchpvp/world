@@ -4684,6 +4684,20 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(Client* client){
 	packet->setDataByName("unknown3", 2094661567, 1);			// Screenshots allowed with this value
 	//packet->setDataByName("unknown3", 3815767999, 1);			// Screenshots disabled with this value
 	packet->setDataByName("unknown3", 1, 2);
+
+	if (client->GetVersion() <= 63181){
+		packet->setDataByName("unknown3", 872447025, 0);//63181 
+		packet->setDataByName("unknown3", 3085434875, 1);// 63181 
+		packet->setDataByName("unknown3", 2147483633, 2);// 63181 
+	}
+	else{
+		packet->setDataByName("unknown3a", 73821356);//63182 
+		packet->setDataByName("unknown3b", 3991404383);// 63182
+		packet->setDataByName("unknown3c", 4278189967);// 63182
+		packet->setDataByName("unknown2a", 8);// 63182
+		packet->setDataByName("unknown2b", 8);// 63182
+	}
+
 	//packet->setDataByName("unknown5", 100798094);
 	packet->setDataByName("unknown5", 50859661);
 	packet->setDataByName("unknown6", 19);
