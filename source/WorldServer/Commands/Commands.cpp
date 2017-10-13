@@ -7445,13 +7445,10 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 
 	Seperator* sep2 = new Seperator(command_parms->data.c_str(), ' ', 50, 500, true);
-	if (sep2 && sep2->arg[0] && sep2->IsNumber(0)) {
-		client->SetPendingFlightPath(atoi(sep2->arg[0]));
-		PacketStruct* packet = configReader.getStruct("WS_ReadyForTakeOff", client->GetVersion());
-		if (packet) {
-			client->QueuePacket(packet->serialize());
-			safe_delete(packet);
-		}
+	if (sep2 && sep2->arg[0] && sep2->IsNumber(0) && sep2->arg[1] && sep2->IsNumber(1)) {
+		Spell* spell = master_spell_list.GetSpell(atoi(sep2->arg[0]), 1);
+		client->GetPlayer()->SetSpellStatus(spell, atoi(sep2->arg[1]));
+		client->GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(client);
 	}
 
 	//uchar blah[] = {

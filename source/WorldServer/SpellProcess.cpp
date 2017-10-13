@@ -1254,6 +1254,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 		if (spell->targets.size() == 0) {
 			spell->caster->GetZone()->SendSpellFailedPacket(client, SPELL_ERROR_NO_TARGETS_IN_RANGE);
+			UnlockAllSpells(client);
 			return false;
 		}
 	}
