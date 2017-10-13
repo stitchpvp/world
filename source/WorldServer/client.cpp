@@ -1227,6 +1227,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				SetReadyForSpawns(true);
 			SendCharInfo();
 			pos_update.Start();
+			spawn_vis_update.Start(1000);
 			quest_pos_timer.Start();
 			break;
 											  }
@@ -2420,6 +2421,10 @@ bool Client::Process(bool zone_process) {
 		GetCurrentZone()->SendPlayerPositionChanges(GetPlayer());
 		player_pos_changed = false;
 		GetCurrentZone()->CheckTransporters(this);
+	}
+	if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
+		GetCurrentZone()->ResendSpawns(this);
+		GetPlayer()->SetResendSpawns(false);
 	}
 	if(lua_interface && lua_debug && lua_debug_timer.Check())
 		lua_interface->UpdateDebugClients(this);

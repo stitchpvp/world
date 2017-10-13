@@ -447,6 +447,7 @@ private:
 	bool	firstlogin;
 	bool	new_client_login;
 	Timer	pos_update;
+	Timer   spawn_vis_update;
 	Timer	quest_pos_timer;
 	Timer	lua_debug_timer;
 	bool	player_pos_changed;

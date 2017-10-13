@@ -145,6 +145,9 @@ struct PositionData{
 	float			SpawnOrigHeading;
 	float           SpawnOrigPitch;
 	float           SpawnOrigRoll;
+	float			SpeedX;
+	float			SpeedY;
+	float			SpeedZ;
 	int16			collision_radius;
 	int16			state;
 };

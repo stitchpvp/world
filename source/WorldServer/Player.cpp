@@ -59,6 +59,7 @@ Player::Player(){
 	old_movement_packet = 0;
 	charsheet_changed = false;
 	quickbar_updated = false;
+	should_resend_spawns = false;
 	spawn_tmp_vis_xor_packet = 0;
 	spawn_tmp_pos_xor_packet = 0;
 	spawn_tmp_info_xor_packet = 0;
@@ -2388,6 +2389,9 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 	float x;			// = update->getType_float_ByName("x");;
 	float y;			// = update->getType_float_ByName("y");;
 	float z;			// = update->getType_float_ByName("z");;
+	float x_speed;
+	float y_speed;
+	float z_speed;
 
 	// comment out this if/else if/else block if you use xml structs
 	if (version >= 1144) {
@@ -2400,6 +2404,9 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		x = update->x;
 		y = update->y;
 		z = update->z;
+		x_speed = update->speed_x;
+		y_speed = update->speed_y;
+		z_speed = update->speed_z;
 	}
 	else if (version >= 1096) {
 		Player_Update1096* update = (Player_Update1096*)movement_packet;
@@ -2434,6 +2441,20 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 			GetZone()->AddDrowningVictim(this);
 
 		last_movement_activity = activity;
+	}
+
+	if (activity == UPDATE_ACTIVITY_JUMPING) {
+		if (y_speed < 0 && GetTempVisualState() != 290) {
+			SetTempVisualState(290);
+		} else if (GetTempVisualState() != 11758 && (x_speed != 0 || y_speed != 0)) {
+			SetTempVisualState(11758);
+		} else if (GetTempVisualState() != 11757) {
+			SetTempVisualState(11757);
+		}
+	} else if (activity == UPDATE_ACTIVITY_FALLING && GetTempVisualState() != 290) {
+		SetTempVisualState(290);
+	} else if (GetTempVisualState() != 0) {
+		SetTempVisualState(0);
 	}
 
 	//Player is riding a lift, update lift XYZ offsets and the lift's spawn pointer
@@ -2476,6 +2497,10 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		SetX(x);
 		SetY(y);
 		SetZ(z);
+		SetSpeedX(x_speed);
+		SetSpeedY(y_speed);
+		SetSpeedZ(z_speed);
+
 		pos_packet_speed = speed;
 	}
 
@@ -2499,7 +2524,6 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 	// don't have to uncomment the print packet but you MUST uncomment the safe_delete() for xml structs
 	//update->PrintPacket();
 	//safe_delete(update);
-
 	LogWrite(PLAYER__DEBUG, 7, "Player", "Exit: %s", __FUNCTION__); // trace
 }
 

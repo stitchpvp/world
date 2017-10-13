@@ -305,6 +305,15 @@ public:
 	void SetSize(int16 new_size, bool updateFlags = true) { 
 		SetPos(&size, new_size, updateFlags); 
 	}
+	void SetSpeedX(float speed_x, bool updateFlags = true) {
+		SetPos(&appearance.pos.SpeedX, speed_x, updateFlags);
+	}
+	void SetSpeedY(float speed_y, bool updateFlags = true) {
+		SetPos(&appearance.pos.SpeedX, speed_y, updateFlags);
+	}
+	void SetSpeedZ(float speed_z, bool updateFlags = true) {
+		SetPos(&appearance.pos.SpeedX, speed_z, updateFlags);
+	}
 	void SetX(float x, bool updateFlags = true){ 
 		SetPos(&appearance.pos.X, x, updateFlags); 
 	}
@@ -517,6 +526,15 @@ public:
 	}
 	float GetX(){ 
 		return appearance.pos.X; 
+	}
+	float GetSpeedX() {
+		return appearance.pos.SpeedX;
+	}
+	float GetSpeedY() {
+		return appearance.pos.SpeedY;
+	}
+	float GetSpeedZ() {
+		return appearance.pos.SpeedZ;
 	}
 	float GetDestinationY(){
 		return appearance.pos.Y2;

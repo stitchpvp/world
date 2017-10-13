@@ -1021,8 +1021,9 @@ void ZoneServer::CheckSpawnRange(Client* client, Spawn* spawn, bool initial_logi
 			if(spawn_range_map.count(client) == 0)
 				spawn_range_map.Put(client, new MutexMap<int32, float >());
 			spawn_range_map.Get(client)->Put(spawn->GetID(), spawn->GetDistance(client->GetPlayer()));
-			if(!initial_login && client && spawn->IsNPC() && spawn_range_map.Get(client)->Get(spawn->GetID()) <= ((NPC*)spawn)->GetAggroRadius() && !client->GetPlayer()->GetInvulnerable())
+			if (!initial_login && client && spawn->IsNPC() && spawn_range_map.Get(client)->Get(spawn->GetID()) <= ((NPC*)spawn)->GetAggroRadius() && !client->GetPlayer()->GetInvulnerable()) {
 				CheckNPCAttacks((NPC*)spawn, client->GetPlayer(), client);
+			}
 		} 
 
 		if(!initial_login && player_proximities.size() > 0 && player_proximities.count(spawn->GetID()) > 0)
@@ -1037,8 +1038,9 @@ void ZoneServer::CheckSpawnRange(Spawn* spawn){
 	MClientList.readlock(__FUNCTION__, __LINE__);
 	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 		client = *client_itr;
-		if(client && client->IsReadyForSpawns())
+		if (client && client->IsReadyForSpawns()) {
 			CheckSpawnRange(client, spawn);
+		}
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
@@ -1113,8 +1115,9 @@ void ZoneServer::CheckSendSpawnToClient(){
 	MClientList.readlock(__FUNCTION__, __LINE__);
 	for (itr = clients.begin(); itr != clients.end(); itr++) {
 		client = *itr;
-		if(client->IsReadyForSpawns())
+		if (client->IsReadyForSpawns()) {
 			CheckSendSpawnToClient(client);
+		}
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
@@ -1136,7 +1139,7 @@ void ZoneServer::CheckRemoveSpawnFromClient(Spawn* spawn) {
 			}
 
 			if (spawn && spawn != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && client->GetPlayer()->WasSpawnRemoved(spawn) == false) {
-			  if ((spawn_range_map.Get(client)->Get(spawn->GetID()) > REMOVE_SPAWN_DISTANCE && !spawn->IsWidget())) {
+				if (spawn_range_map.Get(client)->Get(spawn->GetID()) > REMOVE_SPAWN_DISTANCE && !spawn->IsWidget()) {
 					SendRemoveSpawn(client, spawn, packet);
 				}
 			}
@@ -1452,8 +1455,6 @@ bool ZoneServer::SpawnProcess(){
 	MMasterSpawnLock.writelock(__FUNCTION__, __LINE__);
 	// If the zone is loading data or shutting down don't do anything
 	if(!LoadingData && !zoneShuttingDown && !reloading_spellprocess) {
-
-
 		// send spawn changes, changed_spawns loop
 		if(spawn_update.Check() && !zoneShuttingDown) { //check for changed spawns every {Rule:SpawnUpdateTimer} milliseconds (default: 200ms)
 			SendSpawnChanges();
@@ -1698,11 +1699,17 @@ void ZoneServer::SendSpawnVisualState(Spawn* spawn, int16 type){
 }
 
 void ZoneServer::ResendSpawns(Client* client) {
-	map<int16, Spawn *>::iterator iter;
-	Player* player = client->GetPlayer();
+	Spawn* spawn = 0;
 
-	for (iter = player->player_spawn_map.begin(); iter != player->player_spawn_map.end(); iter++) {
-		SendSpawnChanges(iter->second, client, true);
+	if (spawn_range_map.count(client) > 0) {
+		MutexMap<int32, float >::iterator itr = spawn_range_map.Get(client)->begin();
+
+		while (itr.Next()) {
+			spawn = GetSpawnByID(itr->first);
+			if (spawn && client->GetPlayer()->GetFactions()->ShouldAttack(spawn->GetFactionID())) {
+				SendSpawnChanges(spawn, client, false, true);
+			}
+		}
 	}
 }
 

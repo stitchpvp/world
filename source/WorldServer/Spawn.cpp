@@ -1335,6 +1335,17 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 			packet->setDataByName("pos_x", appearance.pos.X);
 			packet->setDataByName("pos_y", appearance.pos.Y);
 			packet->setDataByName("pos_z", appearance.pos.Z);
+
+			if (IsPlayer()) {
+				if (GetSpeedX() > 0)
+					packet->setDataByName("pos_next_x", appearance.pos.X + (GetSpeedX() * 2.5));
+
+				if (GetSpeedY() > 0)
+					packet->setDataByName("pos_next_y", appearance.pos.Y + (GetSpeedY() * 2.5));
+
+				if (GetSpeedZ() > 0)
+					packet->setDataByName("pos_next_z", appearance.pos.Z + (GetSpeedZ() * 2.5));
+			}
 		}
 		if (IsSign())
 			packet->setDataByName("pos_unknown6", 3, 2);

@@ -804,6 +804,9 @@ public:
 	int16 GetFame();
 	void SetFame(sint16 value);
 
+	void SetResendSpawns(bool val) { should_resend_spawns = val; return;  }
+	bool GetResendSpawns() { return should_resend_spawns; }
+
 private:
 	bool range_attack;
 	int16 last_movement_activity;
@@ -823,6 +826,7 @@ private:
 	map<int32, Quest*>	completed_quests;
 	map<Spawn*, int8>	player_removed_spawns;
 	bool				charsheet_changed;
+	bool				should_resend_spawns;
 	map<int32, string>	spawn_vis_packet_list;
 	map<int32, string>	spawn_info_packet_list;
 	map<int32, string>	spawn_pos_packet_list;
