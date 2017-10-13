@@ -886,7 +886,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("breathe_underwater", info_struct->breathe_underwater);
 		packet->setDataByName("drunk", info_struct->drunk);
 
-
+		packet->setDataByName("unknown131a", -40);
+		packet->setDataByName("unknown373", -40);
 
 		
 		int32 expireTimestamp = 0;

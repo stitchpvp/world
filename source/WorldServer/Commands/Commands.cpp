@@ -1567,7 +1567,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					control_packet->setDataByName("spawn_id", 0xFFFFFFFF);
 					control_packet->setDataByName("speed", client->GetPlayer()->GetSpeed());
 					control_packet->setDataByName("air_speed", client->GetPlayer()->GetAirSpeed());
-					control_packet->setDataByName("size", 0.8);
+					control_packet->setDataByName("size", 0.2);
 					client->QueuePacket(control_packet->serialize());
 					safe_delete(control_packet);
 				}
@@ -7451,10 +7451,44 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 
 	Seperator* sep2 = new Seperator(command_parms->data.c_str(), ' ', 50, 500, true);
-	if (sep2 && sep2->arg[0] && sep2->IsNumber(0) && sep2->arg[1] && sep2->IsNumber(1)) {
-		Spell* spell = master_spell_list.GetSpell(atoi(sep2->arg[0]), 1);
+	if (client->GetPlayer()->GetTarget()) {
+		int spawn_id = client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()->GetTarget());
+
+		PacketStruct* packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
+		if (packet) {
+			packet->setDataByName("spawn_id", 0xFFFFFFFF);
+			packet->setDataByName("unknown2", 255);
+			client->QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
+
+		packet = configReader.getStruct("WS_SetPOVGhostCmd", client->GetVersion());
+		if (packet) {
+			packet->setDataByName("spawn_id", 0xFFFFFFFF);
+			client->QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
+
+		packet = configReader.getStruct("WS_SetPOVGhostCmd", client->GetVersion());
+		if (packet) {
+			packet->setDataByName("spawn_id", spawn_id);
+			EQ2Packet* app_pov = packet->serialize();
+			client->QueuePacket(app_pov);
+			safe_delete(packet);
+		}
+
+		packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
+		if (packet) {
+			packet->setDataByName("spawn_id", spawn_id);
+			packet->setDataByName("size", 0.56);
+			packet->setDataByName("unknown2", 255);
+			EQ2Packet* app = packet->serialize();
+			client->QueuePacket(app);
+			safe_delete(packet);
+		}
+		/*Spell* spell = master_spell_list.GetSpell(atoi(sep2->arg[0]), 1);
 		client->GetPlayer()->SetSpellStatus(spell, atoi(sep2->arg[1]));
-		client->GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(client);
+		client->GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(client);*/
 	}
 
 	//uchar blah[] = {
