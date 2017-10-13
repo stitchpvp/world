@@ -5837,7 +5837,17 @@ vector<Spawn*> ZoneServer::GetAttackableSpawnsByDistance(Spawn* caster, float di
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
-		if (spawn && ((spawn->IsNPC() && spawn->appearance.attackable > 0) || (spawn->IsPlayer() && ((Player*)caster)->CanAttackTarget((Player*)spawn))) && spawn != caster && spawn->Alive() && spawn->GetDistance(caster, true) <= distance)
+
+		if (!spawn || !spawn->Alive() || spawn == caster)
+			continue;
+
+		if (spawn->IsPet() && ((NPC*)spawn)->GetOwner() && ((NPC*)spawn)->GetOwner() == caster)
+			continue;
+
+		if (caster->IsPet() && ((NPC*)caster)->GetOwner() && ((NPC*)caster)->GetOwner() == ((NPC*)spawn))
+			continue;
+
+		if ((spawn->IsNPC() && spawn->appearance.attackable > 0) || (spawn->IsPlayer() && ((Player*)caster)->CanAttackTarget((Player*)spawn)) && spawn->GetDistance(caster, true) <= distance)
 			ret.push_back(spawn);
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
