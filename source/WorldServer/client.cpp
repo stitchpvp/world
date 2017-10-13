@@ -5760,7 +5760,10 @@ void Client::SendRepairList() {
 				else
 					packet->setArrayDataByName("quantity", item->details.count, i);
 				packet->setArrayDataByName("stack_size2", item->details.count, i);
-				packet->setArrayDataByName("description", item->description.c_str(), i);
+
+				if (GetVersion() <= 1096) {
+					packet->setArrayDataByName("description", item->description.c_str(), i);
+				}
 			}
 			packet->setDataByName("type", 96);
 			EQ2Packet* outapp = packet->serialize();
