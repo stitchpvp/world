@@ -186,7 +186,7 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 
 			vis_packet->setDataByName("arrow_color", arrow_color);
 			vis_packet->setDataByName("locked_no_loot", appearance.locked_no_loot);
-			if (IsNPC() && player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY)
+			if (IsNPC() && player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY || player->IsStealthed() || player->IsInvis())
 				if (npc_con == -4)
 					npc_con = -3;
 			vis_packet->setDataByName("npc_con", npc_con);

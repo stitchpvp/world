@@ -267,6 +267,7 @@ public:
 	Spawn*	FindSpawn(Player* searcher, const char* name);
 	void	CallSpawnScript(Spawn* npc, int8 type, Spawn* spawn = 0, const char* message = 0);
 	void	SendSpawnVisualState(Spawn* spawn, int16 type);
+	void    ResendSpawns(Client * client);
 	void	SendSpellFailedPacket(Client* client, int16 error);
 	void	SendInterruptPacket(Spawn* interrupted, LuaSpell* spell);
 	void	HandleEmote(Client* originator, string name);

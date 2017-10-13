@@ -794,8 +794,8 @@ bool ZoneServer::CheckNPCAttacks(NPC* npc, Spawn* victim, Client* client){
 		return true;
 
 	if(client){
-		if(client->IsConnected() && client->GetPlayer()->GetFactions()->ShouldAttack(npc->GetFactionID()) && npc->AttackAllowed((Entity*)victim, false)){
-			if(!npc->EngagedInCombat() && client->GetPlayer()->GetArrowColor(npc->GetLevel()) != ARROW_COLOR_GRAY){
+		if(client->IsConnected() && client->GetPlayer()->GetFactions()->ShouldAttack(npc->GetFactionID()) && npc->AttackAllowed((Entity*)victim, false)) {
+			if(!npc->EngagedInCombat() && client->GetPlayer()->GetArrowColor(npc->GetLevel()) != ARROW_COLOR_GRAY && !client->GetPlayer()->IsStealthed()) {
 				if(victim->IsEntity()) {
 					if (npc->HasSpawnGroup()) {
 						vector<Spawn*>* groupVec = npc->GetSpawnGroup();
@@ -1695,6 +1695,15 @@ void ZoneServer::SendSpawnVisualState(Spawn* spawn, int16 type){
 			AddChangedSpawn(spawn);
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
+void ZoneServer::ResendSpawns(Client* client) {
+	map<int16, Spawn *>::iterator iter;
+	Player* player = client->GetPlayer();
+
+	for (iter = player->player_spawn_map.begin(); iter != player->player_spawn_map.end(); iter++) {
+		SendSpawnChanges(iter->second, client, true);
+	}
 }
 
 void ZoneServer::SendSpawnChanges(int32 spawn_id, Client* client, bool override_changes, bool override_vis_changes){
