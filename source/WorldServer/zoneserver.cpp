@@ -1708,6 +1708,7 @@ void ZoneServer::ResendSpawns(Client* client) {
 			spawn = GetSpawnByID(itr->first);
 			if (spawn && client->GetPlayer()->GetFactions()->ShouldAttack(spawn->GetFactionID())) {
 				SendSpawnChanges(spawn, client, false, true);
+				Sleep(5);
 			}
 		}
 	}
@@ -3828,6 +3829,19 @@ void ZoneServer::StartZoneSpawnsForLevelThread(Client* client){
 #else
 	pthread_t thread;
 	pthread_create(&thread, NULL, SendLevelChangedSpawns, client);
+	pthread_detach(thread);
+#endif
+}
+
+void ZoneServer::StartZoneSpawnsForAggroThread(Client* client) {
+	if (zoneShuttingDown)
+		return;
+
+#ifdef WIN32
+	_beginthread(SendAggroChangedSpawns, 0, client);
+#else
+	pthread_t thread;
+	pthread_create(&thread, NULL, SendAggroChangedSpawns, client);
 	pthread_detach(thread);
 #endif
 }
@@ -6128,6 +6142,19 @@ ThreadReturnType SendLevelChangedSpawns(void* tmp) {
 	}
 	Client* client = (Client*)tmp;
 	client->GetCurrentZone()->SendAllSpawnsForLevelChange(client);
+	THREAD_RETURN(NULL);
+}
+
+ThreadReturnType SendAggroChangedSpawns(void* tmp) {
+#ifdef WIN32
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+#endif
+	if (tmp == 0) {
+		ThrowError("SendAggroChangedSpawns(): tmp = 0!");
+		THREAD_RETURN(NULL);
+	}
+	Client* client = (Client*)tmp;
+	client->GetCurrentZone()->ResendSpawns(client);
 	THREAD_RETURN(NULL);
 }
 

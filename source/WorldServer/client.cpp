@@ -2423,7 +2423,7 @@ bool Client::Process(bool zone_process) {
 		GetCurrentZone()->CheckTransporters(this);
 	}
 	if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
-		GetCurrentZone()->ResendSpawns(this);
+		GetCurrentZone()->StartZoneSpawnsForAggroThread(this);
 		GetPlayer()->SetResendSpawns(false);
 	}
 	if(lua_interface && lua_debug && lua_debug_timer.Check())

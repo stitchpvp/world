@@ -162,11 +162,13 @@ struct LocationTransportDestination;
 	void SpawnLoop(void *tmp);
 	void SendInitialSpawns(void *tmp);
 	void SendLevelChangedSpawns(void*tmp);
+	void SendAggroChangedSpawns(void*tmp);
 #else
 	void *ZoneLoop(void *tmp);
 	void *SpawnLoop(void *tmp);
 	void *SendInitialSpawns(void *tmp);
 	void *SendLevelChangedSpawns(void *tmp);
+	void *SendAggroChangedSpawns(void *tmp);
 #endif
 using namespace std;
 struct RevivePoint{
@@ -387,6 +389,7 @@ public:
 	vector<Spawn*> GetAttackableSpawnsByDistance(Spawn* spawn, float distance);
 
 	void StartZoneSpawnsForLevelThread(Client* client);
+	void StartZoneSpawnsForAggroThread(Client* client);
 
     void SendDispellPacket(Entity* caster, Spawn* target, string dispell_name, string spell_name, int8 dispell_type);
 
