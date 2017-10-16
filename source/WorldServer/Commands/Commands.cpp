@@ -2758,20 +2758,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				{
 					if(target->GetSpawnLocationPlacementID() > 0)
 					{
-						if(sep->arg[1] && !sep->IsNumber(1) && strlen(sep->arg[1]) > 0)
-						{
-							int32 id = database.CreateSpawnGroup(target, sep->arg[1]);
+						int32 id = database.CreateSpawnGroup(target, "");
 
-							if(id > 0)
-								client->Message(CHANNEL_COLOR_YELLOW, "Successfully created new spawn group with id: %u", id);
-							else
-								client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Error creating group, check console for details.");
-
-							target->SetSpawnGroupID(id);
-							target->AddSpawnToGroup(target);
-						}
+						if(id > 0)
+							client->Message(CHANNEL_COLOR_YELLOW, "Successfully created new spawn group with id: %u", id);
 						else
-							client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Syntax: /spawn group create [name]");
+							client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Error creating group, check console for details.");
+
+						target->SetSpawnGroupID(id);
+						target->AddSpawnToGroup(target);
 					}
 					else
 						client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Could not use spawn to create a new group.  Likely cause would be a newly spawned spawn that did not exist when /reload spawns was last used.");
