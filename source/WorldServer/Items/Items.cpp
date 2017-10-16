@@ -3271,6 +3271,8 @@ ItemStatsValues* EquipmentItemList::CalculateEquipmentBonuses(Entity* entity) {
 	MEquipmentItems.lock();
 	for (int8 i = 0; i<NUM_SLOTS; i++) {
 		if (items[i] && items[i]->details.item_id > 0) {
+			if (items[i]->generic_info.condition == 0) continue;
+
 			master_item_list.CalculateItemBonuses(items[i], entity, stats);
 			if (items[i]->armor_info && !items[i]->IsShield())
 				entity->GetInfoStruct()->mitigation_base += items[i]->armor_info->mitigation_high;
