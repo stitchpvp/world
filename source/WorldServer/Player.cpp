@@ -838,7 +838,13 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 			packet->setDataByName("ranged_delay", (float)player->GetRangeWeaponDelay() * .001);
 		}
 		packet->setDataByName("crit_success_mod", 9.5);
-		packet->setDataByName("ability_mod", info_struct->ability_modifier);
+
+		if (version >= 1193) {
+			packet->setDataByName("ability_mod_pve", info_struct->ability_modifier);
+		} else {
+			packet->setDataByName("ability_mod", info_struct->ability_modifier);
+		}
+
 		packet->setDataByName("unknown199a", 25);
 		packet->setDataByName("unknown199b", 30);
 		packet->setDataByName("unknown199c", 45);
