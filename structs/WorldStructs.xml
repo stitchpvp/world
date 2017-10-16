@@ -26968,6 +26968,48 @@ to zero and treated like placeholders." />
 <Data ElementName="behavior" Type="int8" Size="1" />
 <Data ElementName="unknown6" Type="int8" Size="1" /> <!--First byte may be range and melee toggle-->
 </Struct>
+<Struct Name="WS_CharacterPet" ClientVersion="63195" OpcodeName="OP_CharacterPet">
+<!-- values may mimic the merc packet -->
+<!-- first 3 elements are class -->
+<Data ElementName="class1" Type="int32" Size="1" />
+<Data ElementName="class2" Type="int32" Size="1" />
+<Data ElementName="class3" Type="int32" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="5" />
+<!-- guessed on these -->
+<Data ElementName="current_power" Type="int32" Size="1" />
+<Data ElementName="current_power2" Type="int32" Size="1" />
+<Data ElementName="max_power" Type="int32" Size="1" />
+<Data ElementName="max_power2" Type="int32" Size="1" />
+<Data ElementName="base_power" Type="int32" Size="1" />
+<Data ElementName="base_power2" Type="int32" Size="1" />
+<Data ElementName="current_hp" Type="int32" Size="1" />
+<Data ElementName="current_hp2" Type="int32" Size="1" />
+<Data ElementName="max_hp" Type="int32" Size="1" />
+<Data ElementName="max_hp2" Type="int32" Size="1" />
+<Data ElementName="base_hp" Type="int32" Size="1" />  
+<Data ElementName="base_hp2" Type="int32" Size="1" /> 
+<Data ElementName="unknown1a" Type="int32" Size="1" /> 
+<Data ElementName="unknown1b" Type="int32" Size="1" /> 
+<Data ElementName="unknown1c" Type="int32" Size="1" /> 
+<Data ElementName="current_power3" Type="int32" Size="1" /> 
+<Data ElementName="max_power3" Type="int32" Size="1" /> 
+<Data ElementName="unknown1f" Type="int32" Size="1" /> 
+<Data ElementName="unknown2" Type="int8" Size="1568" />
+<Data ElementName="spawn_id" Type="int32" Size="1" />
+<Data ElementName="spawn_id2" Type="int32" Size="1" />
+<Data ElementName="name" Type="char" Size="32" />
+<Data ElementName="unknown3" Type="int8" Size="9" />
+<Data ElementName="no_pet" Type="char" Size="32" />
+<Data ElementName="unknown3a" Type="int8" Size="9" />
+<Data ElementName="health_pct_tooltip" Type="double" Size="1" />
+<Data ElementName="health_pct_bar" Type="double" Size="1" />
+<Data ElementName="power_pct_tooltip" Type="float" Size="1" />
+<Data ElementName="power_pct_bar" Type="float" Size="1" />
+<Data ElementName="unknown5" Type="int8" Size="1" />
+<Data ElementName="movement" Type="int8" Size="1" />
+<Data ElementName="behavior" Type="int8" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="1" /> <!--First byte may be range and melee toggle-->
+</Struct>
 <Struct Name="WS_ClearForTakeOff" ClientVersion="1" OpcodeName="OP_ClearForTakeOffMsg">
 <Data ElementName="spawn_id" Type="int32" />
 <Data ElementName="path_id" Type="int8" />
