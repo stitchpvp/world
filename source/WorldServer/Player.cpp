@@ -1727,7 +1727,8 @@ void Player::UnlockAllSpells(bool modify_recast) {
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
 	for (itr = spells.begin(); itr != spells.end(); itr++) {
 		if ((*itr)->type != SPELL_BOOK_TYPE_TRADESKILL)
-			ModifySpellStatus((*itr), 66, modify_recast);
+			if (!GetSpellEffect((*itr)->spell_id, this) || master_spell_list.GetSpell((*itr)->spell_id, (*itr)->tier)->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE)
+				ModifySpellStatus((*itr), 66, modify_recast);
 	}
 
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);

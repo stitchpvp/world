@@ -301,25 +301,25 @@ bool SpellProcess::IsReady(Spell* spell, Entity* caster){
 	}
 	return ret;
 }
+
 void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_override, bool check_linked_timers) {
-	if(spell && caster && spell->GetSpellData()->recast > 0){
-		RecastTimer* timer = new RecastTimer;
-		timer->caster = caster;
-		if(caster->IsPlayer())
-			timer->client = caster->GetZone()->GetClientBySpawn(caster);
-		else
-			timer->client = 0;
-		timer->spell = spell;
-		if(timer_override == 0)
-			timer->timer = new Timer((int32)(spell->GetSpellData()->recast*1000));
-		else
-			timer->timer = new Timer((int32)(timer_override*1000));
-		recast_timers.Add(timer);
-		if(caster->IsPlayer()){
-			if(timer_override == 0)
-				((Player*)caster)->LockSpell(spell, (int16)(spell->GetSpellData()->recast * 10));
+	if (spell && caster) {
+		if (timer_override > 0) {
+			RecastTimer* timer = new RecastTimer;
+			timer->caster = caster;
+			timer->spell = spell;
+			timer->timer = new Timer((int32)(timer_override * 1000));
+
+			if(caster->IsPlayer())
+				timer->client = caster->GetZone()->GetClientBySpawn(caster);
 			else
-				((Player*)caster)->LockSpell(spell, timer_override * 10);
+				timer->client = 0;
+
+			recast_timers.Add(timer);
+		}
+
+		if (caster->IsPlayer()) {
+			((Player*)caster)->LockSpell(spell, timer_override * 10);
 
 			if (check_linked_timers && spell->GetSpellData()->linked_timer > 0) {
 				vector<Spell*> linkedSpells = ((Player*)caster)->GetSpellBookSpellsByTimer(spell->GetSpellData()->linked_timer);
@@ -374,9 +374,13 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 
 		if (spell->caster) {
 			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE){
-				CheckRecast(spell->spell, spell->caster);
-				if (spell->caster && spell->caster->IsPlayer())
-					SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
+				if (spell->spell->GetSpellData()->recast > 0) {
+					CheckRecast(spell->spell, spell->caster, spell->spell->GetSpellData()->recast);
+					if (spell->caster && spell->caster->IsPlayer())
+						SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
+				} else {
+					UnlockSpell(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->spell);
+				}
 			}
 
 			spell->caster->RemoveMaintainedSpell(spell);
@@ -515,8 +519,13 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
 		UnlockAllSpells(client);
 		if(spell->resisted && spell->spell->GetSpellData()->recast > 0)
 			CheckRecast(spell->spell, client->GetPlayer(), 0.5); // half sec recast on resisted spells
-		else if (!spell->interrupted && spell->spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE)
-			CheckRecast(spell->spell, client->GetPlayer());
+		else if (!spell->interrupted) {
+			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
+				client->GetPlayer()->LockSpell(spell->spell, 0);
+			} else {
+				CheckRecast(spell->spell, client->GetPlayer(), spell->spell->GetSpellData()->recast, true);
+			}
+		}
 		PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
 		if(packet){
 			packet->setMediumStringByName("spell_name", spell->spell->GetSpellData()->name.data.c_str());			
