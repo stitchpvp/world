@@ -584,13 +584,6 @@ void Client::HandlePlayerRevive(int32 point_id)
 void Client::SendCharInfo(){
 	EQ2Packet* app;
 
-	database.LoadCharacterItemList(GetAccountID(), GetCharacterID(), player);
-	if(firstlogin && player->item_list.GetNumberOfItems() == 0 && player->GetEquipmentList()->GetNumberOfItems() == 0) //re-add starting items if missing
-	{
-		LogWrite(CCLIENT__WARNING, 0, "Client", "Player has no items - reloading starting items: '%s' (%u)", player->GetName(), GetCharacterID());
-		database.UpdateStartingItems(GetCharacterID(), player->GetAdventureClass(), player->GetRace());
-		database.LoadCharacterItemList(GetAccountID(), GetCharacterID(), player);
-	}
 	player->SetEquippedItemAppearances();
 
 	ClientPacketFunctions::SendCharacterData ( this );

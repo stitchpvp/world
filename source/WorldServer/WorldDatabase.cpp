@@ -1509,6 +1509,14 @@ SOGA chars looked ok in LoginServer screen tho... odd.
 			}
 		}
 
+		LoadCharacterItemList(client->GetAccountID(), client->GetPlayer()->GetCharacterID(), client->GetPlayer());
+		if (client->GetPlayer()->item_list.GetNumberOfItems() == 0 && client->GetPlayer()->GetEquipmentList()->GetNumberOfItems() == 0) //re-add starting items if missing
+		{
+			LogWrite(CCLIENT__WARNING, 0, "Client", "Player has no items - reloading starting items: '%s' (%u)", client->GetPlayer()->GetName(), client->GetPlayer()->GetCharacterID());
+			UpdateStartingItems(client->GetPlayer()->GetCharacterID(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetRace());
+			LoadCharacterItemList(client->GetAccountID(), client->GetPlayer()->GetCharacterID(), client->GetPlayer());
+		}
+
 		LoadCharacterHistory(id, client->GetPlayer());
 		LoadCharacterLUAHistory(id, client->GetPlayer());
 		LoadPlayerStatistics(client->GetPlayer(), id);
