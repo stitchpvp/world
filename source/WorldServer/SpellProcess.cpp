@@ -1677,7 +1677,7 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			spell = itr->value;
 			if (!spell)
 				continue;
-			if (spell->spell->GetSpellData()->persist_though_death)
+			if (spell->spell->GetSpellData()->persist_though_death && spell->caster->GetZone()->GetClientBySpawn(spell->caster)->IsConnected())
 				continue;
 			if(spell->caster == spawn){
 				DeleteCasterSpell(spell);
@@ -1799,7 +1799,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 							Entity* group_member = (*itr)->member;
 
 							// if the group member is in the casters zone, and is alive
-							if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive()) {
+							if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive() && caster->GetDistance(group_member) <= luaspell->spell->GetSpellData()->radius) {
 								Client* client = caster->GetZone()->GetClientBySpawn(group_member);
 
 								if (((Player*)group_member)->IsResurrecting() || !client || client->IsZoning())

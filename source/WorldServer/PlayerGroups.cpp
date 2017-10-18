@@ -543,8 +543,6 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 	Entity* pet = 0;
 	Entity* charmed_pet = 0;
 
-
-
 	for (itr = m_groups.begin(); itr != m_groups.end(); itr++) {
 		group = itr->second;
 
@@ -568,6 +566,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 			for (i = 0; i < NUM_MAINTAINED_EFFECTS; i++){
 				if (me[i].spell_id == 0xFFFFFFFF)
 					continue;
+
 				luaspell = me[i].spell;
 				spell = luaspell->spell;
 
@@ -592,9 +591,16 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 						if (group_member->GetSpellEffect(spell->GetSpellID(), caster))
 							has_effect = true;
 
-						// Check if player is within range of the caster
-						if (group_member->GetZone() != caster->GetZone() || caster->GetDistance(group_member) > spell->GetSpellData()->radius){
-							if (has_effect){
+						pet = 0;
+						charmed_pet = 0;
+
+						if (group_member->HasPet()) {
+							pet = group_member->GetPet();
+							charmed_pet = group_member->GetCharmedPet();
+						}
+
+						if (has_effect) {
+							if (group_member->GetZone() != caster->GetZone() || caster->GetDistance(group_member) > spell->GetSpellData()->radius) {
 								group_member->RemoveSpellEffect(luaspell);
 								group_member->RemoveSpellBonus(luaspell);
 								group_member->RemoveSkillBonus(spell->GetSpellID());
@@ -602,74 +608,70 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 								if (packet)
 									client->QueuePacket(packet);
 								//Also remove group buffs from pet
-								if (group_member->HasPet()){
+								if (group_member->HasPet()) {
 									pet = group_member->GetPet();
 									charmed_pet = group_member->GetCharmedPet();
-									if (pet){
+
+									if (pet) {
 										pet->RemoveSpellEffect(luaspell);
 										pet->RemoveSpellBonus(luaspell);
 									}
-									if (charmed_pet){
+
+									if (charmed_pet) {
 										charmed_pet->RemoveSpellEffect(luaspell);
 										charmed_pet->RemoveSpellBonus(luaspell);
 									}
 								}
+							} else {
+								new_target_list.push_back(group_member->GetID());
+
+								if (pet)
+									new_target_list.push_back(pet->GetID());
+
+								if (charmed_pet)
+									new_target_list.push_back(charmed_pet->GetID());
 							}
-							continue;
+						} else if (group_member->GetZone() == caster->GetZone() && caster->GetDistance(group_member) <= spell->GetSpellData()->radius) {
+							group_member->AddSpellEffect(luaspell);
+							new_target_list.push_back(group_member->GetID());
+
+							if (pet) {
+								pet->AddSpellEffect(luaspell);
+								new_target_list.push_back(pet->GetID());
+							}
+
+							if (charmed_pet) {
+								new_target_list.push_back(charmed_pet->GetID());
+								charmed_pet->AddSpellEffect(luaspell);
+							}
+
+							// look for a spell bonus on caster's spell
+							sb_list = caster->GetAllSpellBonuses(luaspell);
+							for (int32 x = 0; x < sb_list->size(); x++) {
+								bv = sb_list->at(x);
+								group_member->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
+
+								if (pet)
+									pet->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
+
+								if (charmed_pet)
+									charmed_pet->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
+							}
+
+							sb_list->clear();
+							safe_delete(sb_list);
+
+							// look for a skill bonus on the caster's spell
+							sb = caster->GetSkillBonus(me[i].spell_id);
+							if (sb) {
+								for (itr_skills = sb->skills.begin(); itr_skills != sb->skills.end(); itr_skills++)
+									group_member->AddSkillBonus(sb->spell_id, (*itr_skills).second->skill_id, (*itr_skills).second->value);
+							}
+
+							packet = group_member->GetSkills()->GetSkillPacket(client->GetVersion());
+							if (packet)
+								client->QueuePacket(packet);
 						}
-
-						if (has_effect)
-							continue;
-
-
-						pet = 0;
-						charmed_pet = 0;
-
-						if (group_member->HasPet()){
-							pet = group_member->GetPet();
-							charmed_pet = group_member->GetCharmedPet();
-						}
-
-						group_member->AddSpellEffect(luaspell);
-						if (pet)
-							pet->AddSpellEffect(luaspell);
-						if (charmed_pet)
-							charmed_pet->AddSpellEffect(luaspell);
-
-
-						//add group member to list of targets for caster's spell if true
-						new_target_list.push_back(group_member->GetID());
-						if (pet)
-							new_target_list.push_back(pet->GetID());
-						if (charmed_pet)
-							new_target_list.push_back(charmed_pet->GetID());
-
-
-						// look for a spell bonus on caster's spell
-						sb_list = caster->GetAllSpellBonuses(luaspell);
-						for (int32 x = 0; x < sb_list->size(); x++){
-							bv = sb_list->at(x);
-							group_member->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
-							if (pet)
-								pet->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
-							if (charmed_pet)
-								charmed_pet->AddSpellBonus(luaspell, bv->type, bv->value, bv->class_req);
-						}
-
-						sb_list->clear();
-						safe_delete(sb_list);
-
-						// look for a skill bonus on the caster's spell
-						sb = caster->GetSkillBonus(me[i].spell_id);
-						if (sb) {
-							for (itr_skills = sb->skills.begin(); itr_skills != sb->skills.end(); itr_skills++)
-								group_member->AddSkillBonus(sb->spell_id, (*itr_skills).second->skill_id, (*itr_skills).second->value);
-						}
-
-
-						packet = group_member->GetSkills()->GetSkillPacket(client->GetVersion());
-						if (packet)
-							client->QueuePacket(packet);
 					}
 
 					new_target_list.push_back(caster->GetID());

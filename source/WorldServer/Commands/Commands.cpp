@@ -2098,26 +2098,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 
 			break;
 		}
-		case COMMAND_GROUPDISBAND: {
-			GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
-
-			if (gmi) { // TODO: Leader check
-				// world.GetGroupManager()->SimpleGroupMessage(gmi->group_id, "Your group has been disbanded.");
-				world.GetGroupManager()->RemoveGroup(gmi->group_id);
-			}
-
-			break;
-		}
+		case COMMAND_GROUPDISBAND:
 		case COMMAND_GROUP_LEAVE: {
 			GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
 
 			if (gmi) {
 				int32 group_id = gmi->group_id;
 				world.GetGroupManager()->RemoveGroupMember(group_id, client->GetPlayer());
-				if (!world.GetGroupManager()->IsGroupIDValid(group_id)) {
-					// leader->Message(CHANNEL_COLOR_GROUP, "%s has left the group.", client->GetPlayer()->GetName());
-				}
-				else {
+
+				if (world.GetGroupManager()->IsGroupIDValid(group_id)) {
 					world.GetGroupManager()->GroupMessage(group_id, "%s has left the group.", client->GetPlayer()->GetName());
 				}
 

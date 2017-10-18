@@ -2769,6 +2769,8 @@ void ZoneServer::RemoveClient(Client* client)
 
 	if(client)
 	{
+		client->Disconnect();
+
 		LogWrite(ZONE__DEBUG, 0, "Zone", "Sending login equipment appearance updates...");
 		loginserver.SendImmediateEquipmentUpdatesForChar(client->GetPlayer()->GetCharacterID());
 
@@ -2805,21 +2807,24 @@ void ZoneServer::RemoveClient(Client* client)
 			{
 				LogWrite(ZONE__DEBUG, 0, "Zone", "Removing client '%s' (%u) due to Camp/Quit...", client->GetPlayer()->GetName(), client->GetPlayer()->GetCharacterID());
 			}
-				
-				client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetPet());
-				client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCharmedPet());
-				client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetDeityPet());
-				client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCosmeticPet());
 
-				RemoveSpawn(client->GetPlayer(), false);
-				connected_clients.Remove(client, true, DisconnectClientTimer);
-			//}
+			GetSpellProcess()->RemoveSpellTimersFromSpawn(client->GetPlayer(), true);
+				
+			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetPet());
+			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCharmedPet());
+			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetDeityPet());
+			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCosmeticPet());
+
+			RemoveSpawn(client->GetPlayer(), false);
+			connected_clients.Remove(client, true, DisconnectClientTimer);
 		}
 		else
 		{
 			LogWrite(ZONE__DEBUG, 0, "Zone", "Removing client '%s' (%u) due to some client zoning...", client->GetPlayer()->GetName(), client->GetPlayer()->GetCharacterID());
 			connected_clients.Remove(client, true, DisconnectClientTimer); // changed from a hardcoded 30000 (30 sec) to the DisconnectClientTimer rule
 		}
+
+		client_spawn_map.Put(client->GetPlayer(), 0);
 
 		LogWrite(ZONE__DEBUG, 0, "Zone", "Calling clients.Remove(client)...");
 		MClientList.writelock(__FUNCTION__, __LINE__);
@@ -2904,8 +2909,7 @@ void ZoneServer::ClientProcess()
 					}
 
 				}
-				client_spawn_map.Put(client->GetPlayer(), 0);
-				client->Disconnect();
+
 				RemoveClient(client);
 			}
 #ifndef NO_CATCH
@@ -2923,8 +2927,7 @@ void ZoneServer::ClientProcess()
 							world.GetGroupManager()->GroupMessage(client->GetPlayer()->GetGroupMemberInfo()->group_id, "%s has gone Linkdead.", client->GetPlayer()->GetName());
 					}
 				}
-				client_spawn_map.Put(client->GetPlayer(), 0);
-				client->Disconnect();
+
 				RemoveClient(client);
 			}
 			catch(...){
