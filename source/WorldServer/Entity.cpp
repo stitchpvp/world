@@ -2164,8 +2164,19 @@ void Entity::RemoveEffectsFromLuaSpell(LuaSpell* spell){
 		RemoveFearSpell(spell);
 	if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
 		RemoveSpellBonus(spell);
-	if (effect_bitmask & EFFECT_FLAG_SKILLBONUS)
+	if (effect_bitmask & EFFECT_FLAG_SKILLBONUS) {
 		RemoveSkillBonus(spell->spell->GetSpellID());
+
+		if (IsPlayer()) {
+			Client* client = GetZone()->GetClientBySpawn(this);
+
+			if (client) {
+				EQ2Packet* packet = static_cast<Player*>(this)->GetSkills()->GetSkillPacket(client->GetVersion());
+				if (packet)
+					client->QueuePacket(packet);
+			}
+		}
+	}
 	if (effect_bitmask & EFFECT_FLAG_STEALTH)
 		RemoveStealthSpell(spell);
 	if (effect_bitmask & EFFECT_FLAG_INVIS)
