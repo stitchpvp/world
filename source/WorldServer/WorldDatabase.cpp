@@ -43,6 +43,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Titles.h"
 #include "Languages.h"
 #include "Traits/Traits.h"
+#include "SpellProcess.h"
 
 extern Classes classes;
 extern Commands commands;
@@ -157,6 +158,45 @@ void WorldDatabase::SaveBuyBack(int32 char_id, int32 item_id, int8 quantity, int
 	query.RunQuery2(Q_INSERT, insert.c_str(), char_id, item_id, quantity, price);
 }
 
+void WorldDatabase::LoadCharacterActiveSpells(Player* player) {
+	Query query;
+
+	SpellProcess* spell_process = player->GetZone()->GetSpellProcess();
+	if (!spell_process) return;
+
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT character_id, target_character_id, spell_id, spell_tier FROM character_active_spells WHERE character_id = %u OR target_character_id = %u", player->GetCharacterID(), player->GetCharacterID());
+	MYSQL_ROW row;
+
+	while (result && (row = mysql_fetch_row(result))) {
+		int caster_id = atoul(row[0]);
+		int target_id = atoul(row[1]);
+		int spell_id = atoul(row[2]);
+		int spell_tier = atoul(row[3]);
+
+		Spell* spell = master_spell_list.GetSpell(spell_id, spell_tier);
+		LuaSpell* lua_spell = nullptr;
+
+		if (spell && lua_interface) {
+			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
+		}
+
+		if (lua_spell) {
+			Player* caster = player->GetZone()->GetPlayerByID(caster_id);
+			Player* target = player->GetZone()->GetPlayerByID(target_id);
+
+			if (!target)
+				continue;
+
+			lua_spell->caster = caster;
+			lua_spell->initial_target = target->GetID();
+			lua_spell->spell = spell;
+
+			spell_process->GetSpellTargets(lua_spell);
+			spell_process->CastProcessedSpell(lua_spell, true);
+		}
+	}
+}
+
 int32 WorldDatabase::LoadCharacterSpells(int32 char_id, Player* player)
 {
 	LogWrite(SPELL__DEBUG, 0, "Spells", "Loading Character Spells for player %s...", player->GetName());
@@ -186,6 +226,43 @@ int32 WorldDatabase::LoadCharacterSpells(int32 char_id, Player* player)
 	}
 
 	return count;
+}
+
+void WorldDatabase::SavePlayerActiveSpells(Client* client) {
+	if (!client) return;
+
+	Query query;
+	SpellEffects* se = client->GetPlayer()->GetSpellEffects();
+
+	DeleteCharacterActiveSpells(client);
+
+	for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
+		LuaSpell* lua_spell = se[i].spell;
+
+		if (se[i].spell_id != 0xFFFFFFFF && lua_spell->spell->GetSpellData()->friendly_spell && (lua_spell->timer.GetRemainingTime() > 0 || lua_spell->spell->GetSpellData()->duration_until_cancel)) {
+			Spawn* caster = lua_spell->caster;
+			Spawn* target = client->GetCurrentZone()->GetSpawnByID(lua_spell->initial_target);
+
+			if (caster == client->GetCurrentZone()->unknown_spawn)
+				caster = target;
+			
+			if (caster->IsPlayer() && target->IsPlayer()) {
+				query.RunQuery2(Q_INSERT, "INSERT INTO character_active_spells (character_id, target_character_id, spell_id, spell_tier) VALUES (%u, %u, %u, %u) ON DUPLICATE KEY UPDATE character_id = character_id", ((Player*)caster)->GetCharacterID(), ((Player*)target)->GetCharacterID(), lua_spell->spell->GetSpellID(), lua_spell->spell->GetSpellTier());
+			}
+		}
+	}
+}
+
+void WorldDatabase::DeleteCharacterActiveSpells(Client* client, bool delete_all) {
+	if (!client) return;
+
+	Query query;
+
+	if (delete_all) {
+		query.RunQuery2(Q_DELETE, "DELETE FROM character_active_spells WHERE character_id = %u OR target_character_id = %u", client->GetPlayer()->GetCharacterID(), client->GetPlayer()->GetCharacterID());
+	} else {
+		query.RunQuery2(Q_DELETE, "DELETE FROM character_active_spells WHERE character_id = %u AND target_character_id = %u", client->GetPlayer()->GetCharacterID(), client->GetPlayer()->GetCharacterID());
+	}
 }
 
 void WorldDatabase::SavePlayerSpells(Client* client)
@@ -4178,7 +4255,7 @@ void WorldDatabase::LoadSpells()
 			if( lua_script.length() > 0 )
 				LogWrite(SPELL__DEBUG, 5, "Spells", "\t%i. %s (Tier: %i) - '%s'", spell_id, spell_name.c_str(), data->tier, lua_script.c_str()); 		
 			else if(data->is_active)
-				LogWrite(SPELL__WARNING, 0, "Spells", "\tSpell %s (%u, Tier: %i) set 'Active', but missing LUAScript", spell_name.c_str(), spell_id, data->tier);
+				LogWrite(SPELL__WARNING, 1, "Spells", "\tSpell %s (%u, Tier: %i) set 'Active', but missing LUAScript", spell_name.c_str(), spell_id, data->tier);
 
 		} // end while
 	} // end else
@@ -4250,7 +4327,7 @@ void WorldDatabase::LoadSpellEffects() {
 	int32 total = 0;
 	MYSQL_RES *result = query.RunQuery2(Q_SELECT, "SELECT `spell_id`,`tier`,`percentage`,`bullet`,`description` "
 												  "FROM `spell_display_effects` "
-												  "ORDER BY `spell_id`,`id` ASC");
+												  "ORDER BY `spell_id`,`index` ASC");
 
 	while (result && (row = mysql_fetch_row(result))) {
 		if ((spell = master_spell_list.GetSpell(atoul(row[0]), atoi(row[1]))) && row[4]) {
@@ -5372,6 +5449,38 @@ bool WorldDatabase::LocationExists(int32 location_id) {
 			ret = true;
 	}
 	return ret;
+}
+
+bool WorldDatabase::GetTableVersions(vector<TableVersion*>* table_versions) {
+	DatabaseResult result;
+	TableVersion *table_version;
+	bool success;
+
+	//don't treat 1146 (table not found) as an error since the patch server will create it
+	database_new.SetIgnoredErrno(1146);
+
+	success = database_new.Select(&result, "SELECT `name`,`version`,`download_version`\n"
+		"FROM `table_versions`\n");
+	
+	database_new.RemoveIgnoredErrno(1146);
+
+	if (!success)
+		return false;
+
+	while (result.Next()) {
+		table_version = (TableVersion *)malloc(sizeof(*table_version));
+		table_version->name_len = (unsigned int)strlcpy(table_version->name, result.GetString(0), sizeof(table_version->name));
+		table_version->version = result.GetInt32(1);
+		table_version->data_version = result.GetInt32(2);
+
+		table_versions->push_back(table_version);
+	}
+
+	return true;
+}
+
+bool WorldDatabase::QueriesFromFile(const char * file) {
+	return database_new.QueriesFromFile(file);
 }
 
 bool WorldDatabase::CheckBannedIPs(const char* loginIP)

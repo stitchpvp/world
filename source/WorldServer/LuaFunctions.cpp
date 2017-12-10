@@ -828,8 +828,6 @@ int EQ2Emu_lua_SpellHeal(lua_State* state){
 
       if (target) {
          float distance = caster->GetDistance(target, true);
-         distance -= caster->appearance.pos.collision_radius/10;
-         distance -= target->appearance.pos.collision_radius/10;
          if (static_cast<Entity*>(caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs))
             success = true;
       }
@@ -846,13 +844,19 @@ int EQ2Emu_lua_SpellHeal(lua_State* state){
 int EQ2Emu_lua_SummonItem(lua_State* state){
 	if(!lua_interface)
 		return 0;
+
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
-	bool send_messages = (lua_interface->GetInt8Value(state, 3) == 1);
+	int8 quantity = lua_interface->GetInt8Value(state, 3);
+	bool send_messages = (lua_interface->GetInt8Value(state, 4) == 1);
+
+	if (quantity == 0)
+		quantity = 1;
+
 	if (spawn && spawn->IsPlayer()){
 		Client* client = spawn->GetZone()->GetClientBySpawn(spawn);
 		if (client && item_id > 0){
-			lua_interface->SetBooleanValue(state, client->AddItem(item_id, 1));
+			lua_interface->SetBooleanValue(state, client->AddItem(item_id, quantity));
 			if (send_messages) {
 				Item* item = master_item_list.GetItem(item_id);
 				if (item) {
@@ -1121,8 +1125,6 @@ int EQ2Emu_lua_SpellDamage(lua_State* state){
 	if(caster && caster->IsEntity()){		
 		if (target) {
 			float distance = caster->GetDistance(target, true);
-			distance -= caster->appearance.pos.collision_radius/10;
-			distance -= target->appearance.pos.collision_radius/10;
 			static_cast<Entity*>(caster)->SpellAttack(target, distance, luaspell, type, min_damage, max_damage, crit_mod, no_calcs);
 		}
 	}
@@ -3200,7 +3202,7 @@ int EQ2Emu_lua_AddSpellBookEntry(lua_State* state) {
 	if(!lua_interface)
 		return 0;
 	Spawn* player = lua_interface->GetSpawn(state);
-	int16 spellid = lua_interface->GetInt16Value(state, 2);
+	int32 spellid = lua_interface->GetInt32Value(state, 2);
 	int16 tier = lua_interface->GetInt16Value(state, 3);
 	Spell* spell = master_spell_list.GetSpell(spellid, tier);
 	if (player && spell && player->IsPlayer()) {
@@ -3646,9 +3648,14 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 
 	// Get a random pet name
 	string random_pet_name;
-	int16 rand_index = MakeRandomInt(0, spawn->GetZone()->pet_names.size() - 1);
-	random_pet_name = spawn->GetZone()->pet_names.at(rand_index);
-	LogWrite(PET__DEBUG, 0, "Pets", "Randomize Pet Name: '%s' (rand: %i)", random_pet_name.c_str(), rand_index);
+
+	if (spawn->IsPlayer()) {
+		random_pet_name = string(spawn->GetName());
+	} else {
+		int16 rand_index = MakeRandomInt(0, spawn->GetZone()->pet_names.size() - 1);
+		random_pet_name = spawn->GetZone()->pet_names.at(rand_index);
+		LogWrite(PET__DEBUG, 0, "Pets", "Randomize Pet Name: '%s' (rand: %i)", random_pet_name.c_str(), rand_index);
+	}
 
 	// If player set various values for the char sheet (pet window)
 	if (spawn->IsPlayer()) {
@@ -3686,6 +3693,9 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	(static_cast<NPC*>(pet))->SetPetSpellID(luaspell->spell->GetSpellData()->id);
 	// Set the spell tier used to create this pet
 	(static_cast<NPC*>(pet))->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+
+	pet->ScalePet();
+
 	// Set the pets spawn type to 6
 	pet->SetSpawnType(6);
 	// Set the pets brain
@@ -7393,28 +7403,13 @@ int EQ2Emu_lua_SetSpellSnareValue(lua_State* state) {
 	float snare = lua_interface->GetFloatValue(state);
 	Spawn* spawn = lua_interface->GetSpawn(state, 2);
 
-	// convert the val to the speed multipler value (100 - val)
-	float val = 100.0 - snare;
-	val /= 100.0;
-
 	if (spawn) {
 		if (!spawn->IsEntity()) {
 			lua_interface->LogError("LUA SetSpellSnareValue command error: spawn must be an entity.");
 			return 0;
 		}
 
-		static_cast<Entity*>(spawn)->SetSnareValue(spell, val);
-	}
-	else {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++){
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
-			if (!spawn || !spawn->IsEntity())
-				continue;
-
-			static_cast<Entity*>(spawn)->SetSnareValue(spell, val);
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+		static_cast<Entity*>(spawn)->SetSnareValue(spell, snare);
 	}
 
 	return 0;
@@ -8312,6 +8307,27 @@ int EQ2Emu_lua_GetProcPercentageForWeapon(lua_State* state) {
 	float times_per_minute = lua_interface->GetFloatValue(state, 2);
 
 	lua_interface->SetFloatValue(state, times_per_minute / (60 / (item->weapon_info->delay / 10.0)) * 100);
+	return 1;
+}
+
+int EQ2Emu_lua_RemoveSpell(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	int32 spell_id = lua_interface->GetInt32Value(state, 2);
+	Entity* caster = static_cast<Entity*>(lua_interface->GetSpawn(state, 3));
+
+	if (!spawn || !spawn->IsEntity()) {
+		return 0;
+	}
+
+	SpellEffects* spell_effect = static_cast<Entity*>(spawn)->GetSpellEffect(spell_id, caster);
+
+	if (spell_effect && spell_effect->spell) {
+		spell_effect->spell->caster->GetZone()->GetSpellProcess()->AddSpellCancel(spell_effect->spell);
+	}
+
 	return 1;
 }
 

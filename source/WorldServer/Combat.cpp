@@ -143,7 +143,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		}
 	}
 	else if (distance != 0) {
-		if(distance >= MAX_COMBAT_RANGE) {
+		if(distance > MAX_COMBAT_RANGE) {
 			LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: distance is beyond melee range");
 			return false;
 		}
@@ -464,9 +464,6 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 		 CheckProcs(PROC_TYPE_BENEFICIAL, target);
 	 }
 
-	 if (target->GetHP() == target->GetTotalHP())
-		 return true;
-
 	 int32 heal_amt = 0;
 	 bool crit = false;
 
@@ -519,6 +516,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 
 	int16 type = 0;
 	if (heal_type == "Heal") {
+		if (target->GetHP() == target->GetTotalHP())
+			return true;
+
 		if(crit)
 			type = HEAL_PACKET_TYPE_CRIT_HEAL;
 		else
@@ -529,6 +529,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 		target->SetHP(target->GetHP() + heal_amt);
 	}
 	else if (heal_type == "Power"){
+		if (target->GetPower() == target->GetTotalPower())
+			return true;
+
 		if(crit)
 			type = HEAL_PACKET_TYPE_CRIT_MANA;
 		else
@@ -640,7 +643,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 		if(skill)
 			roll_chance -= skill->current_val / 25;
 
-		if(rand()%roll_chance >= (chance - entity_victim->GetAgi()/125)){
+		if(rand()%roll_chance >= (chance - entity_victim->GetInfoStruct()->base_avoidance_bonus - entity_victim->GetAgi() / 125)){
 			entity_victim->CheckProcs(PROC_TYPE_EVADE, this);
 			return DAMAGE_PACKET_RESULT_DODGE;//successfully dodged
 		}
@@ -662,7 +665,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 
 		skill = entity_victim->GetSkillByName("Deflection", true);
 		if(skill){
-			if(rand()%100 >= (chance - skill->current_val/25)) { //successfully deflected
+			if(rand()%100 >= (chance - entity_victim->GetInfoStruct()->minimum_deflection_chance - skill->current_val/25)) { //successfully deflected
 				return DAMAGE_PACKET_RESULT_DEFLECT;
 			}
 		}
@@ -818,7 +821,8 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 
 		// Rudimentary mitigation
 		if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE) {
-			damage *= 1 - victim->GetMitigationPercentage();
+			damage *= 1 - victim->GetMitigationPercentage(GetLevel());
+			damage *= 1 - victim->GetInfoStruct()->physical_damage_reduction / 100.0;
 		}
 	}
 
@@ -964,9 +968,6 @@ void Entity::KillSpawn(Spawn* dead, int8 damage_type, int16 kill_blow_type) {
 
 	if (IsPlayer() && dead->IsEntity())
 		GetZone()->GetSpellProcess()->KillHOBySpawnID(dead->GetID());
-
-	//if (dead->IsEntity())								same code called in zone server
-		//((Entity*)dead)->InCombat(false);
 	
 	if (dead->IsPet())
 		((NPC*)dead)->GetOwner()->DismissPet((NPC*)dead, true);
@@ -1049,59 +1050,47 @@ void Player::ProcessCombat() {
 	if(!combat_target)
 		return;
 
-	float distance = 0;
-	distance = GetDistance(combat_target);
-	//distance -= combat_target->appearance.pos.collision_radius / 10;
-	//distance -= appearance.pos.collision_radius / 10;
+	float distance = GetDistance(combat_target);
 
 	// Check to see if we are doing ranged auto attacks if not check to see if we are in melee range
-	if (GetRangeAttack()) {
-		// We are doing ranged auto attacks
-		
-		//check to see if we can attack the target AND the ranged weapon is ready
-		if(AttackAllowed((Entity*)combat_target, distance, true) && RangeWeaponReady()) {
-			Item* weapon = 0;
-			Item* ammo = 0;
-			// Get the currently equiped weapon and ammo for the ranged attack
-			weapon = GetEquipmentList()->GetItem(EQ2_RANGE_SLOT);
-			ammo = GetEquipmentList()->GetItem(EQ2_AMMO_SLOT);
-			LogWrite(COMBAT__DEBUG, 1, "Combat", "Weapon '%s', Ammo '%s'", ( weapon )? weapon->name.c_str() : "None", ( ammo ) ? ammo->name.c_str() : "None");
+	if (GetRangeAttack() && AttackAllowed((Entity*)combat_target, distance, true) && RangeWeaponReady()) {
+		Item* weapon = 0;
+		Item* ammo = 0;
+		// Get the currently equiped weapon and ammo for the ranged attack
+		weapon = GetEquipmentList()->GetItem(EQ2_RANGE_SLOT);
+		ammo = GetEquipmentList()->GetItem(EQ2_AMMO_SLOT);
+		LogWrite(COMBAT__DEBUG, 1, "Combat", "Weapon '%s', Ammo '%s'", ( weapon )? weapon->name.c_str() : "None", ( ammo ) ? ammo->name.c_str() : "None");
 
-			// If weapon and ammo are both valid perform the ranged attack else send a message to the client
-			if(weapon && ammo) {
-				LogWrite(COMBAT__DEBUG, 1, "Combat", "Weapon: Primary, Fighter: '%s', Target: '%s', Distance: %.2f", GetName(), combat_target->GetName(), distance);
-				RangeAttack(combat_target, distance, weapon, ammo);
-			}
-			else {
-				Client* client = GetZone()->GetClientBySpawn(this);
-				if (client) {
-					// Need to get messages from live, made these up so the player knows what is wrong in game if weapon or ammo are not valid
-					if (!ammo)
-						client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Out of ammo.");
-					if (!weapon)
-						client->SimpleMessage(CHANNEL_COLOR_YELLOW, "No ranged weapon found.");
+		// If weapon and ammo are both valid perform the ranged attack else send a message to the client
+		if(weapon && ammo) {
+			LogWrite(COMBAT__DEBUG, 1, "Combat", "Weapon: Primary, Fighter: '%s', Target: '%s', Distance: %.2f", GetName(), combat_target->GetName(), distance);
+			RangeAttack(combat_target, distance, weapon, ammo);
+		}
+		else {
+			Client* client = GetZone()->GetClientBySpawn(this);
+			if (client) {
+				// Need to get messages from live, made these up so the player knows what is wrong in game if weapon or ammo are not valid
+				if (!ammo)
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Out of ammo.");
+				if (!weapon)
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "No ranged weapon found.");
 					
-				}
 			}
 		}
 	}
-	else if(distance <= MAX_COMBAT_RANGE) {
-		// We are doing melee auto attacks and are within range
+	else if (GetMeleeAttack() && AttackAllowed((Entity*)combat_target, distance)) {
+		// Check to see if the primary melee weapon is ready
+		if(PrimaryWeaponReady()) {
+			// Set the time of the last melee attack with the primary weapon and perform the melee attack with primary weapon
+			SetPrimaryLastAttackTime(Timer::GetCurrentTime2());
+			MeleeAttack(combat_target, distance, true);
+		}
 
-		// Check to see if we can attack the target
-		if(AttackAllowed((Entity*)combat_target)) {
-			// Check to see if the primary melee weapon is ready
-			if(PrimaryWeaponReady()) {
-				// Set the time of the last melee attack with the primary weapon and perform the melee attack with primary weapon
-				SetPrimaryLastAttackTime(Timer::GetCurrentTime2());
-				MeleeAttack(combat_target, distance, true);
-			}
-			// Check to see if the secondary weapon is ready
-			if(SecondaryWeaponReady()) {
-				// set the time of the last melee attack with the secondary weapon and perform the melee attack with the secondary weapon
-				SetSecondaryLastAttackTime(Timer::GetCurrentTime2());
-				MeleeAttack(combat_target, distance, false);
-			}
+		// Check to see if the secondary weapon is ready
+		if(SecondaryWeaponReady()) {
+			// set the time of the last melee attack with the secondary weapon and perform the melee attack with the secondary weapon
+			SetSecondaryLastAttackTime(Timer::GetCurrentTime2());
+			MeleeAttack(combat_target, distance, false);
 		}
 	}
 }

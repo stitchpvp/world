@@ -217,6 +217,8 @@ struct FlightPathLocation {
 	float	Z;
 };
 
+class SPGrid;
+
 // need to attempt to clean this up and add xml comments, remove unused code, find a logical way to sort the functions maybe by get/set/process/add etc...
 class ZoneServer {
 public:
@@ -289,6 +291,8 @@ public:
 	void	UpdateVitality(float amount);
 	
 	vector<Entity*> GetPlayers();
+
+	Player * GetPlayerByID(int32 id);
 	
 	void	KillSpawn(Spawn* dead, Spawn* killer, bool send_packet = true, int8 damage_type = 0, int16 kill_blow_type = 0);
 	
@@ -397,6 +401,8 @@ public:
 	void SendUpdateDefaultCommand(Spawn* spawn, const char* command, float distance);
 
 	map<int32, int32>* GetSpawnLocationsByGroup(int32 group_id);
+
+	SPGrid* Grid;
 
 	/****************************************************
 	Following functions are only used for LUA commands
@@ -586,7 +592,7 @@ public:
 	int32 GetFlightPathIndex(int32 id);
 	float GetFlightPathSpeed(int32 id);
 
-
+	Entity* unknown_spawn;
 
 
 private:

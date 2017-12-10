@@ -542,7 +542,7 @@ bool LuaInterface::CallZoneScript(lua_State* state, int8 num_parameters) {
 lua_State* LuaInterface::LoadLuaFile(const char* name) {
 	if(shutting_down)
 		return 0;
-	lua_State* state = lua_open();
+	lua_State* state = luaL_newstate();
 	luaL_openlibs(state);
 	if(luaL_dofile(state, name) == 0){
 		RegisterFunctions(state);
@@ -977,6 +977,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "PauseMovement", EQ2Emu_lua_PauseMovement);
 	lua_register(state, "ResumeMovement", EQ2Emu_lua_ResumeMovement);
 	lua_register(state, "GetProcPercentageForWeapon", EQ2Emu_lua_GetProcPercentageForWeapon);
+	lua_register(state, "RemoveSpell", EQ2Emu_lua_RemoveSpell);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {
@@ -1182,7 +1183,7 @@ ZoneServer* LuaInterface::GetZone(lua_State* state, int8 arg_num) {
 sint32 LuaInterface::GetSInt32Value(lua_State* state, int8 arg_num) {
 	sint32 val = 0;
 	if(lua_isnumber(state, arg_num)){
-		val = lua_tointeger(state, arg_num);
+		val = lua_tonumber(state, arg_num);
 	}
 	return val;
 }

@@ -31,6 +31,7 @@
 #include "World.h"
 #include "LuaInterface.h"
 #include "PVP.h"
+#include "Zone/SPGrid.h"
 
 extern ConfigReader configReader;
 extern RuleManager rule_manager;
@@ -86,6 +87,8 @@ Spawn::Spawn(){
 	req_quests_override = 0;
 	req_quests_private = false;
 	m_illusionModel = 0;
+	Cell_Info.CurrentCell = nullptr;
+	Cell_Info.CellListIndex = -1;
 	m_Update.SetName("Spawn::m_Update");
 	m_requiredHistory.SetName("Spawn::m_requiredHistory");
 	m_requiredQuests.SetName("Spawn::m_requiredQuests");
@@ -702,17 +705,8 @@ bool Spawn::TakeDamage(int32 damage){
 	int32 hp = GetHP();
 	if(damage >= hp) {
 		SetHP(0);
-		if (IsPlayer()) {
-			((Player*)this)->InCombat(false);
-			((Player*)this)->SetRangeAttack(false);	
-			GetZone()->TriggerCharSheetTimer(); // force char sheet updates now
-		}
-	}
-	else {
+	} else {
 		SetHP(hp - damage);
-		// if player flag the char sheet as changed so the ui updates properly
-		if (IsPlayer())
-			((Player*)this)->SetCharSheetChanged(true);
 	}
 	return true;
 }
@@ -992,6 +986,21 @@ sint32 Spawn::GetTotalDissonance()
 sint32 Spawn::GetDissonance()
 {
 	return basic_info.cur_dissonance;
+}
+
+void Spawn::ScalePet() {
+	if (!IsPet() || !IsEntity()) return;
+
+	double base = pow(GetLevel(), 2) * 2 + 40;
+
+	SetTotalHP(static_cast<sint32>(base * 1.5));
+	SetTotalPower(static_cast<sint32>(base * 1.5));
+	SetHP(GetTotalHP());
+	SetPower(GetTotalPower());
+
+	Entity* entity = static_cast<Entity*>(this);
+	entity->ChangePrimaryWeapon();
+	entity->ChangeSecondaryWeapon();
 }
 
 /* --< Alternate Advancement Points >-- */
@@ -1490,10 +1499,13 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setDataByName("action_state", GetTempActionState());
 	else
 		packet->setDataByName("action_state", appearance.action_state);
-	if(GetTempVisualState() >= 0)
-		packet->setDataByName("visual_state", GetTempVisualState());
-	else
+
+	if (GetTempVisualState() >= 0) {
+		if (this != spawn || (GetTempVisualState() != 290 && GetTempVisualState() != 11757 && GetTempVisualState() != 11758))
+			packet->setDataByName("visual_state", GetTempVisualState());
+	} else {
 		packet->setDataByName("visual_state", appearance.visual_state);
+	}
 	packet->setDataByName("emote_state", appearance.emote_state);
 	packet->setDataByName("mood_state", appearance.mood_state);
 	packet->setDataByName("gender", appearance.gender);
@@ -1811,7 +1823,7 @@ void Spawn::ProcessMovement(){
 				SetSpeed(speed);
 			}
 			MovementLocation* loc = GetCurrentRunningLocation();
-			if (GetDistance(followTarget, true) <= MAX_COMBAT_RANGE || (loc && loc->x == GetX() && loc->y == GetY() && loc->z == GetZ())) {
+			if (GetDistance(followTarget) <= MAX_COMBAT_RANGE || (loc && loc->x == GetX() && loc->y == GetY() && loc->z == GetZ())) {
 				ClearRunningLocations();
 				CalculateRunningLocation(true);
 			}
@@ -2128,7 +2140,7 @@ bool Spawn::CalculateChange(){
 			//float test_vector=sqrtf (data->x*data->x + data->y*data->y + data->z*data->z);
 			// Goto http://www.eq2emulator.net/phpBB3/viewtopic.php?f=13&t=3180#p24256
 			// for detailed info on how I got the speed equation (1.1043506061 * GetSpeed() + 0.1832966667)
-			float tar_vector = (1.1043506061 * GetSpeed() + 0.1832966667) / sqrtf (tar_vx*tar_vx + tar_vy*tar_vy + tar_vz*tar_vz);
+			float tar_vector = (1.1043506061 * (GetSpeed() < 0 ? (100 - GetSpeed()) / 100.0 : GetSpeed()) + 0.1832966667) / sqrtf (tar_vx*tar_vx + tar_vy*tar_vy + tar_vz*tar_vz);
 
 			// Distance less then 0.5 just set the npc to the target location
 			if (GetDistance(data->x, data->y, data->z, IsWidget() ? false : true) <= 0.5f) {
@@ -2141,6 +2153,18 @@ bool Spawn::CalculateChange(){
 				SetY(GetY() + ((tar_vy*tar_vector)*time_step), false);
 				SetZ(GetZ() + ((tar_vz*tar_vector)*time_step), false);
 			}
+
+			if (GetZone()->Grid != nullptr) {
+				Cell* newCell = GetZone()->Grid->GetCell(GetX(), GetZ());
+				if (newCell != Cell_Info.CurrentCell) {
+					GetZone()->Grid->RemoveSpawnFromCell(this);
+					GetZone()->Grid->AddSpawn(this, newCell);
+		}
+
+				int32 newGrid = GetZone()->Grid->GetGridID(this);
+				if (newGrid != appearance.pos.grid_id)
+					SetPos(&(appearance.pos.grid_id), newGrid);
+	}
 		}
 	}
 	return remove_needed;

@@ -42,8 +42,8 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 //#include "Quests.h"
 
 #ifdef WIN32
+#include <WinSock2.h>
 #include <windows.h>
-#include <winsock.h>
 #define snprintf	_snprintf
 #define vsnprintf	_vsnprintf
 #define strncasecmp	_strnicmp
@@ -175,6 +175,7 @@ Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug
 	MQuestTimers.SetName("Client::quest_timers");
 	memset(&incoming_paperdoll, 0, sizeof(incoming_paperdoll));
 	on_auto_mount = false;
+	should_load_spells = true;
 }
 
 Client::~Client() {
@@ -593,7 +594,6 @@ void Client::SendCharInfo(){
 	PacketStruct* packet = configReader.getStruct("WS_SetControlGhost",GetVersion());
 	if(packet){
 		packet->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(player));
-		packet->setDataByName("size", 0.56);
 		packet->setDataByName("unknown2", 255);
 		EQ2Packet* app = packet->serialize();
 		QueuePacket(app);
@@ -606,17 +606,17 @@ void Client::SendCharInfo(){
 	//ClientPacketFunctions::SendAbilities(this);
 	master_aa_list.DisplayAA(this);
 	ClientPacketFunctions::SendSkillBook(this);
-	if(!player->IsResurrecting()) {
-		ClientPacketFunctions::SendUpdateSpellBook(this);
-		if (!player->IsReturningFromLD())
-			player->ApplyPassiveSpells();
-	}
-	else
-		player->SetResurrecting(false);
-
 	ClientPacketFunctions::SendLoginCommandMessages(this);
 
 	GetCurrentZone()->AddSpawn(player);
+
+	player->ClearProcs();
+
+	if (!player->IsResurrecting()) {
+		ClientPacketFunctions::SendUpdateSpellBook(this);
+	} else {
+		player->SetResurrecting(false);
+	}
 
 	//SendCollectionList();
 	Guild* guild = player->GetGuild();
@@ -661,7 +661,6 @@ void Client::SendCharInfo(){
 	GetPlayer()->ChangeSecondaryWeapon();
 	GetPlayer()->ChangeRangedWeapon();
 	database.LoadBuyBacks(this);
-	
 
 	string zone_motd = GetCurrentZone()->GetZoneMOTD();
 	if (zone_motd.length() > 0 && zone_motd[0] != ' ') {
@@ -681,7 +680,6 @@ void Client::SendCharInfo(){
 	if (firstlogin)
 		firstlogin = false;
 
-	player->ClearProcs();
 	items = player->GetEquippedItemList();
 	if (items && items->size() > 0) {
 		for(int32 i = 0; i < items->size(); i++) {
@@ -892,6 +890,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 									GetPlayer()->SetPendingDeletion(false);
 									GetPlayer()->ResetSavedSpawns();
 									GetPlayer()->SetReturningFromLD(true);
+									should_load_spells = false;
 									GetPlayer()->GetZone()->RemoveDelayedSpawnRemove(GetPlayer());
 								}
 								client->GetCurrentZone()->RemoveClientImmediately(client);
@@ -1389,7 +1388,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 									  }
 		case OP_StopItemCreationMsg: {
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_StopItemCreationMsg", opcode, opcode);
-			DumpPacket(app->pBuffer, app->size);
+			//DumpPacket(app->pBuffer, app->size);
 			GetCurrentZone()->GetTradeskillMgr()->StopCrafting(this);
 			break;
 										  }
@@ -2233,8 +2232,14 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		}
 		request->LoadPacketData(app->pBuffer, app->size);
 		int32 id = request->getType_int32_ByName("id");
-		Item* item = master_item_list.GetItem(id);
-		if(item){// && sent_item_details.count(id) == 0){
+		int32 unique_id = request->getType_int32_ByName("unique_id");
+
+		Item* item = GetPlayer()->item_list.GetItemFromUniqueID(unique_id, true);
+		if (!item)
+			item = GetPlayer()->GetEquipmentList()->GetItemFromUniqueID(unique_id);
+		if (!item)
+			item = master_item_list.GetItem(id);
+		if (item){
 			sent_item_details[id] = true;
 			EQ2Packet* app = item->serialize(GetVersion(), false, GetPlayer());
 			//DumpPacket(app);
@@ -2401,6 +2406,14 @@ bool Client::Process(bool zone_process) {
 
 		delete app;
 	}
+
+	if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
+		player->ApplyPassiveSpells();
+		database.LoadCharacterActiveSpells(player);
+
+		should_load_spells = false;
+	}
+
 	if(quest_updates) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, ProcessQuestUpdates", __FUNCTION__, __LINE__);
 		ProcessQuestUpdates();
@@ -3108,13 +3121,14 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords){
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from fighting...", __FUNCTION__);
 	//GetCurrentZone()->GetCombat()->RemoveHate(player);
+	
+	database.SavePlayerActiveSpells(this);
 
 	// Remove players pet from zone if there is one
 	player->DismissPet((NPC*)player->GetPet());
 	player->DismissPet((NPC*)player->GetCharmedPet());
 	player->DismissPet((NPC*)player->GetDeityPet());
 	player->DismissPet((NPC*)player->GetCosmeticPet());
-
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from current zone...", __FUNCTION__);
 	GetCurrentZone()->RemoveSpawn(player, false);
@@ -3420,6 +3434,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 		NPC* pet = (NPC*)player->GetPet();
 		if (pet->GetMaxPetLevel() == 0 || new_level <= pet->GetMaxPetLevel()) {
 			pet->SetLevel(new_level);
+			pet->ScalePet();
 			PacketStruct* command_packet=configReader.getStruct("WS_CannedEmote", GetVersion());
 			if (command_packet){
 				command_packet->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(pet));
@@ -3437,7 +3452,6 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 		QueuePacket(level_update->serialize());
 		safe_delete(level_update);
 		GetCurrentZone()->StartZoneSpawnsForLevelThread(this);
-		//GetCurrentZone()->SendAllSpawnsForLevelChange(this);
 	}
 
 	PacketStruct* command_packet=configReader.getStruct("WS_CannedEmote", GetVersion());
@@ -3461,7 +3475,6 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	GetPlayer()->ChangeSecondaryWeapon();
 	GetPlayer()->ChangeRangedWeapon();
 	GetPlayer()->GetInfoStruct()->level = new_level;
-	// GetPlayer()->SetLevel(new_level);
 
 	LogWrite(MISC__TODO, 1, "TODO", "Get new HP/POWER/stat based on default values from DB\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
@@ -3766,7 +3779,13 @@ void Client::Loot(int32 total_coins, vector<Item*>* items, Entity* entity){
 				tmpPacket = item->serialize(GetVersion(), true, GetPlayer(), false, 1, 0, false, true);
 
 				int8 offset = 0;
-				if(GetVersion() >= 860){
+				if (GetVersion() >= 63119) {
+					offset = 13;
+					/*memcpy(ptr, tmpPacket->pBuffer + 11, tmpPacket->size - 11);
+					ptr += tmpPacket->size - 11;
+					packet_size += tmpPacket->size - 11;*/
+				}
+				else if (GetVersion() >= 860){
 					offset = 11;
 					/*memcpy(ptr, tmpPacket->pBuffer + 11, tmpPacket->size - 11);
 					ptr += tmpPacket->size - 11;
@@ -4607,8 +4626,9 @@ void Client::GiveQuestReward(Quest* quest){
 	DisplayQuestComplete(quest);
 	if(quest->GetExpReward() > 0){
 		int16 level = player->GetLevel();
-		if (player->AddXP(quest->GetExpReward())) {
-			SimpleMessage(CHANNEL_COLOR_EXP, "You gain experience!");
+		int32 xp = quest->GetExpReward();
+		if (player->AddXP(xp)) {
+			Message(CHANNEL_COLOR_EXP, "You gain %u experience!",(int32)xp);
 			if(player->GetLevel() != level)
 				ChangeLevel(level, player->GetLevel());
 			player->SetCharSheetChanged(true);
@@ -4616,8 +4636,9 @@ void Client::GiveQuestReward(Quest* quest){
 	}
 	if(quest->GetTSExpReward() > 0){
 		int8 ts_level = player->GetTSLevel();
-		if (player->AddTSXP(quest->GetTSExpReward())) {
-			SimpleMessage(CHANNEL_COLOR_EXP, "You gain tradeskill experience!");
+		int32 xp = quest->GetTSExpReward();
+		if (player->AddTSXP(xp)) {
+			Message(CHANNEL_COLOR_EXP, "You gain %u tradeskill experience!",  (int32)xp);
 			if(player->GetTSLevel() != ts_level)
 				ChangeTSLevel(ts_level, player->GetTSLevel());
 			player->SetCharSheetChanged(true);
@@ -5006,8 +5027,11 @@ float Client::CalculateSellMultiplier(int32 merchant_id){
 
 void Client::SellItem(int32 item_id, int8 quantity, int32 unique_id){
 	Spawn* spawn = GetMerchantTransaction();
+	Guild* guild = GetPlayer()->GetGuild();
 	if(spawn && spawn->GetMerchantID() > 0){
+		int32 total_status_sell_price = 0; //for status
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
+		int32 status_sell_price = 0; //for status
 		Item* master_item = master_item_list.GetItem(item_id);
 		Item* item = 0;
 		if (unique_id == 0)
@@ -5024,6 +5048,20 @@ void Client::SellItem(int32 item_id, int8 quantity, int32 unique_id){
 			if(quantity > item->details.count)
 				quantity = item->details.count;
 			int32 total_sell_price = sell_price * quantity;
+
+			//------------------------------For Selling Status Items
+			status_sell_price = (int32)(master_item->sell_status * multiplier);
+			if (status_sell_price > item->sell_status )
+				status_sell_price = item->sell_status;
+			if (quantity > item->details.count)
+				quantity = item->details.count;
+			if (player->GetGuild()){
+				total_status_sell_price = status_sell_price * quantity;
+				player->GetInfoStruct()->status_points += total_status_sell_price;
+				guild->UpdateGuildStatus(GetPlayer(), total_status_sell_price / 10);
+				guild->SendGuildMemberList();
+				guild->AddEXPCurrent((total_status_sell_price / 10), true);
+			}
 			if(quantity > 1)
 				Message(CHANNEL_COLOR_MERCHANT, "You sell %i \\aITEM %u 0:%s\\/a to %s for %s.", quantity, master_item->details.item_id, master_item->name.c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str());
 			else
@@ -5619,16 +5657,22 @@ void Client::SendSellMerchantList(bool sell){
 					if(sell_price > item->sell_price)
 						sell_price = item->sell_price;
 					packet->setArrayDataByName("item_name", item->name.c_str(), i);
+					string thename = item->name;
+					
 					packet->setArrayDataByName("price", sell_price, i);
+					if (player->GetGuild()){
+						packet->setArrayDataByName("status", 0, i);//additive to status 2 maybe for server bonus etc
+						packet->setArrayDataByName("status2", item->sell_status, i); //this one is the main status
+					}
 					packet->setArrayDataByName("item_id", item->details.item_id, i);
-					packet->setArrayDataByName("unique_item_id", item->details.unique_id, i);
+					packet->setArrayDataByName("unique_item_id", (item->details.unique_id, i));
 					packet->setArrayDataByName("stack_size", item->details.count, i);
 					packet->setArrayDataByName("icon", item->details.icon, i);
 					if(item->generic_info.adventure_default_level > 0)
 						tmp_level = item->generic_info.adventure_default_level;
 					else
 						tmp_level = item->generic_info.tradeskill_default_level;
-					packet->setArrayDataByName("level", tmp_level, i);
+					packet->setArrayDataByName("level", item->details.recommended_level, i);
 					packet->setArrayDataByName("tier", item->details.tier, i);
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
 					sint8 item_difficulty = player->GetArrowColor(tmp_level);
@@ -5651,6 +5695,9 @@ void Client::SendSellMerchantList(bool sell){
 					packet->setDataByName("type", 129);
 				else
 					packet->setDataByName("type", 1);
+				packet->setDataByName("unknown8a", 16256,6);
+				packet->setDataByName("unknown8a", 16256, 10);
+				//packet->PrintPacket();
 				EQ2Packet* outapp = packet->serialize();
 				//DumpPacket(outapp);
 				QueuePacket(outapp);
@@ -5704,7 +5751,9 @@ void Client::SendBuyBackList(bool sell){
 					else
 						packet->setArrayDataByName("quantity", buyback->quantity, i);
 					packet->setArrayDataByName("stack_size2", buyback->quantity, i);
-					packet->setArrayDataByName("description", master_item->description.c_str(), i);
+					if (GetVersion() <= 1096) {
+						packet->setArrayDataByName("description", master_item->description.c_str(), i);
+					}
 				}
 			}
 			MBuyBack.releasereadlock(__FUNCTION__, __LINE__);

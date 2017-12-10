@@ -69,28 +69,6 @@ extern RuleManager rule_manager;
 extern MasterAAList master_aa_list;
 extern MasterRaceTypeList race_types_list;
 
-// Windows as complaing so just made this for linux only
-#ifndef WIN32
-// __cplusplus <= 199711L
-string to_string(int val) {
-	char temp[16];
-	sprintf(temp, "%i", val);
-	return string(temp);
-}
-
-string to_string(unsigned int val) {
-	char temp[16];
-	sprintf(temp, "%u", val);
-	return string(temp);
-}
-
-string to_string(float val) {
-	char temp[16];
-	sprintf(temp, "%f", val);
-	return string(temp);
-}
-#endif
-
 EQ2Packet* RemoteCommands::serialize(){
 	buffer.clear();
 	vector<EQ2_RemoteCommandString>::iterator command_list;
@@ -2510,49 +2488,49 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_AUTO_ATTACK:{
 			int8 type = 1;
 			Player* player = client->GetPlayer();
+
 			if(!player)
 				break;
-			bool incombat = player->EngagedInCombat();
-			if(sep && sep->arg[0] && sep->IsNumber(0))
-				type = atoi(sep->arg[0]);
-			if(client->GetPlayer()->GetHP() == 0){
-				client->SimpleMessage(CHANNEL_COLOR_RED,"You cannot do that right now.");
+
+			if (client->GetPlayer()->GetHP() == 0) {
+				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot do that right now.");
 				break;
 			}
-			if(type == 0){
-				if(incombat)
+
+			bool in_combat = player->EngagedInCombat();
+			if(sep && sep->arg[0] && sep->IsNumber(0))
+				type = atoi(sep->arg[0]);
+
+			switch (type) {
+			case 0:
+				if (in_combat)
 					client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You stop fighting.");
+
 				player->InCombat(false);
-				player->InCombat(false, true);
 				player->SetRangeAttack(false);
+				player->SetMeleeAttack(false);
+
+				break;
+
+			case 1:
+				if (!in_combat)
+					client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You start fighting.");
+				player->InCombat(true);
+				player->SetMeleeAttack(true);
+				player->SetRangeAttack(false);
+
+				break;
+
+			case 2:
+				player->InCombat(true);
+				player->SetMeleeAttack(false);
+				player->SetRangeAttack(true);
+
+				break;
 			}
-			else {
-				if(type == 2){
-					player->InCombat(false);
-					if(incombat && player->GetRangeAttack()){
-						player->SetRangeAttack(false);
-						player->InCombat(false, true);
-						client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You stop fighting.");
-					}
-					else{
-						player->SetRangeAttack(true);
-						player->InCombat(true, true);
-						client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You start fighting.");
-					}
-				}
-				else {
-					player->InCombat(false, true);
-					player->SetRangeAttack(false);
-					player->InCombat(true);
-					if(!incombat)
-						client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You start fighting.");
-				}
-				/*else
-					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You cannot attack that!");*/
-			}
-			player->SetCharSheetChanged(true);
+
 			break;
-								}
+		}
 		case COMMAND_DEPOP:{
 			bool allow_respawns = false;
 			if(sep && sep->arg[0] && sep->IsNumber(0)){
@@ -2894,7 +2872,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				spawn = new GroundSpawn();
 				memset(&spawn->appearance, 0, sizeof(spawn->appearance));
 			}
-			else if (sep && sep->arg[4][0] && strncasecmp(sep->arg[0], "sign", 11) == 0 && sep->IsNumber(1) && sep->IsNumber(2) && sep->IsNumber(3)) {
+			else if (sep && sep->arg[4][0] && strncasecmp(sep->arg[0], "sign", 4) == 0 && sep->IsNumber(1) && sep->IsNumber(2) && sep->IsNumber(3)) {
 				spawn = new Sign();
 				memset(&spawn->appearance, 0, sizeof(spawn->appearance));
 			}
@@ -3709,7 +3687,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_EDITOR				: { Command_Editor(client, sep); break; }
 		case COMMAND_ACCEPT_RESURRECTION: { Command_AcceptResurrection(client, sep); break; }
 		case COMMAND_DECLINE_RESURRECTION:{ Command_DeclineResurrection(client, sep); break; }
-		case COMMAND_TEST				: { Command_Test(client, command_parms); break; }
+		case COMMAND_TEST				: { Command_Test(client, sep); break; }
 		case COMMAND_SPEED				: { Command_Speed(client, sep); break; }
 		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
 		case COMMAND_PVP_RANGE			: { Command_PVPRange(client); break; }
@@ -4155,6 +4133,7 @@ void Commands::Command_StopFollow(Client* client, Seperator* sep)
 	}
 }
 
+#include "../Zone/SPGrid.h"
 /* 
 	Function: Command_Grid()
 	Purpose	: Show player's current Grid ID
@@ -4165,6 +4144,11 @@ void Commands::Command_StopFollow(Client* client, Seperator* sep)
 void Commands::Command_Grid(Client* client)
 {
 	client->Message(CHANNEL_COLOR_YELLOW, "Your Grid ID is %u", client->GetPlayer()->appearance.pos.grid_id);
+
+	if (client->GetCurrentZone()->Grid != nullptr) {
+		int32 grid = client->GetCurrentZone()->Grid->GetGridID(client->GetPlayer());
+		client->Message(CHANNEL_COLOR_YELLOW, "SPGrid result is %u", grid);
+	}
 }
 
 /* 
@@ -7432,72 +7416,20 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 	chat.TellChannel(client, sep->arg[0], sep->argplus[1]);
 }
 
-void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
+void Commands::Command_Test(Client* client, Seperator* sep) {
+	if (sep == nullptr) return;
 
-	Seperator* sep2 = new Seperator(command_parms->data.c_str(), ' ', 50, 500, true);
-	if (client->GetPlayer()->GetTarget()) {
-		int spawn_id = client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()->GetTarget());
-
-		PacketStruct* packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
-		if (packet) {
-			packet->setDataByName("spawn_id", 0xFFFFFFFF);
-			packet->setDataByName("unknown2", 255);
-			client->QueuePacket(packet->serialize());
-			safe_delete(packet);
-		}
-
-		packet = configReader.getStruct("WS_SetPOVGhostCmd", client->GetVersion());
-		if (packet) {
-			packet->setDataByName("spawn_id", 0xFFFFFFFF);
-			client->QueuePacket(packet->serialize());
-			safe_delete(packet);
-		}
-
-		packet = configReader.getStruct("WS_SetPOVGhostCmd", client->GetVersion());
-		if (packet) {
-			packet->setDataByName("spawn_id", spawn_id);
-			EQ2Packet* app_pov = packet->serialize();
-			client->QueuePacket(app_pov);
-			safe_delete(packet);
-		}
-
-		packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
-		if (packet) {
-			packet->setDataByName("spawn_id", spawn_id);
-			packet->setDataByName("size", 0.56);
-			packet->setDataByName("unknown2", 255);
-			EQ2Packet* app = packet->serialize();
-			client->QueuePacket(app);
-			safe_delete(packet);
-		}
-		/*Spell* spell = master_spell_list.GetSpell(atoi(sep2->arg[0]), 1);
-		client->GetPlayer()->SetSpellStatus(spell, atoi(sep2->arg[1]));
-		client->GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(client);*/
+	if (sep->IsSet(2) && sep->IsNumber(2)) {
+		client->GetCurrentZone()->SendStateCommand(client->GetPlayer(), atol(sep->arg[2]));
 	}
 
-	//uchar blah[] = {
-		// 1208 - OP_EQUpdateStoreCmd
-		// /*0x00,0x3A,*/0x2B,0x00,0x00,0x00,0xFF,0x78,0x02,0x53,0x2C,0x33,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-
-		// /*0x58,*/0x47,0x35,0xD3,0x45,0x42,0x42,0x51,0x00,0x40,0xD1,0xE7,0x57,0xB1,0x51,0xB1,0xBB,0xBB,0xB1,0x3B,0xB0,0xBB,0xB0,0x3B,0x59,0x85,0x5B,0x47,0x1D,0x9C,0x3B,0x3A,0x1B,0xB8,0xD9,0x64,0x14,0x85,0x9F,0x4C,0xC8,0x09,0x21,0xA4,0xB3,0x7F,0x45,0x90,0x0B,0x79,0x90,0x0F,0x31,0x28,0x80,0x42,0x28,0x82,0x62,0x28,0x81,0x52,0x28,0x83,0x38,0x94,0x43,0x05,0x54,0x42,0x02,0xAA,0xA0,0x1A,0x6A,0xA0,0x16,0xEA,0xA0,0x1E,0x1A,0xA0,0x11,0x9A,0xA0,0x19,0x5A,0xA0,0x15,0xDA,0xA0,0x1D,0x3A,0xA0,0x13,0xBA,0xA0,0x1B,0x7A,0xA0,0x17,0xFA,0xA0,0x1F,0x06,0x60,0x10,0x86,0x60,0x18,0x46,0x60,0x14,0xC6,0x60,0x1C,0x26,0x20,0x09,0x93,0x30,0x05,0xD3,0x30,0x03,0xB3,0x30,0x07,0xF3,0xB0,0x00,0x8B,0xB0,0x04,0xCB,0xB0,0x02,0xAB,0xB0,0x06,0xEB,0xB0,0x01,0x29,0xD8,0x84,0x2D,0xD8,0x86,0x1D,0xD8,0x85,0x3D,0xD8,0x87,0x03,0x38,0x84,0x23,0x38,0x86,0x13,0x38,0x85,0x33,0x38,0x87,0x0B,0xB8,0x84,0x34,0x5C,0xC1,0x35,0xDC,0xC0,0x2D,0xDC,0xC1,0x3D,0x3C,0xC0,0x23,0x3C,0xC1,0x33,0xBC,0xC0,0x2B,0xBC,0xC1,0x3B,0x7C,0xC0,0x27,0x7C,0xC1,0x37,0x64,0xE0,0xFF,0xD3,0xF0,0x0B,0x29,0x4A,0xD8,0x68
-
-		// 1193 - -- OP_ClientCmdMsg::OP_EqUpdateMerchantCmd --
-		// /*0x00,0x3A,*/0x38,0x00,0x00,0x00,0xFF,0x77,0x02,0xA6,0xAA,0x00,0x00,0x00,0x00,0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x3F,0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x3F,0x00,0x00,0x00,0x00,0xA8,0x55,0xEC,0x8F,0x7F,0x70,0x31,0x08,0x40,0x71,0x3A,0x8B,0xB4,0x55,0xEC,0x8F,0x00
-	/*};
-
-	Seperator* sep2 = new Seperator(command_parms->data.c_str(), ' ', 50, 500, true);
-	int8 val = 0;
-	int16 pos = 0;
-	int idx = 0;
-	while(sep2 && sep2->arg[idx+1] && sep2->IsNumber(idx) && sep2->IsNumber(idx+1)){
-		pos = atoi(sep2->arg[idx]);
-		val = atoi(sep2->arg[idx+1]);
-		memset(blah+pos, val, 1);
-		idx+=2;
+	if (sep->IsSet(0) && sep->IsNumber(0)) {
+		client->GetPlayer()->SetActionState(atol(sep->arg[0]));
 	}
 
-	DumpPacket(blah, sizeof(blah));
-	client->QueuePacket(new EQ2Packet(OP_GroupCreatedMsg , blah, sizeof(blah)));*/
+	if (sep->IsSet(1) && sep->IsNumber(1)) {
+		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
+	}
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

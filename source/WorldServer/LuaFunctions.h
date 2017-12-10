@@ -20,11 +20,7 @@
 #ifndef LUA_FUNCTIONS_H
 #define LUA_FUNCTIONS_H
 
-extern "C" {
-#include "../LUA/include/lua.h"
-#include "../LUA/include/lualib.h"
-#include "../LUA/include/lauxlib.h"
-}
+#include "../LUA/lua.hpp"
 
 //Sets
 int EQ2Emu_lua_SetCurrentHP(lua_State* state);
@@ -402,4 +398,5 @@ int EQ2Emu_lua_GetWeaponDamageType(lua_State* state);
 int EQ2Emu_lua_PauseMovement(lua_State* state);
 int EQ2Emu_lua_ResumeMovement(lua_State* state);
 int EQ2Emu_lua_GetProcPercentageForWeapon(lua_State* state);
+int EQ2Emu_lua_RemoveSpell(lua_State* state);
 #endif

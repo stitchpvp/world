@@ -56,6 +56,7 @@ Player::Player(){
 	//speed = 0;
 	packet_num = 0;
 	range_attack = false;
+	melee_attack = false;
 	old_movement_packet = 0;
 	charsheet_changed = false;
 	quickbar_updated = false;
@@ -561,7 +562,7 @@ EQ2Packet* PlayerInfo::serialize3(PacketStruct* packet, int16 version){
 	return 0;
 }
 
-void PlayerInfo::SetAccountAge(int8 age){
+void PlayerInfo::SetAccountAge(int16 age){
 	info_struct->account_age_base = age;
 }
 
@@ -700,8 +701,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("unknown11", -1, 0);
 		packet->setDataByName("unknown11", -1, 1);
 		packet->setDataByName("mitigation2_cur", 2367);
-		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage() * 1000); // Mitigation % vs PvE
-		packet->setDataByName("mitigation_pct_pvp", player->GetMitigationPercentage() * 1000); // Mitigation % vs PvP
+		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvE
+		packet->setDataByName("mitigation_pct_pvp", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvP
 		//packet->setDataByName("avoidance", 169); //Avoidance
 		packet->setDataByName("avoidance_base", 0); //Base Avoidance
 		packet->setDataByName("base_avoidance_pct", info_struct->base_avoidance_pct); //Base Avoidance pct
@@ -1422,8 +1423,21 @@ vector<EQ2Packet*> Player::EquipItem(int16 index, int16 version, int8 slot_id){
 			else
 				slot = slot_id;
 			packets = UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
+			// If item is a 2handed weapon and something is in the secondary, unequip the secondary
+			if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
+				vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
+				//packets.reserve(packets.size() + tmp_packets.size());
+				packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
+			}
 		}
-		else if(canEquip && slot < 255){
+		else if(canEquip && slot < 255) {
+			// If item is a 2handed weapon and something is in the secondary, unequip the secondary
+			if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
+				vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
+				//packets.reserve(packets.size() + tmp_packets.size());
+				packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
+			}
+
 			database.DeleteItem(GetCharacterID(), item, "NOT-EQUIPPED");
 
 			if (item->GetItemScript() && lua_interface)
@@ -2447,21 +2461,19 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		if((activity == UPDATE_ACTIVITY_DROWNING || activity == UPDATE_ACTIVITY_DROWNING2) && GetZone() && !GetInvulnerable()) //drowning
 			GetZone()->AddDrowningVictim(this);
 
-		last_movement_activity = activity;
-	}
-
-	if (activity == UPDATE_ACTIVITY_JUMPING) {
-		if (y_speed < 0 && GetTempVisualState() != 290) {
+		if (activity == UPDATE_ACTIVITY_JUMPING) {
+			if (x_speed != 0 || z_speed != 0) {
+				SetTempVisualState(11758);
+			} else {
+				SetTempVisualState(11757);
+			}
+		} else if (activity == UPDATE_ACTIVITY_FALLING) {
 			SetTempVisualState(290);
-		} else if (GetTempVisualState() != 11758 && (x_speed != 0 || y_speed != 0)) {
-			SetTempVisualState(11758);
-		} else if (GetTempVisualState() != 11757) {
-			SetTempVisualState(11757);
+		} else if (GetTempVisualState() != -1) {
+			SetTempVisualState(-1);
 		}
-	} else if (activity == UPDATE_ACTIVITY_FALLING && GetTempVisualState() != 290) {
-		SetTempVisualState(290);
-	} else if (GetTempVisualState() != 0) {
-		SetTempVisualState(0);
+
+		last_movement_activity = activity;
 	}
 
 	//Player is riding a lift, update lift XYZ offsets and the lift's spawn pointer
@@ -2616,20 +2628,16 @@ PlayerSkillList* Player::GetSkills(){
 	return &skill_list;
 }
 
-void Player::InCombat(bool val, bool range) {
-	if (val)
-		GetInfoStruct()->flags |= (1 << (range?CF_RANGED_AUTO_ATTACK:CF_AUTO_ATTACK));
-	else
-		GetInfoStruct()->flags &= ~(1 << (range?CF_RANGED_AUTO_ATTACK:CF_AUTO_ATTACK));
-
+void Player::InCombat(bool val) {
 	in_combat = val;
+
 	if (in_combat) {
 		AddIconValue(64);
 	} else {
 		RemoveIconValue(64);
 	}
 
-	charsheet_changed = true;
+	SetCharSheetChanged(true);
 }
 
 void Player::SetCharSheetChanged(bool val){
@@ -4156,10 +4164,28 @@ Skill* Player::GetSkillByName(const char* name, bool check_update){
 
 void Player::SetRangeAttack(bool val){
 	range_attack = val;
+
+	if (val)
+		set_character_flag(CF_RANGED_AUTO_ATTACK);
+	else
+		reset_character_flag(CF_RANGED_AUTO_ATTACK);
 }
 
-bool Player::GetRangeAttack(){
+bool Player::GetRangeAttack() {
 	return range_attack;
+}
+
+void Player::SetMeleeAttack(bool val) {
+	melee_attack = val;
+
+	if (val)
+		set_character_flag(CF_AUTO_ATTACK);
+	else
+		reset_character_flag(CF_AUTO_ATTACK);
+}
+
+bool Player::GetMeleeAttack() {
+	return melee_attack;
 }
 
 bool Player::AddMail(Mail* mail) {

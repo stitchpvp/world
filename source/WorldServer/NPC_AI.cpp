@@ -99,10 +99,7 @@ void Brain::Think() {
 			}
 			else {
 				// Still within max chase distance lets to the combat stuff now
-
 				float distance = m_body->GetDistance(target);
-				distance -= target->appearance.pos.collision_radius / 10;
-				distance -= m_body->appearance.pos.collision_radius / 10;
 
 				if(!m_body->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 					LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", m_body->GetName(), target->GetName());
@@ -203,7 +200,7 @@ Entity* Brain::GetMostHated() {
 		// Loop through the list looking for the entity that this NPC hates the most
 		for(itr = m_hatelist.begin(); itr != m_hatelist.end(); itr++) {
 			// Compare the hate value for the current iteration to our stored highest value
-			if(itr->second > hate) {
+			if(!hate || itr->second > hate) {
 				// New high value store the entity
 				ret = itr->first;
 				// Store the value to compare with the rest of the entities
@@ -462,8 +459,6 @@ void CombatPetBrain::Think() {
 
 	// Get distance from the owner
 	float distance = GetBody()->GetDistance(target);
-	distance -= target->appearance.pos.collision_radius / 10;
-	distance -= GetBody()->appearance.pos.collision_radius / 10;
 
 	// If out of melee range then move closer
 	if (distance > MAX_COMBAT_RANGE)
@@ -496,8 +491,6 @@ void NonCombatPetBrain::Think() {
 
 	// Get distance from the owner
 	float distance = GetBody()->GetDistance(target);
-	distance -= target->appearance.pos.collision_radius / 10;
-	distance -= GetBody()->appearance.pos.collision_radius / 10;
 
 	// If out of melee range then move closer
 	if (distance > MAX_COMBAT_RANGE)
@@ -574,8 +567,6 @@ void DumbFirePetBrain::Think() {
 			}
 
 			float distance = GetBody()->GetDistance(target);
-			distance -= target->appearance.pos.collision_radius / 10;
-			distance -= GetBody()->appearance.pos.collision_radius / 10;
 
 			if(!GetBody()->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", GetBody()->GetName(), target->GetName());

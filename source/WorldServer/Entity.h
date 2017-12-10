@@ -179,7 +179,7 @@ struct InfoStruct{
 	int8			tradeskill_class1;
 	int8			tradeskill_class2;
 	int8			tradeskill_class3;
-	int8			account_age_base;
+	int16			account_age_base;
 	int8			account_age_bonus[19];
 	int16			absorb;
 	int32			xp;
@@ -222,8 +222,11 @@ struct InfoStruct{
 	float			strikethrough;
 	float			accuracy;
 	float			offensivespeed;
+	float			base_avoidance_bonus;
+	float			minimum_deflection_chance;
 	float			rain;
 	float			wind;
+	sint8			physical_damage_reduction;
 	sint8			alignment;
 	int16			fame;
 
@@ -794,7 +797,7 @@ public:
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
 	void UpdateGroupMemberInfo();
 
-	float GetMitigationPercentage() { return info_struct.cur_mitigation / (GetLevel() * 100.0); }
+	float GetMitigationPercentage(int enemy_level) { return info_struct.cur_mitigation / ((40 * enemy_level) + info_struct.cur_mitigation + 200.0); }
 
 protected:
 	bool	in_combat;
@@ -814,6 +817,7 @@ private:
 	float	last_z;
 	float	last_heading;
 	bool	casting;
+	bool has_secondary_weapon;
 	InfoStruct		info_struct;
 	CombatData melee_combat_data;
 	CombatData ranged_combat_data;

@@ -67,6 +67,7 @@ Entity::Entity(){
 	m_procList.clear();
 	control_effects.clear();
 	immunities.clear();
+	has_secondary_weapon = false;
 
 	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
 		info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;	
@@ -295,21 +296,39 @@ void Entity::SetSecondaryLastAttackTime(int32 new_time){
 
 void Entity::ChangePrimaryWeapon(){
 	Item* item = equipment_list.GetItem(EQ2_PRIMARY_SLOT);
-	if(item && item->details.item_id > 0 && item->IsWeapon()){
+	if (item && item->details.item_id > 0 && item->IsWeapon()) {
 		melee_combat_data.primary_weapon_delay = item->weapon_info->delay * 100;
 		melee_combat_data.primary_weapon_damage_low = item->weapon_info->damage_low3;
 		melee_combat_data.primary_weapon_damage_high = item->weapon_info->damage_high3;
 		melee_combat_data.primary_weapon_type = item->GetWeaponType();
 		melee_combat_data.wield_type = item->weapon_info->wield_type;
-	}
-	else{
-		melee_combat_data.primary_weapon_delay = 2000;
-		melee_combat_data.primary_weapon_damage_low = (int32)(1 + GetLevel() * .2);
-		melee_combat_data.primary_weapon_damage_high = (int32)(5 + GetLevel() * (GetLevel()/5));
-		if(IsNPC())
+	} else {
+		double reducer = 10.0;
+
+		if (IsNPC()) {
+			if (IsPet()) {
+				reducer = 6.0;
+			} else {
+				reducer = 2.5;
+			}
+		}
+
+		melee_combat_data.primary_weapon_delay = 1500;
+		melee_combat_data.primary_weapon_damage_high = (int32)(5 + GetLevel() * (GetLevel() / reducer));
+
+		if (IsNPC()) {
 			melee_combat_data.primary_weapon_type = ((NPC*)this)->GetAttackType();
-		else
+
+			if (GetEncounterLevel() > 6) {
+				melee_combat_data.primary_weapon_damage_high *= (GetEncounterLevel() - 3) / 2.7;
+			} else if (GetEncounterLevel() <= 6) {
+				melee_combat_data.primary_weapon_damage_high *= GetEncounterLevel() / 6.0;
+			}
+		} else {
 			melee_combat_data.primary_weapon_type = 1;
+		}
+
+		melee_combat_data.primary_weapon_damage_low = (int32)(melee_combat_data.primary_weapon_damage_high * 0.65);
 		melee_combat_data.wield_type = 2;
 	}
 	if(IsNPC())
@@ -325,13 +344,35 @@ void Entity::ChangeSecondaryWeapon(){
 		melee_combat_data.secondary_weapon_damage_low = item->weapon_info->damage_low3;
 		melee_combat_data.secondary_weapon_damage_high = item->weapon_info->damage_high3;
 		melee_combat_data.secondary_weapon_type = item->GetWeaponType();
-	}
-	else{
-		melee_combat_data.secondary_weapon_delay = 2000;
-		melee_combat_data.secondary_weapon_damage_low = (int32)(1 + GetLevel() * .2);
-		melee_combat_data.secondary_weapon_damage_high = (int32)(5 + GetLevel() * (GetLevel()/6));
+		has_secondary_weapon = true;
+	} else {
+		has_secondary_weapon = false;
+
+		double reducer = 10.0;
+
+		if (IsNPC()) {
+			if (IsPet()) {
+				reducer = 6.0;
+			} else {
+				reducer = 2.5;
+			}
+		}
+
+		melee_combat_data.secondary_weapon_delay = 1500;
+		melee_combat_data.secondary_weapon_damage_high = (int32)(5 + GetLevel() * (GetLevel() / reducer));
 		melee_combat_data.secondary_weapon_type = 1;
+
+		if (IsNPC()) {
+			if (GetEncounterLevel() > 6) {
+				melee_combat_data.secondary_weapon_damage_high *= (GetEncounterLevel() - 3) / 2.7;
+			} else if (GetEncounterLevel() <= 6) {
+				melee_combat_data.secondary_weapon_damage_high *= GetEncounterLevel() / 6.0;
+			}
+		}
+
+		melee_combat_data.secondary_weapon_damage_low = (int32)(melee_combat_data.secondary_weapon_damage_high * 0.65);
 	}
+
 	if(IsNPC())
 		melee_combat_data.secondary_weapon_damage_high += (int32)(GetInfoStruct()->str / 10);
 	else
@@ -384,8 +425,10 @@ int8 Entity::GetRangedWeaponType(){
 	return ranged_combat_data.ranged_weapon_type;
 }
 
-bool Entity::IsDualWield(){
-	return melee_combat_data.wield_type == 1;
+bool Entity::IsDualWield() {
+	if (has_secondary_weapon && (melee_combat_data.wield_type == 1 || melee_combat_data.wield_type == 2))
+		return true;
+	return false;
 }
 
 int8 Entity::GetWieldType(){
@@ -565,47 +608,29 @@ void Entity::AddSpellEffect(LuaSpell* luaspell){
 }
 
 void Entity::RemoveMaintainedSpell(LuaSpell* luaspell){
-	printf("starting\n");
-	fflush(stdout);
 	if (!luaspell)
 		return;
 
 	bool found = false;
-	printf("start lock\n");
-	fflush(stdout);
 	MMaintainedSpells.writelock(__FUNCTION__, __LINE__);
 	for (int i = 0; i<30; i++){
-		printf("loop through maintained: %d\n", i);
-		fflush(stdout);
 		// If we already found the spell then we are bumping all other up one so there are no gaps
 		// This check needs to be first so found can never be true on the first iteration (i = 0)
 		if (found) {
-			printf("doing a bump in: %d\n", i);
-			fflush(stdout);
 			GetInfoStruct()->maintained_effects[i].slot_pos = i - 1;
 			GetInfoStruct()->maintained_effects[i - 1] = GetInfoStruct()->maintained_effects[i];
-			printf("did a bump in: %d\n", i);
-			fflush(stdout);
 
 		}
 		// Compare spells, if we found a match set the found flag
-		printf("doing a comparison in: %d\n", i);
-		fflush(stdout);
 		if (GetInfoStruct()->maintained_effects[i].spell == luaspell)
 			found = true;
 
 	}
 	// if we found the spell in the array then we need to set the last element to empty
-	printf("loop done\n");
-	fflush(stdout);
 	if (found) {
 		memset(&GetInfoStruct()->maintained_effects[29], 0, sizeof(MaintainedEffects));
-		printf("did memset\n");
-		fflush(stdout);
 		GetInfoStruct()->maintained_effects[29].spell_id = 0xFFFFFFFF;
 		GetInfoStruct()->maintained_effects[29].icon = 0xFFFF;
-		printf("did 0xFFFF\n");
-		fflush(stdout);
 	}
 	MMaintainedSpells.releasewritelock(__FUNCTION__, __LINE__);
 }
@@ -797,6 +822,9 @@ void Entity::CalculateBonuses(){
 	info->strikethrough = 0;
 	info->accuracy = 0;
 	info->offensivespeed = 0;
+	info->base_avoidance_bonus = 0;
+	info->minimum_deflection_chance = 0;
+	info->physical_damage_reduction = 0;
 
 	stats.clear();
 	ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
@@ -811,6 +839,7 @@ void Entity::CalculateBonuses(){
 	info->divine += values->vs_divine;
 	info->heat += values->vs_heat;
 	info->magic += values->vs_magic;
+	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 	info->cur_mitigation += values->vs_slash;
 	info->cur_mitigation += values->vs_pierce;
 	info->cur_mitigation += values->vs_crush;
@@ -858,6 +887,9 @@ void Entity::CalculateBonuses(){
 	info->strikethrough += values->strikethrough;
 	info->accuracy += values->accuracy;
 	info->offensivespeed += values->offensivespeed;
+	info->base_avoidance_bonus += values->base_avoidance_bonus;
+	info->minimum_deflection_chance += values->minimum_deflection_chance;
+	info->physical_damage_reduction += values->physical_damage_reduction;
 	safe_delete(values);
 }
 
@@ -901,6 +933,7 @@ void Entity::AddSpellBonus(LuaSpell* spell, int16 type, sint32 value, int64 clas
 	//CheckSpellBonusRemoval(spell, type);
 	BonusValues* bonus = new BonusValues;
 	bonus->luaspell = spell;
+	bonus->spell_id = spell->spell->GetSpellID();
 	bonus->type = type;
 	bonus->value = value;
 	bonus->class_req = class_req;
@@ -975,8 +1008,9 @@ void Entity::CalculateSpellBonuses(ItemStatsValues* stats){
 			}
 			//We've found the highest tier for this spell id, so add the bonuses
 			vector<BonusValues*>* final_bonuses = &sort_itr->second[key];
-			for (int8 i = 0; i < final_bonuses->size(); i++)
+			for (int8 i = 0; i < final_bonuses->size(); i++) {
 				world.AddBonuses(stats, final_bonuses->at(i)->type, final_bonuses->at(i)->value, this);
+			}
 		}
 	}
 }
@@ -1316,6 +1350,7 @@ float Entity::GetSpeed() {
 		ret += max(stats[ITEM_STAT_SPEED], stats[ITEM_STAT_MOUNTSPEED]);
 
 	ret *= speed_multiplier;
+	ret -= GetHighestSnare();
 	return ret;
 }
 
@@ -1735,10 +1770,8 @@ void Entity::RemoveRootSpell(LuaSpell* spell) {
 		if (IsPlayer()){
 			if (!IsMezzedOrStunned())
 				((Player*)this)->SetPlayerControlFlag(1, 8, false); // heading movement only
-		}
-		else {
-			// GetHighestSnare() will return 1.0f if no snares returning the spawn to full speed
-			SetSpeedMultiplier(GetHighestSnare());
+		} else {
+			SetSpeedMultiplier(1.0f);
 		}
 	}
 }
@@ -1781,11 +1814,6 @@ void Entity::AddSnareSpell(LuaSpell* spell) {
 		control_effects[CONTROL_EFFECT_TYPE_SNARE] = new MutexList<LuaSpell*>;
 
 	control_effects[CONTROL_EFFECT_TYPE_SNARE]->Add(spell);
-
-	// Don't set speed multiplier if there is a root or no snare values
-	MutexList<LuaSpell*>* roots = control_effects[CONTROL_EFFECT_TYPE_ROOT];
-	if ((!roots || roots->size(true) == 0) && snare_values.size() > 0)
-		SetSpeedMultiplier(GetHighestSnare());
 }
 
 void Entity::RemoveSnareSpell(LuaSpell* spell) {
@@ -1795,16 +1823,6 @@ void Entity::RemoveSnareSpell(LuaSpell* spell) {
 
 	snare_list->Remove(spell);
 	snare_values.erase(spell);
-
-	//LogWrite(PLAYER__ERROR, 0, "Debug", "snare_values.size() = %u", snare_values.size());
-
-	// only change speeds if there are no roots
-	MutexList<LuaSpell*>* roots = control_effects[CONTROL_EFFECT_TYPE_ROOT];
-	if (!roots || roots->size(true) == 0) {
-		float multiplier = GetHighestSnare();
-		//LogWrite(PLAYER__ERROR, 0, "Debug", "GetHighestSnare() = %f", multiplier);
-		SetSpeedMultiplier(multiplier);
-	}
 }
 
 void Entity::SetSnareValue(LuaSpell* spell, float snare_val) {
@@ -1816,14 +1834,14 @@ void Entity::SetSnareValue(LuaSpell* spell, float snare_val) {
 
 float Entity::GetHighestSnare() {
 	// For simplicity this will return the highest snare value, which is actually the lowest value
-	float ret = 1.0f;
+	float ret = 0.0f;
 
 	if (snare_values.size() == 0)
 		return ret;
 
 	map<LuaSpell*, float>::iterator itr;
 	for (itr = snare_values.begin(); itr != snare_values.end(); itr++) {
-		if (itr->second < ret)
+		if (itr->second > ret)
 			ret = itr->second;
 	}
 
