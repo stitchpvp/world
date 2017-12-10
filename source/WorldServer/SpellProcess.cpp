@@ -1396,8 +1396,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		if ((spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel) && !spell->spell->GetSpellData()->not_maintained)
 			spell->caster->AddMaintainedSpell(spell);
 
-		active_spells.Add(spell);
-
 		if (spell->num_triggers > 0)
 			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->num_triggers, 0);
 
