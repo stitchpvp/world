@@ -16956,6 +16956,15 @@ to zero and treated like placeholders." />
 <!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
 <Data ElementName="unknown2" Type="int8" Size="5" />
 </Struct>
+<Struct Name="WS_HearSpellDamage" ClientVersion="63120" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
+<Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
+<Data ElementName="damage_type" Type="int8" />
+<Data ElementName="damage" Type="int16" />
+<Data ElementName="unknown" Type="int8" />
+<Data ElementName="spell_name" Type="EQ2_8Bit_String" Size="1" />
+<!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
+<Data ElementName="unknown2" Type="int8" Size="5" />
+</Struct>
 <Struct Name="WS_HearHeal" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearHealCmd">
 <Data ElementName="caster" Type="int32" />
 <Data ElementName="target" Type="int32" />
