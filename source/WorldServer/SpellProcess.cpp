@@ -1365,13 +1365,11 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 					if (!spell->resisted && spell->spell->GetSpellData()->duration1 > 0) {
 						spell->timer.Start();
+
 						if (spell->spell->GetSpellData()->call_frequency > 0)
 							spell->timer.SetTimer(spell->spell->GetSpellData()->call_frequency * 100);
 						else
 							spell->timer.SetTimer(spell->spell->GetSpellData()->duration1 * 100);
-						if (active_spells.count(spell) > 0) {
-							active_spells.Add(spell);
-						}
 					}
 
 					target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_CASTED_ON, spell->caster, spell->spell->GetName());
@@ -1393,8 +1391,12 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		spell->resisted = !hit_target;
 
 	if (hit_target && living_target) {
-		if ((spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel) && !spell->spell->GetSpellData()->not_maintained)
-			spell->caster->AddMaintainedSpell(spell);
+		if (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel) {
+			if (!spell->spell->GetSpellData()->not_maintained)
+				spell->caster->AddMaintainedSpell(spell);
+			
+			active_spells.Add(spell);
+		}
 
 		if (spell->num_triggers > 0)
 			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->num_triggers, 0);
