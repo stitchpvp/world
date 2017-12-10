@@ -1540,15 +1540,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				client->GetPlayer()->SetSize(atoi(sep->arg[0]));
 				client->GetCurrentZone()->SendPlayerPositionChanges(client->GetPlayer());
 
-				PacketStruct* control_packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
-				if (control_packet) {
-					control_packet->setDataByName("spawn_id", 0xFFFFFFFF);
-					control_packet->setDataByName("speed", client->GetPlayer()->GetSpeed());
-					control_packet->setDataByName("air_speed", client->GetPlayer()->GetAirSpeed());
-					control_packet->setDataByName("size", 0.2);
-					client->QueuePacket(control_packet->serialize());
-					safe_delete(control_packet);
-				}
+				EQ2Packet* outapp = client->GetPlayer()->spawn_update_packet(client->GetPlayer(), client->GetVersion());
+				if (outapp)
+					client->QueuePacket(outapp);
 			} else {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /size {size}");
 			}
