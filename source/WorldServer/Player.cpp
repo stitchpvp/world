@@ -2017,6 +2017,7 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 				if(spell){
 					packet->setSubstructArrayDataByName("spells", "spell_id", spell_entry->spell_id, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "type", spell_entry->type, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown1", spell->GetSpellData()->target_type, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_available", spell_entry->recast_available, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_time", spell_entry->recast, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "status", spell_entry->status, 0, ptr);

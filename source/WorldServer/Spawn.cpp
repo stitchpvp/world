@@ -1690,7 +1690,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		temp_activity_status = appearance.activity_status;
 
 	packet->setDataByName("activity_status", temp_activity_status); //appearance.activity_status);
-
+	
 	// If player and player has a follow target
 	if (IsPlayer()) {
 		if (((Player*)this)->GetFollowTarget())
