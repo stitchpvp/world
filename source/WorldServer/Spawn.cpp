@@ -1557,8 +1557,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		if ((IsPlayer() && ((Player*)this)->get_character_flag(CF_HIDE_HOOD)) || appearance.hide_hood)
 			vis_flag += INFO_VIS_FLAG_HIDE_HOOD;
 
-		vis_flag += 16;
-
 		packet->setDataByName("visual_flag", vis_flag);
 		packet->setColorByName("mount_saddle_color", entity->GetMountSaddleColor());
 		packet->setColorByName("mount_color", entity->GetMountColor());

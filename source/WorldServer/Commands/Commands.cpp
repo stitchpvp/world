@@ -1540,7 +1540,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				client->GetPlayer()->SetSize(atoi(sep->arg[0]));
 				client->GetCurrentZone()->SendPlayerPositionChanges(client->GetPlayer());
 
-				EQ2Packet* outapp = client->GetPlayer()->spawn_update_packet(client->GetPlayer(), client->GetVersion());
+				EQ2Packet* outapp = client->GetPlayer()->player_position_update_packet(client->GetPlayer(), client->GetVersion());
 				if (outapp)
 					client->QueuePacket(outapp);
 			} else {

@@ -362,8 +362,10 @@ void Brain::AddToEncounter(Entity* entity) {
 
 		deque<GroupMemberInfo*>::iterator itr;
 		deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(group_id);
-		for (itr = members->begin(); itr != members->end(); itr++)
-			m_encounter.push_back((*itr)->client->GetPlayer()->GetID());
+		for (itr = members->begin(); itr != members->end(); itr++) {
+			if (entity->GetZone() == (*itr)->client->GetPlayer()->GetZone())
+				m_encounter.push_back((*itr)->client->GetPlayer()->GetID());
+		}
 
 		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 	}
