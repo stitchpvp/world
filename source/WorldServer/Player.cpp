@@ -920,8 +920,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 				expireTimestamp = 0;
 			packet->setSubstructDataByName("maintained_effects", "expire_timestamp", expireTimestamp, i, 0);
 			packet->setSubstructDataByName("spell_effects", "spell_id", info_struct->spell_effects[i].spell_id, i, 0);
-			/*if(info_struct->spell_effects[i].spell_id > 0 && info_struct->spell_effects[i].spell_id < 0xFFFFFFFF)
-				packet->setSubstructDataByName("spell_effects", "unknown2", 514, i, 0);*/
+			packet->setSubstructDataByName("spell_effects", "cancellable", 3, i, 0);
 			packet->setSubstructDataByName("spell_effects", "total_time", info_struct->spell_effects[i].total_time, i, 0);
 			expireTimestamp = info_struct->spell_effects[i].expire_timestamp;
 			if(expireTimestamp == 0xFFFFFFFF)
