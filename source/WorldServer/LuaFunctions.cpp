@@ -6452,10 +6452,10 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 	if(!lua_interface)
 		return 0;
 
-	float hp_perc = lua_interface->GetFloatValue(state);
-	float power_perc = lua_interface->GetFloatValue(state, 2);
-	bool send_window = lua_interface->GetInt32Value(state, 3) == 1;
-	Spawn* target = lua_interface->GetSpawn(state, 4);
+	Spawn* target = lua_interface->GetSpawn(state);
+	float hp_perc = lua_interface->GetFloatValue(state, 2);
+	float power_perc = lua_interface->GetFloatValue(state, 3);
+	bool send_window = lua_interface->GetInt32Value(state, 4) == 1;
 	string heal_name = lua_interface->GetStringValue(state, 5);
 	int8 crit_mod = lua_interface->GetInt32Value(state, 6);
 	bool no_calcs = lua_interface->GetInt32Value(state, 7) == 1;
@@ -6477,91 +6477,42 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 	Client* client = 0;
 	PendingResurrection* rez = 0;
 	ZoneServer* zone = spell->caster->GetZone();
-	if(!target){
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		if(spell->targets.size() > 0){
-			vector<int32> spell_targets = spell->targets;
-			for(int8 i=0; i < spell_targets.size(); i++){
-				target = zone->GetSpawnByID(spell_targets.at(i));
-				if(!target)
-					continue;
-				if(!target->IsPlayer())
-					continue;
 
-				client = target->GetZone()->GetClientBySpawn(target);
+	client = target->GetZone()->GetClientBySpawn(target);
 
-				if(!client)
-					continue;
+	if(!client)
+		return 0;
 				
-				rez = client->GetCurrentRez();
-				if(rez->active)
-					continue;
+	rez = client->GetCurrentRez();
+	if(rez->active)
+		return 0;
 
-				client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
-				rez->active = true;
-				rez->caster = caster;
-				rez->expire_timer = new Timer;
-				int32 duration = spell->spell->GetSpellDuration();
-				rez->expire_timer->Start(duration * 100);
-				rez->hp_perc = hp_perc;
-				rez->mp_perc = power_perc;
-				rez->range = spell->spell->GetSpellData()->range;
-				rez->spell_name = spell->spell->GetName();
-				if(heal_name.length() > 0)
-					rez->heal_name = heal_name;
-				else
-					rez->heal_name = rez->spell_name;
-				rez->no_calcs = no_calcs;
-				rez->crit_mod = crit_mod;
-				rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
-				rez->spell = spell;
-				if(send_window)
-					client->SendResurrectionWindow();
-				else{
-					target->GetZone()->ResurrectSpawn(target, client);
-					rez->should_delete = true;
-				}
-				client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
-			}
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+	client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
+	rez->active = true;
+	rez->caster = caster;
+	rez->expire_timer =  new Timer;
+	int32 duration = spell->spell->GetSpellDuration();
+	rez->expire_timer->Start(duration * 100);
+	rez->hp_perc = hp_perc;
+	rez->mp_perc = power_perc;
+	rez->range = spell->spell->GetSpellData()->range;
+	rez->spell_name = spell->spell->GetName();
+	if(heal_name.length() > 0)
+		rez->heal_name = heal_name;
+	else
+		rez->heal_name = rez->spell_name;
+	rez->no_calcs = no_calcs;
+	rez->crit_mod = crit_mod;
+	rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
+	rez->spell = spell;
+	if(send_window)
+		client->SendResurrectionWindow();
+	else{
+		target->GetZone()->ResurrectSpawn(target, client);
+		rez->should_delete = true;
 	}
-	else {
-		client = target->GetZone()->GetClientBySpawn(target);
+	client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
 
-		if(!client)
-			return 0;
-				
-		rez = client->GetCurrentRez();
-		if(rez->active)
-			return 0;
-
-		client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
-		rez->active = true;
-		rez->caster = caster;
-		rez->expire_timer =  new Timer;
-		int32 duration = spell->spell->GetSpellDuration();
-		rez->expire_timer->Start(duration * 100);
-		rez->hp_perc = hp_perc;
-		rez->mp_perc = power_perc;
-		rez->range = spell->spell->GetSpellData()->range;
-		rez->spell_name = spell->spell->GetName();
-		if(heal_name.length() > 0)
-			rez->heal_name = heal_name;
-		else
-			rez->heal_name = rez->spell_name;
-		rez->no_calcs = no_calcs;
-		rez->crit_mod = crit_mod;
-		rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
-		rez->spell = spell;
-		if(send_window)
-			client->SendResurrectionWindow();
-		else{
-			target->GetZone()->ResurrectSpawn(target, client);
-			rez->should_delete = true;
-		}
-		client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
-	}
 	return 0;
 }
 
