@@ -857,7 +857,8 @@ to zero and treated like placeholders." />
 <Data ElementName="expire_timestamp" Type="int32" Size="1" />
 <Data ElementName="icon" Type="int16" Size="1" />
 <Data ElementName="icon_type" Type="int16" Size="1" />
-<Data ElementName="unknown2" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
+<Data ElementName="cancellable" Type="int8" Size="1" />
 <Data ElementName="unknown3" Type="int8" Size="1" />
 </Struct>
 <Struct Name="Substruct_SpellEffects" ClientVersion="843" >
@@ -866,7 +867,8 @@ to zero and treated like placeholders." />
 <Data ElementName="expire_timestamp" Type="int32" Size="1" />
 <Data ElementName="icon" Type="int16" Size="1" />
 <Data ElementName="icon_type" Type="int16" Size="1" />
-<Data ElementName="unknown2" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
+<Data ElementName="cancellable" Type="int8" Size="1" />
 </Struct>
 <Struct Name="Substruct_SpellEffects" ClientVersion="1193" >
 <Data ElementName="spell_id" Type="int32" Size="1" />
@@ -874,7 +876,8 @@ to zero and treated like placeholders." />
 <Data ElementName="expire_timestamp" Type="int32" Size="1" />
 <Data ElementName="icon" Type="int16" Size="1" />
 <Data ElementName="icon_type" Type="int16" Size="1" />
-<Data ElementName="unknown2" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
+<Data ElementName="cancellable" Type="int8" Size="1" />
 <Data ElementName="CoEunknown" Type="int8" Size="21" />
 </Struct>
 <Struct Name="Substruct_PassiveEffects" ClientVersion="1193" >
