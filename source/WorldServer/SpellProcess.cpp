@@ -1699,7 +1699,7 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 				continue;
 			if (spell->spell->GetSpellData()->persist_though_death && spell->caster->GetZone()->GetClientBySpawn(spell->caster)->IsConnected())
 				continue;
-			if (spell->caster == spawn && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->affect_only_group_members) {
+			if (spell->caster == spawn && spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
 				spell->caster = spell->caster->GetZone()->unknown_spawn;
 				continue;
 			}
