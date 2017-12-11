@@ -6608,22 +6608,10 @@ int EQ2Emu_lua_BreatheUnderwater(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
-			if (target->IsEntity()) {
-				static_cast<Entity*>(target)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
-				if (target->IsPlayer())
-					static_cast<Player*>(target)->SetCharSheetChanged(true);
-			}
-		}
-	}
-	else {
-		static_cast<Entity*>(spawn)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
-		if (spawn->IsPlayer())
-			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
-	}
+	static_cast<Entity*>(spawn)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
+	if (spawn->IsPlayer())
+		static_cast<Player*>(spawn)->SetCharSheetChanged(true);
+
 	return 0;
 }
 
