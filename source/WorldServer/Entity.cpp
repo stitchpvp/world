@@ -563,7 +563,7 @@ void Entity::AddMaintainedSpell(LuaSpell* luaspell){
 		effect->spell = luaspell;
 		effect->spell_id = spell->GetSpellData()->id;
 		LogWrite(NPC__SPELLS, 5, "NPC", "AddMaintainedSpell Spell ID: %u", spell->GetSpellData()->id);
-		effect->conc_used = spell->GetSpellData()->req_concentration / 256;
+		effect->conc_used = spell->GetSpellData()->req_concentration;
 		effect->total_time = spell->GetSpellDuration() / 10;
 		effect->tier = spell->GetSpellData()->tier;
 		if (spell->GetSpellData()->duration_until_cancel)

@@ -620,7 +620,7 @@ bool SpellProcess::TakeHP(LuaSpell* spell) {
 
 bool SpellProcess::CheckConcentration(LuaSpell* spell) {
 	if (spell && spell->caster) {
-		int8 req = spell->spell->GetSpellData()->req_concentration / 256;
+		int8 req = spell->spell->GetSpellData()->req_concentration;
 		int8 current_avail = 5 - spell->caster->GetConcentrationCurrent();
 		if (current_avail >= req)
 			return true;
@@ -630,7 +630,7 @@ bool SpellProcess::CheckConcentration(LuaSpell* spell) {
 
 bool SpellProcess::AddConcentration(LuaSpell* spell) {
 	if (spell && spell->caster) {
-		int8 req = spell->spell->GetSpellData()->req_concentration / 256;
+		int8 req = spell->spell->GetSpellData()->req_concentration;
 		int8 current_avail = 5 - spell->caster->GetConcentrationCurrent();
 		if (current_avail >= req) {
 			spell->caster->GetInfoStruct()->cur_concentration += req;
@@ -864,7 +864,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 			if (ret_val)
 			{
-				int8 actual_concentration = spell->GetSpellData()->req_concentration / 256;
+				int8 actual_concentration = spell->GetSpellData()->req_concentration;
 
 				if (actual_concentration > 0)
 				{

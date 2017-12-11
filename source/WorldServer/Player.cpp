@@ -2239,7 +2239,7 @@ void Player::AddMaintainedSpell(LuaSpell* luaspell){
 		LogWrite(PLAYER__DEBUG, 5, "Player", "AddMaintainedSpell Spell ID: %u", spell->GetSpellData()->id);
 		effect->icon = spell->GetSpellData()->icon;
 		effect->icon_backdrop = spell->GetSpellData()->icon_backdrop;
-		effect->conc_used = spell->GetSpellData()->req_concentration / 256;
+		effect->conc_used = spell->GetSpellData()->req_concentration;
 		effect->total_time = spell->GetSpellDuration()/10;
 		effect->tier = spell->GetSpellData()->tier;
 		if (spell->GetSpellData()->duration_until_cancel)
