@@ -110,6 +110,8 @@ int EQ2Emu_lua_GetItemByID(lua_State* state);
 int EQ2Emu_lua_GetItemType(lua_State* state);
 int EQ2Emu_lua_GetSpellName(lua_State* state);
 
+int EQ2Emu_lua_GetCaster(lua_State* state);
+
 //Misc
 int EQ2Emu_lua_SpawnSet(lua_State* state);
 int EQ2Emu_lua_KillSpawn(lua_State* state); 

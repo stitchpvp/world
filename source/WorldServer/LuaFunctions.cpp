@@ -7420,6 +7420,21 @@ int EQ2Emu_lua_GetSpellName(lua_State* state) {
 	return 1;
 }
 
+int EQ2Emu_lua_GetCaster(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+
+	if (!spell) {
+		lua_interface->LogError("LUA GetSpellName command error: this function must be used from a spell script!");
+		return 0;
+	}
+
+	lua_interface->SetSpawnValue(state, spell->caster);
+	return 1;
+}
+
 int EQ2Emu_lua_GetQuestFlags(lua_State* state) {
 	if (!lua_interface)
 		return 0;
