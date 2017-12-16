@@ -3686,6 +3686,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
 		case COMMAND_PVP_RANGE			: { Command_PVPRange(client); break; }
 		case COMMAND_PVP				: { Command_PVP(client); break; }
+		case COMMAND_KNOWLEDGEWINDOW_SORT: { Command_KnowledgeWindow_Sort(client, sep); break; }
 
 		default: 
 		{
@@ -8128,4 +8129,17 @@ void Commands::Command_PVP(Client* client) {
 	client->SimpleMessage(CHANNEL_COLOR_WHITE, "PVP Statistics");
 	client->Message(CHANNEL_COLOR_WHITE, "Kills: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_KILLS));
 	client->Message(CHANNEL_COLOR_WHITE, "Deaths: %i", client->GetPlayer()->GetPlayerStatisticValue(STAT_PLAYER_TOTAL_PVP_DEATHS));
+}
+
+void Commands::Command_KnowledgeWindow_Sort(Client* client, Seperator* sep) {
+	if (sep && sep->arg[0] && sep->arg[1] && sep->arg[2] && sep->arg[3] && sep->arg[4]) {
+		int8 tab = atoi(sep->arg[0]);
+		int8 sort_by = atoi(sep->arg[1]);
+		bool reverse = atoi(sep->arg[2]);
+		int8 fill_style = atoi(sep->arg[3]);
+		bool max_level_only = atoi(sep->arg[4]);
+
+		client->GetPlayer()->SortSpellBook();
+		ClientPacketFunctions::SendSkillSlotMappings(client);
+	}
 }

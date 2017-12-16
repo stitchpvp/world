@@ -462,6 +462,8 @@ public:
 
 	void Command_PVP(Client* client);
 
+	void Command_KnowledgeWindow_Sort(Client* client, Seperator* sep);
+
 private:
 	RemoteCommands* remote_commands;
 	map<string, int8> spawn_set_values;
@@ -842,6 +844,8 @@ private:
 #define COMMAND_ACCEPT_RESURRECTION     312
 #define COMMAND_DECLINE_RESURRECTION    313
 #define COMMAND_WIND					314
+
+#define COMMAND_SORT_KNOWLEDGE_BOOK		497
 
 #define COMMAND_MODIFY				1000 // INSERT INTO `commands`(`id`,`type`,`command`,`subcommand`,`handler`,`required_status`) VALUES ( NULL,'1','modify','','1000','200'); 
 #define COMMAND_MODIFY_CHARACTER	1001

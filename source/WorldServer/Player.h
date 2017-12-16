@@ -553,6 +553,8 @@ public:
 	void	ClearRemovedSpawn(Spawn* spawn);
 	bool	ShouldSendSpawn(Spawn* spawn);
 
+	void SortSpellBook();
+
 	map<int16, Spawn*>* GetPlayerSpawnMap(){
 		return &player_spawn_map;
 	}

@@ -3725,6 +3725,24 @@ bool Player::ShouldSendSpawn(Spawn* spawn){
 	return false;
 }
 
+struct SortSpellAlphabetically {
+	bool operator()(const SpellBookEntry* lhs, const SpellBookEntry* rhs) {
+		Spell* ls = master_spell_list.GetSpell(lhs->spell_id, lhs->tier);
+		Spell* rs = master_spell_list.GetSpell(rhs->spell_id, rhs->tier);
+
+		return strcmp(ls->GetName(), rs->GetName()) < 0;
+	}
+};
+
+void Player::SortSpellBook() {
+	MSpellsBook.writelock();
+	sort(spells.begin(), spells.end(), SortSpellAlphabetically());
+	for (int i = 0; i < spells.size(); i++) {
+		spells[i]->slot = i;
+	}
+	MSpellsBook.releasewritelock();
+}
+
 int8 Player::GetArrowColor(int8 spawn_level){
 	int8 color = 0;
 	sint16 diff = spawn_level - GetLevel();
