@@ -17189,14 +17189,16 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="recast_available" Type="int32" Size="1" />
 <Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown1" Type="int8" Size="1" />
+<Data ElementName="target_type" Type="int8" Size="1" />
 <Data ElementName="recast_time" Type="int16" Size="1" />
-<Data ElementName="unknown3" Type="int16" Size="3" />
+<Data ElementName="unknown2" Type="int16" Size="3" />
 <Data ElementName="icon" Type="int16" />
 <Data ElementName="icon_type" Type="int16" />
 <Data ElementName="icon2" Type="int16" Size="1" />
 <Data ElementName="charges" Type="int8" Size="1" />
-<Data ElementName="unknown5" Type="int8" Size="24" />
+<Data ElementName="unknown3" Type="int8" Size="20" />
+<Data ElementName="distance" Type="int16" Size="1" />
+<Data ElementName="unknown4" Type="int16" Size="1" />
 <Data ElementName="status" Type="int8" Size="1" />
 <Data ElementName="unknown6" Type="int8" Size="3" />
 </Struct>
