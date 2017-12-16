@@ -845,7 +845,7 @@ private:
 #define COMMAND_DECLINE_RESURRECTION    313
 #define COMMAND_WIND					314
 
-#define COMMAND_SORT_KNOWLEDGE_BOOK		497
+#define COMMAND_KNOWLEDGEWINDOW_SORT		497
 
 #define COMMAND_MODIFY				1000 // INSERT INTO `commands`(`id`,`type`,`command`,`subcommand`,`handler`,`required_status`) VALUES ( NULL,'1','modify','','1000','200'); 
 #define COMMAND_MODIFY_CHARACTER	1001

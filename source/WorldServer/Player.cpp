@@ -2016,7 +2016,7 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 				if(spell){
 					packet->setSubstructArrayDataByName("spells", "spell_id", spell_entry->spell_id, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "type", spell_entry->type, 0, ptr);
-					packet->setSubstructArrayDataByName("spells", "unknown1", spell->GetSpellData()->target_type, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "target_type", spell->GetSpellData()->target_type, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_available", spell_entry->recast_available, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_time", spell_entry->recast, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "status", spell_entry->status, 0, ptr);
@@ -2025,6 +2025,7 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 					packet->setSubstructArrayDataByName("spells", "icon2", spell->GetSpellIconHeroicOp(), 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "unique_id", (spell_entry->tier+1)*-1, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "charges", 255, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "distance", 32 * spell->GetSpellData()->range, 0, ptr);
 
 					// Beastlord and Channeler spell support
 					if (spell->GetSpellData()->savage_bar == 1)
