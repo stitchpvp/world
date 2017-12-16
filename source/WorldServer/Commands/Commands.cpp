@@ -7414,7 +7414,7 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 void Commands::Command_Test(Client* client, Seperator* sep) {
 	if (sep == nullptr) return;
 
-	if (sep->IsSet(2) && sep->IsNumber(2)) {
+	/*if (sep->IsSet(2) && sep->IsNumber(2)) {
 		client->GetCurrentZone()->SendStateCommand(client->GetPlayer(), atol(sep->arg[2]));
 	}
 
@@ -7424,7 +7424,17 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 
 	if (sep->IsSet(1) && sep->IsNumber(1)) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
-	}
+	}*/
+
+	//client->GetCurrentZone()->zone_bitmask = atol(sep->arg[0]);
+	//client->GetPlayer()->SetSpawnType(atol(sep->arg[0]));
+	static_cast<Entity*>(client->GetPlayer())->SetMount(atol(sep->arg[0]));
+	EQ2_Color color;
+	color.red = 255;
+	color.green = 255;
+	color.blue = 255;
+	static_cast<Entity*>(client->GetPlayer())->SetMountColor(&color);
+	static_cast<Entity*>(client->GetPlayer())->SetMountSaddleColor(&color);
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

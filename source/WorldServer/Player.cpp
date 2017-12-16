@@ -70,6 +70,7 @@ Player::Player(){
 	LogWrite(MISC__TODO, 1, "TODO", "Add player commands here\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
 	appearance.display_name = 1;
+	appearance.encounter_level = 1;
 	appearance.show_command_icon = 1;
 	appearance.player_flag = 1;
 	appearance.targetable = 1;

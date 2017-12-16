@@ -112,6 +112,9 @@ class TradeskillMgr;
 #define WAYPOINT_CATEGORY_HOUSES		7
 #define WAYPOINT_CATEGORY_MAP			8
 
+#define ZONE_FLAGS_BASE 25191534
+#define ZONE_FLAGS_PVP 262144
+
 struct PlayerProximity{
 	float				distance;
 	string				in_range_lua_function;

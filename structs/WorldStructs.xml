@@ -376,7 +376,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int8" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
 	<Data ElementName="adv_name" Type="EQ2_16Bit_String" />
@@ -412,7 +412,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int8" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
 	<Data ElementName="adv_name" Type="EQ2_16Bit_String" />
@@ -448,7 +448,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
@@ -486,7 +486,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
@@ -523,7 +523,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
@@ -566,7 +566,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
@@ -609,7 +609,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
 <Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
@@ -647,7 +647,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="unknown11" Type="int8" Size="5" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
@@ -686,7 +686,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="unknown11" Type="int8" Size="5" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
@@ -730,7 +730,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="unknown11" Type="int8" Size="5" />
 <Data ElementName="num_adv" Type="int32" Size="1" />
@@ -805,7 +805,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown7" Type="float" Size="2" />
 <Data ElementName="unknown8" Type="int16" Size="1" />
 <Data ElementName="unknown9" Type="float" Size="1" />
-<Data ElementName="unknown10" Type="int32" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
 <Data ElementName="unknown10b" Type="int16" Size="1" />
 <Data ElementName="unknown11a" Type="int8" Size="1" />
 <Data ElementName="unknown11b" Type="int8" Size="1" />
@@ -19221,7 +19221,9 @@ to zero and treated like placeholders." />
 <Data ElementName="parameter3" Type="int8" />
 <Data ElementName="parameter4" Type="int8" />
 <Data ElementName="parameter5" Type="int8" />
-<Data ElementName="unknown" Type="int8" Size="3" />
+<Data ElementName="parameter6" Type="int8" />
+<Data ElementName="parameter7" Type="int8" />
+<Data ElementName="parameter8" Type="int8" />
 <Data ElementName="value" Type="int8" />
 </Struct>
 <Struct Name="WS_MoveClient" ClientVersion="1" OpcodeName="OP_TeleportWithinZoneNoReloadMsg" >
@@ -25535,8 +25537,8 @@ to zero and treated like placeholders." />
   <Data ElementName="unknown1" Type="int8" Size="2" />
   <Data ElementName="last_name" Type="EQ2_16Bit_String" Size="1" />
   <Data ElementName="suffix_title" Type="EQ2_16Bit_String" />
-  <Data ElementName="unknown3" Type="int16" Size="1" />
   <Data ElementName="prefix_title" Type="EQ2_16Bit_String" />
+  <Data ElementName="pvp_title" Type="EQ2_16Bit_String" />
   <Data ElementName="sub_title" Type="EQ2_16Bit_String" />
 </Struct>
 <Struct Name="WS_Languages" ClientVersion="1" OpcodeName="OP_KnownLanguagesMsg">

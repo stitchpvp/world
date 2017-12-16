@@ -262,6 +262,12 @@ void ClientPacketFunctions::SendServerControlFlags(Client* client, int8 param, i
 			packet->setDataByName("parameter4", param_val);
 		else if (param == 5)
 			packet->setDataByName("parameter5", param_val);
+		else if (param == 6)
+			packet->setDataByName("parameter6", param_val);
+		else if (param == 7)
+			packet->setDataByName("parameter7", param_val);
+		else if (param == 8)
+			packet->setDataByName("parameter8", param_val);
 		else {
 			safe_delete(packet);
 			return;

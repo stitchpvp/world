@@ -873,6 +873,7 @@ public:
 	bool				position_changed;
 	bool				info_changed;
 	bool				vis_changed;
+	int vis_flag_override;
 	int16				size;
 	int32				faction_id;
 	int8				oversized_packet; //0xff

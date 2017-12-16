@@ -185,6 +185,8 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			if (IsPlayer() && player->CanAttackTarget((Player*)this)) {
 				arrow_color = player->GetArrowColor(GetLevel());
 				npc_con = -4;
+			} else if (IsPlayer()) {
+				npc_con = 4;
 			}
 
 			vis_packet->setDataByName("arrow_color", arrow_color);
@@ -205,7 +207,7 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 	int8 vis_flags = 0;
 	if (MeetsSpawnAccessRequirements(player)){
 		if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget((Player*)this)))
-			vis_flags += 64; //attackable icon
+			vis_flags += 64;
 		if (appearance.show_level == 1)
 			vis_flags += 32;
 		if (appearance.display_name == 1)
@@ -214,6 +216,8 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			vis_flags += 4;
 		if (appearance.show_command_icon == 1)
 			vis_flags += 2;
+		if (this == player)
+			vis_flags += 1;
 	} else if (req_quests_override > 0) {
 			vis_flags = req_quests_override & 0xFF;
 	}
@@ -260,29 +264,21 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 
 	footer->setMediumStringByName("name", appearance.name);
 	footer->setMediumStringByName("guild", appearance.sub_title);
+
 	if (IsPlayer()) {
-		string prefix_title = GetPrefixTitle();
 		string pvp_title = PVP::GetRank(static_cast<Player*>(this));
-		if (pvp_title.length() > 0) {
-			if (prefix_title.length() > 0)
-				prefix_title = pvp_title + " " + prefix_title;
-			else
-				prefix_title = pvp_title;
-		}
-		footer->setMediumStringByName("prefix", prefix_title.c_str());
-	} else {
-		footer->setMediumStringByName("prefix", appearance.prefix_title);
+		footer->setMediumStringByName("pvp_title", pvp_title.c_str());
+		footer->setDataByName("is_player", 1);
 	}
+
+	footer->setMediumStringByName("prefix", appearance.prefix_title);
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
-	if (appearance.attackable == 0 && GetLevel() > 0) {
+	if (IsEntity())
 		footer->setDataByName("spawn_type", 1);
-	} else if (appearance.attackable == 0) {
+	else
 		footer->setDataByName("spawn_type", 6);
-	} else {
-		footer->setDataByName("spawn_type", 3);
-	}
 }
 
 EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version){
@@ -1459,19 +1455,16 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	}
 	packet->setDataByName("level", (int8)GetLevel());
 	packet->setDataByName("unknown4", (int8)GetLevel());
-	packet->setDataByName("difficulty", appearance.encounter_level); //6);
+	packet->setDataByName("difficulty", appearance.encounter_level);
 	packet->setDataByName("heroic_flag", appearance.heroic_flag);
 	if (!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
 		packet->setDataByName("interaction_flag", 12); //this makes NPCs head turn to look at you
 
+	if (vis_flag_override)
+		packet->setDataByName("interaction_flag", vis_flag_override);
+
 	if (IsPlayer() && Alive()) {
-		if (spawn->CanAttackTarget(this)) {
-			packet->setDataByName("spawn_type", 6);
-		} else if (version >= 1188) {
-			packet->setDataByName("spawn_type", 0);
-		} else {
-			packet->setDataByName("spawn_type", spawn_type);
-		}
+		packet->setDataByName("spawn_type", 0);
 	} else {
 		packet->setDataByName("spawn_type", spawn_type);
 	}
@@ -1688,8 +1681,13 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	}
 	else
 		temp_activity_status = appearance.activity_status;
-
-	packet->setDataByName("activity_status", temp_activity_status); //appearance.activity_status);
+	
+	if (IsPlayer()) {
+		packet->setDataByName("activity_status", 16384);
+		packet->setDataByName("activity_timer", Timer::GetCurrentTime2() + (20 * 1000));
+	} else {
+		packet->setDataByName("activity_status", temp_activity_status); //appearance.activity_status);
+	}
 	
 	// If player and player has a follow target
 	if (IsPlayer()) {

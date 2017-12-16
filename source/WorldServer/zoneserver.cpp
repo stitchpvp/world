@@ -4148,8 +4148,6 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		// Remove hate towards dead from all npc's in the zone
 		ClearHate((Entity*)dead);
 
-		RemoveSpellTimersFromSpawn(dead, true, !dead->IsPlayer());
-
 		if(dead->IsPlayer()) 
 		{
 			((Player*)dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
@@ -4823,9 +4821,13 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(Client* client){
 	packet->setDataByName("unknown7", 1, 1);
 	
 	packet->setDataByName("unknown9", 13);
-	//packet->setDataByName("unknown10", 25188959);4294967295
-	//packet->setDataByName("unknown10", 25190239);
-	packet->setDataByName("unknown10", 25191524);//25191524
+
+	int zone_flags = ZONE_FLAGS_BASE;
+	if (PVP::IsEnabled(this))
+		zone_flags += ZONE_FLAGS_PVP;
+
+	packet->setDataByName("zone_flags", zone_flags);
+
 	packet->setDataByName("unknown10b", 1);
 	packet->setDataByName("permission_level",3);// added on 63182  for now till we figur it out 0=none,1=visitor,2=friend,3=trustee,4=owner
 	packet->setDataByName("num_adv", 9);
@@ -5374,7 +5376,7 @@ void ZoneServer::RemoveSpawnSupportFunctions(Spawn* spawn) {
 	LogWrite(ZONE__DEBUG, 7, "Zone", "Processing RemoveSpawnSupportFunctions...");
 
 	if(spawn->IsEntity())
-		RemoveSpellTimersFromSpawn((Entity*)spawn, true);
+		RemoveSpellTimersFromSpawn((Entity*)spawn, true, !spawn->IsPlayer());
 
 	RemoveDamagedSpawn(spawn);
 	spawn->SendSpawnChanges(false);
@@ -5706,12 +5708,7 @@ void ZoneServer::SendUpdateTitles(Spawn *spawn, Title *suffix, Title *prefix) {
 			prefix_title = spawn->GetPrefixTitle();
 		if (spawn->IsPlayer()) {
 			string pvp_title = PVP::GetRank(static_cast<Player*>(spawn));
-			if (pvp_title.length() > 0) {
-				if (prefix_title.length() > 0)
-					prefix_title = pvp_title + " " + prefix_title;
-				else
-					prefix_title = pvp_title;
-			}
+			packet->setMediumStringByName("pvp_title", pvp_title.c_str());
 		}
 		packet->setDataByName("prefix_title", prefix_title.c_str());
 		packet->setDataByName("last_name", spawn->GetLastName());
