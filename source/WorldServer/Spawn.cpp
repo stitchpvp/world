@@ -1682,12 +1682,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	else
 		temp_activity_status = appearance.activity_status;
 	
-	if (IsPlayer()) {
-		packet->setDataByName("activity_status", 16384);
-		packet->setDataByName("activity_timer", Timer::GetCurrentTime2() + (20 * 1000));
-	} else {
-		packet->setDataByName("activity_status", temp_activity_status); //appearance.activity_status);
-	}
+	packet->setDataByName("activity_status", temp_activity_status);
 	
 	// If player and player has a follow target
 	if (IsPlayer()) {

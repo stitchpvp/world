@@ -2082,7 +2082,8 @@ PlayerInfo::PlayerInfo(Player* in_player){
 	LogWrite(MISC__TODO, 1, "TODO", "Fix info_struct.tradeskill_level = player->GetArtLevel();\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
 	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
-		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;	
+		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;
+		info_struct->spell_effects[i].icon = 0xFFFF;
 	}
 	for(int i=0; i<NUM_MAINTAINED_EFFECTS; i++)
 	{
@@ -2631,6 +2632,12 @@ PlayerSkillList* Player::GetSkills(){
 }
 
 void Player::InCombat(bool val) {
+	lock_guard<mutex> lock(encounter_list_mutex);
+
+	if (!val && encounter_list.size() > 0)
+		for (auto& kv : encounter_list)
+			if (kv.second->has_attacked == true) val = true;
+
 	in_combat = val;
 
 	if (in_combat) {
@@ -2640,6 +2647,39 @@ void Player::InCombat(bool val) {
 	}
 
 	SetCharSheetChanged(true);
+}
+
+void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked) {
+	lock_guard<mutex> lock(encounter_list_mutex);
+
+	if (encounter_list.count(spawn_id) > 0) {
+		HostileEntity* entity = encounter_list.at(spawn_id);
+
+		entity->last_activity = last_activity;
+		if (!entity->has_attacked && has_attacked)
+			entity->has_attacked = true;
+	} else {
+		HostileEntity* entity = new HostileEntity;
+		entity->last_activity = last_activity;
+		entity->has_attacked = has_attacked;
+
+		encounter_list.insert(pair<int32, HostileEntity*>(spawn_id, entity));
+	}
+}
+
+void Player::RemoveFromEncounterList(int32 spawn_id) {
+	encounter_list_mutex.lock();
+	if (encounter_list.count(spawn_id) > 0) {
+		free(encounter_list.at(spawn_id));
+		encounter_list.erase(spawn_id);
+	}
+	encounter_list_mutex.unlock();
+
+	if (encounter_list.size() == 0) {
+		InCombat(false);
+		SetRangeAttack(false);
+		SetMeleeAttack(false);
+	}
 }
 
 void Player::SetCharSheetChanged(bool val){

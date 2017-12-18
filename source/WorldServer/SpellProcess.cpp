@@ -1710,8 +1710,10 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 			for (i = 0; i < spell->targets.size(); i++){
 				if (spawn->GetID() == spell->targets.at(i)){
-					if (spawn->IsEntity())
-						((Entity*)spawn)->RemoveSpellEffect(spell);
+					if (spawn->IsEntity()) {
+						static_cast<Entity*>(spawn)->RemoveSpellEffect(spell);
+						static_cast<Entity*>(spawn)->RemoveDetrimentalSpell(spell);
+					}
 					RemoveTargetFromSpell(spell, spawn);
 					break;
 				}

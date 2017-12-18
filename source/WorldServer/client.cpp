@@ -2410,6 +2410,7 @@ bool Client::Process(bool zone_process) {
 	if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
 		player->ApplyPassiveSpells();
 		database.LoadCharacterActiveSpells(player);
+		player->UnlockAllSpells();
 
 		should_load_spells = false;
 	}

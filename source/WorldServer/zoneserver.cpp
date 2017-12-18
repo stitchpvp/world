@@ -4081,56 +4081,9 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 				return;
 		}
 
-		if (killer && killer->IsPlayer()) {
-			((Player*)killer)->InCombat(false);
-			((Player*)killer)->SetRangeAttack(false);
-			((Player*)killer)->SetMeleeAttack(false);
-
-			if (dead->IsPlayer() && PVP::IsEnabled()) {
-				Player* dead_player = static_cast<Player*>(dead);
-				Player* killer_player = static_cast<Player*>(killer);
-				int dead_rank = PVP::GetRankIndex(dead_player);
-				int killer_rank = PVP::GetRankIndex(killer_player);
-				int ranking_difference = dead_rank - killer_rank;
-				
-				if (ranking_difference >= 1 && ranking_difference <= 2) {
-					dead_player->SetFame(dead_player->GetFame() - 10);
-					killer_player->SetFame(killer_player->GetFame() + 10);
-					GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
-					GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
-				} else if (ranking_difference <= 0 && ranking_difference >= -2) {
-					dead_player->SetFame(dead_player->GetFame() - 5);
-					killer_player->SetFame(killer_player->GetFame() + 5);
-					GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
-					GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
-				}
-
-				if (dead_rank != PVP::GetRankIndex(dead_player)) {
-					int rank = PVP::GetRankIndex(dead_player);
-					if (rank == 0) {
-						GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are no longer ranked.");
-						GetClientBySpawn(dead_player)->SendPopupMessage(10, "Your are no longer ranked.", "", 2, 0xFF, 0xFF, 0xFF);
-					} else if (rank < dead_rank) {
-						char message[37];
-						sprintf(message, "Your rank has dropped to %s.", PVP::GetRank(dead_player).c_str());
-						GetClientBySpawn(dead_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
-						GetClientBySpawn(dead_player)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
-					}
-					GetClientBySpawn(dead_player)->SendTitleUpdate();
-				}
-
-				if (PVP::GetRankIndex(killer_player) > killer_rank) {
-					char message[42];
-					sprintf(message, "You have obtained the rank of %s.", PVP::GetRank(killer_player).c_str());
-					GetClientBySpawn(killer_player)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
-					GetClientBySpawn(killer_player)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
-					GetClientBySpawn(killer_player)->SendTitleUpdate();
-				}
-
-				dead_player->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_DEATHS, 1);
-				killer_player->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_KILLS, 1);
-			}
-		}
+		if (killer && killer->IsPlayer())
+			if (dead->IsPlayer() && PVP::IsEnabled())
+				PVP::HandleFameChange(static_cast<Player*>(killer), static_cast<Player*>(dead));
 
 		if (dead->IsPlayer()) {
 			((Player*)dead)->InCombat(false);
@@ -6185,8 +6138,11 @@ void ZoneServer::ClearHate(Entity* entity) {
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
+
 		if (spawn && spawn->IsNPC())
-			((NPC*)spawn)->Brain()->ClearHate(entity);
+			static_cast<NPC*>(spawn)->Brain()->ClearHate(entity);
+		else if (spawn && spawn->IsPlayer())
+			static_cast<Player*>(spawn)->RemoveFromEncounterList(entity->GetID());
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 }

@@ -31,6 +31,7 @@
 #include "Rules/Rules.h"
 #include "SpellProcess.h"
 #include <math.h>
+#include "PVP.h"
 
 extern Classes classes;
 extern ConfigReader configReader;
@@ -867,14 +868,22 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 
 	if(victim->IsEntity())
 		((Entity*)victim)->CheckInterruptSpell(this);
-	if(victim->GetHP() <= 0)
+
+	if (victim->GetHP() <= 0) {
 		KillSpawn(victim, damage_type, blow_type);
-	else {
-		victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
-		if (spell_name)
-			victim->CheckProcs(PROC_TYPE_MAGICAL_DEFENSIVE, this);
-		else
-			victim->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
+	} else {
+		if (IsPlayer() && victim->IsPlayer() && PVP::IsEnabled(GetZone())) {
+			static_cast<Player*>(this)->AddToEncounterList(victim->GetID(), Timer::GetCurrentTime2());
+			static_cast<Player*>(victim)->AddToEncounterList(GetID(), Timer::GetCurrentTime2(), false);
+		}
+
+		if (victim->EngagedInCombat())
+			victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
+
+			if (spell_name)
+				victim->CheckProcs(PROC_TYPE_MAGICAL_DEFENSIVE, this);
+			else
+				victim->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
 	}
 
 	return crit;
@@ -894,6 +903,9 @@ void Entity::AddHate(Entity* attacker, sint32 hate) {
 		// if encounter size is 0 then add the attacker to the encounter
 		if (((NPC*)this)->Brain()->GetEncounterSize() == 0)
 			((NPC*)this)->Brain()->AddToEncounter(attacker);
+		if (attacker->IsPlayer()) {
+			static_cast<Player*>(attacker)->AddToEncounterList(this->GetID(), Timer::GetCurrentTime2());
+		}
 	}
 
 	if (attacker->GetThreatTransfer() && hate > 0) {
@@ -1013,8 +1025,25 @@ void NPC::ProcessCombat() {
 }
 
 void Player::ProcessCombat() {
-	// if not in combat OR casting a spell OR dazed  OR feared return out
-	if (!EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
+	if (EngagedInCombat()) {
+		vector<Spawn*> to_remove;
+
+		encounter_list_mutex.lock();
+		for (auto kv : encounter_list) {
+			Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
+
+			if (spawn && spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + 30 * 1000))
+				to_remove.push_back(spawn);
+		}
+		encounter_list_mutex.unlock();
+
+		for (auto* spawn : to_remove)
+			RemoveFromEncounterList(spawn->GetID());
+	} else {
+		return;
+	}
+
+	if (IsCasting() || IsDazed() || IsFeared())
 		return;
 
 	//If no target delete combat_target and return out

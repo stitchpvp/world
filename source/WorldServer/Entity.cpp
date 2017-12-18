@@ -70,7 +70,9 @@ Entity::Entity(){
 	has_secondary_weapon = false;
 
 	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
-		info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;	
+		info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;
+		if (IsPlayer())
+			info_struct.spell_effects[i].icon = 0xFFFF;
 	}
 	for(int i=0;i<NUM_MAINTAINED_EFFECTS;i++) {
 		info_struct.maintained_effects[i].spell_id = 0xFFFFFFFF;

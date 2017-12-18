@@ -167,11 +167,18 @@ void Brain::AddHate(Entity* entity, sint32 hate) {
 }
 
 void Brain::ClearHate() {
-	// Lock the hate list, we are altering the list so use a write lock
 	MHateList.writelock(__FUNCTION__, __LINE__);
-	// Clear the list
+
+	for (auto& kv : m_hatelist) {
+		ZoneServer* zone = m_body->GetZone();
+		Spawn* spawn = zone->GetSpawnByID(kv.first);
+
+		if (spawn && spawn->IsPlayer()) 
+			static_cast<Player*>(spawn)->RemoveFromEncounterList(m_body->GetID());
+	}
+
 	m_hatelist.clear();
-	// Unlock the hate list
+
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
 }
 

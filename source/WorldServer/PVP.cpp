@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "PVP.h"
 #include "Rules/Rules.h"
+#include "World.h"
 #include "zoneserver.h"
 
 extern RuleManager rule_manager;
@@ -37,30 +38,18 @@ bool PVP::CanAttack(Player* attacker, Spawn* target)
 	}
 }
 
-//5 points for a kill of the same rank (solo), 10 points for a kill of a rank higher (solo) and loss would be the same
-
 string PVP::GetRank(Player* player)
 {
-	string title = "";
-	
 	if (!PVP::IsEnabled())
-		return title;
+		return "";
 
 	int16 fame = player->GetFame();
 
-	if (fame >= 750) {
-		title = "Dreadnaught";
-	} else if (fame >= 500) {
-		title = "Champion";
-	} else if (fame >= 350) {
-		title = "Destroyer";
-	} else if (fame >= 200) {
-		title = "Slayer";
-	} else if (fame >= 100) {
-		title = "Hunter";
-	}
+	for (auto kv = PVP_TITLES.rbegin(); kv != PVP_TITLES.rend(); ++kv)
+		if (fame >= kv->first)
+			return kv->second;
 
-	return title;
+	return "";
 }
 
 int PVP::GetRankIndex(Player* player) {
@@ -79,6 +68,51 @@ int PVP::GetRankIndex(Player* player) {
 	} else {
 		return 0;
 	}
+}
+
+void PVP::HandleFameChange(Player* attacker, Player* victim) {
+	if (attacker == victim) return;
+
+	ZoneServer* zone = attacker->GetZone();
+	int dead_rank = PVP::GetRankIndex(victim);
+	int killer_rank = PVP::GetRankIndex(attacker);
+	int ranking_difference = dead_rank - killer_rank;
+
+	if (ranking_difference >= -2 && ranking_difference <= 2) {
+		victim->SetFame(victim->GetFame() - PVP_FAME_AMOUNT_PER_KILL);
+		attacker->SetFame(attacker->GetFame() + PVP_FAME_AMOUNT_PER_KILL);
+
+		vector<Player*> fame_recipients;
+
+
+		zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
+		zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
+	}
+
+	if (dead_rank != PVP::GetRankIndex(victim)) {
+		int rank = PVP::GetRankIndex(victim);
+		if (rank == 0) {
+			zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are no longer ranked.");
+			zone->GetClientBySpawn(victim)->SendPopupMessage(10, "Your are no longer ranked.", "", 2, 0xFF, 0xFF, 0xFF);
+		} else if (rank < dead_rank) {
+			char message[37];
+			sprintf(message, "Your rank has dropped to %s.", PVP::GetRank(victim).c_str());
+			zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
+			zone->GetClientBySpawn(victim)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
+		}
+		zone->GetClientBySpawn(victim)->SendTitleUpdate();
+	}
+
+	if (PVP::GetRankIndex(attacker) > killer_rank) {
+		char message[42];
+		sprintf(message, "You have obtained the rank of %s.", PVP::GetRank(attacker).c_str());
+		zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
+		zone->GetClientBySpawn(attacker)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
+		zone->GetClientBySpawn(attacker)->SendTitleUpdate();
+	}
+
+	victim->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_DEATHS, 1);
+	attacker->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_KILLS, 1);
 }
 
 bool PVP::IsEnabled(ZoneServer* zone)

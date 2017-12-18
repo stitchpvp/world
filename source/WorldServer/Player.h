@@ -33,6 +33,7 @@
 #include "Languages.h"
 #include "Achievements/Achievements.h"
 #include <algorithm>
+#include <mutex>
 
 #define CF_COMBAT_EXPERIENCE_ENABLED  0
 #define CF_ENABLE_CHANGE_LASTNAME  1
@@ -236,6 +237,11 @@ struct InstanceData{
 	int32	last_failure_timestamp;
 	int32	success_lockout_time;
 	int32	failure_lockout_time;
+};
+
+struct HostileEntity {
+	int32 last_activity;
+	bool has_attacked;
 };
 
 class CharacterInstances {
@@ -811,6 +817,9 @@ public:
 	void SetResendSpawns(bool val) { should_resend_spawns = val; return;  }
 	bool GetResendSpawns() { return should_resend_spawns; }
 
+	void AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked = true);
+	void RemoveFromEncounterList(int32 spawn_id);
+
 private:
 	bool range_attack;
 	bool melee_attack;
@@ -862,6 +871,12 @@ private:
 
 	// Jabantiz: Passive spell list, just stores spell id's
 	vector<int32>		passive_spells;
+
+	// Encounter list, spawn id => last activity
+	// NPCs will be removed by hate functions
+	// PVP players will be removed based on last activity time
+	mutex encounter_list_mutex;
+	map<int32, HostileEntity*> encounter_list;
 
 	/// <summary>Adds a new passive spell to the list</summary>
 	/// <param name='id'>Spell id to add</param>
