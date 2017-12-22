@@ -196,6 +196,9 @@ public:
 	Spawn();
 	virtual ~Spawn();
 
+	int temp_footer_type = -1;
+	int temp_info_type = -1;
+
 	template <class Field, class Value> void Set(Field* field, Value value, bool setUpdateFlags = true){
 		if (setUpdateFlags) {
 			changed = true;

@@ -182,12 +182,15 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			if (appearance.attackable == 1)
 				arrow_color = player->GetArrowColor(GetLevel());
 
-			if (IsPlayer() && player->CanAttackTarget((Player*)this)) {
+			if (IsPlayer() && player->CanAttackTarget(this)) {
 				arrow_color = player->GetArrowColor(GetLevel());
 				npc_con = -4;
 			} else if (IsPlayer()) {
 				npc_con = 4;
 			}
+
+			if (IsPlayer())
+				vis_packet->setDataByName("pvp_difficulty", 6);
 
 			vis_packet->setDataByName("arrow_color", arrow_color);
 			vis_packet->setDataByName("locked_no_loot", appearance.locked_no_loot);
@@ -275,10 +278,14 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
-	if (IsEntity())
+	if (IsEntity() && player->CanAttackTarget(this)) {
 		footer->setDataByName("spawn_type", 1);
-	else
+	} else {
 		footer->setDataByName("spawn_type", 6);
+	}
+
+	if (temp_footer_type >= 0)
+		footer->setDataByName("spawn_type", temp_footer_type);
 }
 
 EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version){
@@ -1464,10 +1471,17 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setDataByName("interaction_flag", vis_flag_override);
 
 	if (IsPlayer() && Alive()) {
-		packet->setDataByName("spawn_type", 0);
+		if (spawn->CanAttackTarget(this)) {
+			packet->setDataByName("spawn_type", 4);
+		} else {
+			packet->setDataByName("spawn_type", 0);
+		}
 	} else {
 		packet->setDataByName("spawn_type", spawn_type);
 	}
+
+	if (temp_info_type >= 0)
+		packet->setDataByName("spawn_type", temp_info_type);
 
 	packet->setDataByName("class", appearance.adventure_class);
 

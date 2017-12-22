@@ -21,6 +21,7 @@
 #include "../common/Log.h"
 #include "Tradeskills/Tradeskills.h"
 #include "ClientPacketFunctions.h"
+#include "PVP.h"
 
 extern MasterSpellList master_spell_list;
 extern MasterSkillList master_skill_list;
@@ -1293,6 +1294,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 				if (target->IsNPC())
 					((NPC*)target)->AddHate(spell->caster, 1);
+
 			} else if (spell->spell->GetSpellData()->group_spell) {
 				GroupMemberInfo* gmi = spell->caster->GetGroupMemberInfo();
 				bool in_group = false;
@@ -1330,6 +1332,9 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 					if (!living_target && target->Alive())
 						living_target = true;
+
+					if (spell->caster->IsPlayer() && target->IsPlayer() && living_target)
+						PVP::HandlePlayerEncounter(static_cast<Player*>(spell->caster), static_cast<Player*>(target), !spell->spell->GetSpellData()->friendly_spell);
 						
 					if (spell->spell->GetSpellData()->success_message.length() > 0) {
 						if (client) {

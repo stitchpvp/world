@@ -31,6 +31,7 @@
 #include "SpellProcess.h"
 #include <algorithm>
 #include "ClientPacketFunctions.h"
+#include "PVP.h"
 
 extern Classes classes;
 extern WorldDatabase database;
@@ -2650,14 +2651,15 @@ void Player::InCombat(bool val) {
 }
 
 void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked) {
-	lock_guard<mutex> lock(encounter_list_mutex);
-
+	encounter_list_mutex.lock();
 	if (encounter_list.count(spawn_id) > 0) {
 		HostileEntity* entity = encounter_list.at(spawn_id);
 
-		entity->last_activity = last_activity;
+		if (has_attacked)
+			entity->last_activity = last_activity;
+
 		if (!entity->has_attacked && has_attacked)
-			entity->has_attacked = true;
+			entity->has_attacked = has_attacked;
 	} else {
 		HostileEntity* entity = new HostileEntity;
 		entity->last_activity = last_activity;
@@ -2665,6 +2667,10 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
 
 		encounter_list.insert(pair<int32, HostileEntity*>(spawn_id, entity));
 	}
+	encounter_list_mutex.unlock();
+
+	if (has_attacked)
+		InCombat(true);
 }
 
 void Player::RemoveFromEncounterList(int32 spawn_id) {
@@ -2689,7 +2695,7 @@ void Player::CheckEncounterList() {
 	for (auto kv : encounter_list) {
 		Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
 
-		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + 30 * 1000)))
+		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000)))
 			to_remove.push_back(kv.first);
 	}
 	encounter_list_mutex.unlock();

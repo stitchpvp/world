@@ -2069,7 +2069,8 @@
 <Data ElementName="unknowna2" Type="int8" Size="4" />
 <Data ElementName="vis_flags" Type="int8" Size="1" />
 <Data ElementName="npc_aaxp" Type="int8" Size="1" />
-<Data ElementName="unknownb" Type="int8" Size="2" />
+<Data ElementName="unknownb" Type="int8" Size="1" />
+<Data ElementName="pvp_difficulty" Type="int8" Size="1" />
 <Data ElementName="hand_flag" Type="int8" Size="1" />
 <Data ElementName="unknown2" Type="int8" Size="2" />
 <Data ElementName="tag1" Type="int8" Size="1" />

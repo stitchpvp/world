@@ -1653,7 +1653,7 @@ void Entity::CancelAllStealth() {
 }
 
 bool Entity::CanAttackTarget(Spawn *target) {
-	if (IsPlayer() && (target->IsPlayer() || target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer())) {
+	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer()))) {
 		return PVP::CanAttack((Player*)this, target);
 	} else {
 		if (target->IsPlayer())

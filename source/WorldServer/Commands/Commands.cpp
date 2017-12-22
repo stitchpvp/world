@@ -7426,15 +7426,18 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
 
-	//client->GetCurrentZone()->zone_bitmask = atol(sep->arg[0]);
-	//client->GetPlayer()->SetSpawnType(atol(sep->arg[0]));
-	static_cast<Entity*>(client->GetPlayer())->SetMount(atol(sep->arg[0]));
-	EQ2_Color color;
-	color.red = 255;
-	color.green = 255;
-	color.blue = 255;
-	static_cast<Entity*>(client->GetPlayer())->SetMountColor(&color);
-	static_cast<Entity*>(client->GetPlayer())->SetMountSaddleColor(&color);
+	Spawn* target = client->GetPlayer();
+
+	if (client->GetPlayer()->GetTarget())
+		target = client->GetPlayer()->GetTarget();
+
+	if (sep->IsSet(0) && sep->IsNumber(0))
+		target->temp_info_type = atol(sep->arg[0]);
+
+	if (sep->IsSet(1) && sep->IsNumber(1))
+		target->temp_footer_type = atol(sep->arg[1]);
+
+	client->GetPlayer()->GetZone()->RepopSpawns(client, target);
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

@@ -4,6 +4,8 @@
 #include "Player.h"
 
 const int8 PVP_FAME_AMOUNT_PER_KILL = 30;
+const int8 PVP_LOCK_DURATION = 30;
+
 const map<sint32, string> PVP_TITLES = {
 	{ 3000, string("Master") },
 	{ 2400, string("General") },
@@ -16,6 +18,7 @@ const map<sint32, string> PVP_TITLES = {
 
 class PVP {
 public:
+	static void HandlePlayerEncounter(Player* attacker, Player* target, bool is_hostile);
 	static bool CanAttack(Player*, Spawn*);
 	static string GetRank(Player*);
 	static int GetRankIndex(Player* player);

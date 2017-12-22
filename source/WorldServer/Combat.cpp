@@ -231,6 +231,9 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		((NPC*)victim)->AddHate(this, 50);
 	}
 
+	if (IsPlayer() && victim->IsPlayer())
+		PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
+
 	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
 		Entity* pet = 0;
 		bool AddHate = false;
@@ -290,6 +293,9 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 			if(victim->IsNPC() && victim->EngagedInCombat() == false) {
 				((NPC*)victim)->AddHate(this, 50);
 			}
+
+			if (IsPlayer() && victim->IsPlayer())
+				PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
 
 			if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
 				Entity* pet = 0;
@@ -871,19 +877,13 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 
 	if (victim->GetHP() <= 0) {
 		KillSpawn(victim, damage_type, blow_type);
-	} else {
-		if (IsPlayer() && victim->IsPlayer() && PVP::IsEnabled(GetZone())) {
-			static_cast<Player*>(this)->AddToEncounterList(victim->GetID(), Timer::GetCurrentTime2());
-			static_cast<Player*>(victim)->AddToEncounterList(GetID(), Timer::GetCurrentTime2(), false);
-		}
+	} else if (victim->EngagedInCombat()) {
+		victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
 
-		if (victim->EngagedInCombat())
-			victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
-
-			if (spell_name)
-				victim->CheckProcs(PROC_TYPE_MAGICAL_DEFENSIVE, this);
-			else
-				victim->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
+		if (spell_name)
+			victim->CheckProcs(PROC_TYPE_MAGICAL_DEFENSIVE, this);
+		else
+			victim->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
 	}
 
 	return crit;

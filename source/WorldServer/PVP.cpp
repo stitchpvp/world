@@ -19,6 +19,31 @@ void Player::SetFame(sint16 value) {
 	}
 }
 
+void PVP::HandlePlayerEncounter(Player* source, Player* target, bool is_hostile) {
+	if (!PVP::IsEnabled(source->GetZone())) return;
+
+	if (is_hostile) {
+		source->AddToEncounterList(target->GetID(), Timer::GetCurrentTime2());
+		target->AddToEncounterList(source->GetID(), Timer::GetCurrentTime2(), false);
+	} else {
+		vector<Spawn*> to_add;
+
+		target->encounter_list_mutex.lock();
+		for (auto kv : target->encounter_list) {
+			Spawn* spawn = target->GetZone()->GetSpawnByID(kv.first);
+
+			if (spawn && spawn->IsPlayer())
+				to_add.push_back(spawn);
+		}
+		target->encounter_list_mutex.unlock();
+
+		for (auto* spawn : to_add) {
+			source->AddToEncounterList(spawn->GetID(), Timer::GetCurrentTime2(), true);
+			static_cast<Player*>(spawn)->AddToEncounterList(source->GetID(), Timer::GetCurrentTime2(), false);
+		}
+	}
+}
+
 bool PVP::CanAttack(Player* attacker, Spawn* target)
 {
 	if (PVP::IsEnabled(attacker->GetZone())) {
