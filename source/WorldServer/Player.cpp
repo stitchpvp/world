@@ -2682,6 +2682,22 @@ void Player::RemoveFromEncounterList(int32 spawn_id) {
 	}
 }
 
+void Player::CheckEncounterList() {
+	vector<int32> to_remove;
+
+	encounter_list_mutex.lock();
+	for (auto kv : encounter_list) {
+		Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
+
+		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + 30 * 1000)))
+			to_remove.push_back(kv.first);
+	}
+	encounter_list_mutex.unlock();
+
+	for (auto spawn : to_remove)
+		RemoveFromEncounterList(spawn);
+}
+
 void Player::SetCharSheetChanged(bool val){
 	charsheet_changed = val;
 }

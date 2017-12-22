@@ -1025,25 +1025,9 @@ void NPC::ProcessCombat() {
 }
 
 void Player::ProcessCombat() {
-	if (EngagedInCombat()) {
-		vector<Spawn*> to_remove;
+	CheckEncounterList();
 
-		encounter_list_mutex.lock();
-		for (auto kv : encounter_list) {
-			Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
-
-			if (spawn && spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + 30 * 1000))
-				to_remove.push_back(spawn);
-		}
-		encounter_list_mutex.unlock();
-
-		for (auto* spawn : to_remove)
-			RemoveFromEncounterList(spawn->GetID());
-	} else {
-		return;
-	}
-
-	if (IsCasting() || IsDazed() || IsFeared())
+	if (!EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
 		return;
 
 	//If no target delete combat_target and return out
