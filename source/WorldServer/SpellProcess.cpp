@@ -75,10 +75,9 @@ void SpellProcess::RemoveAllSpells(){
 	}
 	cast_timers.clear();
 
-	MutexList<RecastTimer*>::iterator recast_timers_itr = recast_timers.begin();
-	while(recast_timers_itr.Next()){
-		recast_timers.Remove(recast_timers_itr->value, true);
-	}
+	MRecastTimers.writelock(__FUNCTION__, __LINE__);
+	recast_timers.clear();
+	MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 
 	MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
 	remove_target_list.clear();
@@ -98,7 +97,6 @@ void SpellProcess::RemoveAllSpells(){
 	m_groupHO.clear();
 	MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
 
-	recast_timers.clear();
 	spell_que.clear();
 	
 	MSpellCancelList.writelock(__FUNCTION__, __LINE__);
@@ -213,19 +211,21 @@ void SpellProcess::Process(){
 			 }
 		}
 	}
-	if(recast_timers.size(true) > 0){
-		RecastTimer* recast_timer = 0;
-		MutexList<RecastTimer*>::iterator itr = recast_timers.begin();
-		vector<Spell*>::iterator remove_recast_itr;
-		while(itr.Next()){
-			recast_timer = itr->value;
-			if(recast_timer->timer->Check(false)){
+	MRecastTimers.writelock(__FUNCTION__, __LINE__);
+	if (recast_timers.size() > 0){
+		vector<RecastTimer*>::iterator itr = recast_timers.begin();
+		while (itr != recast_timers.end()) {
+			RecastTimer* recast_timer = *itr;
+			if (recast_timer->timer->Check(false)) {
 				UnlockSpell(recast_timer->client, recast_timer->spell);
 				safe_delete(recast_timer->timer);
-				recast_timers.Remove(recast_timer, true);
+				itr = recast_timers.erase(itr);
+			} else {
+				itr++;
 			}
 		}
 	}
+	MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 	if(spell_que.size(true) > 0){
 		MutexMap<Entity*, Spell*>::iterator itr = spell_que.begin();
 		while(itr.Next()){
@@ -291,15 +291,14 @@ bool SpellProcess::IsReady(Spell* spell, Entity* caster){
 	if(caster->IsCasting())
 		return false;
 	bool ret = true;	
-	RecastTimer* recast_timer = 0;
-	MutexList<RecastTimer*>::iterator itr = recast_timers.begin();
-	while(itr.Next()){
-		recast_timer = itr->value;
-		if(recast_timer->spell == spell && recast_timer->caster == caster){
+	MRecastTimers.readlock(__FUNCTION__, __LINE__);
+	for (auto recast_timer : recast_timers) {
+		if (recast_timer->spell == spell && recast_timer->caster == caster) {
 			ret = false;
 			break;
 		}
 	}
+	MRecastTimers.releasereadlock(__FUNCTION__, __LINE__);
 	return ret;
 }
 
@@ -316,7 +315,9 @@ void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_overrid
 			else
 				timer->client = 0;
 
-			recast_timers.Add(timer);
+			MRecastTimers.writelock(__FUNCTION__, __LINE__);
+			recast_timers.push_back(timer);
+			MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 		}
 
 		if (caster->IsPlayer()) {
@@ -1725,17 +1726,20 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			}
 			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
+		MRecastTimers.writelock(__FUNCTION__, __LINE__);
 		if(recast_timers.size() > 0 && delete_recast){			
-			RecastTimer* recast_timer = 0;
-			MutexList<RecastTimer*>::iterator itr = recast_timers.begin();
-			while(itr.Next()){
-				recast_timer = itr->value;
-				if(recast_timer && recast_timer->caster == spawn){
+			vector<RecastTimer*>::iterator itr = recast_timers.begin();
+			while (itr != recast_timers.end()) {
+				RecastTimer* recast_timer = *itr;
+				if (recast_timer && recast_timer->caster == spawn) {
 					safe_delete(recast_timer->timer);
-					recast_timers.Remove(recast_timer, true);
+					itr = recast_timers.erase(itr);
+				} else {
+					itr++;
 				}
 			}
 		}
+		MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 		if(spell_que.size() > 0 && spawn->IsEntity()){
 			spell_que.erase((Entity*)spawn);
 		}

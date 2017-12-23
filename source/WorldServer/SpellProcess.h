@@ -381,11 +381,12 @@ private:
 	/// <returns>True if the spell script was called successfully</returns>
 	bool ProcessSpell(LuaSpell* spell, Spawn * target, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
 	Mutex MSpellProcess;
+	Mutex MRecastTimers;
 	MutexMap<Entity*,Spell*> spell_que;
 	MutexList<LuaSpell*> active_spells;
 	MutexList<CastTimer*> cast_timers;
 	MutexList<InterruptStruct*>interrupt_list;
-	MutexList<RecastTimer*> recast_timers;
+	vector<RecastTimer*> recast_timers;
 	int32 last_checked_time;
 	vector<SpellScriptTimer*> m_spellScriptList;
 	Mutex MSpellScriptTimers;
