@@ -3172,7 +3172,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 								}
 		case COMMAND_SPAWN_ADD:{
 			Spawn* spawn = client->GetPlayer()->GetTarget();
-			if(spawn && sep && sep->arg[1][0] && (sep->IsNumber(0) || strncasecmp(sep->arg[0], "new", 3) == 0)){
+			if(spawn && sep && (sep->IsNumber(0) || strncasecmp(sep->arg[0], "new", 3) == 0)){
 				if(spawn->GetSpawnLocationID() > 0){
 					client->Message(CHANNEL_COLOR_RED, "This spawn already has a spawn group id of %u, use /spawn remove to reassign it", spawn->GetSpawnLocationID());
 					break;
@@ -3202,19 +3202,19 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				else
 					spawn_group_id = atol(sep->arg[0]);
 				int8 percent = 100;
-				if(sep->arg[2] && sep->IsNumber(2))
-					percent = atoi(sep->arg[2]);
+				if(sep->arg[1] && sep->IsNumber(1))
+					percent = atoi(sep->arg[1]);
 				spawn->SetSpawnLocationID(spawn_group_id);
 				float x_offset = database.GetSpawnLocationPlacementOffsetX(spawn->GetSpawnLocationID());
 				float y_offset = database.GetSpawnLocationPlacementOffsetY(spawn->GetSpawnLocationID());
 				float z_offset = database.GetSpawnLocationPlacementOffsetZ(spawn->GetSpawnLocationID());
-				if(database.SaveSpawnEntry(spawn, sep->arg[1], percent, x_offset, y_offset, z_offset))
+				if(database.SaveSpawnEntry(spawn, "", percent, x_offset, y_offset, z_offset))
 					client->Message(CHANNEL_COLOR_YELLOW, "Successfully saved spawn location with a spawn group of %u", spawn->GetSpawnLocationID());
 				else
 					client->SimpleMessage(CHANNEL_COLOR_RED, "Error saving spawn location, see console window for details.");	
 			}
 			else{
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Syntax: /spawn add [spawn group id] [spawn group name] (percentage)");
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Syntax: /spawn add [spawn group id] (percentage)");
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "This command is used for adding the targeted NPC or Object to the database.");
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can substitute new for [spawn group id] to create a new one.");
 			}
