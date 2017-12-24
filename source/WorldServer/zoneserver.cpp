@@ -3806,9 +3806,10 @@ Spawn* ZoneServer::GetClosestSpawn(Spawn* spawn, int32 spawn_id){
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		test_spawn = itr->second;
-		if(test_spawn && test_spawn->GetDatabaseID() == spawn_id){
+		if (test_spawn == spawn) continue;
+		if (test_spawn && test_spawn->GetDatabaseID() == spawn_id) {
 			test_distance = test_spawn->GetDistance(spawn);
-			if(test_distance < closest_distance){
+			if (test_distance < closest_distance) {
 				closest_distance = test_distance;
 				closest_spawn = test_spawn;
 			}
