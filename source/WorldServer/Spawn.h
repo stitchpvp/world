@@ -35,6 +35,7 @@
 #include <deque>
 
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL		0x41
+#define DAMAGE_PACKET_TYPE_SIPHON_SPELL_CRIT_DMG	0x45
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL2	0x49
 #define DAMAGE_PACKET_TYPE_MULTIPLE_DAMAGE	0x80
 #define DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE	0xC0
@@ -337,6 +338,7 @@ public:
 		SetPos(&appearance.pos.Dir2, dir2, updateFlags);
 	}
 	void SetHeading(float heading, bool updateFlags = true){
+		last_heading_angle = heading;
 		if (heading != 180)
 			heading = (heading - 180) * 64;
 		SetPos(&appearance.pos.Dir1, (sint16)heading, updateFlags);
@@ -986,6 +988,7 @@ private:
 	bool            req_quests_private;
 	int16           req_quests_override;
 	bool            req_quests_continued_access;
+	float			last_heading_angle;
 
 	map<string, int8>			m_tempVariableTypes;
 	map<string, int32>			m_tempVariableSpawn;
