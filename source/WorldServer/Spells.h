@@ -280,6 +280,7 @@ public:
 	void AddSpellLuaDataString(string value);
 	int32 GetSpellID();
 	void SetPacketInformation(PacketStruct* packet, Client* client = 0, bool display_tier = false);
+	void SetSpellPacketInformation(PacketStruct* packet, Client* client = 0, bool display_tier = false, bool pvp = false);
 	int8 GetSpellTier();
 	int32 GetSpellDuration();
 	int16 GetSpellIcon();

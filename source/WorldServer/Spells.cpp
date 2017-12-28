@@ -146,48 +146,66 @@ int16 Spell::GetLevelRequired(Client* client){
 	return ret;
 }
 
-void Spell::SetPacketInformation(PacketStruct* packet, Client* client, bool display_tier){
-	packet->setSubstructDataByName("spell_info", "id", spell->id);
-	packet->setSubstructDataByName("spell_info", "icon",spell->icon);
-	packet->setSubstructDataByName("spell_info", "icon2",spell->icon_heroic_op);	// fix struct element name eventually
-	packet->setSubstructDataByName("spell_info", "icontype",spell->icon_backdrop);	// fix struct element name eventually
+void Spell::SetPacketInformation(PacketStruct* packet, Client* client, bool display_tier) {
+	SetSpellPacketInformation(packet, client, display_tier, false);
+	SetSpellPacketInformation(packet, client, display_tier, true);
+}
+
+void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool display_tier, bool pvp) {
+	const char* name = "spell_info";
+	if (pvp)
+		name = "pvp_spell_info";
+
+	packet->setSubstructDataByName(name, "id", spell->id);
+	packet->setSubstructDataByName(name, "icon", spell->icon);
+	packet->setSubstructDataByName(name, "icon2", spell->icon_heroic_op);	// fix struct element name eventually
+	packet->setSubstructDataByName(name, "icontype", spell->icon_backdrop);	// fix struct element name eventually
 	
 	if (packet->GetVersion() >= 63119) {
-		packet->setSubstructDataByName("spell_info", "version", 0x04);
-		packet->setSubstructDataByName("spell_info", "sub_version", 0x24);
-	}
-	else {
-		packet->setSubstructDataByName("spell_info", "version", 0x11);
-		packet->setSubstructDataByName("spell_info", "sub_version", 0x14);
+		packet->setSubstructDataByName(name, "version", 0x04);
+		packet->setSubstructDataByName(name, "sub_version", 0x24);
+	} else {
+		packet->setSubstructDataByName(name, "version", 0x11);
+		packet->setSubstructDataByName(name, "sub_version", 0x14);
 	}
 
-	packet->setSubstructDataByName("spell_info", "type", spell->type);
-	packet->setSubstructDataByName("spell_info", "unknown_MJ1d", 1); //63119 test
-	packet->setSubstructDataByName("spell_info", "class_skill", spell->class_skill);
-	packet->setSubstructDataByName("spell_info", "mastery_skill", spell->mastery_skill);
-	packet->setSubstructDataByName("spell_info", "duration_flag", spell->duration_until_cancel);
-	if(client && spell->type != 2){
+	packet->setSubstructDataByName(name, "type", spell->type);
+	packet->setSubstructDataByName(name, "unknown_MJ1d", 1); //63119 test
+	packet->setSubstructDataByName(name, "class_skill", spell->class_skill);
+	packet->setSubstructDataByName(name, "mastery_skill", spell->mastery_skill);
+	packet->setSubstructDataByName(name, "duration_flag", spell->duration_until_cancel);
+
+	if (client && spell->type != 2) {
 		sint8 spell_text_color = client->GetPlayer()->GetArrowColor(GetLevelRequired(client));
+
 		if(spell_text_color != ARROW_COLOR_WHITE && spell_text_color != ARROW_COLOR_RED && spell_text_color != ARROW_COLOR_GRAY)
 			spell_text_color = ARROW_COLOR_WHITE;
+
 		spell_text_color -= 6;
+
 		if(spell_text_color < 0)
-			spell_text_color*=-1;
-		packet->setSubstructDataByName("spell_info", "spell_text_color", spell_text_color);
+			spell_text_color *= -1;
+
+		packet->setSubstructDataByName(name, "spell_text_color", spell_text_color);
+	} else {
+		packet->setSubstructDataByName(name, "spell_text_color", 3);
 	}
-	else
-		packet->setSubstructDataByName("spell_info", "spell_text_color", 3);
-	if(spell->type != 2){
-		packet->setSubstructArrayLengthByName("spell_info", "num_levels", levels.size());
-		for(int32 i=0;i<levels.size();i++){
+
+	if (spell->type != 2) {
+		packet->setSubstructArrayLengthByName(name, "num_levels", levels.size());
+
+		for (int32 i=0;i<levels.size();i++) {
 			packet->setArrayDataByName("adventure_class", levels[i]->adventure_class, i);
 			packet->setArrayDataByName("tradeskill_class", levels[i]->tradeskill_class, i);
 			packet->setArrayDataByName("spell_level", levels[i]->spell_level, i);
 		}
 	}
-	packet->setSubstructDataByName("spell_info", "unknown9", 20);
+
+	packet->setSubstructDataByName(name, "unknown9", 20);
+
 	int16 hp_req = 0;
 	int16 power_req = 0;
+
 	if (client) {
 		hp_req = GetHPRequired(client->GetPlayer());
 		power_req = GetPowerRequired(client->GetPlayer());
@@ -196,51 +214,53 @@ void Spell::SetPacketInformation(PacketStruct* packet, Client* client, bool disp
 		if( client->GetVersion() >= 1193 )
 		{
 			int16 savagery_req = GetSavageryRequired(client->GetPlayer()); // dunno why we need to do this
-			packet->setSubstructDataByName("spell_info", "savagery_req",savagery_req);
-			packet->setSubstructDataByName("spell_info", "savagery_upkeep",spell->savagery_upkeep);
+			packet->setSubstructDataByName(name, "savagery_req",savagery_req);
+			packet->setSubstructDataByName(name, "savagery_upkeep",spell->savagery_upkeep);
 		}
 		if( client->GetVersion() >= 57048 )
 		{
 			int16 dissonance_req = GetDissonanceRequired(client->GetPlayer()); // dunno why we need to do this
-			packet->setSubstructDataByName("spell_info", "dissonance_req",dissonance_req);
-			packet->setSubstructDataByName("spell_info", "dissonance_upkeep",spell->dissonance_upkeep);
+			packet->setSubstructDataByName(name, "dissonance_req",dissonance_req);
+			packet->setSubstructDataByName(name, "dissonance_upkeep",spell->dissonance_upkeep);
 		}
 	}
-	packet->setSubstructDataByName("spell_info", "target", spell->target_type);
-	packet->setSubstructDataByName("spell_info", "recovery",spell->recovery);
-	packet->setSubstructDataByName("spell_info", "health_upkeep",spell->hp_upkeep);
-	packet->setSubstructDataByName("spell_info", "health_req",hp_req);
-	packet->setSubstructDataByName("spell_info", "tier",spell->tier);
-	packet->setSubstructDataByName("spell_info", "power_req",power_req);
-	packet->setSubstructDataByName("spell_info", "power_upkeep",spell->power_upkeep);
 
-	packet->setSubstructDataByName("spell_info", "cast_time",spell->cast_time);
-	packet->setSubstructDataByName("spell_info", "recast",spell->recast);
-	packet->setSubstructDataByName("spell_info", "radius",spell->radius);
-	packet->setSubstructDataByName("spell_info", "req_concentration",spell->req_concentration);
-	//packet->setDataByName("req_concentration2", 2);
-	packet->setSubstructDataByName("spell_info", "max_aoe_targets",spell->max_aoe_targets);
-	packet->setSubstructDataByName("spell_info", "friendly_spell",spell->friendly_spell);
-	packet->setSubstructArrayLengthByName("spell_info", "num_effects", effects.size());
+	packet->setSubstructDataByName(name, "target", spell->target_type);
+	packet->setSubstructDataByName(name, "recovery", spell->recovery);
+	packet->setSubstructDataByName(name, "health_upkeep", spell->hp_upkeep);
+	packet->setSubstructDataByName(name, "health_req", hp_req);
+	packet->setSubstructDataByName(name, "tier", spell->tier);
+	packet->setSubstructDataByName(name, "power_req", power_req);
+	packet->setSubstructDataByName(name, "power_upkeep", spell->power_upkeep);
+	packet->setSubstructDataByName(name, "cast_time", spell->cast_time);
+	packet->setSubstructDataByName(name, "recast", spell->recast);
+	packet->setSubstructDataByName(name, "radius", spell->radius);
+	packet->setSubstructDataByName(name, "req_concentration", spell->req_concentration);
+	packet->setSubstructDataByName(name, "max_aoe_targets", spell->max_aoe_targets);
+	packet->setSubstructDataByName(name, "friendly_spell", spell->friendly_spell);
+
+	packet->setSubstructArrayLengthByName(name, "num_effects", effects.size());
 	for(int32 i=0;i<effects.size();i++){
 		packet->setArrayDataByName("effect", effects[i]->description.c_str(), i);
 		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
 		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
 	}
-	if(display_tier == true)
-		packet->setSubstructDataByName("spell_info", "display_spell_tier", spell->display_spell_tier);
-	else
-		packet->setSubstructDataByName("spell_info", "display_spell_tier", 0);
-	packet->setSubstructDataByName("spell_info", "range",spell->range);
-	packet->setSubstructDataByName("spell_info", "duration1",spell->duration1);
-	packet->setSubstructDataByName("spell_info", "duration2",spell->duration2);
 
-	packet->setSubstructDataByName("spell_info", "can_effect_raid",spell->can_effect_raid);
-	packet->setSubstructDataByName("spell_info", "affect_only_group_members",spell->affect_only_group_members);
-	packet->setSubstructDataByName("spell_info", "group_spell",spell->group_spell);
-	packet->setSubstructDataByName("spell_info", "resistibility",spell->resistibility);
-	packet->setSubstructDataByName("spell_info", "name",&(spell->name));
-	packet->setSubstructDataByName("spell_info", "description",&(spell->description));
+	if (display_tier == true) {
+		packet->setSubstructDataByName(name, "display_spell_tier", spell->display_spell_tier);
+	} else {
+		packet->setSubstructDataByName(name, "display_spell_tier", 0);
+	}
+
+	packet->setSubstructDataByName(name, "range",spell->range);
+	packet->setSubstructDataByName(name, "duration1",spell->duration1);
+	packet->setSubstructDataByName(name, "duration2",spell->duration2);
+	packet->setSubstructDataByName(name, "can_effect_raid",spell->can_effect_raid);
+	packet->setSubstructDataByName(name, "affect_only_group_members",spell->affect_only_group_members);
+	packet->setSubstructDataByName(name, "group_spell",spell->group_spell);
+	packet->setSubstructDataByName(name, "resistibility",spell->resistibility);
+	packet->setSubstructDataByName(name, "name",&(spell->name));
+	packet->setSubstructDataByName(name, "description",&(spell->description));
 }
 
 EQ2Packet* Spell::SerializeSpecialSpell(Client* client, bool display, int8 packet_type, int8 sub_packet_type){
