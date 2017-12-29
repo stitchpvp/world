@@ -7430,19 +7430,25 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	if (sep->IsSet(1) && sep->IsNumber(1)) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
+	if (sep->IsSet(0) && sep->IsNumber(0)) {
+		client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
+	}
 
-	Spawn* target = client->GetPlayer();
+	if (sep->IsSet(1) && sep->IsNumber(1)) {
+		client->GetPlayer()->size_mod_b = atol(sep->arg[1]);
+	}
 
-	if (client->GetPlayer()->GetTarget())
-		target = client->GetPlayer()->GetTarget();
+	if (sep->IsSet(2) && sep->IsNumber(2)) {
+		client->GetPlayer()->size_mod_c = atol(sep->arg[2]);
+	}
 
-	if (sep->IsSet(0) && sep->IsNumber(0))
-		target->temp_info_type = atol(sep->arg[0]);
+	if (sep->IsSet(3) && sep->IsNumber(3)) {
+		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
+	}
 
-	if (sep->IsSet(1) && sep->IsNumber(1))
-		target->temp_footer_type = atol(sep->arg[1]);
-
-	client->GetPlayer()->GetZone()->RepopSpawns(client, target);
+	client->GetPlayer()->changed = true;
+	client->GetPlayer()->info_changed = true;
+	client->GetCurrentZone()->SendSpawnChanges(client->GetPlayer());
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

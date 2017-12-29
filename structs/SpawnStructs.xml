@@ -1877,7 +1877,10 @@
 <Data ElementName="unknown600554" Type="int8" Size="4" />
 <Data ElementName="hp_remaining" Type="int32" Size="1" />
 <Data ElementName="power_percent" Type="int32" Size="1" />
-<Data ElementName="unknown600553" Type="int8" Size="9" />
+<Data ElementName="unknown600553" Type="int8" Size="4" />
+<Data ElementName="size_mod" Type="int8" Size="1" />
+<Data ElementName="size_type" Type="int8" Size="1" />
+<Data ElementName="unknown600553b" Type="int8" Size="3" />
 <Data ElementName="unknown4" Type="int8" />
 <Data ElementName="level" Type="int8" />
 <Data ElementName="unknown5" Type="int8" Size="1" />

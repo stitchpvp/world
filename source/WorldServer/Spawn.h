@@ -197,7 +197,6 @@ public:
 	Spawn();
 	virtual ~Spawn();
 
-	int temp_footer_type = -1;
 	int temp_info_type = -1;
 
 	template <class Field, class Value> void Set(Field* field, Value value, bool setUpdateFlags = true){
@@ -929,6 +928,11 @@ public:
 		SetInfo(&m_illusionModel, val, setUpdateFlags);
 	}
 	int16 GetIllusionModel() { return m_illusionModel; }
+
+	int8 size_mod_a;
+	int8 size_mod_b;
+	int8 size_mod_c;
+	int8 size_mod_unknown;
 
 	CellInfo Cell_Info;
 

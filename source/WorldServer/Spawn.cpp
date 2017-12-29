@@ -93,6 +93,10 @@ Spawn::Spawn(){
 	m_requiredHistory.SetName("Spawn::m_requiredHistory");
 	m_requiredQuests.SetName("Spawn::m_requiredQuests");
 	last_heading_angle = 0.0;
+	size_mod_a = 0;
+	size_mod_b = 0;
+	size_mod_c = 0;
+	size_mod_unknown = 0;
 }
 
 Spawn::~Spawn(){
@@ -284,9 +288,6 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	} else {
 		footer->setDataByName("spawn_type", 6);
 	}
-
-	if (temp_footer_type >= 0)
-		footer->setDataByName("spawn_type", temp_footer_type);
 }
 
 EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version){
@@ -1481,9 +1482,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setDataByName("spawn_type", spawn_type);
 	}
 
-	if (temp_info_type >= 0)
-		packet->setDataByName("spawn_type", temp_info_type);
-
 	packet->setDataByName("class", appearance.adventure_class);
 
 	int16 model_type = appearance.model_type;
@@ -1496,6 +1494,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		else
 			model_type = GetIllusionModel();
 	}
+
+	packet->setDataByName("unknown600553", size_mod_a, 0);
+	packet->setDataByName("unknown600553", size_mod_b, 1);
+	packet->setDataByName("unknown600553", size_mod_c, 2);
+	packet->setDataByName("unknown600553", size_mod_unknown, 3);
 
 	packet->setDataByName("model_type", model_type);
 	if(appearance.soga_model_type == 0)
@@ -1518,7 +1521,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("mood_state", appearance.mood_state);
 	packet->setDataByName("gender", appearance.gender);
 	packet->setDataByName("race", appearance.race);
-	packet->setDataByName("gender", appearance.gender);
 	if(IsEntity()){
 		Entity* entity = ((Entity*)this);
 		packet->setDataByName("combat_voice", entity->GetCombatVoice());
