@@ -3687,6 +3687,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_ACCEPT_RESURRECTION: { Command_AcceptResurrection(client, sep); break; }
 		case COMMAND_DECLINE_RESURRECTION:{ Command_DeclineResurrection(client, sep); break; }
 		case COMMAND_TEST				: { Command_Test(client, sep); break; }
+		case COMMAND_MOUNT				: { Command_Mount(client, sep); break; }
 		case COMMAND_SPEED				: { Command_Speed(client, sep); break; }
 		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
 		case COMMAND_PVP_RANGE			: { Command_PVPRange(client); break; }
@@ -7414,6 +7415,14 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 	}
 
 	chat.TellChannel(client, sep->arg[0], sep->argplus[1]);
+}
+
+void Commands::Command_Mount(Client* client, Seperator* sep) {
+	if (sep == nullptr) return;
+
+	if (sep->IsSet(0) && sep->IsNumber(0)) {
+		client->GetPlayer()->SetMount(atol(sep->arg[0]));
+	}
 }
 
 void Commands::Command_Test(Client* client, Seperator* sep) {

@@ -433,6 +433,7 @@ public:
 	void Command_JoinChannel(Client *client, Seperator *sep);
 	void Command_JoinChannelFromLoad(Client *client, Seperator *sep);
 	void Command_TellChannel(Client *client, Seperator *sep);
+	void Command_Mount(Client* client, Seperator* sep);
 	void Command_LeaveChannel(Client *client, Seperator *sep);
 	void Command_WeaponStats(Client *client);
 	void Command_WhoChannel(Client *client, Seperator *sep);
@@ -864,5 +865,6 @@ private:
 #define COMMAND_PLAYER_SET 2003
 #define COMMAND_PVP_RANGE 2004
 #define COMMAND_PVP 2005
+#define COMMAND_MOUNT 2006
 
 #endif
