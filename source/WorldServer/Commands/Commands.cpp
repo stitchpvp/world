@@ -1364,10 +1364,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SUMMONITEM:{
 			if(sep && sep->arg[0][0] && sep->IsNumber(0)){
 				int32 item_id = atol(sep->arg[0]);
-				client->AddItem(item_id);
+				int32 quantity = 1;
+
+				if (sep->arg[1] && sep->IsNumber(1))
+					quantity = atol(sep->arg[1]);
+
+				client->AddItem(item_id, quantity);
 			}
 			else
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Usage: /summonitem {item_id}");
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Usage: /summonitem {item_id} [quantity]");
 			break;
 		}
 		case COMMAND_COLLECTION_ADDITEM: {
