@@ -4120,6 +4120,16 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 
 	}
 
+	if (dead->IsPet())
+		((NPC*)dead)->GetOwner()->DismissPet((NPC*)dead, true);
+	else if (dead->IsEntity()) {
+		// remove all pets for this entity
+		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetPet());
+		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetCharmedPet());
+		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetDeityPet());
+		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetCosmeticPet());
+	}
+
 	dead->SetActionState(0);
 	dead->SetTempActionState(0);
 
