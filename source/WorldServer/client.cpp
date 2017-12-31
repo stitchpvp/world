@@ -2252,25 +2252,24 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 	}
 	else if(type == 2){
 		request = configReader.getStruct("WS_ExamineInfoItemLinkRequest", GetVersion());
-		if(!request) {
-					return;
-		}
+
+		if(!request) return;
+
 		request->LoadPacketData(app->pBuffer, app->size);
+
 		int32 id = request->getType_int32_ByName("item_id");
-		//int32 unknown_0 = request->getType_int32_ByName("unknown",0);
-		//int32 unknown_1 = request->getType_int32_ByName("unknown",1);
-		//int8 unknown2 = request->getType_int8_ByName("unknown2");
-		//int32 unique_id = request->getType_int32_ByName("unique_id");
-		//int16 unknown5 = request->getType_sint16_ByName("unknown5");
-		//printf("Type: (%i) Unknown_0: (%u) Unknown_1: (%u) Unknown2: (%i) Unique ID: (%u) Unknown5: (%i) Item ID: (%u)\n",type,unknown_0,unknown_1,unknown2,unique_id,unknown5,id);
+		bool is_link = (request->getType_int8_ByName("is_link") == 1);
+
 		Item* item = master_item_list.GetItem(id);
-		if(item){
-			//only display popup for non merchant links
-			EQ2Packet* app = item->serialize(GetVersion(), (request->getType_int32_ByName("unique_id") != 0xFFFFFFFF), GetPlayer(), true, 0, 0, true);
-			//DumpPacket(app);
-			QueuePacket(app);
-		}
-		else{
+		if(item) {
+			if (is_link) {
+				EQ2Packet* app = item->serialize(GetVersion(), true, GetPlayer());
+				QueuePacket(app);
+			} else {
+				EQ2Packet* app = item->serialize(GetVersion(), (request->getType_int32_ByName("unique_id") != 0xFFFFFFFF), GetPlayer(), true, 0, 0, true);
+				QueuePacket(app);
+			}
+		} else {
 			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest: Unknown Item ID = %u", id);
 			DumpPacket(app);
 		}

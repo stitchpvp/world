@@ -17370,34 +17370,6 @@ to zero and treated like placeholders." />
 <Data ElementName="packettype" Type="int16" Size="1" />
 <Data ElementName="packetsubtype" Type="int8" Size="1" />
 </Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="57107" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="11"/>
-<Data ElementName="unknown4" Type="int16" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="unknown3" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="60024" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
-<Data ElementName="item_crc" Type="int32" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
-<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="63119" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
-<Data ElementName="item_crc" Type="int32" />
-<Data ElementName="unique_id" Type="int32" />
-<Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
-</Struct>
 <Struct Name="WS_QuestExamineInfoHeader" ClientVersion="1" >
 <Data ElementName="unknown" Type="int8" Size="1" />
 <Data ElementName="packettype" Type="int16" Size="1" />
@@ -19287,7 +19259,8 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown" Type="int32" Size="3" />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
 </Struct>
 <Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >
 <Data ElementName="type" Type="int8" Size="1" />
@@ -19312,7 +19285,8 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown2" Type="int8" />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
 </Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1191" >
 <Data ElementName="type" Type="int8" Size="1" />
@@ -19321,7 +19295,8 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown3" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
 </Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1199" >
 <Data ElementName="type" Type="int8" Size="1" />
@@ -19330,7 +19305,8 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown3" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
 </Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="57107" >
 <Data ElementName="type" Type="int8" Size="1" />
@@ -19339,7 +19315,28 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown3" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
-<Data ElementName="unknown5" Type="int16" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
+</Struct>
+<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="60024" >
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="2" />
+<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="item_crc" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
+<Data ElementName="item_id" Type="int32" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
+</Struct>
+<Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="63119" >
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="2" />
+<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="item_crc" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
+<Data ElementName="item_id" Type="int32" />
+<Data ElementName="unknown5" Type="int8" />
+<Data ElementName="is_link" Type="int8" />
 </Struct>
 <Struct Name="WS_QuickBarUpdateRequest" ClientVersion="1" >
 <Data ElementName="hotbar_number" Type="int32" Size="1" />
