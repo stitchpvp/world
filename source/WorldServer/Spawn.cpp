@@ -96,6 +96,7 @@ Spawn::Spawn(){
 	size_mod_a = 0;
 	size_mod_b = 0;
 	size_mod_c = 0;
+	size_shrink_multiplier = 0;
 	size_mod_unknown = 0;
 }
 
@@ -1498,7 +1499,8 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("unknown600553", size_mod_a, 0);
 	packet->setDataByName("unknown600553", size_mod_b, 1);
 	packet->setDataByName("unknown600553", size_mod_c, 2);
-	packet->setDataByName("unknown600553", size_mod_unknown, 3);
+	packet->setDataByName("unknown600553", size_shrink_multiplier, 3);
+	packet->setDataByName("size_type", size_mod_unknown, 0);
 
 	packet->setDataByName("model_type", model_type);
 	if(appearance.soga_model_type == 0)

@@ -7452,6 +7452,10 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	}
 
 	if (sep->IsSet(3) && sep->IsNumber(3)) {
+		client->GetPlayer()->size_shrink_multiplier = atol(sep->arg[3]);
+	}
+
+	if (sep->IsSet(4) && sep->IsNumber(4)) {
 		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
 	}
 

@@ -932,6 +932,7 @@ public:
 	int8 size_mod_a;
 	int8 size_mod_b;
 	int8 size_mod_c;
+	int8 size_shrink_multiplier;
 	int8 size_mod_unknown;
 
 	CellInfo Cell_Info;
