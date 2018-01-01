@@ -3692,7 +3692,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SERVER_FLAG        : { Command_ServerFlag(client, sep); break; }
 		case COMMAND_PVP_RANGE			: { Command_PVPRange(client); break; }
 		case COMMAND_PVP				: { Command_PVP(client); break; }
-		case COMMAND_KNOWLEDGEWINDOW_SORT: { Command_KnowledgeWindow_Sort(client, sep); break; }
+		case COMMAND_KNOWLEDGEWINDOW_SORT:{ Command_KnowledgeWindow_Sort(client, sep); break; }
+		case COMMAND_RESET_ENCOUNTER    : { Command_ResetEncounter(client); break; }
 
 		default: 
 		{
@@ -7425,6 +7426,16 @@ void Commands::Command_Mount(Client* client, Seperator* sep) {
 	}
 }
 
+void Commands::Command_ResetEncounter(Client* client) {
+	Spawn* target = client->GetPlayer()->GetTarget();
+
+	if (target && target->IsNPC()) {
+		static_cast<NPC*>(target)->Brain()->ClearHate();
+		static_cast<NPC*>(target)->Brain()->ClearEncounter();
+		static_cast<NPC*>(target)->GetZone()->RemoveSpellTimersFromSpawn(target, true, true);
+	}
+}
+
 void Commands::Command_Test(Client* client, Seperator* sep) {
 	if (sep == nullptr) return;
 
@@ -7994,7 +8005,7 @@ void Commands::Command_Player_Set(Client* client, Seperator* sep) {
 			}
 		} else if (strncasecmp(attribute, "sta", strlen(attribute)) == 0) {
 			if (sep->IsNumber(1)) {
-				player->GetInfoStruct()->str_temp = atoi(sep->arg[1]);
+				player->GetInfoStruct()->sta_temp = atoi(sep->arg[1]);
 				player->CalculateBonuses();
 				return;
 			}

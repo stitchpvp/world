@@ -96,6 +96,8 @@ void Brain::Think() {
 				ClearHate();
 				// Clear the encounter list
 				ClearEncounter();
+				// Remove the spells from the spawn
+				m_body->GetZone()->RemoveSpellTimersFromSpawn(m_body, true, true);
 			}
 			else {
 				// Still within max chase distance lets to the combat stuff now
