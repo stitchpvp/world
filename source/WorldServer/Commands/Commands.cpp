@@ -7899,7 +7899,7 @@ void Commands::Command_Attune_Inv(Client* client, Seperator* sep) {
 
 		// Get the item
 		Item* item = client->GetPlayer()->item_list.indexed_items[index];
-		if(item) {
+		if (item) {
 			// Valid item lets check to make sure this item is attunable, if not return out
 			if (!item->CheckFlag(ATTUNEABLE)) {
 				LogWrite(ITEM__DEBUG, 0, "Items", "attune_inv called for an item that is not attunable (%s)", item->name.c_str());
@@ -7918,9 +7918,9 @@ void Commands::Command_Attune_Inv(Client* client, Seperator* sep) {
 			vector<EQ2Packet*> packets = client->GetPlayer()->EquipItem(index, client->GetVersion(), -1);
 			EQ2Packet* outapp = 0;
 
-			for (int32 i=0;i<packets.size();i++) {
+			for (int32 i = 0; i < packets.size(); i++) {
 				outapp = packets[i];
-				if(outapp)
+				if (outapp)
 					client->QueuePacket(outapp);
 			}
 		}
@@ -7984,6 +7984,54 @@ void Commands::Command_Player_Set(Client* client, Seperator* sep) {
 				value = atoi(sep->arg[1]);
 				player->SetFame(value);
 				player->GetZone()->GetClientBySpawn(player)->SendTitleUpdate();
+				return;
+			}
+		} else if (strncasecmp(attribute, "str", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->str_temp = atoi(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "sta", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->str_temp = atoi(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "agi", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->agi_temp = atoi(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "wis", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->wis_temp = atoi(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "int", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->intel_temp = atoi(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "crit", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->crit_chance_temp = atof(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "reuse", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->reuse_speed_temp = atof(sep->arg[1]);
+				player->CalculateBonuses();
+				return;
+			}
+		} else if (strncasecmp(attribute, "castspeed", strlen(attribute)) == 0) {
+			if (sep->IsNumber(1)) {
+				player->GetInfoStruct()->casting_speed_temp = atof(sep->arg[1]);
+				player->CalculateBonuses();
 				return;
 			}
 		}

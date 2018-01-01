@@ -144,6 +144,11 @@ struct InfoStruct{
 	int16			agi_base;
 	int16			wis_base;
 	int16			intel_base;
+	int16			str_temp = 0;
+	int16			sta_temp = 0;
+	int16			agi_temp = 0;
+	int16			wis_temp = 0;
+	int16			intel_temp = 0;
 	int16			heat;
 	int16			cold;
 	int16			magic;
@@ -204,11 +209,14 @@ struct InfoStruct{
 	float			critical_mitigation;
 	float			block_chance;
 	float			crit_chance;
+	float			crit_chance_temp = 0;
 	float			crit_bonus;
 	float			potency;
 	float			hate_mod;
 	float			reuse_speed;
+	float			reuse_speed_temp = 0;
 	float			casting_speed;
+	float			casting_speed_temp = 0;
 	float			recovery_speed;
 	float			spell_reuse_speed;
 	float			spell_multi_attack;
