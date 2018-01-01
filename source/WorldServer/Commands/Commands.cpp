@@ -1216,15 +1216,36 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						LogWrite(COMMAND__ERROR, 0, "Command", "Unknown Spell ID: %u", spell_id);
 				}
 				else if (strcmp(sep->arg[0], "effect") == 0) {
+					Entity* target = nullptr;
 					int32 spell_id = atol(sep->arg[1]);
-					LogWrite(COMMAND__DEBUG, 5, "Command", "Unknown Spell ID: %u", spell_id);
-					int8 tier = client->GetPlayer()->GetSpellTier(spell_id);
-					EQ2Packet* outapp = master_spell_list.GetSpecialSpellPacket(spell_id, tier, client, true, 0x00);
-					if (outapp){
-						client->QueuePacket(outapp);
+					int8 tier = 0;
+					
+					SpellEffects* spell_effect = client->GetPlayer()->GetSpellEffect(spell_id);
+					if (spell_effect)
+						tier = spell_effect->tier;
+
+					if (!tier && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity()) {
+						target = static_cast<Entity*>(client->GetPlayer()->GetTarget());
+						SpellEffects* spell_effect = target->GetSpellEffect(spell_id);
+
+						if (spell_effect)
+							tier = spell_effect->tier;
 					}
-					else
+
+					if (!tier && target && target->GetTarget() && target->GetTarget()->IsEntity()) {
+						Entity* assist = static_cast<Entity*>(target->GetTarget());
+						SpellEffects* spell_effect = assist->GetSpellEffect(spell_id);
+
+						if (spell_effect)
+							tier = spell_effect->tier;
+					}
+
+					EQ2Packet* outapp = master_spell_list.GetSpecialSpellPacket(spell_id, tier, client, true, 0x00);
+					if (outapp) {
+						client->QueuePacket(outapp);
+					} else {
 						LogWrite(COMMAND__ERROR, 0, "Command", "Unknown Spell ID: %u", spell_id);
+					}
 				}
 			}
 			else if (sep && strcmp(sep->arg[0], "overflow") == 0) {
