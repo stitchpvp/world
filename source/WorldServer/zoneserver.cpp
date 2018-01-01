@@ -4529,7 +4529,7 @@ void ZoneServer::SendInterruptPacket(Spawn* interrupted, LuaSpell* spell){
 	safe_delete(packet);
 }
 
-void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster){
+void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast_time) {
 	EQ2Packet* outapp = 0;
 	PacketStruct* packet = 0;
 	Client* client = 0;
@@ -4550,7 +4550,7 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster){
 			for (int32 i = 0; i < spell->targets.size(); i++)
 				packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(spell->caster->GetZone()->GetSpawnByID(spell->targets[i])), i);
 			packet->setDataByName("spell_visual", spell->spell->GetSpellData()->spell_visual); //result
-			packet->setDataByName("cast_time", spell->spell->GetSpellData()->cast_time*.01); //delay
+			packet->setDataByName("cast_time", cast_time*.01); //delay
 			packet->setDataByName("spell_id", spell->spell->GetSpellID());
 			packet->setDataByName("spell_level", 1);
 			packet->setDataByName("spell_tier", spell->spell->GetSpellData()->tier);

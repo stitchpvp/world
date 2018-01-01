@@ -302,7 +302,7 @@ public:
 	void	SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, int8 type2, int8 damage_type, int16 damage, const char* spell_name);
 	void    SendHealPacket(Spawn* caster, Spawn* target, int16 type, int32 heal_amt, const char* spell_name);
 	
-	void	SendCastSpellPacket(LuaSpell* spell, Entity* caster);
+	void	SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast_time);
 	void	SendCastSpellPacket(int32 spell_visual, Spawn* target, Spawn* caster = 0);
 	void	SendCastEntityCommandPacket(EntityCommand* entity_command, int32 spawn_id, int32 target_id);
 	void	TriggerCharSheetTimer();

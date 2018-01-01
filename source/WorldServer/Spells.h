@@ -303,7 +303,7 @@ public:
 	bool IsDamageSpell();
 	bool IsControlSpell();
 	bool IsOffenseSpell();
-	void ModifyCastTime(Entity* caster);
+	int16 GetModifiedCastTime(Entity* caster);
 	bool CastWhileStunned();
 	bool CastWhileMezzed();
 	bool CastWhileStifled();

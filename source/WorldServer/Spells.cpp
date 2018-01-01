@@ -232,7 +232,7 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool
 	packet->setSubstructDataByName(name, "tier", spell->tier);
 	packet->setSubstructDataByName(name, "power_req", power_req);
 	packet->setSubstructDataByName(name, "power_upkeep", spell->power_upkeep);
-	packet->setSubstructDataByName(name, "cast_time", spell->cast_time);
+	packet->setSubstructDataByName(name, "cast_time", GetModifiedCastTime(client->GetPlayer()));
 	packet->setSubstructDataByName(name, "recast", spell->recast);
 	packet->setSubstructDataByName(name, "radius", spell->radius);
 	packet->setSubstructDataByName(name, "req_concentration", spell->req_concentration);
@@ -330,7 +330,7 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 		packet->setSubstructDataByName("spell_info", "dissonance_upkeep",spell->dissonance_upkeep);
 	}
 	packet->setSubstructDataByName("spell_info", "req_concentration",spell->req_concentration);
-	packet->setSubstructDataByName("spell_info", "cast_time",spell->cast_time);
+	packet->setSubstructDataByName("spell_info", "cast_time", GetModifiedCastTime(client->GetPlayer()));
 	packet->setSubstructDataByName("Spell_info", "recovery", spell->recovery);
 	packet->setSubstructDataByName("spell_info", "recast",spell->recast);
 	packet->setSubstructDataByName("spell_info", "radius",spell->radius);
@@ -568,15 +568,19 @@ bool Spell::IsOffenseSpell(){
 	return offense_spell;
 }
 
-void Spell::ModifyCastTime(Entity* caster){
+int16 Spell::GetModifiedCastTime(Entity* caster){
 	int16 cast_time = spell->cast_time;
 	float cast_speed = caster->GetInfoStruct()->casting_speed;
-	if (cast_time > 0){
-		if (cast_speed > 0) // casting speed can only reduce up to half a cast time
-			spell->cast_time *= max((float) 0.5, (float) (1 / (1 + (cast_speed * .01))));
-		else if (cast_speed < 0) // not sure if casting speed debuff is capped on live or not, capping at 1.5 * the normal rate for now
-			spell->cast_time *= min((float) 1.5, (float) (1 + (1 - (1 / (1 + (cast_speed * -.01))))));
+
+	if (cast_time > 0) {
+		if (cast_speed > 0) { // casting speed can only reduce up to half a cast time
+			return cast_time * max((float) 0.5, (float)(1 / (1 + (cast_speed * .01))));
+		} else if (cast_speed < 0) { // not sure if casting speed debuff is capped on live or not, capping at 1.5 * the normal rate for now
+			return cast_time * min((float) 1.5, (float)(1 + (1 - (1 / (1 + (cast_speed * -.01))))));
+		}
 	}
+
+	return cast_time;
 }
 
 vector <SpellDisplayEffect*>* Spell::GetSpellEffects(){

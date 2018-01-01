@@ -505,13 +505,13 @@ bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
 }
 
 void SpellProcess::SendStartCast(LuaSpell* spell, Client* client){
-	if(client){
+	if(client) {
 		PacketStruct* packet = configReader.getStruct("WS_StartCastSpell", client->GetVersion());
-		if(packet){
-			packet->setDataByName("cast_time", spell->spell->GetSpellData()->cast_time*.01);
+
+		if(packet) {
+			packet->setDataByName("cast_time", spell->spell->GetModifiedCastTime(client->GetPlayer()) * .01);
 			packet->setMediumStringByName("spell_name", spell->spell->GetSpellData()->name.data.c_str());
 			EQ2Packet* outapp = packet->serialize();
-			//DumpPacket(outapp);
 			client->QueuePacket(outapp);
 			safe_delete(packet);	
 		}
@@ -1178,7 +1178,7 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 			LogWrite(SPELL__DEBUG, 1, "Spell", "Unable to do precast check as there was no lua_interface");
 
 			//Apply casting speed mod
-			spell->ModifyCastTime(caster);
+			int16 cast_time = spell->GetModifiedCastTime(caster);
 
 			LockAllSpells(client);
 
@@ -1188,14 +1188,14 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 
 			SendStartCast(lua_spell, client);
 
-			if (spell->GetSpellData()->cast_time > 0)
+			if (cast_time > 0)
 			{
 				CastTimer* cast_timer = new CastTimer;
 				cast_timer->entity_command = 0;
 				cast_timer->spell = lua_spell;
 				cast_timer->spell->caster = caster;
 				cast_timer->delete_timer = false;
-				cast_timer->timer = new Timer(spell->GetSpellData()->cast_time * 10);
+				cast_timer->timer = new Timer(cast_time * 10);
 				cast_timer->zone = zone;
 				cast_timers.Add(cast_timer);
 				if (caster)
@@ -1211,7 +1211,7 @@ lua_interface->ResetFunctionStack(lua_spell->state);
 			}
 
 			if (caster)
-				caster->GetZone()->SendCastSpellPacket(lua_spell, caster);
+				caster->GetZone()->SendCastSpellPacket(lua_spell, caster, cast_time);
 
 	}
 }
