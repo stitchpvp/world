@@ -233,7 +233,7 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool
 	packet->setSubstructDataByName(name, "power_req", power_req);
 	packet->setSubstructDataByName(name, "power_upkeep", spell->power_upkeep);
 	packet->setSubstructDataByName(name, "cast_time", GetModifiedCastTime(client->GetPlayer()));
-	packet->setSubstructDataByName(name, "recast", spell->recast);
+	packet->setSubstructDataByName(name, "recast", GetModifiedRecast(client->GetPlayer()));
 	packet->setSubstructDataByName(name, "radius", spell->radius);
 	packet->setSubstructDataByName(name, "req_concentration", spell->req_concentration);
 	packet->setSubstructDataByName(name, "max_aoe_targets", spell->max_aoe_targets);
@@ -332,7 +332,7 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 	packet->setSubstructDataByName("spell_info", "req_concentration",spell->req_concentration);
 	packet->setSubstructDataByName("spell_info", "cast_time", GetModifiedCastTime(client->GetPlayer()));
 	packet->setSubstructDataByName("Spell_info", "recovery", spell->recovery);
-	packet->setSubstructDataByName("spell_info", "recast",spell->recast);
+	packet->setSubstructDataByName("spell_info", "recast", GetModifiedRecast(client->GetPlayer()));
 	packet->setSubstructDataByName("spell_info", "radius",spell->radius);
 	packet->setSubstructDataByName("spell_info", "max_aoe_targets",spell->max_aoe_targets);
 	packet->setSubstructDataByName("spell_info", "friendly_spell",spell->friendly_spell);
@@ -581,6 +581,21 @@ int16 Spell::GetModifiedCastTime(Entity* caster){
 	}
 
 	return cast_time;
+}
+
+float Spell::GetModifiedRecast(Entity* caster) {
+	float recast = spell->recast;
+	float reuse_speed = caster->GetInfoStruct()->reuse_speed;
+
+	if (recast > 0) {
+		if (reuse_speed > 0) { // casting speed can only reduce up to half a cast time
+			return recast * max((float) 0.5, (float)(1 / (1 + (reuse_speed * .01))));
+		} else if (reuse_speed < 0) { // not sure if casting speed debuff is capped on live or not, capping at 1.5 * the normal rate for now
+			return recast * min((float) 1.5, (float)(1 + (1 - (1 / (1 + (reuse_speed * -.01))))));
+		}
+	}
+
+	return recast;
 }
 
 vector <SpellDisplayEffect*>* Spell::GetSpellEffects(){

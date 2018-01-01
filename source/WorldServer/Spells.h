@@ -304,6 +304,7 @@ public:
 	bool IsControlSpell();
 	bool IsOffenseSpell();
 	int16 GetModifiedCastTime(Entity* caster);
+	float GetModifiedRecast(Entity* caster);
 	bool CastWhileStunned();
 	bool CastWhileMezzed();
 	bool CastWhileStifled();
