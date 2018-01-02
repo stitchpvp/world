@@ -479,12 +479,12 @@ bool Commands::SetSpawnCommand(Client* client, Spawn* target, int8 type, const c
 		switch(type){
 			case SPAWN_SET_VALUE_NAME:{
 				target->SetName(value);
-				target->GetZone()->SendUpdateTitles(target);
+				client->GetCurrentZone()->SendUpdateTitles(target);
 				break;
 									  }
 			case SPAWN_SET_VALUE_SUB_TITLE: {
 				target->SetSubTitle(value);
-				target->GetZone()->SendUpdateTitles(target);
+				client->GetCurrentZone()->SendUpdateTitles(target);
 				break;
 											}
 			case SPAWN_SET_VALUE_X_OFFSET: 
