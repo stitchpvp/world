@@ -292,7 +292,7 @@ bool SpellProcess::IsReady(Spell* spell, Entity* caster){
 		return false;
 	bool ret = true;	
 	MRecastTimers.readlock(__FUNCTION__, __LINE__);
-	for (auto recast_timer : recast_timers) {
+	for (const auto& recast_timer : recast_timers) {
 		if (recast_timer->spell == spell && recast_timer->caster == caster) {
 			ret = false;
 			break;

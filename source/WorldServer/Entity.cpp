@@ -1420,59 +1420,50 @@ void Entity::ClearAllDetriments() {
 	MDetriments.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void Entity::CureDetrimentByType(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level) {
-	if (cure_count <= 0 || GetDetTypeCount(det_type) <= 0)
+void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_name, Entity* caster) {
+	if (cure_level <= 0 || (GetDetTypeCount(det_type) <= 0 && (det_type == DET_TYPE_ALL && GetDetCount() <= 0)))
 		return;
 
 	vector<DetrimentalEffects>* det_list = &detrimental_spell_effects;
-	DetrimentalEffects* det;
-	vector<LuaSpell*> remove_list;
-	LuaSpell* spell = 0;
-	vector<LevelArray*>* levels;
-	int8 caster_class1 = 0;
-	int8 caster_class2 = 0;
-	int8 caster_class3 = 0;
-	int8 level_class = 0;
-	InfoStruct* info_struct = 0;
-	bool pass_level_check = false;
+	map<int8, vector<LuaSpell*>> remove_list;
+	int8 total_cure_level = 0;
 
 	MDetriments.readlock(__FUNCTION__, __LINE__);
-	for (int32 i = 0; i<det_list->size(); i++){
-		det = &det_list->at(i);
-		if (det && det->det_type == det_type && !det->incurable){
-			levels = det->spell->spell->GetSpellLevels();
-			info_struct = det->caster->GetInfoStruct();
-			caster_class1 = info_struct->class1;
-			caster_class2 = info_struct->class2;
-			caster_class3 = info_struct->class3;
-			pass_level_check = false;
-			for (int32 x = 0; x < levels->size(); x++){
-				level_class = levels->at(x)->adventure_class;
-				if (!cure_level || ((caster_class1 == level_class || caster_class2 == level_class || caster_class3 == level_class)
-					&& cure_level >= (levels->at(x)->spell_level / 10))){
-					pass_level_check = true;
+	for (const auto& det : *det_list) {
+		if ((det.det_type == det_type || (det_type == DET_TYPE_ALL && det.det_type != DET_TYPE_CURSE)) && !det.incurable) {
+			vector<LevelArray*>* levels = det.spell->spell->GetSpellLevels();
+			InfoStruct* info_struct = det.caster->GetInfoStruct();
+
+			for (const auto& x : *levels) {
+				int8 level = x->spell_level / 10;
+				int8 det_class = x->adventure_class;
+
+				if ((info_struct->class1 == det_class || info_struct->class2 == det_class || info_struct->class3 == det_class || det.caster->GetAdventureClass() == det_class) && cure_level >= level) {
+					remove_list[level].push_back(det.spell);
 					break;
 				}
-			}
-			if (pass_level_check){
-				remove_list.push_back(det->spell);
-				cure_count--;
-				if (cure_count == 0)
-					break;
 			}
 		}
 	}
 	MDetriments.releasereadlock(__FUNCTION__, __LINE__);
 
-	for (int32 i = 0; i<remove_list.size(); i++){
-		spell = remove_list.at(i);
-		GetZone()->SendDispellPacket(caster, this, cure_name, (string)remove_list.at(i)->spell->GetName(), DISPELL_TYPE_CURE);
-		if (GetZone())
-			GetZone()->RemoveTargetFromSpell(spell, this);
-		RemoveSpellEffect(spell);
-		RemoveDetrimentalSpell(spell);
+	for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
+		if (total_cure_level + it->first > cure_level) break;
+
+		for (const auto& spell : it->second) {
+			if (total_cure_level + it->first > cure_level) break;
+
+			GetZone()->SendDispellPacket(caster, this, cure_name, (string)spell->spell->GetName(), DISPELL_TYPE_CURE);
+
+			if (GetZone())
+				GetZone()->RemoveTargetFromSpell(spell, this);
+
+			RemoveSpellEffect(spell);
+			RemoveDetrimentalSpell(spell);
+
+			total_cure_level += it->first;
+		}
 	}
-	remove_list.clear();
 }
 
 void Entity::CureDetrimentByControlEffect(int8 cure_count, int8 control_type, string cure_name, Entity* caster, int8 cure_level) {

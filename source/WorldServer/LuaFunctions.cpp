@@ -6810,37 +6810,19 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 		return 0;
 	}
 
-	int8 cure_count = lua_interface->GetInt8Value(state);
-	int8 cure_type = lua_interface->GetInt8Value(state, 2);
-	string cure_name = lua_interface->GetStringValue(state, 3);
-	int8 cure_level = lua_interface->GetInt8Value(state, 4);
-	Spawn* target = lua_interface->GetSpawn(state, 5);
+	Spawn* target = lua_interface->GetSpawn(state);
+	int8 cure_level = lua_interface->GetInt8Value(state, 2);
+	int8 cure_type = lua_interface->GetInt8Value(state, 3);
+	string cure_name = lua_interface->GetStringValue(state, 4);
 
-	if(target){
-		if(!target->IsEntity()){
-			lua_interface->LogError("LUA CureByType command error: spawn override must be entity if used");
-			return 0;
-		}
-
-		if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
-			static_cast<Entity*>(target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
+	if(!target->IsEntity()){
+		lua_interface->LogError("LUA CureByType command error: spawn override must be entity if used");
+		return 0;
 	}
-	else {
-		ZoneServer* zone = spell->caster->GetZone();
-		vector<int32> targets = spell->targets;
-		
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for(int8 i=0; i<targets.size(); i++){
-			target = zone->GetSpawnByID(targets.at(i));
 
-			if(!target || !target->IsEntity())
-				continue;
-
-			if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
-				static_cast<Entity*>(target)->CureDetrimentByType(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-	}
+	if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0 || (cure_type == DET_TYPE_ALL && static_cast<Entity*>(target)->GetDetCount() > 0))
+		static_cast<Entity*>(target)->CureDetrimentByType(cure_level, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster);
+	
 	return 0;
 }
 

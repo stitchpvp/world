@@ -29,7 +29,7 @@ void PVP::HandlePlayerEncounter(Player* source, Player* target, bool is_hostile)
 		vector<Spawn*> to_add;
 
 		target->encounter_list_mutex.lock();
-		for (auto kv : target->encounter_list) {
+		for (const auto& kv : target->encounter_list) {
 			Spawn* spawn = target->GetZone()->GetSpawnByID(kv.first);
 
 			if (spawn && spawn->IsPlayer())
@@ -37,7 +37,7 @@ void PVP::HandlePlayerEncounter(Player* source, Player* target, bool is_hostile)
 		}
 		target->encounter_list_mutex.unlock();
 
-		for (auto* spawn : to_add) {
+		for (const auto& spawn : to_add) {
 			source->AddToEncounterList(spawn->GetID(), Timer::GetCurrentTime2(), true);
 			static_cast<Player*>(spawn)->AddToEncounterList(source->GetID(), Timer::GetCurrentTime2(), false);
 		}

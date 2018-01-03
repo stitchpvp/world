@@ -432,11 +432,11 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
 			}
 		}
 
-		for (auto const& remove : to_remove) {
+		for (const auto& remove : to_remove) {
 			Player* target = remove.first;
 			vector<LuaSpell*> effects = remove.second;
 
-			for (auto const& effect : effects) {
+			for (const auto& effect : effects) {
 				target->RemoveSpellEffect(effect);
 				target->RemoveSpellBonus(effect);
 				target->RemoveSkillBonus(effect->spell->GetSpellID());

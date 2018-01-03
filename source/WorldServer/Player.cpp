@@ -2692,7 +2692,7 @@ void Player::CheckEncounterList() {
 	vector<int32> to_remove;
 
 	encounter_list_mutex.lock();
-	for (auto kv : encounter_list) {
+	for (const auto& kv : encounter_list) {
 		Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
 
 		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000)))
@@ -2700,7 +2700,7 @@ void Player::CheckEncounterList() {
 	}
 	encounter_list_mutex.unlock();
 
-	for (auto spawn : to_remove)
+	for (const auto& spawn : to_remove)
 		RemoveFromEncounterList(spawn);
 }
 

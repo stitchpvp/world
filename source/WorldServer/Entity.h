@@ -296,6 +296,7 @@ struct ThreatTransfer {
 	LuaSpell*	Spell;
 };
 
+#define DET_TYPE_ALL		 0
 #define DET_TYPE_TRAUMA      1
 #define DET_TYPE_ARCANE      2
 #define DET_TYPE_NOXIOUS     3
@@ -756,7 +757,7 @@ public:
 	Mutex* GetMaintainedMutex();
 	Mutex* GetSpellEffectMutex();
 	void ClearAllDetriments();
-	void CureDetrimentByType(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level = 0);
+	void CureDetrimentByType(int8 cure_level, int8 det_type, string cure_name, Entity* caster);
 	void CureDetrimentByControlEffect(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level = 0);
 	vector<DetrimentalEffects>* GetDetrimentalSpellEffects();
 	void RemoveEffectsFromLuaSpell(LuaSpell* spell);
