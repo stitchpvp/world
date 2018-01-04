@@ -268,6 +268,9 @@ EQ2Packet* Spell::SerializeSpecialSpell(Client* client, bool display, int8 packe
 }
 
 EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool display, int16 packet_type, int8 sub_packet_type){
+	if (!client)
+		return 0;
+
 	PacketStruct* packet = configReader.getStruct("WS_ExamineAASpellInfo", client->GetVersion());
 	packet->setSubstructDataByName("info_header", "show_name", 0);
 	packet->setSubstructDataByName("info_header", "show_popup", 0);
@@ -290,7 +293,7 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 	packet->setSubstructDataByName("spell_info", "type", spell->type);
 	packet->setSubstructDataByName("spell_info", "class_skill", spell->class_skill);
 	packet->setSubstructDataByName("spell_info", "mastery_skill", spell->mastery_skill);
-	if(client && spell->type != 2){
+	if(spell->type != 2){
 		sint8 spell_text_color = client->GetPlayer()->GetArrowColor(GetLevelRequired(client));
 		if(spell_text_color != ARROW_COLOR_WHITE && spell_text_color != ARROW_COLOR_RED && spell_text_color != ARROW_COLOR_GRAY)
 			spell_text_color = ARROW_COLOR_WHITE;

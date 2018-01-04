@@ -32,6 +32,9 @@ GroundSpawn::GroundSpawn(){
 	appearance.encounter_level = 0;
 	spawn_type = 2;
 	appearance.pos.state = 129;
+	number_harvests = 0;
+	num_attempts_per_harvest = 0;
+	groundspawn_id = 0;
 	MHarvest.SetName("GroundSpawn::MHarvest");
 	MHarvestUse.SetName("GroundSpawn::MHarvestUse");
 }

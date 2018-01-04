@@ -99,6 +99,7 @@ using namespace std;
 #define APPEARANCE_EART			44
 #define APPEARANCE_EYET			45
 #define APPEARANCE_LT			46
+#define APPEARANCE_BODY_AGE		47
 
 
 struct StartingItem{
@@ -109,6 +110,8 @@ struct StartingItem{
 	int8	attuned;
 	int8	count;
 };
+
+class Bot;
 
 class WorldDatabase : public Database {
 public:
@@ -400,7 +403,7 @@ public:
 	void				SavePlayerCollections(Client *client);
 	void				SavePlayerCollection(Client *client, Collection *collection);
 	void				SavePlayerCollectionItems(Client *client, Collection *collection);
-	void				SavePlayerCollectionItem(Client *client, Collection *collection, Item *item);
+	void				SavePlayerCollectionItem(Client *client, Collection *collection, int32 item_id);
 	
 	/* Commands */
 	map<int32, string>* GetSpawnTemplateListByName(const char* name);
@@ -540,6 +543,19 @@ public:
 	/* Character LUA History */
 	void				SaveCharacterLUAHistory(Player* player, int32 event_id, int32 value, int32 value2);
 	void				LoadCharacterLUAHistory(int32 char_id, Player* player);
+
+	/* Bots - BotDB.cpp */
+	int32				CreateNewBot(int32 char_id, string name, int8 race, int8 advClass, int8 gender, int16 model_id, int32& index);
+	void				SaveBotAppearance(Bot* bot);
+	void				SaveBotColors(int32 bot_id, const char* type, EQ2_Color color);
+	void				SaveBotFloats(int32 bot_id, const char* type, float float1, float float2, float float3);
+	bool				LoadBot(int32 char_id, int32 bot_index, Bot* bot);
+	void				LoadBotAppearance(Bot* bot);
+	void				SaveBotItem(int32 bot_id, int32 item_id, int8 slot);
+	void				LoadBotEquipment(Bot* bot);
+	string				GetBotList(int32 char_id);
+	void				DeleteBot(int32 char_id, int32 bot_index);
+	void				SetBotStartingItems(Bot* bot, int8 class_id, int8 race_id);
 
 private:
 	DatabaseNew			database_new;

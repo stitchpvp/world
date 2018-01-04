@@ -24,12 +24,14 @@
 #include "Skills.h"
 #include "MutexList.h"
 #include "MutexVector.h"
+#include <set>
 
 
 using namespace std;
 
 class Entity;
 class NPC;
+class Trade;
 struct LuaSpell;
 struct GroupMemberInfo;
 
@@ -345,6 +347,7 @@ public:
 	virtual void RemoveSpellEffect(LuaSpell* spell);
 	virtual bool HasActiveMaintainedSpell(Spell* spell, Spawn* target);
 	virtual bool HasActiveSpellEffect(Spell* spell, Spawn* target);
+	virtual void AddSkillBonus(int32 spell_id, int32 skill_id, float value);
 	void AddDetrimentalSpell(LuaSpell* spell);
 	DetrimentalEffects* GetDetrimentalEffect(int32 spell_id, Entity* caster);
 	virtual MaintainedEffects* GetMaintainedSpell(int32 spell_id);
@@ -579,8 +582,8 @@ public:
 	void SetSogaLegType(int16 new_val, bool setUpdateFlags = true){
 		SetInfo(&features.soga_legs_type, new_val, setUpdateFlags);
 	}	
-	void SetSkinColor(EQ2_Color* color){
-		SetInfo(&features.skin_color, *color);
+	void SetSkinColor(EQ2_Color color){
+		SetInfo(&features.skin_color, color);
 	}
 	void SetCombatVoice(int16 val, bool setUpdateFlags = true) { 
 		SetInfo(&features.combat_voice, val, setUpdateFlags); 
@@ -597,8 +600,8 @@ public:
 	void SetMountColor(EQ2_Color* color){
 		SetInfo(&features.mount_color, *color);
 	}
-	void SetEyeColor(EQ2_Color* eye_color){
-		SetInfo(&features.eye_color, *eye_color);
+	void SetEyeColor(EQ2_Color eye_color){
+		SetInfo(&features.eye_color, eye_color);
 	}
 	int16 GetHairType(){
 		return features.hair_type;
@@ -805,6 +808,12 @@ public:
 	GroupMemberInfo* GetGroupMemberInfo() { return group_member_info; }
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
 	void UpdateGroupMemberInfo();
+
+	void CustomizeAppearance(PacketStruct* packet);
+	Trade* trade;
+
+	// Keep track of entities that hate this spawn.
+	set<int32> HatedBy;
 
 	float GetMitigationPercentage(int enemy_level) { return info_struct.cur_mitigation / ((40 * enemy_level) + info_struct.cur_mitigation + 200.0); }
 

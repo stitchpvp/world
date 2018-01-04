@@ -436,12 +436,12 @@ void LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, bool preca
 		lua_getglobal(spell->state, "tick");
 
 	Spawn* temp_spawn = 0;
-	if (timer && timer->caster)
+	if (timer && timer->caster && spell->caster)
 		temp_spawn = spell->caster->GetZone()->GetSpawnByID(timer->caster);
 
 	if (temp_spawn)
 		SetSpawnValue(spell->state, temp_spawn);
-	else
+	else if (spell->caster)
 		SetSpawnValue(spell->state, spell->caster);
 
 	if (spell->initial_target && precast)

@@ -170,6 +170,20 @@
 #define CASTING_FLAG_STUNNED   4
 #define CASTING_FLAG_FEARED    8
 
+// Spell type is for AI so code knows what a spell is
+#define SPELL_TYPE_UNSET		1
+#define SPELL_TYPE_DD			2
+#define SPELL_TYPE_DOT			3
+#define SPELL_TYPE_HEAL			4
+#define SPELL_TYPE_HOT_WARD		5
+#define SPELL_TYPE_DEBUFF		6
+#define SPELL_TYPE_BUFF			7
+#define SPELL_TYPE_COMBATBUFF	8
+#define SPELL_TYPE_TAUNT		9
+#define SPELL_TYPE_DETAUNT		10
+#define SPELL_TYPE_REZ			11
+#define SPELL_TYPE_CURE			12
+
 
 struct LUAData{
 	int8	type;
@@ -262,6 +276,7 @@ struct SpellData{
 	int8	savage_bar;
 	int8	savage_bar_slot;
 	int32	soe_spell_crc;
+	int8	spell_type;
 };
 class Spell{
 public:

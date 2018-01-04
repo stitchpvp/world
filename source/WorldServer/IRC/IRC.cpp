@@ -38,6 +38,7 @@ extern RuleManager rule_manager;
 
 IRC::IRC() {
 	running = false;
+	m_globalServer = 0;
 	m_servers.SetName("IRC::servers");
 }
 

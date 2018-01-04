@@ -130,7 +130,7 @@ void Brain::Think() {
 				m_body->Runback();
 			}
 			// If encounter size is greater then 0 then clear it
-			if (GetEncounterSize() >= 0)
+			if (GetEncounterSize() > 0)
 				ClearEncounter();
 		}
 	}
@@ -164,6 +164,9 @@ void Brain::AddHate(Entity* entity, sint32 hate) {
 	else
 		m_hatelist.insert(std::pair<int32, sint32>(entity->GetID(), hate));
 
+	if (entity->HatedBy.count(m_body->GetID()) == 0)
+		entity->HatedBy.insert(m_body->GetID());
+
 	// Unlock the list
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
 }
@@ -192,6 +195,8 @@ void Brain::ClearHate(Entity* entity) {
 	if (m_hatelist.count(entity->GetID()) > 0)
 		// Erase the entity from the hate list
 		m_hatelist.erase(entity->GetID());
+
+	entity->HatedBy.erase(m_body->GetID());
 
 	// Unlock the hate list
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
@@ -324,20 +329,22 @@ void Brain::ProcessMelee(Entity* target, float distance) {
 	if(distance > MAX_COMBAT_RANGE)
 		MoveCloser(target);
 	else {
+		if (target) {
 		LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is within melee range of %s.", m_body->GetName(), target->GetName());
-		if(target && m_body->AttackAllowed(target)) {
+			if (m_body->AttackAllowed(target)) {
 			LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is allowed to attack %s.", m_body->GetName(), target->GetName());
-			if(m_body->PrimaryWeaponReady() && !m_body->IsDazed() && !m_body->IsFeared()) {
+				if (m_body->PrimaryWeaponReady() && !m_body->IsDazed() && !m_body->IsFeared()) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s swings its primary weapon at %s.", m_body->GetName(), target->GetName());
 				m_body->SetPrimaryLastAttackTime(Timer::GetCurrentTime2());
 				m_body->MeleeAttack(target, distance, true);
 				m_body->GetZone()->CallSpawnScript(m_body, SPAWN_SCRIPT_AUTO_ATTACK_TICK, target);
 			}
-			if(m_body->SecondaryWeaponReady() && !m_body->IsDazed()) {
+				if (m_body->SecondaryWeaponReady() && !m_body->IsDazed()) {
 				m_body->SetSecondaryLastAttackTime(Timer::GetCurrentTime2());
 				m_body->MeleeAttack(target, distance, false);
 			}
 		}
+	}
 	}
 }
 
@@ -355,9 +362,9 @@ void Brain::AddToEncounter(Entity* entity) {
 	if (entity->IsPet() && ((NPC*)entity)->GetOwner()->IsPlayer())
 		entity = ((NPC*)entity)->GetOwner();
 
-	// If player then get the players group
+	// If player or bot then get the group
 	int32 group_id = 0;
-	if (entity->IsPlayer()) {
+	if (entity->IsPlayer() || entity->IsBot()) {
 		m_playerInEncounter = true;
 		if (entity->GetGroupMemberInfo())
 			group_id = entity->GetGroupMemberInfo()->group_id;

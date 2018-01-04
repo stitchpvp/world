@@ -97,6 +97,7 @@ World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(
 	guilds_timer.Start();
 	lotto_players_timer.Start();
 	xp_rate = -1;
+	ts_xp_rate = -1;
 	vitality_frequency = 0xFFFFFFFF;
 	vitality_amount = -1;
 	last_checked_time = 0;

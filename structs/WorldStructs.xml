@@ -19247,7 +19247,6 @@ to zero and treated like placeholders." />
 <Data ElementName="id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
-
 <Struct Name="WS_ExamineInfoRequest" ClientVersion="63119" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="id" Type="int32" />
@@ -19261,23 +19260,6 @@ to zero and treated like placeholders." />
 <Data ElementName="item_id" Type="int32" />
 <Data ElementName="unknown5" Type="int8" />
 <Data ElementName="is_link" Type="int8" />
-</Struct>
-<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="trait_tier" Type="int32" />
-<Data ElementName="unknown2" Type="int32" />
-<Data ElementName="tier" Type="int32" />
-<Data ElementName="id" Type="int32" />
-<Data ElementName="unknown5" Type="int8" Size="1" />
-</Struct>
-<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >
-<Data ElementName="type" Type="int8" Size="1" />
-<Data ElementName="trait_tier" Type="int32" />
-<Data ElementName="unknown2" Type="int32" />
-<Data ElementName="tier" Type="int32" />
-<Data ElementName="unknown1" Type="int32" />
-<Data ElementName="id" Type="int32" />
-<Data ElementName="unknown6" Type="int32" />
 </Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1096" >
 <Data ElementName="type" Type="int8" Size="1" />
@@ -19311,7 +19293,8 @@ to zero and treated like placeholders." />
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="57107" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="2" />
-<Data ElementName="unknown2" Type="int8" Size ="13"/>
+<Data ElementName="unknown2" Type="int8" Size ="11"/>
+<Data ElementName="unknown4" Type="int16" />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown3" Type="int32" />
 <Data ElementName="item_id" Type="int32" />
@@ -28612,6 +28595,46 @@ to zero and treated like placeholders." />
 <Data ElementName="their_gold" Type="int32" />
 <Data ElementName="their_plat" Type="int32" />
 </Struct>
+<Struct Name="WS_PlayerTrade" ClientVersion="63225" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqUpdateStoreCmd" >
+	<Data ElementName="spawn_id" Type="int32" />
+	<Data ElementName="type" Type="int16" />
+	<Data ElementName="your_item_count" Type="int8" />
+	<Data ElementName="your_item_array" Type="Array" ArraySizeVariable="your_item_count">
+		<Data ElementName="your_item_name" Type="EQ2_8Bit_String" />
+		<Data ElementName="your_item_slot" Type="int8" />
+		<Data ElementName="your_item_unknown2" Type="int8" />
+		<Data ElementName="your_item_unknown3" Type="int8" Size="2" />
+		<Data ElementName="your_item_id" Type="int32" />
+		<Data ElementName="your_item_quantity" Type="int16" />
+		<Data ElementName="your_item_unknown3a" Type="int16" />
+		<Data ElementName="your_item_icon" Type="int16" />
+		<Data ElementName="your_item_unknown4" Type="int8" />
+		<Data ElementName="your_item_background" Type="int8" />
+		<Data ElementName="your_item_unknown5" Type="int8" Size="8" />
+	</Data>
+	<Data ElementName="your_copper" Type="int32" />
+	<Data ElementName="your_silver" Type="int32" />
+	<Data ElementName="your_gold" Type="int32" />
+	<Data ElementName="your_plat" Type="int32" />
+	<Data ElementName="their_item_count" Type="int8" />
+	<Data ElementName="their_item_array" Type="Array" ArraySizeVariable="their_item_count">
+		<Data ElementName="their_item_name" Type="EQ2_8Bit_String" />
+		<Data ElementName="their_item_unknown2" Type="int8" />
+		<Data ElementName="their_item_slot" Type="int8" />
+		<Data ElementName="their_item_unknown3" Type="int8" Size="2" />
+		<Data ElementName="their_item_id" Type="int32" />
+		<Data ElementName="their_item_quantity" Type="int16" />
+		<Data ElementName="their_item_unknown3a" Type="int16" />
+		<Data ElementName="their_item_icon" Type="int16" />
+		<Data ElementName="their_item_unknown4" Type="int8" />
+		<Data ElementName="their_item_background" Type="int8" />
+		<Data ElementName="their_item_unknown5" Type="int8" Size="8" />
+	</Data>
+	<Data ElementName="their_copper" Type="int32" />
+	<Data ElementName="their_silver" Type="int32" />
+	<Data ElementName="their_gold" Type="int32" />
+	<Data ElementName="their_plat" Type="int32" />
+</Struct>
 <Struct Name="WS_QuestJournalVisible" ClientVersion="1" OpcodeName="OP_QuestJournalSetVisibleMsg">
 <Data ElementName="unknown" Type="int32" />
 <Data ElementName="quest_id" Type="int32" />
@@ -28704,5 +28727,45 @@ to zero and treated like placeholders." />
     <Data ElementName="diety_ability_name" Type="EQ2_16Bit_String" />
     <Data ElementName="description_language" Type="int8" Size="35" />
   </Data>
+</Struct>
+<Struct Name="WS_SubmitCharCust" ClientVersion="1" OpcodeName="OP_SubmitCharCust">
+<Data ElementName="type" Type="int8" />
+<Data ElementName="race_id" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="is_soga" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="skin_color2" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="hair_color1" Type="EQ2_Color"  />
+<Data ElementName="hair_color2" Type="EQ2_Color"  />
+<Data ElementName="hair_highlight" Type="EQ2_Color" />
+<Data ElementName="unknown1" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" />
+<Data ElementName="wing_color2" Type="EQ2_Color" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" />
+<Data ElementName="unknown2" Type="EQ2_Color" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" />
+<Data ElementName="body_age" Type="float" />
 </Struct>
 </EQ2Emulator>

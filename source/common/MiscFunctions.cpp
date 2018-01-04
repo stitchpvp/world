@@ -716,7 +716,7 @@ bool IsNumber(const char *num) {
 }
 
 void PrintSep(Seperator *sep, const char *name) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	int32 i = 0;
 
 	LogWrite(MISC__WARNING, 0, "Misc", "Printing sep %s", name ? name : "No Name");
@@ -739,7 +739,7 @@ static bool INIGoToSection(FILE *f, const char *section) {
 	bool found = false;
 
 	if ((buf = (char *)malloc(size)) == NULL) {
-		fprintf(stderr, "%s: %u: Unable to allocate %u bytes\n", __FUNCTION__, __LINE__, size);
+		fprintf(stderr, "%s: %u: Unable to allocate %zu bytes\n", __FUNCTION__, __LINE__, size);
 		return false;
 	}
 

@@ -83,7 +83,7 @@ private:
 
 	int readers;
 	bool writing;
-	bool mlocked;
+	volatile bool mlocked;
 	string name;
 };
 

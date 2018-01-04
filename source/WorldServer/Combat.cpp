@@ -114,6 +114,11 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		return false;
 	}
 
+	if (IsPlayer() && target->IsBot()) {
+		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: players are not allowed to attack bots");
+		return false;
+	}
+
 	if (target->GetHP() <= 0) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: target is dead");
 		return false;
@@ -464,6 +469,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
+	 if (!target->Alive())
+		 return false;
+
 	 bool is_tick = GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell);
 
 	 if (!is_tick) {
@@ -490,7 +498,7 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 				crit_mod = 2;
 		}
 		
-		if (heal_amt >= 0){
+		if (heal_amt > 0){
 			//int32 base_roll = heal_amt;
 			//potency mod
 			heal_amt *= (stats[ITEM_STAT_POTENCY] / 100 + 1);
@@ -501,8 +509,6 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 			//Ability Modifier can only be up to half of base roll + potency and primary stat bonus
 			heal_amt += (int32)min(info_struct.ability_modifier, (float)(heal_amt / 2));
 		}
-		else
-			heal_amt = 0;
 
 		if(!crit_mod || crit_mod == 1){
 			if(crit_mod == 1) 
@@ -574,6 +580,17 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	if (heal_amt > 0)
 		GetZone()->SendHealPacket(this, target, type, heal_amt, luaspell->spell->GetName());
 
+	if (target->IsEntity()) {
+		int32 hate_amt = heal_amt / 2;
+		set<int32>::iterator itr;
+		for (itr = ((Entity*)target)->HatedBy.begin(); itr != ((Entity*)target)->HatedBy.end(); itr++) {
+			Spawn* spawn = GetZone()->GetSpawnByID(*itr);
+			if (spawn && spawn->IsEntity()) {
+				((Entity*)spawn)->AddHate(this, hate_amt);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -633,9 +650,9 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 
 	float bonus = ToHitBonus;
 	Skill* skill = GetSkillByWeaponType(damage_type, true);
-	if(skill)
-		bonus += skill->current_val/25;
-	if(victim->IsEntity())
+	if (skill)
+		bonus += skill->current_val / 25;
+	if (victim->IsEntity())
 		bonus -= ((Entity*)victim)->GetDamageTypeResistPercentage(damage_type);
 
 
@@ -654,9 +671,8 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 			entity_victim->CheckProcs(PROC_TYPE_EVADE, this);
 			return DAMAGE_PACKET_RESULT_DODGE;//successfully dodged
 		}
-		if(rand()%roll_chance >= chance){
+		if(rand() % roll_chance >= chance)
 			return DAMAGE_PACKET_RESULT_MISS; //successfully avoided
-		}
 
 		skill = entity_victim->GetSkillByName("Parry", true);
 		if(skill){

@@ -2389,7 +2389,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						client->Message(CHANNEL_COLOR_YELLOW, "Zone %s (%u) is now locked.", zsZone->GetZoneName(), zsZone->GetZoneID());
 					}
 					else
-						client->Message(CHANNEL_COLOR_RED, "Zone %s (%u) is not running and cannot be locked.", zsZone->GetZoneName(), zsZone->GetZoneID());
+						client->Message(CHANNEL_COLOR_RED, "Zone %s is not running and cannot be locked.", sep->arg[1]);
 
 					break;
 				}
@@ -2408,7 +2408,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						client->Message(CHANNEL_COLOR_YELLOW, "Zone %s (%u) is now unlocked.", zsZone->GetZoneName(), zsZone->GetZoneID());
 					}
 					else
-						client->Message(CHANNEL_COLOR_RED, "Zone %s (%u) is not running and cannot be unlocked.", zsZone->GetZoneName(), zsZone->GetZoneID());
+						client->Message(CHANNEL_COLOR_RED, "Zone %s is not running and cannot be unlocked.", sep->arg[1]);
 					break;
 				}
 				else
@@ -2708,11 +2708,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						client->SetItemSearch(items);
 						client->SearchStore(0);
 					}
-					else{
-						safe_delete(items);
 					}
 				}
-			}
 			break;
 		}
 		
@@ -3206,7 +3203,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				if(spawn->GetDatabaseID() == 0){
 					if(database.SaveSpawnInfo(spawn)) {
 						char spawn_type[32];
-						memset(spawn_type, 0, sizeof(spawn_type) - 1);
+						memset(spawn_type, 0, sizeof(spawn_type));
 						if (spawn->IsNPC())
 							strncpy(spawn_type, "NPC", sizeof(spawn_type) - 1);
 						else if (spawn->IsObject())
@@ -3716,6 +3713,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_KNOWLEDGEWINDOW_SORT:{ Command_KnowledgeWindow_Sort(client, sep); break; }
 		case COMMAND_RESET_ENCOUNTER    : { Command_ResetEncounter(client); break; }
 		case COMMAND_KNOCKBACK			: { Command_Knockback(client, sep);  break; }
+
+		case COMMAND_BOT				: { Command_Bot(client, sep); break; }
+		case COMMAND_BOT_CREATE			: { Command_Bot_Create(client, sep); break; }
+		case COMMAND_BOT_CUSTOMIZE		: { Command_Bot_Customize(client, sep); break; }
+		case COMMAND_BOT_SPAWN			: { Command_Bot_Spawn(client, sep); break; }
+		case COMMAND_BOT_LIST			: { Command_Bot_List(client, sep); break; }
+		case COMMAND_BOT_INV			: { Command_Bot_Inv(client, sep); break; }
+		case COMMAND_BOT_SETTINGS		: { Command_Bot_Settings(client, sep); break; }
+		case COMMAND_BOT_HELP			: { Command_Bot_Help(client, sep); break; }
 
 		default: 
 		{
@@ -4798,7 +4804,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 			client->QueuePacket(outapp);
 
 			//removed from bag send update
-			if(old_inventory_id > 0 && item->details.inv_slot_id != old_inventory_id)
+			if(old_inventory_id > 0 && item && item->details.inv_slot_id != old_inventory_id)
 			{ 
 				outapp = client->GetPlayer()->SendBagUpdate(old_inventory_id, client->GetVersion());
 				if(outapp)
@@ -7153,11 +7159,48 @@ void Commands::Command_Toggle_VoiceChat(Client* client)
 	Dev		: 
 	Example	: 
 */ 
+#include "../Trade.h"
 void Commands::Command_TradeStart(Client* client, Seperator* sep)
 {
 	PrintSep(sep, "COMMAND_START_TRADE");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Start Player Trading");
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+
+	Entity* trader = client->GetPlayer();
+	Entity* trader2 = 0;
+	if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
+		Spawn* spawn = client->GetPlayer()->GetSpawnWithPlayerID(atoi(sep->arg[0]));
+		if (spawn) {
+			if (spawn->IsEntity())
+				trader2 = (Entity*)spawn;
+		}
+	}
+	else if (client->GetPlayer()->GetTarget()) {
+		if (client->GetPlayer()->GetTarget()->IsEntity())
+			trader2 = (Entity*)client->GetPlayer()->GetTarget();
+	}
+
+	// can only trade with player or bots
+	if (trader && trader2) {
+		if (trader == trader2) {
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade with yourself.");
+		}
+		else if (trader2->IsPlayer() || trader2->IsBot()) {
+			LogWrite(PLAYER__ERROR, 0, "Trade", "creating trade");
+			if (trader->trade)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are already trading.");
+			else if (trader2->trade)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your target is already trading.");
+			else {
+				Trade* trade = new Trade(trader, trader2);
+				trader->trade = trade;
+				trader2->trade = trade;
+			}
+		}
+		else {
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can only trade with another player or a bot.");
+		}
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Unable to find target");
 }
 
 /* 
@@ -7185,8 +7228,14 @@ void Commands::Command_Track(Client* client)
 void Commands::Command_TradeAccept(Client* client, Seperator* sep)
 {
 	PrintSep(sep, "COMMAND_ACCEPT_TRADE");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Accept Player Trading");
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+	Trade* trade = client->GetPlayer()->trade;
+	if (trade) {
+		bool trade_complete = trade->SetTradeAccepted(client->GetPlayer());
+		if (trade_complete)
+			safe_delete(trade);
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
 }
 
 /* 
@@ -7213,8 +7262,13 @@ void Commands::Command_TradeReject(Client* client, Seperator* sep)
 void Commands::Command_TradeCancel(Client* client, Seperator* sep)
 {
 	PrintSep(sep, "COMMAND_CANCEL_TRADE");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Cancel Player Trading");
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+	Trade* trade = client->GetPlayer()->trade;
+	if (trade) {
+		trade->CancelTrade(client->GetPlayer());
+		safe_delete(trade);
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
 }
 
 /* 
@@ -7241,30 +7295,37 @@ void Commands::Command_TradeSetCoin(Client* client, Seperator* sep)
 void Commands::Command_TradeAddCoin(Client* client, Seperator* sep, int handler)
 {
 	PrintSep(sep, "COMMAND_ADD_TRADE_{coin type}");
-
-	switch(handler)
-	{
+	Trade* trade = client->GetPlayer()->trade;
+	if (trade) {
+		if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
+			int32 amount = atoi(sep->arg[0]);
+			int64 val = 0;
+			switch (handler) {
 		case COMMAND_ADD_TRADE_COPPER:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Add Trade Copper");
+				val = amount;
+				trade->AddCoinToTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_ADD_TRADE_SILVER:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Add Trade Silver");
+				val = amount * 100;
+				trade->AddCoinToTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_ADD_TRADE_GOLD:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Add Trade Gold");
+				val = amount * 10000;
+				trade->AddCoinToTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_ADD_TRADE_PLAT:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Add Trade Platinum");
+				val = amount * 1000000;
+				trade->AddCoinToTrade(client->GetPlayer(), val);
 				break;
 			}
 
@@ -7274,8 +7335,12 @@ void Commands::Command_TradeAddCoin(Client* client, Seperator* sep, int handler)
 				break;
 			}
 	}
-
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+		}
+		else
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Invalid coin amount.");
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
 }
 
 /* 
@@ -7289,29 +7354,37 @@ void Commands::Command_TradeRemoveCoin(Client* client, Seperator* sep, int handl
 {
 	PrintSep(sep, "COMMAND_REMOVE_TRADE_{coin type}");
 
-	switch(handler)
-	{
+	Trade* trade = client->GetPlayer()->trade;
+	if (trade) {
+		if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
+			int32 amount = atoi(sep->arg[0]);
+			int64 val = 0;
+			switch (handler) {
 		case COMMAND_REMOVE_TRADE_COPPER:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Remove Trade Copper");
+				val = amount;
+				trade->RemoveCoinFromTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_REMOVE_TRADE_SILVER:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Remove Trade Silver");
+				val = amount * 100;
+				trade->RemoveCoinFromTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_REMOVE_TRADE_GOLD:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Remove Trade Gold");
+				val = amount * 10000;
+				trade->RemoveCoinFromTrade(client->GetPlayer(), val);
 				break;
 			}
 
 		case COMMAND_REMOVE_TRADE_PLAT:
 			{
-				LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Remove Trade Platinum");
+				val = amount * 1000000;
+				trade->RemoveCoinFromTrade(client->GetPlayer(), val);
 				break;
 			}
 
@@ -7321,8 +7394,12 @@ void Commands::Command_TradeRemoveCoin(Client* client, Seperator* sep, int handl
 				break;
 			}
 	}
-
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+		}
+		else
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Invalid coin amount");
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
 }
 
 /* 
@@ -7335,8 +7412,39 @@ void Commands::Command_TradeRemoveCoin(Client* client, Seperator* sep, int handl
 void Commands::Command_TradeAddItem(Client* client, Seperator* sep)
 {
 	PrintSep(sep, "COMMAND_ADD_TRADE_ITEM");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Add Trade Item");
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+	/*
+	arg[0] = item index
+	arg[1] = slot
+	arg[2] = quantity
+	*/
+	if (!client->GetPlayer()->trade) {
+		LogWrite(PLAYER__ERROR, 0, "Trade", "Player is not currently trading.");
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
+		return;
+	}
+
+	if (sep && sep->IsSet(0) && sep->IsNumber(0) && sep->IsSet(1) && sep->IsNumber(1) && sep->IsSet(2) && sep->IsNumber(2)) {
+		Item* item = 0;
+		int32 index = atoi(sep->arg[0]);
+		item = client->GetPlayer()->GetPlayerItemList()->GetItemFromIndex(index);
+		if (item) {
+			int8 result = client->GetPlayer()->trade->AddItemToTrade(client->GetPlayer(), item, atoi(sep->arg[2]), atoi(sep->arg[1]));
+			if (result == 1)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Item is already being traded.");
+			else if (result == 2)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade NO-TRADE items.");
+			else if (result == 3)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade HEIRLOOM items.");
+			else if (result == 255)
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Unknown error trying to add the item to the trade...");
+		}
+		else {
+			LogWrite(PLAYER__ERROR, 0, "Trade", "Unable to get an item for the player (%s) from the index (%u)", client->GetPlayer()->GetName(), index);
+			client->Message(CHANNEL_ERROR, "Unable to find item at index %u", index);
+		}
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Invalid item.");
 }
 
 /* 
@@ -7349,8 +7457,20 @@ void Commands::Command_TradeAddItem(Client* client, Seperator* sep)
 void Commands::Command_TradeRemoveItem(Client* client, Seperator* sep)
 {
 	PrintSep(sep, "COMMAND_REMOVE_TRADE_ITEM");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Remove Trade Item");
-	client->Message(CHANNEL_COLOR_YELLOW, "You cannot trade with other players (Not Implemented)");
+	/*
+	arg[0] = trade window slot
+	*/
+
+	Trade* trade = client->GetPlayer()->trade;
+	if (trade) {
+		if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
+			trade->RemoveItemFromTrade(client->GetPlayer(), atoi(sep->arg[0]));
+		}
+		else
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Invalid item.");
+	}
+	else
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are not currently trading.");
 }
 
 void Commands::Command_TryOn(Client* client, Seperator* sep)

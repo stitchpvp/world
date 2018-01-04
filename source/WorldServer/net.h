@@ -54,6 +54,8 @@ public:
 			memset(loginaddress[i], 0, sizeof(loginaddress[i]));
 			loginport[i] = LOGIN_PORT;
 		}
+		listening_socket = 0;
+		updateport = 0;
 		memset(worldname, 0, sizeof(worldname));
 		memset(updateaddress, 0, sizeof(updateaddress));
 		memset(worldaccount, 0, sizeof(worldaccount));

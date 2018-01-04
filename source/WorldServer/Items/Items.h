@@ -973,6 +973,7 @@ public:
 	bool	CheckEquipSlot(Item* tmp, int8 slot);
 	bool	CanItemBeEquippedInSlot(Item* tmp, int8 slot);
 	int8	GetFreeSlot(Item* tmp, int8 slot_id = 255);
+	int8	GetSlotByItem(Item* item);
 	ItemStatsValues*	CalculateEquipmentBonuses(Entity* entity = 0);
 	EQ2Packet* serialize(int16 version, Player* player = 0);
 	uchar* xor_packet;

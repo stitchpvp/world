@@ -60,6 +60,8 @@ Entity::Entity(){
 	speed_multiplier = 1.0f;
 	m_threatTransfer = 0;
 	group_member_info = 0;
+	trade = 0;
+	deity = 0;
 	MProcList.SetName("Entity::m_procList");
 	MDetriments.SetName("Entity::MDetriments");
 	MMaintainedSpells.SetName("Entity::MMaintainedSpells");
@@ -2298,4 +2300,167 @@ void Entity::UpdateGroupMemberInfo() {
 		group_member_info->zone = GetZone()->GetZoneDescription();
 	else
 		group_member_info->zone = "Unknown";
+}
+
+#include "WorldDatabase.h"
+extern WorldDatabase database;
+void Entity::CustomizeAppearance(PacketStruct* packet) {
+
+	bool		is_soga						= packet->getType_int8_ByName("is_soga") == 1 ? true : false;
+	int16		model_id					= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("race_file").data);
+	EQ2_Color	skin_color					= packet->getType_EQ2_Color_ByName("skin_color");
+	EQ2_Color	skin_color2					= packet->getType_EQ2_Color_ByName("skin_color2");
+	EQ2_Color	eye_color					= packet->getType_EQ2_Color_ByName("eye_color");
+	EQ2_Color	hair_color1					= packet->getType_EQ2_Color_ByName("hair_color1");
+	EQ2_Color	hair_color2					= packet->getType_EQ2_Color_ByName("hair_color2");
+	EQ2_Color	hair_highlight				= packet->getType_EQ2_Color_ByName("hair_highlight");
+	int16		hair_id						= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("hair_file").data);
+	EQ2_Color	hair_type_color				= packet->getType_EQ2_Color_ByName("hair_type_color");
+	EQ2_Color	hair_type_highlight_color	= packet->getType_EQ2_Color_ByName("hair_type_highlight_color");
+	int16		face_id						= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("face_file").data);
+	EQ2_Color	hair_face_color				= packet->getType_EQ2_Color_ByName("hair_face_color");
+	EQ2_Color	hair_face_highlight_color	= packet->getType_EQ2_Color_ByName("hair_face_highlight_color");
+	int16		wing_id						= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("wing_file").data);
+	EQ2_Color	wing_color1					= packet->getType_EQ2_Color_ByName("wing_color1");
+	EQ2_Color	wing_color2					= packet->getType_EQ2_Color_ByName("wing_color2");
+	int16		chest_id					= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("chest_file").data);
+	EQ2_Color	shirt_color					= packet->getType_EQ2_Color_ByName("shirt_color");
+	EQ2_Color	unknown_chest_color			= packet->getType_EQ2_Color_ByName("unknown_chest_color");
+	int16		legs_id						= database.GetAppearanceID(packet->getType_EQ2_16BitString_ByName("legs_file").data);
+	EQ2_Color	pants_color					= packet->getType_EQ2_Color_ByName("pants_color");
+	EQ2_Color	unknown_legs_color			= packet->getType_EQ2_Color_ByName("unknown_legs_color");
+	EQ2_Color	unknown2					= packet->getType_EQ2_Color_ByName("unknown2");
+
+	float eyes2[3];
+	eyes2[0] = packet->getType_float_ByName("eyes2", 0) * 100;
+	eyes2[1] = packet->getType_float_ByName("eyes2", 1) * 100;
+	eyes2[2] = packet->getType_float_ByName("eyes2", 2) * 100;
+
+	float ears[3];
+	ears[0] = packet->getType_float_ByName("ears", 0) * 100;
+	ears[1] = packet->getType_float_ByName("ears", 1) * 100;
+	ears[2] = packet->getType_float_ByName("ears", 2) * 100;
+
+	float eye_brows[3];
+	eye_brows[0] = packet->getType_float_ByName("eye_brows", 0) * 100;
+	eye_brows[1] = packet->getType_float_ByName("eye_brows", 1) * 100;
+	eye_brows[2] = packet->getType_float_ByName("eye_brows", 2) * 100;
+
+	float cheeks[3];
+	cheeks[0] = packet->getType_float_ByName("cheeks", 0) * 100;
+	cheeks[1] = packet->getType_float_ByName("cheeks", 1) * 100;
+	cheeks[2] = packet->getType_float_ByName("cheeks", 2) * 100;
+
+	float lips[3];
+	lips[0] = packet->getType_float_ByName("lips", 0) * 100;
+	lips[1] = packet->getType_float_ByName("lips", 1) * 100;
+	lips[2] = packet->getType_float_ByName("lips", 2) * 100;
+
+	float chin[3];
+	chin[0] = packet->getType_float_ByName("chin", 0) * 100;
+	chin[1] = packet->getType_float_ByName("chin", 1) * 100;
+	chin[2] = packet->getType_float_ByName("chin", 2) * 100;
+
+	float nose[3];
+	nose[0] = packet->getType_float_ByName("nose", 0) * 100;
+	nose[1] = packet->getType_float_ByName("nose", 1) * 100;
+	nose[2] = packet->getType_float_ByName("nose", 2) * 100;
+
+	sint8 body_size = (sint8)(packet->getType_float_ByName("body_size") * 100);
+	sint8 body_age = (sint8)(packet->getType_float_ByName("body_age") * 100);
+
+	if (is_soga) {
+		appearance.soga_model_type = model_id;
+		features.soga_skin_color = skin_color;
+		features.soga_eye_color = eye_color;
+		features.soga_hair_color1 = hair_color1;
+		features.soga_hair_color2 = hair_color2;
+		features.soga_hair_highlight_color = hair_highlight;
+		features.soga_hair_type = hair_id;
+		features.soga_hair_type_color = hair_type_color;
+		features.soga_hair_type_highlight_color = hair_type_highlight_color;
+		features.soga_hair_face_type = face_id;
+		features.soga_hair_face_color = hair_face_color;
+		features.soga_hair_face_highlight_color = hair_face_highlight_color;
+		features.wing_type = wing_id;
+		features.wing_color1 = wing_color1;
+		features.wing_color2 = wing_color2;
+		features.soga_chest_type = chest_id;
+		features.shirt_color = shirt_color;
+		features.soga_legs_type = legs_id;
+		features.pants_color = pants_color;
+		features.soga_eye_type[0] = eyes2[0];
+		features.soga_eye_type[1] = eyes2[1];
+		features.soga_eye_type[2] = eyes2[2];
+		features.soga_ear_type[0] = ears[0];
+		features.soga_ear_type[0] = ears[1];
+		features.soga_ear_type[0] = ears[2];
+		features.soga_eye_brow_type[0] = eye_brows[0];
+		features.soga_eye_brow_type[1] = eye_brows[1];
+		features.soga_eye_brow_type[2] = eye_brows[2];
+		features.soga_cheek_type[0] = cheeks[0];
+		features.soga_cheek_type[1] = cheeks[1];
+		features.soga_cheek_type[2] = cheeks[2];
+		features.soga_lip_type[0] = lips[0];
+		features.soga_lip_type[1] = lips[1];
+		features.soga_lip_type[2] = lips[2];
+		features.soga_chin_type[0] = chin[0];
+		features.soga_chin_type[1] = chin[1];
+		features.soga_chin_type[2] = chin[2];
+		features.soga_nose_type[0] = nose[0];
+		features.soga_nose_type[1] = nose[1];
+		features.soga_nose_type[2] = nose[2];
+	}
+	else {
+		appearance.model_type = model_id;
+		features.skin_color = skin_color;
+		features.eye_color = eye_color;
+		features.hair_color1 = hair_color1;
+		features.hair_color2 = hair_color2;
+		features.hair_highlight_color = hair_highlight;
+		features.hair_type = hair_id;
+		features.hair_type_color = hair_type_color;
+		features.hair_type_highlight_color = hair_type_highlight_color;
+		features.hair_face_type = face_id;
+		features.hair_face_color = hair_face_color;
+		features.hair_face_highlight_color = hair_face_highlight_color;
+		features.wing_type = wing_id;
+		features.wing_color1 = wing_color1;
+		features.wing_color2 = wing_color2;
+		features.chest_type = chest_id;
+		features.shirt_color = shirt_color;
+		features.legs_type = legs_id;
+		features.pants_color = pants_color;
+		features.eye_type[0] = eyes2[0];
+		features.eye_type[1] = eyes2[1];
+		features.eye_type[2] = eyes2[2];
+		features.ear_type[0] = ears[0];
+		features.ear_type[0] = ears[1];
+		features.ear_type[0] = ears[2];
+		features.eye_brow_type[0] = eye_brows[0];
+		features.eye_brow_type[1] = eye_brows[1];
+		features.eye_brow_type[2] = eye_brows[2];
+		features.cheek_type[0] = cheeks[0];
+		features.cheek_type[1] = cheeks[1];
+		features.cheek_type[2] = cheeks[2];
+		features.lip_type[0] = lips[0];
+		features.lip_type[1] = lips[1];
+		features.lip_type[2] = lips[2];
+		features.chin_type[0] = chin[0];
+		features.chin_type[1] = chin[1];
+		features.chin_type[2] = chin[2];
+		features.nose_type[0] = nose[0];
+		features.nose_type[1] = nose[1];
+		features.nose_type[2] = nose[2];
+	}
+
+	features.body_size = body_size;
+	features.body_age = body_age;
+	info_changed = true;
+	changed = true;
+}
+
+void Entity::AddSkillBonus(int32 spell_id, int32 skill_id, float value) {
+	// handled in npc or player
+	return;
 }

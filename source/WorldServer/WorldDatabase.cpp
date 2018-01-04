@@ -590,100 +590,102 @@ int32 WorldDatabase::LoadNPCEquipment(ZoneServer* zone){
 
 int8 WorldDatabase::GetAppearanceType(string type){
 	int8 ret = 255;
-	if(type == "soga_hair_face_highlight_color")
+	if (type == "soga_hair_face_highlight_color")
 		ret = APPEARANCE_SOGA_HFHC;
-	else if(type == "soga_hair_type_highlight_color")
+	else if (type == "soga_hair_type_highlight_color")
 		ret = APPEARANCE_SOGA_HTHC;
-	else if(type == "soga_hair_face_color")
+	else if (type == "soga_hair_face_color")
 		ret = APPEARANCE_SOGA_HFC;
-	else if(type == "soga_hair_type_color")
+	else if (type == "soga_hair_type_color")
 		ret = APPEARANCE_SOGA_HTC;
-	else if(type == "soga_hair_highlight")
+	else if (type == "soga_hair_highlight")
 		ret = APPEARANCE_SOGA_HH;
-	else if(type == "soga_hair_color1")
+	else if (type == "soga_hair_color1")
 		ret = APPEARANCE_SOGA_HC1;
-	else if(type == "soga_hair_color2")
+	else if (type == "soga_hair_color2")
 		ret = APPEARANCE_SOGA_HC2;
-	else if(type == "hair_type_color")
+	else if (type == "hair_type_color")
 		ret = APPEARANCE_HTC;
-	else if(type == "soga_skin_color")
+	else if (type == "soga_skin_color")
 		ret = APPEARANCE_SOGA_SC;
-	else if(type == "soga_eye_color")
+	else if (type == "soga_eye_color")
 		ret = APPEARANCE_SOGA_EC;
-	else if(type == "hair_type_highlight_color")
+	else if (type == "hair_type_highlight_color")
 		ret = APPEARANCE_HTHC;
-	else if(type == "hair_face_highlight_color")
+	else if (type == "hair_face_highlight_color")
 		ret = APPEARANCE_HFHC;
-	else if(type == "hair_face_color")
+	else if (type == "hair_face_color")
 		ret = APPEARANCE_HFC;
-	else if(type == "hair_highlight")
-		ret = APPEARANCE_HH;		
-	else if(type == "hair_color1")
+	else if (type == "hair_highlight")
+		ret = APPEARANCE_HH;
+	else if (type == "hair_color1")
 		ret = APPEARANCE_HC1;
-	else if(type == "wing_color1")
+	else if (type == "wing_color1")
 		ret = APPEARANCE_WC1;
-	else if(type == "hair_color2")
+	else if (type == "hair_color2")
 		ret = APPEARANCE_HC2;
-	else if(type == "wing_color2")
+	else if (type == "wing_color2")
 		ret = APPEARANCE_WC2;
-	else if(type == "skin_color")
+	else if (type == "skin_color")
 		ret = APPEARANCE_SC;
-	else if(type == "eye_color")
+	else if (type == "eye_color")
 		ret = APPEARANCE_EC;
-	else if(type == "soga_eye_brow_type")
+	else if (type == "soga_eye_brow_type")
 		ret = APPEARANCE_SOGA_EBT;
-	else if(type == "soga_cheek_type")
+	else if (type == "soga_cheek_type")
 		ret = APPEARANCE_SOGA_CHEEKT;
-	else if(type == "soga_nose_type")
+	else if (type == "soga_nose_type")
 		ret = APPEARANCE_SOGA_NT;
-	else if(type == "soga_chin_type")
+	else if (type == "soga_chin_type")
 		ret = APPEARANCE_SOGA_CHINT;
-	else if(type == "soga_lip_type")
+	else if (type == "soga_lip_type")
 		ret = APPEARANCE_SOGA_LT;
-	else if(type == "eye_brow_type")
+	else if (type == "eye_brow_type")
 		ret = APPEARANCE_EBT;
-	else if(type == "soga_ear_type")
+	else if (type == "soga_ear_type")
 		ret = APPEARANCE_SOGA_EART;
-	else if(type == "soga_eye_type")
+	else if (type == "soga_eye_type")
 		ret = APPEARANCE_SOGA_EYET;
-	else if(type == "cheek_type")
+	else if (type == "cheek_type")
 		ret = APPEARANCE_CHEEKT;
-	else if(type == "nose_type")
+	else if (type == "nose_type")
 		ret = APPEARANCE_NT;
-	else if(type == "chin_type")
+	else if (type == "chin_type")
 		ret = APPEARANCE_CHINT;
-	else if(type == "ear_type")
+	else if (type == "ear_type")
 		ret = APPEARANCE_EART;
-	else if(type == "eye_type")
+	else if (type == "eye_type")
 		ret = APPEARANCE_EYET;
-	else if(type == "lip_type")
+	else if (type == "lip_type")
 		ret = APPEARANCE_LT;
-	else if(type == "shirt_color")
+	else if (type == "shirt_color")
 		ret = APPEARANCE_SHIRT;
-	else if(type == "unknown_chest_color")
-			ret = APPEARANCE_UCC;
-	else if(type == "pants_color")
-			ret = APPEARANCE_PANTS;
-	else if(type == "unknown_legs_color")
-			ret = APPEARANCE_ULC;
-	else if(type == "unknown9")
-			ret = APPEARANCE_U9;
-	else if(type == "body_size")
-			ret = APPEARANCE_BODY_SIZE;
-	else if(type == "soga_wing_color1")
-			ret = APPEARANCE_SOGA_WC1;
-	else if(type == "soga_wing_color2")
-			ret = APPEARANCE_SOGA_WC2;
-	else if(type == "soga_shirt_color")
-			ret = APPEARANCE_SOGA_SHIRT;
-	else if(type == "soga_unknown_chest_color")
-			ret = APPEARANCE_SOGA_UCC;
-	else if(type == "soga_pants_color")
-			ret = APPEARANCE_SOGA_PANTS;
-	else if(type == "soga_unknown_legs_color")
-			ret = APPEARANCE_SOGA_ULC;
-	else if(type == "soga_unknown13")
-			ret = APPEARANCE_SOGA_U13;
+	else if (type == "unknown_chest_color")
+		ret = APPEARANCE_UCC;
+	else if (type == "pants_color")
+		ret = APPEARANCE_PANTS;
+	else if (type == "unknown_legs_color")
+		ret = APPEARANCE_ULC;
+	else if (type == "unknown9")
+		ret = APPEARANCE_U9;
+	else if (type == "body_size")
+		ret = APPEARANCE_BODY_SIZE;
+	else if (type == "soga_wing_color1")
+		ret = APPEARANCE_SOGA_WC1;
+	else if (type == "soga_wing_color2")
+		ret = APPEARANCE_SOGA_WC2;
+	else if (type == "soga_shirt_color")
+		ret = APPEARANCE_SOGA_SHIRT;
+	else if (type == "soga_unknown_chest_color")
+		ret = APPEARANCE_SOGA_UCC;
+	else if (type == "soga_pants_color")
+		ret = APPEARANCE_SOGA_PANTS;
+	else if (type == "soga_unknown_legs_color")
+		ret = APPEARANCE_SOGA_ULC;
+	else if (type == "soga_unknown13")
+		ret = APPEARANCE_SOGA_U13;
+	else if (type == "body_age")
+		ret = APPEARANCE_BODY_AGE;
 	return ret;
 }
 
@@ -926,6 +928,10 @@ int32 WorldDatabase::LoadAppearances(ZoneServer* zone, Client* client){
 				break;
 			}
 			case APPEARANCE_SOGA_U13:{
+				break;
+			}
+			case APPEARANCE_BODY_AGE: {
+				entity->features.body_age = color.red;
 				break;
 			}
 		}
@@ -1209,9 +1215,9 @@ void WorldDatabase::LoadWidgets(ZoneServer* zone){
 		widget->SetOpenHeading(atof(row[16]));
 		widget->SetOpenY(atof(row[17]));
 		widget->SetActionSpawnID(atoul(row[18]));
-		if(row[18] && strlen(row[19]) > 5)
+		if(row[19] && strlen(row[19]) > 5)
 			widget->SetOpenSound(row[19]);
-		if(row[19] && strlen(row[20]) > 5)
+		if(row[20] && strlen(row[20]) > 5)
 			widget->SetCloseSound(row[20]);
 		widget->SetOpenDuration(atoi(row[21]));
 		widget->SetClosedHeading(atof(row[22]));
@@ -1491,10 +1497,6 @@ bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, Client* clien
 		LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character_details for '%s' (char_id: %u)", client->GetPlayer()->GetName(), id);
 		return false;
 	}
-
-	// should not be here...
-	LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character_details for '%s' (char_id: %u)", client->GetPlayer()->GetName(), id);
-	return false;
 }
 
 bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, Client* client){
@@ -2094,6 +2096,20 @@ int8 WorldDatabase::CheckNameFilter(const char* name) {
 	}
 	else
 		LogWrite(WORLD__ERROR, 0, "World", "Error in CheckNameFilter (name exist check) (Name query '%s': %s", query.GetQuery(), query.GetError());
+
+	Query query3;
+	LogWrite(WORLD__DEBUG, 0, "World", "Name check on: %s (Bots table)", name);
+	MYSQL_RES* result3 = query3.RunQuery2(Q_SELECT, "SELECT count(*) FROM bots WHERE name='%s'", name);
+	if (result3 && mysql_num_rows(result3) > 0) {
+		MYSQL_ROW row;
+		row = mysql_fetch_row(result3);
+		if (row[0] != 0 && atoi(row[0]) > 0)
+			return NAMETAKEN_REPLY;
+	}
+	else
+		LogWrite(WORLD__ERROR, 0, "World", "Error in CheckNameFilter (name exist check, bot table) (Name query '%s': %s", query3.GetQuery(), query3.GetError());
+
+
 
 	Query query2;
 	MYSQL_RES* result2 = query2.RunQuery2(Q_SELECT, "SELECT count(*) FROM name_filter WHERE '%s' like name",name);
@@ -3078,19 +3094,21 @@ bool WorldDatabase::SaveCombinedSpawnLocation(ZoneServer* zone, Spawn* in_spawn,
 		}
 		for(itr = spawns->begin();itr!=spawns->end();itr++){
 			spawn = *itr;
-			RemoveSpawnFromSpawnLocation(spawn);
-			spawn->SetSpawnLocationID(spawn_location_id);
-			bool add = true;
-			for(freq_itr = database_spawns.begin(); freq_itr != database_spawns.end(); freq_itr++){
-				if(spawn && spawn->GetDatabaseID() == freq_itr->first->GetDatabaseID()){
-					freq_itr->second++;
-					total++;
-					add = false;
+			if (spawn) {
+				RemoveSpawnFromSpawnLocation(spawn);
+				spawn->SetSpawnLocationID(spawn_location_id);
+				bool add = true;
+				for (freq_itr = database_spawns.begin(); freq_itr != database_spawns.end(); freq_itr++) {
+					if (spawn->GetDatabaseID() == freq_itr->first->GetDatabaseID()) {
+						freq_itr->second++;
+						total++;
+						add = false;
+					}
 				}
-			}
-			if(add){
-				database_spawns[spawn] = 1;
-				total++;
+				if (add) {
+					database_spawns[spawn] = 1;
+					total++;
+				}
 			}
 		}
 		for(freq_itr = database_spawns.begin(); freq_itr != database_spawns.end(); freq_itr++){
@@ -4130,7 +4148,7 @@ void WorldDatabase::LoadSpells()
 	int32 total = 0;
 	map<int32, vector<LevelArray*> >* level_data = LoadSpellClasses();
 
-	if( !database_new.Select(&result, "SELECT s.`id`, `name`, `description`, `type`, `class_skill`, `mastery_skill`, `tier`, `hp_req`, `power_req`, `cast_time`, `recast`, `radius`, `max_aoe_targets`, `req_concentration`, `range`, `duration1`, `duration2`, `resistibility`, `hp_upkeep`, `power_upkeep`, `duration_until_cancel`, `target_type`, `recovery`, `power_req_percent`, `hp_req_percent`, `icon`, `icon_heroic_op`, `icon_backdrop`, `success_message`, `fade_message`, `cast_type`, `lua_script`, `call_frequency`, `interruptable`, `spell_visual`, `effect_message`, `min_range`, `can_effect_raid`, `affect_only_group_members`, `hit_bonus`, `display_spell_tier`, `friendly_spell`, `group_spell`, `spell_book_type`, s.is_active, savagery_req, savagery_req_percent, savagery_upkeep, dissonance_req, dissonance_req_percent, dissonance_upkeep, linked_timer_id, det_type, incurable, control_effect_type, cast_while_moving, casting_flags, persist_through_death, not_maintained, savage_bar, savage_bar_slot, soe_spell_crc "
+	if( !database_new.Select(&result, "SELECT s.`id`, `name`, `description`, `type`, `class_skill`, `mastery_skill`, `tier`, `hp_req`, `power_req`, `cast_time`, `recast`, `radius`, `max_aoe_targets`, `req_concentration`, `range`, `duration1`, `duration2`, `resistibility`, `hp_upkeep`, `power_upkeep`, `duration_until_cancel`, `target_type`, `recovery`, `power_req_percent`, `hp_req_percent`, `icon`, `icon_heroic_op`, `icon_backdrop`, `success_message`, `fade_message`, `cast_type`, `lua_script`, `call_frequency`, `interruptable`, `spell_visual`, `effect_message`, `min_range`, `can_effect_raid`, `affect_only_group_members`, `hit_bonus`, `display_spell_tier`, `friendly_spell`, `group_spell`, `spell_book_type`, spell_type+0, s.is_active, savagery_req, savagery_req_percent, savagery_upkeep, dissonance_req, dissonance_req_percent, dissonance_upkeep, linked_timer_id, det_type, incurable, control_effect_type, cast_while_moving, casting_flags, persist_through_death, not_maintained, savage_bar, savage_bar_slot, soe_spell_crc "
 									"FROM spells s, spell_tiers st "
 									"WHERE s.id = st.spell_id AND s.is_active = 1 "
 									"ORDER BY s.`id`, `tier`") )
@@ -4167,6 +4185,8 @@ void WorldDatabase::LoadSpells()
 			data->casting_flags             = result.GetInt32Str("casting_flags");
 			data->savage_bar				= result.GetInt8Str("savage_bar");
 			data->savage_bar_slot			= result.GetInt8Str("savage_bar_slot");
+			data->spell_type				= result.IsNullStr("spell_type+0") ? 0 : result.GetInt8Str("spell_type+0");
+
 
 			/* Toggles */
 			data->interruptable				= ( result.GetInt8Str("interruptable") == 1);

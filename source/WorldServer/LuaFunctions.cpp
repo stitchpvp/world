@@ -268,10 +268,13 @@ int EQ2Emu_lua_GetCoinMessage(lua_State* state) {
 int EQ2Emu_lua_GetSpawnByGroupID(lua_State* state) {
 	ZoneServer* zone = lua_interface->GetZone(state);
 	int32 group_id = lua_interface->GetInt32Value(state, 2);
+	
+	if (zone) {
 	Spawn* spawn = zone->GetSpawnGroup(group_id);
-	if (zone && spawn) {
+		if (spawn) {
 		lua_interface->SetSpawnValue(state, spawn);
 		return 1;
+	}
 	}
 	return 0;
 }
@@ -713,10 +716,10 @@ int EQ2Emu_lua_MoveToLocation(lua_State* state){
 	float speed = lua_interface->GetFloatValue(state, 5);
 	string lua_function = lua_interface->GetStringValue(state, 6);
 
+	if(spawn) {
 	if (speed == 0)
 		speed = spawn->GetSpeed();
 
-	if(spawn){
 		spawn->AddRunningLocation(x, y, z, speed, 0.0f, true, true, lua_function);
 	}
 	lua_interface->ResetFunctionStack(state);
@@ -1027,11 +1030,10 @@ int EQ2Emu_lua_Zone(lua_State* state){
 	float y = lua_interface->GetFloatValue(state, 4);
 	float z = lua_interface->GetFloatValue(state, 5);
 	float heading = lua_interface->GetFloatValue(state, 6);
-
+	
+	if(zone && client) {
 	LogWrite(LUA__DEBUG, 0, "LUA", "LUA Zone Request by Player: '%s' (%u)", player->GetName(), player->GetID());
 	LogWrite(LUA__DEBUG, 5, "LUA", "\tTo Zone: '%s' (%u)", zone->GetZoneName(), zone->GetZoneID());
-	
-	if(zone && client){
 
 		if ( !client->CheckZoneAccess(zone->GetZoneName()) )
 		{
@@ -1543,11 +1545,6 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state){
 
 	if (value == 0) {
 		lua_interface->LogError("LUA AddSpawnSpellBonus command error: value must be set");
-		return 0;
-	}
-
-	if (type < 0) {
-		lua_interface->LogError("LUA AddSpawnSpellBonus command error: type is not valid");
 		return 0;
 	}
 
@@ -3985,14 +3982,11 @@ int EQ2Emu_lua_SpawnByLocationID(lua_State* state) {
 			spawn = zone->AddWidgetSpawn(location, location->entities[0]);
 		else if(location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
 			spawn = zone->AddSignSpawn(location, location->entities[0]);
-		if (!spawn) {
-			LogWrite(ZONE__ERROR, 0, "Zone", "Error adding spawn to zone");
-			safe_delete(spawn);
-		}
 
+		if (spawn) {
 		const char* script = 0;
-		for(int x=0;x<3;x++) {
-			switch(x) {
+			for (int x = 0; x < 3; x++) {
+				switch (x) {
 				case 0:
 					script = world.GetSpawnEntryScript(location->entities[0]->spawn_entry_id);
 					break;
@@ -4003,16 +3997,20 @@ int EQ2Emu_lua_SpawnByLocationID(lua_State* state) {
 					script = world.GetSpawnScript(location->entities[0]->spawn_id);
 					break;
 			}
-			if(script && lua_interface->GetSpawnScript(script) != 0) {
+				if (script && lua_interface->GetSpawnScript(script) != 0) {
 				spawn->SetSpawnScript(string(script));
 				break;
 			}
 		}
-		if (spawn) {
+
 			zone->CallSpawnScript(spawn, SPAWN_SCRIPT_SPAWN);
 			lua_interface->SetSpawnValue(state, spawn);
 			return 1;
 		}
+		else {
+			LogWrite(ZONE__ERROR, 0, "Zone", "Error adding spawn to zone");
+			safe_delete(spawn);
+	}
 	}
 
 	return 0;
@@ -4592,7 +4590,7 @@ int EQ2Emu_lua_Interrupt(lua_State* state)
 		return 0;
 	}
 
-	if(!target) 
+	if(!target)
 	{
 	    lua_interface->LogError("LUA Interrupt command error: target is not a valid spawn");
 		return 0;
@@ -4802,10 +4800,7 @@ int EQ2Emu_lua_PlayAnimation(lua_State* state){
 		lua_interface->LogError("LUA PlayAnimation command error: spawn is not valid");
 		return 0;
 	}
-	if(anim < 0){
-		lua_interface->LogError("LUA PlayAnimation command error: visual state is not valid");
-		return 0;
-	}
+
 	if(spawn2){
 		if (spawn2->IsPlayer()){
 			if(type != 1 && type != 2)
@@ -6959,7 +6954,6 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 		return 0;
 	
 	Spawn* caster = lua_interface->GetSpawn(state);
-	Spawn* target = caster->GetTarget();//lua_interface->GetSpawn(state, 2);
 	int8 class_id = lua_interface->GetInt8Value(state, 2);
 	
 	if (!caster) {
@@ -6972,6 +6966,7 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 		return 0;
 	}
 
+	Spawn* target = caster->GetTarget();
 	if (!target) {
 		lua_interface->LogError("LUA StartHeroicOpportunity command error: target is not valid");
 		return 0;
@@ -8304,13 +8299,10 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 				spawn = zone->AddWidgetSpawn(location, location->entities[0]);
 			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
 				spawn = zone->AddSignSpawn(location, location->entities[0]);
-			if (!spawn) {
-				LogWrite(ZONE__ERROR, 0, "Zone", "Error adding spawn to zone");
-				safe_delete(spawn);
-			}
-
+			
+			if (spawn) {
 			const char* script = 0;
-			for (int x = 0; x<3; x++) {
+				for (int x = 0; x < 3; x++) {
 				switch (x) {
 				case 0:
 					script = world.GetSpawnEntryScript(location->entities[0]->spawn_entry_id);
@@ -8327,12 +8319,16 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 					break;
 				}
 			}
-			if (spawn) {
+
 				zone->CallSpawnScript(spawn, SPAWN_SCRIPT_SPAWN);
 				lua_interface->SetSpawnValue(state, spawn);
 				group.push_back(spawn);
 			}
+			else {
+				LogWrite(ZONE__ERROR, 0, "Zone", "Error adding spawn to zone");
+				safe_delete(spawn);
 		}
+	}
 	}
 
 	if (!group.empty()){

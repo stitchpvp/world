@@ -79,6 +79,7 @@ extern int errno;
 #include "PVP.h"
 
 #include "Zone/SPGrid.h"
+#include "Bots/Bot.h"
 
 #ifdef WIN32
 #define snprintf	_snprintf
@@ -1969,7 +1970,7 @@ int32 ZoneServer::CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn
 			for(itr2 = tmp_chances.begin(); itr2 != tmp_chances.end(); itr2++){
 				if(itr2->second == 0){
 					total_chance += 100/tmp_chances.size();
-					tmp_chances[itr2->first] = 100/tmp_chances.size();
+					tmp_chances[itr2->first] = (float)(100 / tmp_chances.size());
 				}
 			}
 		}
@@ -2163,19 +2164,19 @@ Spawn* ZoneServer::ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, ma
 		if(spawnlocation->entities[i]->spawn_percentage >= rand_number)
 		{
 			if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id) > 0))
+				(spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id)) > 0)
 				spawn = AddNPCSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id) > 0))
+				(spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
 				spawn = AddGroundSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id) > 0))
+				(spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
 				spawn = AddObjectSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id) > 0))
+				(spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
 				spawn = AddWidgetSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_SIGN && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id) > 0))
+				(spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
 				spawn = AddSignSpawn(spawnlocation, spawnlocation->entities[i]);
 
 			const char* script = 0;
@@ -2334,35 +2335,37 @@ void ZoneServer::AddLoot(NPC* npc){
 			//if (table->lootdrop_probability == 100){			}
 		//else
 			//chancetally += table->lootdrop_probability;
-			int maxchance = table->maxlootitems;
-			for ( numberchances; numberchances <= maxchance; numberchances++) {
+			int maxchance = 0;
+			if (table) {
+				maxchance = table->maxlootitems;
+				for (numberchances; numberchances <= maxchance; numberchances++) {
 				chancetable = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
 				//LogWrite(PLAYER__DEBUG, 0, "Player", "Table Chance: '%f'", chancetable);
 				float droppercenttotal = 0;
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-				if (table && (table->lootdrop_probability == 100 || (table->lootdrop_probability >= chancetable)) ) {
+					if (table->lootdrop_probability == 100 || table->lootdrop_probability >= chancetable) {
 
 					//LogWrite(PLAYER__DEBUG, 0, "Player", "Probability:%f  Table Chance: '%f'", table->lootdrop_probability, chancetable);
 				loot_drops = GetLootDrops(*loot_list_itr);
-				if (loot_drops){
+						if (loot_drops) {
 					LootDrop* drop = 0;
 					int16 count = 0;
 					int16 IC = 0;
-					for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++){
+							for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++) {
 						drop = *loot_drop_itr;
 						droppercenttotal += drop->probability;
 					}
 					int droplistsize = loot_drops->size();
 					float chancedroptally = 0;
 					chancedrop = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
-					for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++){
+							for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++) {
 						drop = *loot_drop_itr;
 						if (droppercenttotal >= 100)
 							droppercenttotal = 100;
 						chancedroptally += 100 / droppercenttotal * drop->probability;
 						//chancedrop = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
 						//LogWrite(PLAYER__DEBUG, 0, "Player", "Loot drop: '%i'     Chance: %f    Prob tally:  %f  min: %f", drop, chancedrop, chancedroptally, chancedroptally - drop->probability);
-						if ((chancedroptally==100)||((chancedroptally >= chancedrop) && (chancedroptally -(100 / droppercenttotal * drop->probability)) <= chancedrop)){
+								if ((chancedroptally == 100) || ((chancedroptally >= chancedrop) && (chancedroptally - (100 / droppercenttotal * drop->probability)) <= chancedrop)) {
 
 							//LogWrite(PLAYER__DEBUG, 0, "Player", "Loot drop: '%i'     Chance: %f    Prob:  %f  We have a loot drop winner", drop, chancedrop, chancedroptally);
 							count++;
@@ -2379,6 +2382,7 @@ void ZoneServer::AddLoot(NPC* npc){
 			}
 			}
 		}
+	}
 	}
 }
 
@@ -2881,6 +2885,13 @@ void ZoneServer::RemoveClient(Client* client)
 			RemoveSpawn(client->GetPlayer(), false);
 		}
 
+		map<int32, int32>::iterator itr;
+		for (itr = client->GetPlayer()->SpawnedBots.begin(); itr != client->GetPlayer()->SpawnedBots.end(); itr++) {
+			Spawn* spawn = GetSpawnByID(itr->second);
+			if (spawn && spawn->IsBot())
+				((Bot*)spawn)->Camp();
+		}
+
 		connected_clients.Remove(client, true, DisconnectClientTimer);
 
 		client_spawn_map.Put(client->GetPlayer(), 0);
@@ -3076,7 +3087,7 @@ void ZoneServer::HandleAnnouncement(const char* message) {
 		words = 5;
 
 	MClientList.readlock(__FUNCTION__, __LINE__);
-	for (client_itr = clients.begin(); client_itr != clients.begin(); client_itr++) {
+	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 		client = *client_itr;
 		if(client && client->IsConnected()) {
 			client->SimpleMessage(CHANNEL_BROADCAST, message);
@@ -3974,13 +3985,12 @@ void ZoneServer::SendCalculatedXP(Player* player, Spawn* victim){
 
 void ZoneServer::ProcessFaction(Spawn* spawn, Client* client)
 {
-	Player* player = client->GetPlayer();
-
 	if(client && !spawn->IsPlayer() && spawn->GetFactionID() > 10)
 	{
 		bool update_result = false;
 		Faction* faction = 0;
 		vector<int32>* factions = 0;
+		Player* player = client->GetPlayer();
 
 		if(player->GetFactions()->ShouldDecrease(spawn->GetFactionID()))
 		{
@@ -4134,7 +4144,7 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 	dead->SetTempActionState(0);
 
 	// If dead is an npc get the encounter and loop through it giving out the rewards, no rewards for pets
-	if (dead->IsNPC() && !dead->IsPet()) {
+	if (dead->IsNPC() && !dead->IsPet() && !dead->IsBot()) {
 		Spawn* spawn = 0;
 		int8 size = encounter->size();
 		// Needs npc to have access to the encounter list for who is allowed to loot
@@ -4321,7 +4331,7 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 	}
 	
 	// If the dead spawns was not a player add it to the dead spawn list
-	if (!dead->IsPlayer())
+	if (!dead->IsPlayer() && !dead->IsBot())
 		AddDeadSpawn(dead, pop_timer);
 
 	// if dead was a player clear hostile spells from its spell queue
@@ -4346,7 +4356,7 @@ void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, in
 	//	attacker_id = attacker->GetID();
 	PacketStruct* packet = 0;
 	Client* client = 0;
-	if(attacker && victim->IsPlayer() && victim->GetTarget() == 0){
+	if(attacker && victim && victim->IsPlayer() && victim->GetTarget() == 0){
 		client = GetClientBySpawn(victim);
 		if(client)
 			client->TargetSpawn(attacker);
@@ -6149,8 +6159,7 @@ void ZoneServer::ClearHate(Entity* entity) {
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
 	for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 		spawn = itr->second;
-
-		if (spawn && spawn->IsNPC())
+		if (spawn && spawn->IsNPC() && ((NPC*)spawn)->Brain())
 			static_cast<NPC*>(spawn)->Brain()->ClearHate(entity);
 		else if (spawn && spawn->IsPlayer())
 			static_cast<Player*>(spawn)->RemoveFromEncounterList(entity->GetID());

@@ -433,6 +433,10 @@
     <ClCompile Include="..\..\source\WorldServer\Achievements\AchievementsDB.cpp" />
     <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.cpp" />
     <ClCompile Include="..\..\source\WorldServer\AltAdvancement\AltAdvancementDB.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Bots\Bot.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotBrain.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotCommands.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotDB.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Chat\Chat.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Chat\ChatChannel.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Chat\ChatDB.cpp" />
@@ -490,6 +494,7 @@
     <ClCompile Include="..\..\source\WorldServer\SpellProcess.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Spells.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Titles.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Trade.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsDB.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsPackets.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Traits\Traits.cpp" />
@@ -558,6 +563,8 @@
     <ClInclude Include="..\..\source\WorldServer\Achievements\Achievements.h" />
     <ClInclude Include="..\..\source\WorldServer\AltAdvancement\AltAdvancement.h" />
     <ClInclude Include="..\..\source\WorldServer\Appearances.h" />
+    <ClInclude Include="..\..\source\WorldServer\Bots\Bot.h" />
+    <ClInclude Include="..\..\source\WorldServer\Bots\BotBrain.h" />
     <ClInclude Include="..\..\source\WorldServer\Chat\Chat.h" />
     <ClInclude Include="..\..\source\WorldServer\Chat\ChatChannel.h" />
     <ClInclude Include="..\..\source\WorldServer\classes.h" />
@@ -608,6 +615,7 @@
     <ClInclude Include="..\..\source\WorldServer\SpellProcess.h" />
     <ClInclude Include="..\..\source\WorldServer\Spells.h" />
     <ClInclude Include="..\..\source\WorldServer\Titles.h" />
+    <ClInclude Include="..\..\source\WorldServer\Trade.h" />
     <ClInclude Include="..\..\source\WorldServer\Traits\Traits.h" />
     <ClInclude Include="..\..\source\WorldServer\Variables.h" />
     <ClInclude Include="..\..\source\WorldServer\VisualStates.h" />

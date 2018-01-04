@@ -67,6 +67,7 @@ public:
 		escaped_pass = 0;
 		escaped_data1 = 0;
 		multiple_results = 0;
+		memset(errbuf, 0, sizeof(errbuf));
 	}
 	~Query(){
 		if(result)

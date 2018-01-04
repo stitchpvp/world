@@ -569,7 +569,7 @@ vector<Item*>* MasterItemList::GetItems(string name, int32 itype, int32 ltype, i
 			}
 			
 			if(itemclass > 0){
-				int64 tmpVal = 2 << (itemclass-1);
+				int64 tmpVal = ((int64)2) << (itemclass-1);
 				should_add = (item->generic_info.adventure_classes & tmpVal);			
 				if(!should_add && !(item->generic_info.tradeskill_classes & tmpVal))
 					continue;
@@ -955,9 +955,9 @@ void Item::SetItem(Item* old_item){
 }
 
 bool Item::CheckClass(int8 adventure_class, int8 tradeskill_class) {
-	int64 adv_classes = 2 << (adventure_class - 1);
-	int64 ts_classes = 2 << (tradeskill_class - 1);
-	if( (generic_info.adventure_classes & adv_classes || generic_info.adventure_classes == 0) || (generic_info.tradeskill_classes & ts_classes || generic_info.tradeskill_classes == 0) )
+	int64 adv_classes = ((int64)2) << (adventure_class - 1);
+	int64 ts_classes = ((int64)2) << (tradeskill_class - 1);
+	if( ((generic_info.adventure_classes & adv_classes) || generic_info.adventure_classes == 0) && ((generic_info.tradeskill_classes & ts_classes) || generic_info.tradeskill_classes == 0) )
 		return true;
 	return false;
 }
@@ -1597,9 +1597,8 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 			packet->setArrayDataByName("item_unknown1", set->item_stack_size, i);
 
 			Item* item2 = master_item_list.GetItem(set->item_id);
-			//item2 = master_item_list.GetItem(set->item_id);
-			string itemname = item2->name;
-			packet->setArrayDataByName("item_name", item2->name.c_str(), i);
+			if (item2)
+				packet->setArrayDataByName("item_name", item2->name.c_str(), i);
 
 			packet->setArrayDataByName("item_unknown2", set->item_list_color, i);
 			
@@ -2349,7 +2348,7 @@ void PlayerItemList::AddItem(Item* item){ //is called with a slot already set
 			if(bag && bag->IsBag()){
 				if(item->details.slot_id > bag->details.num_slots){
 					LogWrite(ITEM__ERROR, 0, "Item", "Error Adding Item: Invalid slot for item unique id: %u", item->details.unique_id);
-					delete item;
+					safe_delete(item);
 					return;
 				}
 			}
@@ -2790,10 +2789,10 @@ bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8
 					new_item->details.slot_id = to;
 					new_item->details.inv_slot_id = to_bag_id;
 					MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
+					new_item->save_needed = true;
 					AddItem(new_item);
 					if (item_from->details.count == 0)
 						RemoveItem(item_from);
-					new_item->save_needed = true;
 				}
 				return true;
 			}
@@ -3390,4 +3389,15 @@ int8 EquipmentItemList::GetFreeSlot(Item* tmp, int8 slot_id){
 	}
 	MEquipmentItems.unlock();
 	return 255;
+}
+
+int8 EquipmentItemList::GetSlotByItem(Item* item) {
+	int8 slot = 255;
+	for (int8 i = 0; i < NUM_SLOTS; i++) {
+		if (items[i] && items[i] == item) {
+			slot = i;
+			break;
+		}
+	}
+	return slot;
 }

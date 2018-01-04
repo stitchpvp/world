@@ -33,6 +33,7 @@
 #include "Languages.h"
 #include "Achievements/Achievements.h"
 #include <algorithm>
+#include <set>
 #include <mutex>
 
 #define CF_COMBAT_EXPERIENCE_ENABLED  0
@@ -637,7 +638,7 @@ public:
 
 	//PlayerGroup*		GetGroup();
 	void				SetGroup(PlayerGroup* group);
-	bool				IsGroupMember(Player* player);
+	bool				IsGroupMember(Entity* player);
 	void				SetGroupInformation(PacketStruct* packet);
 
 
@@ -811,6 +812,20 @@ public:
 	void SaveLUAHistory();
 	void UpdateLUAHistory(int32 event_id, int32 value, int32 value2);
 	LUAHistory* GetLUAHistory(int32 event_id);
+
+
+
+
+
+
+
+
+	AppearanceData SavedApp;
+	CharFeatures SavedFeatures;
+	bool custNPC = false;
+	Entity* custNPCTarget;
+	// bot index, spawn id
+	map<int32, int32> SpawnedBots;
 
 	int16 GetFame();
 	void SetFame(sint16 value);

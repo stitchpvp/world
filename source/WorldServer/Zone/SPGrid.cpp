@@ -27,6 +27,10 @@ SPGrid::SPGrid(string file, int32 cellSize) {
 	m_MinZ = 0;
 	m_MaxX = 0;
 	m_MaxZ = 0;
+	m_NumCellsX = 0;
+	m_NumCellsZ = 0;
+	m_NumFaceCellsX = 0;
+	m_NumFaceCellsZ = 0;
 }
 
 SPGrid::~SPGrid() {
@@ -248,13 +252,9 @@ bool SPGrid::Init() {
 }
 
 Cell* SPGrid::GetCell(int32 x, int32 z) {
-	if (x < 0)
-		x = 0;
 	if (x >= m_NumCellsX)
 		x = m_NumCellsX - 1;
 
-	if (z < 0)
-		z = 0;
 	if (z >= m_NumCellsZ)
 		z = m_NumCellsZ - 1;
 
@@ -276,13 +276,9 @@ Cell* SPGrid::GetCell(float x, float z) {
 }
 
 FaceCell* SPGrid::GetFaceCell(int32 x, int32 z) {
-	if (x < 0)
-		x = 0;
 	if (x >= m_NumFaceCellsX)
 		x = m_NumFaceCellsX - 1;
 
-	if (z < 0)
-		z = 0;
 	if (z >= m_NumFaceCellsZ)
 		z = m_NumFaceCellsZ - 1;
 

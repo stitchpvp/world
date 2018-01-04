@@ -32,6 +32,7 @@
 #include "LuaInterface.h"
 #include "PVP.h"
 #include "Zone/SPGrid.h"
+#include "Bots/Bot.h"
 
 extern ConfigReader configReader;
 extern RuleManager rule_manager;
@@ -1537,6 +1538,14 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 						continue;
 					}
 				}
+				if (IsBot()) {
+					if (!((Bot*)this)->ShowHelm) {
+						packet->setDataByName("equipment_types", 0, i);
+						packet->setColorByName("equipment_colors", 0, i);
+						packet->setColorByName("equipment_highlights", 0, i);
+						continue;
+			}
+				}
 			}
 			else if(i == 19){ //don't send cloak if hidden
 				if(IsPlayer()){
@@ -1546,6 +1555,14 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 						packet->setColorByName("equipment_highlights", 0, i);
 						continue;
 					}
+				}
+				if (IsBot()) {
+					if (!((Bot*)this)->ShowCloak) {
+						packet->setDataByName("equipment_types", 0, i);
+						packet->setColorByName("equipment_colors", 0, i);
+						packet->setColorByName("equipment_highlights", 0, i);
+						continue;
+			}
 				}
 			}
 			packet->setDataByName("equipment_types", entity->equipment.equip_id[i], i);
@@ -1615,6 +1632,8 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setColorByName("soga_hair_face_color", entity->features.soga_hair_face_color);
 		packet->setColorByName("soga_hair_face_highlight_color", entity->features.soga_hair_face_highlight_color);
 		packet->setColorByName("soga_hair_highlight", entity->features.soga_hair_highlight_color);
+
+		packet->setDataByName("body_age", entity->features.body_age);
 	}
 	else{
 		EQ2_Color empty;
@@ -1770,7 +1789,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 				default:
 					break;
 			}
-
 
 			packet->setSubstructDataByName("spell_effects", "spell_icon_backdrop", backdrop, i);
 			spell = info->spell_effects[i].spell;

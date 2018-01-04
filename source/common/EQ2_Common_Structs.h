@@ -81,6 +81,7 @@ struct CharFeatures{
 	sint8				chin_type[3];
 	sint8				nose_type[3];
 	sint8				body_size;
+	sint8				body_age;
 	sint8				soga_eye_type[3];
 	sint8				soga_ear_type[3];
 	sint8				soga_eye_brow_type[3];

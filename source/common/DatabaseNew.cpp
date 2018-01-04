@@ -299,6 +299,7 @@ bool DatabaseNew::QueriesFromFile(const char * file) {
 	if (fread(buf, sizeof(*buf), size, f) != (size_t)size) {
 		LogWrite(DATABASE__ERROR, 0, "Database", "Failed to read from '%s': %s", file, strerror(errno));
 		fclose(f);
+		free(buf);
 		return false;
 	}
 

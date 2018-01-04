@@ -47,6 +47,7 @@
 extern NetConnection net;		// needs to be here or compile errors in commands.cpp
 class SpellProcess;
 class TradeskillMgr;
+class Bot;
 
 #define EXPANSION_UNKNOWN	1
 #define EXPANSION_UNKNOWN2	64
@@ -597,6 +598,7 @@ public:
 
 	Entity* unknown_spawn;
 
+	void	SendSpawn(Spawn* spawn, Client* client);														// moved from private to public for bots
 
 private:
 	/* Private Functions */
@@ -618,7 +620,6 @@ private:
 	vector<int32>*	GetAssociatedLocations(set<int32>* groups);											// never used outside zone server
 	set<int32>* GetAssociatedGroups(int32 group_id);														// never used outside zone server
 	list<int32>* GetSpawnGroupsByLocation(int32 location_id);												// never used outside zone server
-	void	SendSpawn(Spawn* spawn, Client* client);														// never used outside zone server
 	void	ProcessSpawnLocation(int32 location_id, bool respawn = false);										// never used outside zone server
 	Spawn*	ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respawn = false);							// never used outside zone server
 	Spawn*	ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);													// never used outside zone server
@@ -801,7 +802,7 @@ private:
 	float	safe_z;
 	float	safe_heading;
 	float	xp_mod;
-	int32	zoneID;
+	volatile int32	zoneID;
 	bool	locked;	// JA: implementing /zone lock|unlock commands
 	int32	instanceID;
 	string	zone_motd;

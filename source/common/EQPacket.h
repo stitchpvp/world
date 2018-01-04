@@ -170,6 +170,7 @@ public:
 			if( NULL != it )
 				delete it;
 		}
+		return NULL;
 	}
 	
 	void SetOpcodeSize(uint8 s) { app_opcode_size=s; }

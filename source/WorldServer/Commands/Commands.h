@@ -242,6 +242,7 @@ public:
 		required_status = in_status;
 	}
 	EQ2_RemoteCommandString(uchar* buffer, int32 size){
+		required_status = 0;
 		InitializeLoadData(buffer, size);
 		LoadData(handler);
 		LoadDataString(command);
@@ -458,6 +459,16 @@ public:
 	void Command_Editor(Client* client, Seperator* sep);
 	void Command_AcceptResurrection(Client* client, Seperator* sep);
 	void Command_DeclineResurrection(Client* client, Seperator* set);
+
+	// Bot Commands
+	void Command_Bot(Client* client, Seperator* sep);
+	void Command_Bot_Create(Client* client, Seperator* sep);
+	void Command_Bot_Customize(Client* client, Seperator* sep);
+	void Command_Bot_Spawn(Client* client, Seperator* sep);
+	void Command_Bot_List(Client* client, Seperator* sep);
+	void Command_Bot_Inv(Client* client, Seperator* sep);
+	void Command_Bot_Settings(Client* client, Seperator* sep);
+	void Command_Bot_Help(Client* client, Seperator* sep);
 
 	void Command_ServerFlag(Client* client, Seperator* sep);
 
@@ -847,6 +858,15 @@ private:
 #define COMMAND_ACCEPT_RESURRECTION     312
 #define COMMAND_DECLINE_RESURRECTION    313
 #define COMMAND_WIND					314
+
+#define COMMAND_BOT						500
+#define COMMAND_BOT_CREATE				501
+#define COMMAND_BOT_CUSTOMIZE			502
+#define COMMAND_BOT_SPAWN				503
+#define COMMAND_BOT_LIST				504
+#define COMMAND_BOT_INV					505
+#define COMMAND_BOT_SETTINGS			506
+#define COMMAND_BOT_HELP				507
 
 #define COMMAND_KNOWLEDGEWINDOW_SORT		497
 

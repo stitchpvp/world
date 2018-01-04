@@ -122,6 +122,12 @@
     <Filter Include="Source Files\Patch">
       <UniqueIdentifier>{426cef00-2d5d-41c3-93fb-24fffb144d89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Bots">
+      <UniqueIdentifier>{df28eb71-7bf3-40a2-870e-66ca3e241815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Bots">
+      <UniqueIdentifier>{7ba9d403-3833-4deb-8586-f00c9dda0ee8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\common\Condition.cpp">
@@ -517,6 +523,21 @@
     <ClCompile Include="..\..\source\LUA\lzio.c">
       <Filter>Source Files\LUA</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Bots\Bot.cpp">
+      <Filter>Source Files\Bots</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotBrain.cpp">
+      <Filter>Source Files\Bots</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotDB.cpp">
+      <Filter>Source Files\Bots</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Bots\BotCommands.cpp">
+      <Filter>Source Files\Bots</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Trade.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\source\WorldServer\PVP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -902,6 +923,15 @@
     </ClInclude>
     <ClInclude Include="..\..\source\LUA\lzio.h">
       <Filter>Header Files\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Bots\Bot.h">
+      <Filter>Header Files\Bots</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Bots\BotBrain.h">
+      <Filter>Header Files\Bots</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\Trade.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\WorldServer\PVP.h">
       <Filter>Header Files</Filter>

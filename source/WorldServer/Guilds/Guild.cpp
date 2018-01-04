@@ -371,7 +371,7 @@ int32 Guild::GetNextRecruiterID() {
 		if (itr->second->recruiter_id > 0)
 			tmp[itr->second->recruiter_id] = true;
 	}
-	for (i = 1; i <= 0xFFFFFFFF; i++) {
+	for (i = 1; i < 0xFFFFFFFF; i++) {
 		if (tmp.count(i) == 0) {
 			ret = i;
 			break;
@@ -2279,12 +2279,11 @@ string Guild::GetEpicMobDeathMessage(const char* player_name, const char* mob_na
 		snprintf(message, sizeof(message), "%s was slain by %s's heroic might!", mob_name, player_name);
 	else if (choice == 4)
 		snprintf(message, sizeof(message), "%s slew %s in an earth shaking battle!", player_name, mob_name);
-	else if (choice == 5)
+	else 
 		snprintf(message, sizeof(message), "%s slew %s in a heroic clash!", player_name, mob_name);
 
-	return string(message);
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild Epic Mob Death message sent.");
-
+	return string(message);
 }
 
 /***************************************************************************************************************************************************************

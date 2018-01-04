@@ -79,6 +79,8 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Recipes/Recipe.h"
 #include "Tradeskills/Tradeskills.h"
 #include "AltAdvancement/AltAdvancement.h"
+
+#include "Bots/Bot.h"
 #include "zoneserver.h"
 #include "SpellProcess.h"
 extern WorldDatabase database;
@@ -214,9 +216,7 @@ Client::~Client() {
 	MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);
 
 	safe_delete(search_items);
-	if(current_rez.expire_timer)
 		safe_delete(current_rez.expire_timer);
-	if (pending_last_name)
 		safe_delete(pending_last_name);
 	safe_delete_array(incoming_paperdoll.image_bytes);
 
@@ -1616,7 +1616,6 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 					if (guild) {
 						GuildMember* gm = guild->GetGuildMember(player);
 						if (gm) {
-							if (gm->recruiter_picture_data)
 								safe_delete_array(gm->recruiter_picture_data);
 							recruiter_picture_data = new unsigned char[picture_data_size];
 							for (int16 i = 0; i < picture_data_size; i++)
@@ -1933,10 +1932,45 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 		case OP_EarlyLandingRequestMsg:
 		{
-			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ReadyForLandingMsg", opcode, opcode);
+			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_EarlyLandingRequestMsg", opcode, opcode);
 
 			EndAutoMount();
 			
+			break;
+		}
+
+		case OP_SubmitCharCust:
+		{
+			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_SubmitCharCust", opcode, opcode);
+			PacketStruct* packet = configReader.getStruct("WS_SubmitCharCust", version);
+			if (packet && packet->LoadPacketData(app->pBuffer, app->size)) {
+				int8 type = packet->getType_int8_ByName("type");
+				if (type == 0) {
+					if (player->custNPC) {
+						player->custNPCTarget->CustomizeAppearance(packet);
+						current_zone->SendSpawnChanges(player->custNPCTarget);
+					}
+					else {
+						player->CustomizeAppearance(packet);
+						current_zone->SendSpawnChanges(player);
+					}
+				}
+			}
+
+			if (player->custNPC) {	
+				memcpy(&player->appearance, &player->SavedApp, sizeof(AppearanceData));
+				memcpy(&player->features, &player->SavedFeatures, sizeof(CharFeatures));
+
+				if (player->custNPCTarget->IsBot())
+					database.SaveBotAppearance((Bot*)player->custNPCTarget);
+
+				player->custNPC = false;
+				player->custNPCTarget = 0;
+				player->changed = true;
+				player->info_changed = true;
+				current_zone->SendSpawnChanges(player, this);
+			}
+
 			break;
 		}
 
@@ -2254,6 +2288,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		request = configReader.getStruct("WS_ExamineInfoItemLinkRequest", GetVersion());
 
 		if(!request) return;
+
 
 		request->LoadPacketData(app->pBuffer, app->size);
 
@@ -3555,6 +3590,15 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	// to when you are actually able to select traits.
 	QueuePacket(GetPlayer()->GetPlayerInfo()->serialize(GetVersion()));
 	QueuePacket(master_trait_list.GetTraitListPacket(this));
+
+	if (GetPlayer()->SpawnedBots.size() > 0) {
+		map<int32, int32>::iterator itr;
+		for (itr = GetPlayer()->SpawnedBots.begin(); itr != GetPlayer()->SpawnedBots.end(); itr++) {
+			Spawn* bot = GetCurrentZone()->GetSpawnByID(itr->second);
+			if (bot && bot->IsBot())
+				((Bot*)bot)->ChangeLevel(old_level, new_level);
+		}
+	}
 }
 
 void Client::ChangeTSLevel(int16 old_level, int16 new_level){
@@ -3908,7 +3952,7 @@ void Client::BankWithdrawal(int64 amount){
 				amount -= (int64)tmp *1000000;
 				sprintf(withdrawal_data, "%u Platinum ", tmp);
 				withdrawal.append(withdrawal_data);
-				memset(withdrawal_data, 0, 64);
+				memset(withdrawal_data, 0, sizeof(withdrawal_data));
 			}
 		}
 		if(!cheater && amount >= 10000){
@@ -3926,7 +3970,7 @@ void Client::BankWithdrawal(int64 amount){
 				amount -= tmp *10000;
 				sprintf(withdrawal_data, "%u Gold ", tmp);
 				withdrawal.append(withdrawal_data);
-				memset(withdrawal_data, 0, 64);
+				memset(withdrawal_data, 0, sizeof(withdrawal_data));
 			}
 		}
 		if(!cheater && amount >= 100){
@@ -3944,7 +3988,7 @@ void Client::BankWithdrawal(int64 amount){
 				amount -= tmp *100;
 				sprintf(withdrawal_data, "%u Silver ", tmp);
 				withdrawal.append(withdrawal_data);
-				memset(withdrawal_data, 0, 64);
+				memset(withdrawal_data, 0, sizeof(withdrawal_data));
 			}
 		}
 		if(!cheater){
@@ -3991,7 +4035,7 @@ void Client::BankDeposit(int64 amount){
 				amount -= (int64)tmp *1000000;
 				sprintf(deposit_data, "%u Platinum ", tmp);
 				deposit.append(deposit_data);
-				memset(deposit_data, 0, 64);
+				memset(deposit_data, 0, sizeof(deposit_data));
 			}
 		}
 		if(!cheater && amount >= 10000){
@@ -4009,7 +4053,7 @@ void Client::BankDeposit(int64 amount){
 				amount -= tmp *10000;
 				sprintf(deposit_data, "%u Gold ", tmp);
 				deposit.append(deposit_data);
-				memset(deposit_data, 0, 64);
+				memset(deposit_data, 0, sizeof(deposit_data));
 			}
 		}
 		if(!cheater && amount >= 100){
@@ -4027,7 +4071,7 @@ void Client::BankDeposit(int64 amount){
 				amount -= tmp *100;
 				sprintf(deposit_data, "%u Silver ", tmp);
 				deposit.append(deposit_data);
-				memset(deposit_data, 0, 64);
+				memset(deposit_data, 0, sizeof(deposit_data));
 			}
 		}
 		if(!cheater){
@@ -4750,7 +4794,7 @@ void Client::DisplayConversation(Entity* npc, int8 type, vector<ConversationOpti
 		DisplayConversation(conversation_id, player->GetIDWithPlayerSpawn(npc), conversations, text, mp3, key1, key2);
 	else if (type == 2)
 		DisplayConversation(conversation_id, 0xFFFFFFFF, conversations, text, mp3, key1, key2);
-	else if (type == 3)
+	else //if (type == 3)
 		DisplayConversation(conversation_id, player->GetIDWithPlayerSpawn(player), conversations, text, mp3, key1, key2);
 
 }
@@ -6668,9 +6712,7 @@ void Client::SendNewSpells(int8 class_id){
 
 void Client::SetItemSearch(vector<Item*>* items){
 	if(items){
-		if(search_items){
 			safe_delete(search_items);
-		}
 		search_items = items;
 	}
 
@@ -7093,11 +7135,14 @@ void Client::SendCollectionList() {
 
 		for (j = 0; j < collection_items->size(); j++) {
 			collection_item = collection_items->at(j);
-			packet->setSubArrayDataByName("item_icon", collection_item->item->details.icon, i, j);
+			Item* item = master_item_list.GetItem(collection_item->item);
+			if (item) {
+				packet->setSubArrayDataByName("item_icon", item->details.icon, i, j);
 			if (version < 955)
-				packet->setSubArrayDataByName("item_name", collection_item->item->name.c_str(), i, j);
+					packet->setSubArrayDataByName("item_name", item->name.c_str(), i, j);
 			else
-				packet->setSubArrayDataByName("item_id", collection_item->item->details.item_id, i, j);
+					packet->setSubArrayDataByName("item_id", item->details.item_id, i, j);
+			}
 			packet->setSubArrayDataByName("item_flag", collection_item->found, i, j);
 		}
 		i++;
@@ -7155,12 +7200,15 @@ bool Client::SendCollectionsForItem(Item *item) {
 			packet->setSubArrayLengthByName("num_items", collection_items->size(), 0);
 			for (i = 0; i < collection_items->size(); i++) {
 				collection_item = collection_items->at(i);
-				packet->setSubArrayDataByName("item_icon", collection_item->item->details.icon, 0, i);
+				Item* item2 = master_item_list.GetItem(collection_item->item);
+				if (item2) {
+					packet->setSubArrayDataByName("item_icon", item2->details.icon, 0, i);
 				if (version < 955)
-					packet->setSubArrayDataByName("item_name", collection_item->item->name.c_str(), 0, i);
+						packet->setSubArrayDataByName("item_name", item2->name.c_str(), 0, i);
 				else
-					packet->setSubArrayDataByName("item_id", collection_item->item->details.item_id, 0, i);
+						packet->setSubArrayDataByName("item_id", item2->details.item_id, 0, i);
 				packet->setSubArrayDataByName("item_flag", collection_item->found, 0, i);
+			}
 			}
 			packet->setDataByName("new_collection_flag", 0);
 
@@ -7262,9 +7310,12 @@ void Client::HandleCollectionAddItem(int32 collection_id, Item *item) {
 	packet->setDataByName("collection_item_num", collection_item->index);
 	packet->setDataByName("add", 1);
 	QueuePacket(packet->serialize());
-	Message(CHANNEL_COLOR_YELLOW,"You added: %s to %s", collection_item->item->name.c_str(), collection->GetName());
-	sprintf(tmp, "You added: %s to %s", collection_item->item->name.c_str(), collection->GetName());
-	SendPopupMessage(5,tmp, "quest_item", 3.5, 0x64, 0xFF, 0xFF);
+	Item* item2 = master_item_list.GetItem(collection_item->item);
+	if (item2) {
+		Message(CHANNEL_COLOR_YELLOW, "You added: %s to %s", item2->name.c_str(), collection->GetName());
+		sprintf(tmp, "You added: %s to %s", item2->name.c_str(), collection->GetName());
+		SendPopupMessage(5, tmp, "quest_item", 3.5, 0x64, 0xFF, 0xFF);
+	}
 	safe_delete(packet);
 
 	RemoveItem(item, 1);

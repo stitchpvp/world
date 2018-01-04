@@ -307,7 +307,7 @@ static void LogQueueAdd(LogType log_type, char *text, int len, const char *cat_t
 
 	if ((logq = (logq_t *)calloc(1, sizeof(logq_t))) == NULL) {
 		free(text);
-		fprintf(stderr, "%s: %u: Unable to allocate %u bytes\n", __FUNCTION__, __LINE__, sizeof(logq_t));
+		fprintf(stderr, "%s: %u: Unable to allocate %zu bytes\n", __FUNCTION__, __LINE__, sizeof(logq_t));
 		return;
 	}
 

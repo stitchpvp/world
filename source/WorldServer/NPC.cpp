@@ -99,9 +99,7 @@ NPC::~NPC(){
 		}
 		safe_delete(skills);
 	}
-	if(spells){
-		safe_delete(spells);
-	}
+	safe_delete(spells);
 	MutexMap<int32, SkillBonus*>::iterator sb_itr = skill_bonus_list.begin();
 	while (sb_itr.Next())
 		RemoveSkillBonus(sb_itr.first);
@@ -153,8 +151,7 @@ void NPC::SetSkills(map<string, Skill*>* in_skills){
 }
 
 void NPC::SetSpells(vector<Spell*>* in_spells){
-	if (spells)
-		safe_delete(spells);
+	safe_delete(spells);
 
 	spells = in_spells;
 }

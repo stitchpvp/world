@@ -51,6 +51,7 @@ using namespace std;
 DBcore::DBcore() {
 	mysql_init(&mysql);
 	pHost = 0;
+	pPort = 0;
 	pUser = 0;
 	pPassword = 0;
 	pDatabase = 0;

@@ -743,6 +743,7 @@ public:
 	virtual bool IsPlayer(){ return false; }
 	virtual bool IsWidget(){ return false; }
 	virtual bool IsSign(){ return false; }
+	virtual bool IsBot() { return false; }
 
 	bool			HasInfoChanged(){ return info_changed; }
 	bool			HasPositionChanged(){ return position_changed; }	

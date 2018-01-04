@@ -1500,7 +1500,7 @@ EQ2Packet* Player::MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 ne
 		}
 		return item_list.serialize(this, version);
 	}
-	else if(result == 0){
+	else {
 		PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
 		if(packet){
 			packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
@@ -2177,7 +2177,6 @@ void Player::ClearEverything(){
 	player_spawn_index_map.clear();
 	player_spawn_id_map.clear();
 	player_spawn_reverse_id_map.clear();
-	player_spawn_index_map.clear();
 	map<int32, vector<int32>*>::iterator itr;
 	m_playerSpawnQuestsRequired.writelock(__FUNCTION__, __LINE__);
 	for (itr = player_spawn_quests_required.begin(); itr != player_spawn_quests_required.end(); itr++){
@@ -2895,7 +2894,7 @@ float Player::CalculateTSXP(int8 level){
 		multiplier = 0;
 	else if(diff <= -6)
 		multiplier = 3.25;
-	else if(diff < 0)
+	else //if(diff < 0)
 		multiplier = 3.5;
 
 
@@ -3139,6 +3138,7 @@ void Player::CheckQuestsCraftUpdate(Item* item, int32 qty){
 		}
 	}
 	update_list->clear();
+	safe_delete(update_list);
 }
 
 void Player::CheckQuestsHarvestUpdate(Item* item, int32 qty){
@@ -3165,6 +3165,7 @@ void Player::CheckQuestsHarvestUpdate(Item* item, int32 qty){
 		}
 	}
 	update_list->clear();
+	safe_delete(update_list);
 }
 
 vector<Quest*>* Player::CheckQuestsSpellUpdate(Spell* spell) {
@@ -3826,7 +3827,7 @@ int8 Player::GetArrowColor(int8 spawn_level){
 		color = ARROW_COLOR_GRAY;
 	else if(diff <= -6)
 		color = ARROW_COLOR_GREEN;
-	else if(diff < 0)
+	else //if(diff < 0)
 		color = ARROW_COLOR_BLUE;
 	return color;
 }
@@ -3850,7 +3851,7 @@ int8 Player::GetTSArrowColor(int8 level){
 		color = ARROW_COLOR_GRAY;
 	else if(diff <= -6)
 		color = ARROW_COLOR_GREEN;
-	else if(diff < 0)
+	else //if(diff < 0)
 		color = ARROW_COLOR_BLUE;
 	return color;
 }
@@ -3985,14 +3986,12 @@ void Player::UpdatePlayerStatistic(int32 stat_id, sint32 stat_value, bool overwr
 }
 
 void Player::WritePlayerStatistics() {
-	if (this) {
-		map<int32, Statistic*>::iterator stat_itr;
-		for (stat_itr = statistics.begin(); stat_itr != statistics.end(); stat_itr++) {
-			Statistic* stat = stat_itr->second;
-			if (stat->save_needed) {
-				stat->save_needed = false;
-				database.WritePlayerStatistic(this, stat);
-			}
+	map<int32, Statistic*>::iterator stat_itr;
+	for (stat_itr = statistics.begin(); stat_itr != statistics.end(); stat_itr++) {
+		Statistic* stat = stat_itr->second;
+		if (stat->save_needed) {
+			stat->save_needed = false;
+			database.WritePlayerStatistic(this, stat);
 		}
 	}
 }
@@ -4018,12 +4017,13 @@ void Player::SetGroup(PlayerGroup* new_group){
 	return group;
 }*/
 
-bool Player::IsGroupMember(Player* player) {
+bool Player::IsGroupMember(Entity* player) {
 	bool ret = false;
 	if (GetGroupMemberInfo() && player) {
-		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+		//world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+		ret = world.GetGroupManager()->IsInGroup(GetGroupMemberInfo()->group_id, player);
 
-		deque<GroupMemberInfo*>::iterator itr;
+		/*deque<GroupMemberInfo*>::iterator itr;
 		deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(GetGroupMemberInfo()->group_id);
 		for (itr = members->begin(); itr != members->end(); itr++) {
 			GroupMemberInfo* gmi = *itr;
@@ -4033,7 +4033,7 @@ bool Player::IsGroupMember(Player* player) {
 			}
 		}
 
-		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);*/
 	}
 	return ret;
 }

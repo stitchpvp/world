@@ -179,36 +179,35 @@ void SpellProcess::Process(){
 	}
 	if(cast_timers.size(true) > 0){
 		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();		
-		while(itr.Next()){
-			 cast_timer = itr->value;
-			 if(cast_timer->timer->Check(false)){
-				 if (cast_timer->spell) {
-					Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
-					if(client){
-						PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
-						if(packet){
-							packet->setMediumStringByName("spell_name", cast_timer->spell->spell->GetSpellData()->name.data.c_str());
-							client->QueuePacket(packet->serialize());
-							safe_delete(packet);
+		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
+		while (itr.Next()) {
+			cast_timer = itr->value;
+			if (cast_timer) {
+				if (cast_timer->timer->Check(false)) {
+					if (cast_timer->spell) {
+						Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
+						if (client) {
+							PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
+								if (packet) {
+									packet->setMediumStringByName("spell_name", cast_timer->spell->spell->GetSpellData()->name.data.c_str());
+									client->QueuePacket(packet->serialize());
+									safe_delete(packet);
+								}
 						}
-					}
-					if(cast_timer && cast_timer->spell && cast_timer->spell->caster)
-						cast_timer->spell->caster->IsCasting(false);
-					cast_timer->delete_timer = true;
-					CastProcessedSpell(cast_timer->spell);
-				 }
-				 else if (cast_timer->entity_command) {
-					 if (cast_timer->timer->Check(false)) {
+						if (cast_timer->spell && cast_timer->spell->caster)
+							cast_timer->spell->caster->IsCasting(false);
+						cast_timer->delete_timer = true;
+						CastProcessedSpell(cast_timer->spell);
+					} else if (cast_timer->entity_command && cast_timer->timer->Check(false)) {
 						cast_timer->delete_timer = true;
 						CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
-					 }
-				 }
-			 }
-			 if (cast_timer->delete_timer){
-				 safe_delete(cast_timer->timer);
-				 cast_timers.Remove(cast_timer, true);
-			 }
+					}
+				}
+			}
+			if (cast_timer->delete_timer) {
+				safe_delete(cast_timer->timer);
+				cast_timers.Remove(cast_timer, true);
+			}
 		}
 	}
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
@@ -287,9 +286,11 @@ void SpellProcess::Process(){
 
 	MSpellProcess.unlock();
 }
-bool SpellProcess::IsReady(Spell* spell, Entity* caster){
+
+bool SpellProcess::IsReady(Spell* spell, Entity* caster) {
 	if(caster->IsCasting())
 		return false;
+
 	bool ret = true;	
 	MRecastTimers.readlock(__FUNCTION__, __LINE__);
 	for (const auto& recast_timer : recast_timers) {
@@ -1033,6 +1034,9 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 						return;
 					}
 				}
+				else if (target->IsBot() && (caster->IsPlayer() || caster->IsBot())) {
+					// Needed so bots or player can cast friendly spells on bots
+				}
 				else
 				{
 					zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_A_FRIEND);
@@ -1483,6 +1487,8 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 				string effect_message = spell->spell->GetSpellData()->effect_message;
 				if(effect_message.find("%t") < 0xFFFFFFFF)
 					effect_message.replace(effect_message.find("%t"), 2, target->GetName());
+				if (effect_message.find("%c") != string::npos)
+					effect_message.replace(effect_message.find("%c"), 2, spell->caster->GetName());
 				spell->caster->GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_message.c_str(), target, 50);
 			}
 			target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_CASTED_ON, spell->caster, spell->spell->GetName());
@@ -1543,7 +1549,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	if (client && spell->spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_TRADESKILL)
 		client->GetCurrentZone()->GetTradeskillMgr()->CheckTradeskillEvent(client, spell->spell->GetSpellData()->icon);
 
-	if (spell->spell->GetSpellData()->friendly_spell && zone->GetSpawnByID(spell->initial_target));
+	if (spell->spell->GetSpellData()->friendly_spell && zone->GetSpawnByID(spell->initial_target))
 		spell->caster->CheckProcs(PROC_TYPE_BENEFICIAL, zone->GetSpawnByID(spell->initial_target));
 
 	/*
@@ -1912,12 +1918,12 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 					if (data->can_effect_raid > 0 || data->affect_only_group_members > 0 || data->group_spell > 0) 
 					{
 						// if caster is in a group, and target is a player and targeted player is a group member
-						if (((Player*)caster)->GetGroupMemberInfo() && target->IsPlayer() && ((Player*)caster)->IsGroupMember((Player*)target))
+						if (((Player*)caster)->GetGroupMemberInfo() && (target->IsPlayer() || target->IsBot()) && ((Player*)caster)->IsGroupMember((Entity*)target))
 							luaspell->targets.push_back(target->GetID()); // return the target
 						else
 							luaspell->targets.push_back(caster->GetID()); // else return the caster
 					}
-					else if (target->IsPlayer()) // else it is not raid, group only or group spell
+					else if (target->IsPlayer() || target->IsBot()) // else it is not raid, group only or group spell
 						luaspell->targets.push_back(target->GetID()); // return target for single spell
 					else
 						luaspell->targets.push_back(caster->GetID()); // and if no target, cast on self
@@ -1927,14 +1933,26 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 					// if NPC's spell can affect raid, only group members or is a group spell
 					if (data->can_effect_raid > 0 || data->affect_only_group_members > 0 || data->group_spell > 0) 
 					{
+						if (caster->IsBot() && (target->IsBot() || target->IsPlayer())) {
+							GroupMemberInfo* gmi = ((Entity*)caster)->GetGroupMemberInfo();
+							if (gmi && target->IsEntity() && world.GetGroupManager()->IsInGroup(gmi->group_id, (Entity*)target)) {
+								luaspell->targets.push_back(target->GetID()); // return the target
+							}
+							else
+								luaspell->targets.push_back(caster->GetID()); // else return the caster
+						}
 						// if NPC caster is in a group, and target is a player and targeted player is a group member
-						if (((NPC*)caster)->HasSpawnGroup() && target->IsNPC() && ((NPC*)caster)->IsInSpawnGroup((NPC*)target))
+						else if (((NPC*)caster)->HasSpawnGroup() && target->IsNPC() && ((NPC*)caster)->IsInSpawnGroup((NPC*)target))
 							luaspell->targets.push_back(target->GetID()); // return the target
 						else
 							luaspell->targets.push_back(caster->GetID()); // else return the caster
 					}
+					else {
+						if (caster->IsBot() && (target->IsBot() || target->IsPlayer()))
+							luaspell->targets.push_back(target->GetID());
 					else
 						luaspell->targets.push_back(target->GetID());
+					}
 				} // end is player
 			} // end is friendly
 

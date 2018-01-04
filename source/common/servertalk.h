@@ -398,6 +398,9 @@ public:
 		try_delete = true;
 		num_queries = 0;
 		data_version = 0;
+		current_index = 0;
+		latest_version = 0;
+		your_version = 0;
 		total_size = sizeof(num_queries) + sizeof(latest_version) + sizeof(your_version) + sizeof(tablename);
 	}
 	~TableQuery(){
@@ -478,11 +481,15 @@ public:
 		num_queries = 0;
 		columns_size = 0;
 		columns = 0;
+		version = 0;
+		table_size = 0;
 	}
 	TableDataQuery(){
 		num_queries = 0;
 		columns_size = 0;
 		columns = 0;
+		version = 0;
+		table_size = 0;
 	}
 	~TableDataQuery(){
 		safe_delete_array(columns);

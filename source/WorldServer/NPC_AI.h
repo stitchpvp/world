@@ -79,7 +79,7 @@ public:
 	/// <summary></summary>
 	/// <param name=""></param>
 	/// <param name=""></param>
-	bool ProcessSpell(Entity* target, float distance);
+	virtual bool ProcessSpell(Entity* target, float distance);
 	/// <summary></summary>
 	/// <returns>True if a buff starts casting</returns>
 	bool CheckBuffs();
@@ -122,9 +122,13 @@ public:
 	/// <param name="target">The target to move closer to</param>
 	void MoveCloser(Entity* target);
 
-private:
+protected:
 	// m_body = the npc this brain controls
 	NPC*					m_body;
+	// m_spellRecovery = time stamp for when the npc can cast again
+	int32					m_spellRecovery;
+
+private:
 	// MHateList = mutex to lock and unlock the hate list
 	Mutex					MHateList;
 	// m_hatelist = the list that stores all the hate,
@@ -134,8 +138,6 @@ private:
 	int32					m_lastTick;
 	// m_tick = the amount of time between Think() calls in milliseconds
 	int16					m_tick;
-	// m_spellRecovery = time stamp for when the npc can cast again
-	int32					m_spellRecovery;
 	// m_encounter = list of players (entities) that will get a reward (xp/loot) for killing this npc
 	vector<int32>			m_encounter;
 	// MEncounter = mutex to lock and unlock the encounter list

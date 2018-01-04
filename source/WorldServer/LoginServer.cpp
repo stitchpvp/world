@@ -100,6 +100,12 @@ LoginServer::LoginServer(const char* iAddress, int16 iPort) {
 	minGameFullStatus = 100;
 	update_server_verified = false;
 	last_checked_time = 0;
+	UpdateServerPort = 0;
+	UpdateServerIP = 0;
+	update_server_completed = false;
+	data_waiting = 0;
+	zone_updates = 0;
+	loginEquip_updates = 0;
 }
 
 LoginServer::~LoginServer() {
