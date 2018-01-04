@@ -527,11 +527,7 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
 		if (spell->resisted && recast > 0) {
 			CheckRecast(spell->spell, spell->caster, 0.5); // half sec recast on resisted spells
 		} else if (!spell->interrupted) {
-			if (client && spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
-				client->GetPlayer()->LockSpell(spell->spell, 0);
-			} else {
-				CheckRecast(spell->spell, spell->caster, recast, true);
-			}
+			CheckRecast(spell->spell, spell->caster, recast, true);
 
 			TakePower(spell);
 			TakeHP(spell);
@@ -548,6 +544,7 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
 				safe_delete(packet);
 			}
 
+			UnlockAllSpells(client);
 			SendSpellBookUpdate(client);
 			client->CheckPlayerQuestsSpellUpdate(spell->spell);
 		}
