@@ -6094,9 +6094,9 @@ int EQ2Emu_lua_Knockback(lua_State* state) {
 
 	Spawn* target_spawn = lua_interface->GetSpawn(state);
 	Spawn* spawn = lua_interface->GetSpawn(state, 2);
-	float vertical = lua_interface->GetFloatValue(state, 4);
-	float horizontal = lua_interface->GetFloatValue(state, 5);
-	bool use_heading = lua_interface->GetInt8Value(state, 6) == 1 ? true : false;
+	float vertical = lua_interface->GetFloatValue(state, 3);
+	float horizontal = lua_interface->GetFloatValue(state, 4);
+	bool use_heading = lua_interface->GetInt8Value(state, 5) == 1 ? true : false;
 
 	if (!target_spawn) {
 		lua_interface->LogError("LUA Knockback command error: target_spawn is not valid");

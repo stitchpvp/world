@@ -701,29 +701,33 @@ Spell* NPC::GetNextSpell(float distance){
 }
 
 Spell* NPC::GetNextSpell(float distance, int8 type){
-	Spell* ret = 0;
-	if(spells){
-		if(distance < 0)
+	Spell* ret = nullptr;
+
+	if (spells) {
+		if (distance < 0)
 			distance = 0;
-		Spell* tmpSpell = 0;
-		vector<Spell*>::iterator itr;
-		for(itr = spells->begin(); itr != spells->end(); itr++){
-			tmpSpell = *itr;
-			if(!tmpSpell || (type == AI_STRATEGY_OFFENSIVE && tmpSpell->GetSpellData()->friendly_spell > 0))
+
+		for (const auto& tmpSpell : *spells) {
+			if (!tmpSpell || (type == AI_STRATEGY_OFFENSIVE && tmpSpell->GetSpellData()->friendly_spell > 0))
 				continue;
+
 			if (tmpSpell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE)
 				continue;
-			if(type == AI_STRATEGY_DEFENSIVE && tmpSpell->GetSpellData()->friendly_spell == 0)
+
+			if (type == AI_STRATEGY_DEFENSIVE && tmpSpell->GetSpellData()->friendly_spell == 0)
 				continue;
-			if(distance <= tmpSpell->GetSpellData()->range && distance >= tmpSpell->GetSpellData()->min_range && GetPower() >= tmpSpell->GetPowerRequired(this)){
+
+			if ((tmpSpell->GetSpellData()->max_aoe_targets > 0 || (distance <= tmpSpell->GetSpellData()->range && distance >= tmpSpell->GetSpellData()->min_range)) && GetPower() >= tmpSpell->GetPowerRequired(this)) {
 				ret = tmpSpell;
 				if((rand()%100) >= 70) //30% chance to stop after finding the first match, this will give the appearance of the NPC randomly choosing a spell to cast
 					break;
 			}
 		}
+
 		if(!ret && type != AI_STRATEGY_BALANCED)
 			ret = GetNextSpell(distance, AI_STRATEGY_BALANCED); //wasnt able to find a valid match, so find any spell that the NPC has
 	}
+
 	return ret;
 }
 

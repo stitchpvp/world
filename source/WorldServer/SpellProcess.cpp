@@ -2075,10 +2075,11 @@ void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 				else
 					break;
 			}
-			if (spawn){
-				//If this spawn is immune to aoe, continue
-				if (((Entity*)spawn)->IsAOEImmune())
+
+			if (spawn) {
+				if (static_cast<Entity*>(spawn)->IsAOEImmune() || (luaspell->caster->IsNPC() && spawn->IsNPC()))
 					continue;
+
 				luaspell->targets.push_back(spawn->GetID());
 			}
 
