@@ -3715,6 +3715,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_PVP				: { Command_PVP(client); break; }
 		case COMMAND_KNOWLEDGEWINDOW_SORT:{ Command_KnowledgeWindow_Sort(client, sep); break; }
 		case COMMAND_RESET_ENCOUNTER    : { Command_ResetEncounter(client); break; }
+		case COMMAND_KNOCKBACK			: { Command_Knockback(client, sep);  break; }
 
 		default: 
 		{
@@ -7445,6 +7446,40 @@ void Commands::Command_Mount(Client* client, Seperator* sep) {
 	if (sep->IsSet(0) && sep->IsNumber(0)) {
 		client->GetPlayer()->SetMount(atol(sep->arg[0]));
 	}
+}
+
+void Commands::Command_Knockback(Client* client, Seperator* sep) {
+	if (sep == nullptr) return;
+
+	float vertical = 0.0;
+	float horizontal = 0.0;
+	bool use_heading = false;
+
+	if (sep->IsSet(0) && sep->IsNumber(0))
+		vertical = atol(sep->arg[0]);
+
+	if (sep->IsSet(1) && sep->IsNumber(1))
+		horizontal = atol(sep->arg[1]);
+
+	if (sep->IsSet(2) && sep->IsNumber(2))
+		use_heading = atol(sep->arg[2]);
+
+	Client* knockback_client = client;
+	if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer())
+		knockback_client = client->GetCurrentZone()->GetClientBySpawn(client->GetPlayer()->GetTarget());
+
+	PacketStruct* packet = configReader.getStruct("WS_PlayerKnockback", knockback_client->GetVersion());
+	if (packet) {
+		packet->setDataByName("target_x", knockback_client->GetPlayer()->GetX());
+		packet->setDataByName("target_y", knockback_client->GetPlayer()->GetY());
+		packet->setDataByName("target_z", knockback_client->GetPlayer()->GetZ());
+		packet->setDataByName("vertical_movement", vertical);
+		packet->setDataByName("horizontal_movement", horizontal);
+		packet->setDataByName("use_player_heading", use_heading);
+
+		knockback_client->QueuePacket(packet->serialize());
+	}
+	safe_delete(packet);
 }
 
 void Commands::Command_ResetEncounter(Client* client) {

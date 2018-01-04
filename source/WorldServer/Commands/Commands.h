@@ -435,6 +435,7 @@ public:
 	void Command_TellChannel(Client *client, Seperator *sep);
 	void Command_Mount(Client* client, Seperator* sep);
 	void Command_ResetEncounter(Client* client);
+	void Command_Knockback(Client* client, Seperator* sep);
 	void Command_LeaveChannel(Client *client, Seperator *sep);
 	void Command_WeaponStats(Client *client);
 	void Command_WhoChannel(Client *client, Seperator *sep);
@@ -868,5 +869,6 @@ private:
 #define COMMAND_PVP 2005
 #define COMMAND_MOUNT 2006
 #define COMMAND_RESET_ENCOUNTER 2007
+#define COMMAND_KNOCKBACK 2008
 
 #endif

@@ -1434,14 +1434,19 @@ void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_nam
 			vector<LevelArray*>* levels = det.spell->spell->GetSpellLevels();
 			InfoStruct* info_struct = det.caster->GetInfoStruct();
 
-			for (const auto& x : *levels) {
-				int8 level = x->spell_level / 10;
-				int8 det_class = x->adventure_class;
+			if (levels->size() > 0) {
+				for (const auto& x : *levels) {
+					int8 level = x->spell_level / 10;
+					int8 det_class = x->adventure_class;
 
-				if ((info_struct->class1 == det_class || info_struct->class2 == det_class || info_struct->class3 == det_class || det.caster->GetAdventureClass() == det_class) && cure_level >= level) {
-					remove_list[level].push_back(det.spell);
-					break;
+					if ((info_struct->class1 == det_class || info_struct->class2 == det_class || info_struct->class3 == det_class || det.caster->GetAdventureClass() == det_class) && cure_level >= level) {
+						remove_list[level].push_back(det.spell);
+						break;
+					}
 				}
+			} else if (cure_level >= det.caster->GetLevel()) {
+				remove_list[det.caster->GetLevel()].push_back(det.spell);
+				break;
 			}
 		}
 	}
