@@ -521,39 +521,37 @@ void SpellProcess::SendStartCast(LuaSpell* spell, Client* client){
 }
 
 void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
-	if(client && spell && spell->spell) {
+	if (spell && spell->spell) {
 		float recast = spell->spell->GetModifiedRecast(spell->caster);
 
-		UnlockAllSpells(client);
-
-		if(spell->resisted && recast > 0)
-			CheckRecast(spell->spell, client->GetPlayer(), 0.5); // half sec recast on resisted spells
-		else if (!spell->interrupted) {
-			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
+		if (spell->resisted && recast > 0) {
+			CheckRecast(spell->spell, spell->caster, 0.5); // half sec recast on resisted spells
+		} else if (!spell->interrupted) {
+			if (client && spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
 				client->GetPlayer()->LockSpell(spell->spell, 0);
 			} else {
-				CheckRecast(spell->spell, client->GetPlayer(), recast, true);
+				CheckRecast(spell->spell, spell->caster, recast, true);
 			}
-		}
-		PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
-		if(packet){
-			packet->setMediumStringByName("spell_name", spell->spell->GetSpellData()->name.data.c_str());			
-			client->QueuePacket(packet->serialize());
-			safe_delete(packet);	
-		}
-		SendSpellBookUpdate(client);		
- 	}
-	if (spell) {
-		if (!spell->interrupted) {
+
 			TakePower(spell);
 			TakeHP(spell);
 			TakeSavagery(spell);
 			AddDissonance(spell);
 			AddConcentration(spell);
-			if(client && spell->caster)
-				client->CheckPlayerQuestsSpellUpdate(spell->spell);
 		}
-	}
+		
+		if (client) {
+			PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
+			if (packet) {
+				packet->setMediumStringByName("spell_name", spell->spell->GetSpellData()->name.data.c_str());
+				client->QueuePacket(packet->serialize());
+				safe_delete(packet);
+			}
+
+			SendSpellBookUpdate(client);
+			client->CheckPlayerQuestsSpellUpdate(spell->spell);
+		}
+ 	}
 }
 
 void SpellProcess::LockAllSpells(Client* client){
@@ -945,10 +943,10 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			return;
 		}
 
-		if(caster->IsPlayer() && !IsReady(spell, caster))
-		{
-			LogWrite(SPELL__DEBUG, 1, "Spell", "Queuing spell for %s.", caster->GetName());
-			CheckSpellQueue(spell, caster);
+		if (!IsReady(spell, caster)) {
+			if (caster->IsPlayer())
+				CheckSpellQueue(spell, caster);
+
 			safe_delete(lua_spell);
 			return;
 		}
