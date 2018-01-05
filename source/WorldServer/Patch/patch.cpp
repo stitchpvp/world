@@ -84,7 +84,7 @@ static void TCPClientData(TCPClient *tcp, const char *data, unsigned int len) {
         f = NULL;
 		LogWrite(PATCHER__INFO, 0, "Patcher", "Updates finished downloading");
 
-		LogWrite(PATCHER__INFO, 0, "Patcher", "Executing updates");
+		/*LogWrite(PATCHER__INFO, 0, "Patcher", "Executing updates");
         //database.BeginTransaction();
         if (!database.QueriesFromFile("eq2-updates.sql")) {
             //database.RollbackTransaction();
@@ -93,7 +93,7 @@ static void TCPClientData(TCPClient *tcp, const char *data, unsigned int len) {
         else {
             //database.CommitTransaction();
 			LogWrite(PATCHER__INFO, 0, "Patcher", "Database updated");
-        }
+        }*/
         patch.SetReading(false);
     }
 }
