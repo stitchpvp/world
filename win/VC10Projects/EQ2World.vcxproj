@@ -494,6 +494,7 @@
     <ClCompile Include="..\..\source\WorldServer\SpellProcess.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Spells.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Titles.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\Trade.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsDB.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Tradeskills\TradeskillsPackets.cpp" />
     <ClCompile Include="..\..\source\WorldServer\Traits\Traits.cpp" />

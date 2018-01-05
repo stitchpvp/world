@@ -6815,7 +6815,7 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 		return 0;
 	}
 
-	if(static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0 || (cure_type == DET_TYPE_ALL && static_cast<Entity*>(target)->GetDetCount() > 0))
+	if ((cure_type == DET_TYPE_ALL && static_cast<Entity*>(target)->GetDetCount() > 0) || static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
 		static_cast<Entity*>(target)->CureDetrimentByType(cure_level, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster);
 	
 	return 0;

@@ -469,9 +469,6 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
-	 if (!target->Alive())
-		 return false;
-
 	 bool is_tick = GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell);
 
 	 if (!is_tick) {

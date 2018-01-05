@@ -538,6 +538,9 @@
     <ClCompile Include="..\..\source\WorldServer\Bots\BotDB.cpp">
       <Filter>Source Files\Bots</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\Trade.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\common\Common_Defines.h">
