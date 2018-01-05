@@ -3713,6 +3713,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_KNOWLEDGEWINDOW_SORT:{ Command_KnowledgeWindow_Sort(client, sep); break; }
 		case COMMAND_RESET_ENCOUNTER    : { Command_ResetEncounter(client); break; }
 		case COMMAND_KNOCKBACK			: { Command_Knockback(client, sep);  break; }
+		case COMMAND_HEAL				: { Command_Heal(client);  break; }
 
 		case COMMAND_BOT				: { Command_Bot(client, sep); break; }
 		case COMMAND_BOT_CREATE			: { Command_Bot_Create(client, sep); break; }
@@ -8413,5 +8414,35 @@ void Commands::Command_KnowledgeWindow_Sort(Client* client, Seperator* sep) {
 
 		client->GetPlayer()->SortSpellBook();
 		ClientPacketFunctions::SendSkillSlotMappings(client);
+	}
+}
+
+void Commands::Command_Heal(Client* client) {
+	Player* player = client->GetPlayer();
+
+	if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer())
+		player = client->GetCurrentZone()->GetClientBySpawn(client->GetPlayer()->GetTarget())->GetPlayer();
+
+	if (!player->Alive()) {
+		Spell* spell = master_spell_list.GetSpell(1002182, 1);
+		LuaSpell* lua_spell = nullptr;
+
+		if (spell && lua_interface) {
+			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
+		}
+
+		if (lua_spell) {
+			lua_spell->caster = client->GetPlayer();
+			lua_spell->initial_target = player->GetID();
+			lua_spell->spell = spell;
+
+			client->GetCurrentZone()->GetSpellProcess()->GetSpellTargets(lua_spell);
+			client->GetCurrentZone()->GetSpellProcess()->CastProcessedSpell(lua_spell, true);
+		}
+	} else {
+		int8 heal_amount = player->GetTotalHP() - player->GetHP();
+
+		if (heal_amount > 0)
+			client->GetPlayer()->ProcHeal(player, "Heal", heal_amount, heal_amount, "Dev Heal");
 	}
 }

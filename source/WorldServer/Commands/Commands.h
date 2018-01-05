@@ -477,6 +477,7 @@ public:
 	void Command_PVP(Client* client);
 
 	void Command_KnowledgeWindow_Sort(Client* client, Seperator* sep);
+	void Command_Heal(Client* client);
 
 private:
 	RemoteCommands* remote_commands;
@@ -890,5 +891,6 @@ private:
 #define COMMAND_MOUNT 2006
 #define COMMAND_RESET_ENCOUNTER 2007
 #define COMMAND_KNOCKBACK 2008
+#define COMMAND_HEAL 2009
 
 #endif
