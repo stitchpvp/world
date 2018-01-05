@@ -19253,6 +19253,23 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
+-<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >		
+ -<Data ElementName="type" Type="int8" Size="1" />		
+ -<Data ElementName="trait_tier" Type="int32" />		
+ -<Data ElementName="unknown2" Type="int32" />		
+ -<Data ElementName="tier" Type="int32" />		
+ -<Data ElementName="id" Type="int32" />		
+ -<Data ElementName="unknown5" Type="int8" Size="1" />		
+ -</Struct>		
+ -<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >		
+ -<Data ElementName="type" Type="int8" Size="1" />		
+ -<Data ElementName="trait_tier" Type="int32" />		
+ -<Data ElementName="unknown2" Type="int32" />		
+ -<Data ElementName="tier" Type="int32" />		
+ -<Data ElementName="unknown1" Type="int32" />		
+ -<Data ElementName="id" Type="int32" />		
+ -<Data ElementName="unknown6" Type="int32" />		
+ -</Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="3" />
