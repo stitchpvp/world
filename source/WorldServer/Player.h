@@ -835,6 +835,7 @@ public:
 
 	void AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked = true);
 	void RemoveFromEncounterList(int32 spawn_id);
+	void ClearEncounterList();
 
 	// Encounter list, spawn id => last activity
 	// NPCs will be removed by hate functions

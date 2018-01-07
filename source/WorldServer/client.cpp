@@ -500,7 +500,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 	player->SetZ(z);
 	player->SetHeading(heading);
 	player->SetHP(player->GetTotalHP());
-	player->SetPower(1);
+	player->SetPower(player->GetTotalPower());
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Attempt Revive @ %s, %.2f, %.2f, %.2f, %.2f, HP: %i, Pow: %i, %s", 
 		zone_desc.c_str(),

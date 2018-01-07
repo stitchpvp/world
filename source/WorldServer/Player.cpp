@@ -2693,6 +2693,11 @@ void Player::RemoveFromEncounterList(int32 spawn_id) {
 	}
 }
 
+void Player::ClearEncounterList() {
+	lock_guard<mutex> lock(encounter_list_mutex);
+	encounter_list.clear();
+}
+
 void Player::CheckEncounterList() {
 	vector<int32> to_remove;
 

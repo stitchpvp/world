@@ -4123,6 +4123,8 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 
 				client->DisplayDeadWindow();
 			}
+
+			static_cast<Player*>(dead)->ClearEncounterList();
 		}
 		else if (dead->IsNPC()) {
 			encounter = ((NPC*)dead)->Brain()->GetEncounter();
