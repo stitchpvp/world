@@ -952,7 +952,7 @@ void Entity::AddHate(Entity* attacker, sint32 hate, bool unprovoked) {
 				continue;
 			NPC* spawn = (NPC*)(*itr);
 			if (spawn->Brain()->GetHate(attacker) == 0)
-				spawn->Brain()->AddHate(attacker, 1);
+				spawn->Brain()->AddHate(attacker, 1, unprovoked);
 		}
 		safe_delete(group);
 	}
