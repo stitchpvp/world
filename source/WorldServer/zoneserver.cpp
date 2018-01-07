@@ -1047,8 +1047,8 @@ void ZoneServer::CheckSpawnRange(Client* client, Spawn* spawn, bool initial_logi
 			if(spawn_range_map.count(client) == 0)
 				spawn_range_map.Put(client, new MutexMap<int32, float >());
 			spawn_range_map.Get(client)->Put(spawn->GetID(), spawn->GetDistance(client->GetPlayer()));
-			if (!initial_login && client && spawn->IsNPC() && spawn_range_map.Get(client)->Get(spawn->GetID()) <= ((NPC*)spawn)->GetAggroRadius() && !client->GetPlayer()->GetInvulnerable()) {
-				CheckNPCAttacks((NPC*)spawn, client->GetPlayer(), client);
+			if (!initial_login && client && spawn->IsNPC() && !static_cast<NPC*>(spawn)->m_runningBack && spawn_range_map.Get(client)->Get(spawn->GetID()) <= static_cast<NPC*>(spawn)->GetAggroRadius() && !client->GetPlayer()->GetInvulnerable()) {
+				CheckNPCAttacks(static_cast<NPC*>(spawn), client->GetPlayer(), client);
 			}
 		} 
 
@@ -1539,7 +1539,7 @@ bool ZoneServer::SpawnProcess(){
 					spawn->last_movement_update = Timer::GetCurrentTime2();
 				}
 
-				// Makes NPC's KOS to other NPC's or players
+				// Makes NPC's KOS to other NPC's
 				if (aggroCheck)
 					ProcessAggroChecks(spawn);
 
@@ -5645,7 +5645,8 @@ void ZoneServer::ProcessAggroChecks(Spawn* spawn) {
 		return;
 
 	if (spawn && spawn->IsNPC() && spawn->Alive())
-		CheckEnemyList((NPC*)spawn);
+		if (!static_cast<NPC*>(spawn)->m_runningBack)
+			CheckEnemyList(static_cast<NPC*>(spawn));
 }
 
 void ZoneServer::SendUpdateTitles(Client *client, Title *suffix, Title *prefix) {
