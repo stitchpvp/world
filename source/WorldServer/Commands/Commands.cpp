@@ -1484,10 +1484,14 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					show_bubble = false;
 				client->GetCurrentZone()->HandleChatMessage(client->GetPlayer(), 0, CHANNEL_SAY, tmp, HEAR_SPAWN_DISTANCE, 0, show_bubble);
 				if(spawn->IsPlayer() == false && spawn->GetDistance(client->GetPlayer()) < 30){
-					if(spawn->IsNPC() && ((NPC*)spawn)->EngagedInCombat())
+					if (spawn->IsNPC() && ((NPC*)spawn)->EngagedInCombat()) {
 						spawn->GetZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_HAILED_BUSY, client->GetPlayer());
-					else
+					} else {
+						if (spawn->IsEntity())
+							static_cast<Entity*>(spawn)->FaceTarget(client->GetPlayer());
+
 						spawn->GetZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_HAILED, client->GetPlayer());
+					}
 				}
 			}
 			else {

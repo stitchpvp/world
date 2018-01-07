@@ -1288,6 +1288,9 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 			target = zone->GetSpawnByID(spell->targets[i]);
 
+			if (!target)
+				continue;
+
 			if (!spell->spell->GetSpellData()->friendly_spell) {
 				if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_COMBAT_ART) {
 					damage_type = DAMAGE_PACKET_DAMAGE_TYPE_SLASH;
