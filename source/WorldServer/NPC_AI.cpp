@@ -155,7 +155,7 @@ sint32 Brain::GetHate(Entity* entity) {
 	return ret;
 }
 
-void Brain::AddHate(Entity* entity, sint32 hate) {
+void Brain::AddHate(Entity* entity, sint32 hate, bool unprovoked) {
 	// Lock the hate list, we are altering the list so use write lock
 	MHateList.writelock(__FUNCTION__, __LINE__);
 
@@ -166,6 +166,9 @@ void Brain::AddHate(Entity* entity, sint32 hate) {
 
 	if (entity->HatedBy.count(m_body->GetID()) == 0)
 		entity->HatedBy.insert(m_body->GetID());
+
+	if (entity->IsPlayer())
+		static_cast<Player*>(entity)->AddToEncounterList(m_body->GetID(), Timer::GetCurrentTime2(), !unprovoked);
 
 	// Unlock the list
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
@@ -178,8 +181,12 @@ void Brain::ClearHate() {
 		ZoneServer* zone = m_body->GetZone();
 		Spawn* spawn = zone->GetSpawnByID(kv.first);
 
-		if (spawn && spawn->IsPlayer()) 
-			static_cast<Player*>(spawn)->RemoveFromEncounterList(m_body->GetID());
+		if (spawn && spawn->IsEntity()) {
+			static_cast<Entity*>(spawn)->HatedBy.erase(m_body->GetID());
+
+			if (spawn->IsPlayer())
+				static_cast<Player*>(spawn)->RemoveFromEncounterList(m_body->GetID());
+		}
 	}
 
 	m_hatelist.clear();

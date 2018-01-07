@@ -833,20 +833,62 @@ void Entity::CalculateBonuses(){
 	stats.clear();
 	ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
 	CalculateSpellBonuses(values);
+
 	info->sta += values->sta;
+	if (info->sta < 0)
+		info->sta = 0;
+
 	info->str += values->str;
+	if (info->str < 0)
+		info->str = 0;
+
 	info->agi += values->agi;
+	if (info->agi < 0)
+		info->agi = 0;
+
 	info->wis += values->wis;
+	if (info->wis < 0)
+		info->wis = 0;
+
 	info->intel += values->int_;
+	if (info->intel < 0)
+		info->intel = 0;
 
 	info->disease += values->vs_disease;
+	if (info->disease < 0)
+		info->disease = 0;
+
 	info->divine += values->vs_divine;
+	if (info->divine < 0)
+		info->divine = 0;
+
 	info->heat += values->vs_heat;
+	if (info->heat < 0)
+		info->heat = 0;
+
 	info->magic += values->vs_magic;
+	if (info->magic < 0)
+		info->magic = 0;
+
+	info->mental += values->vs_mental;
+	if (info->mental < 0)
+		info->mental = 0;
+
+	info->poison += values->vs_poison;
+	if (info->poison < 0)
+		info->poison = 0;
+
+	info->cold += values->vs_cold;
+	if (info->cold < 0)
+		info->cold = 0;
+
 	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 	info->cur_mitigation += values->vs_slash;
 	info->cur_mitigation += values->vs_pierce;
 	info->cur_mitigation += values->vs_crush;
+	if (info->cur_mitigation < 0)
+		info->cur_mitigation = 0;
+
 	int32 sta_hp_bonus = 0.0;
 	int32 prim_power_bonus = 0.0;
 	float bonus_mod = 0.0;
@@ -863,10 +905,7 @@ void Entity::CalculateBonuses(){
 		SetHP(GetTotalHP());
 	if(GetPower() > GetTotalPower())
 		SetPower(GetTotalPower());
-	info->mental += values->vs_mental;
-	info->poison += values->vs_poison;
 	info->max_concentration += values->concentration;
-	info->cold += values->vs_cold;
 	info->mitigation_skill1 += values->vs_slash;
 	info->mitigation_skill2 += values->vs_pierce;
 	info->mitigation_skill3 += values->vs_crush;

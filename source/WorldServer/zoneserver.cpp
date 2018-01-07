@@ -829,14 +829,14 @@ bool ZoneServer::CheckNPCAttacks(NPC* npc, Spawn* victim, Client* client){
 							Spawn* group_member = groupVec->at(i);
 							if (group_member && !group_member->EngagedInCombat() && group_member->Alive()) {
 								CallSpawnScript(group_member, SPAWN_SCRIPT_AGGRO, victim);
-								((NPC*)group_member)->AddHate((Entity*)victim, 50);
+								((NPC*)group_member)->AddHate((Entity*)victim, 50, true);
 							}
 						}
 						safe_delete(groupVec);
 					}
 					else
 					{
-						npc->AddHate((Entity*)victim, 50);
+						npc->AddHate((Entity*)victim, 50, true);
 					}
 				}
 				else {
@@ -5350,7 +5350,7 @@ void ZoneServer::RemoveSpawnSupportFunctions(Spawn* spawn) {
 	LogWrite(ZONE__DEBUG, 7, "Zone", "Processing RemoveSpawnSupportFunctions...");
 
 	if(spawn->IsEntity())
-		RemoveSpellTimersFromSpawn((Entity*)spawn, true, !spawn->IsPlayer());
+		RemoveSpellTimersFromSpawn((Entity*)spawn, true);
 
 	RemoveDamagedSpawn(spawn);
 	spawn->SendSpawnChanges(false);

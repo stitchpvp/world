@@ -902,7 +902,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	return crit;
 }
 
-void Entity::AddHate(Entity* attacker, sint32 hate) {
+void Entity::AddHate(Entity* attacker, sint32 hate, bool unprovoked) {
 	if(!attacker || GetHP() <= 0 || attacker->GetHP() <= 0)
 		return;
 
@@ -912,13 +912,12 @@ void Entity::AddHate(Entity* attacker, sint32 hate) {
 
 	if (IsNPC()) {
 		LogWrite(COMBAT__DEBUG, 3, "Combat", "Add NPC_AI Hate: Victim '%s', Attacker '%s', Hate: %i", GetName(), attacker->GetName(), hate);
-		((NPC*)this)->Brain()->AddHate(attacker, hate);
+
+		((NPC*)this)->Brain()->AddHate(attacker, hate, unprovoked);
+
 		// if encounter size is 0 then add the attacker to the encounter
-		if (((NPC*)this)->Brain()->GetEncounterSize() == 0)
+		if (!unprovoked && ((NPC*)this)->Brain()->GetEncounterSize() == 0)
 			((NPC*)this)->Brain()->AddToEncounter(attacker);
-		if (attacker->IsPlayer()) {
-			static_cast<Player*>(attacker)->AddToEncounterList(this->GetID(), Timer::GetCurrentTime2());
-		}
 	}
 
 	if (attacker->GetThreatTransfer() && hate > 0) {
