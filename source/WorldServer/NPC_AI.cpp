@@ -105,7 +105,10 @@ void Brain::Think() {
 
 				if(!m_body->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 					LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", m_body->GetName(), target->GetName());
-					m_body->FaceTarget(target);
+
+					if (!m_body->IsMezzedOrStunned() || !m_body->IsFeared())
+						m_body->FaceTarget(target);
+
 					ProcessMelee(target, distance);
 				}
 			}
@@ -595,7 +598,10 @@ void DumbFirePetBrain::Think() {
 
 			if(!GetBody()->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", GetBody()->GetName(), target->GetName());
-				GetBody()->FaceTarget(target);
+
+				if (!m_body->IsMezzedOrStunned() || !m_body->IsFeared())
+					GetBody()->FaceTarget(target);
+
 				ProcessMelee(target, distance);
 			}
 		}
