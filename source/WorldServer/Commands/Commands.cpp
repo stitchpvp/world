@@ -8444,7 +8444,7 @@ void Commands::Command_Heal(Client* client) {
 			client->GetCurrentZone()->GetSpellProcess()->CastProcessedSpell(lua_spell, true);
 		}
 	} else {
-		int8 heal_amount = player->GetTotalHP() - player->GetHP();
+		int32 heal_amount = player->GetTotalHP() - player->GetHP();
 
 		if (heal_amount > 0)
 			client->GetPlayer()->ProcHeal(player, "Heal", heal_amount, heal_amount, "Dev Heal");

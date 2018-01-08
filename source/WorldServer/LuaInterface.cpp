@@ -470,6 +470,10 @@ LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state) {
 	return 0;
 }
 
+void LuaInterface::SetCurrentSpell(lua_State* state, LuaSpell* spell) {
+	current_spells[state] = spell;
+}
+
 bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters) {
 	if(shutting_down || !spell || !spell->caster)
 		return false;
@@ -562,8 +566,6 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_f
 
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
-
-		current_spells[spell->state] = spell;
 
 		LUASpawnWrapper* spawn_wrapper = new LUASpawnWrapper();
 		spawn_wrapper->spawn = spell->caster;
@@ -660,6 +662,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "GetItemType", EQ2Emu_lua_GetItemType);
 	lua_register(state, "GetSpellName", EQ2Emu_lua_GetSpellName);
 	lua_register(state, "GetCaster", EQ2Emu_lua_GetCaster);
+	lua_register(state, "SpellWasCured", EQ2Emu_lua_SpellWasCured);
 	
 	lua_register(state, "GetModelType", EQ2Emu_lua_GetModelType);
 	lua_register(state, "GetSpeed", EQ2Emu_lua_GetSpeed);

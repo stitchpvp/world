@@ -1196,8 +1196,8 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 
 	if (proc->spell) {
 		state = proc->spell->state;
-	}
-	else if (proc->item) {
+		lua_interface->SetCurrentSpell(state, proc->spell);
+	} else if (proc->item) {
 		state = lua_interface->GetItemScript(proc->item->GetItemScript());
 		item_proc = true;
 	}

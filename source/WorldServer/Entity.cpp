@@ -1481,11 +1481,13 @@ void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_nam
 					int8 det_class = x->adventure_class;
 
 					if ((info_struct->class1 == det_class || info_struct->class2 == det_class || info_struct->class3 == det_class || det.caster->GetAdventureClass() == det_class) && cure_level >= level) {
+						det.spell->was_cured = true;
 						remove_list[level].push_back(det.spell);
 						break;
 					}
 				}
 			} else if (cure_level >= det.caster->GetLevel()) {
+				det.spell->was_cured = true;
 				remove_list[det.caster->GetLevel()].push_back(det.spell);
 				break;
 			}
