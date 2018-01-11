@@ -350,12 +350,12 @@ bool Commands::SetSpawnCommand(Client* client, Spawn* target, int8 type, const c
 									  }
 			case SPAWN_SET_VALUE_HP:{
 				sprintf(tmp, "%i", target->GetHP());
-				target->SetHP(val, send_update);
+				target->SetTotalHP(val);
 				break;
 									}
 			case SPAWN_SET_VALUE_POWER:{
 				sprintf(tmp, "%i", target->GetPower());
-				target->SetPower(val, send_update);
+				target->SetTotalPower(val);
 				break;
 									   }
 			case SPAWN_SET_VALUE_HEROIC:{
@@ -598,11 +598,11 @@ bool Commands::SetSpawnCommand(Client* client, Spawn* target, int8 type, const c
 				break;
 									  }
 			case SPAWN_SET_VALUE_HP:{
-				target->SetHP(val, send_update);
+				target->SetTotalHP(val);
 				break;
 									}
 			case SPAWN_SET_VALUE_POWER:{
-				target->SetPower(val, send_update);
+				target->SetTotalPower(val);
 				break;
 									   }
 			case SPAWN_SET_VALUE_HEROIC:{
