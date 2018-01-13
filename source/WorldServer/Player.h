@@ -71,36 +71,35 @@
 #define CF2_1  32
 #define CF2_2  33
 #define CF2_4  34
-#define CF2_ALLOW_LON_INVITES  35
-#define CF2_SHOW_RANGED 36
-#define CF2_ALLOW_VOICE_INVITES  37
-#define CF2_CHARACTER_BONUS_EXPERIENCE_ENABLED  38
-#define CF2_80  39
-#define CF2_100  40 /* hide achievments*/
-#define CF2_200  41
-#define CF2_400  42
-#define CF2_800  43 /* enable facebook updates*/
-#define CF2_1000  44 /* enable twitter updates*/
-#define CF2_2000  45 /* enable eq2 player updates */
-#define CF2_4000  46 /*eq2 players, link to alt chars */
-#define CF2_8000  47
-#define CF2_10000  48
-#define CF2_20000  49
-#define CF2_40000  50
-#define CF2_80000  51
-#define CF2_100000  52
-#define CF2_200000  53
-#define CF2_400000  54
-#define CF2_800000  55
-#define CF2_1000000  56
-#define CF2_2000000  57
-#define CF2_4000000  58
-#define CF2_8000000  59
-#define CF2_10000000  60
-#define CF2_20000000  61
-#define CF2_40000000  62
-#define CF2_80000000  63
-#define CF_MAXIMUM_FLAG  63
+#define CF2_SHOW_RANGED 35
+#define CF2_ALLOW_VOICE_INVITES  36
+#define CF2_CHARACTER_BONUS_EXPERIENCE_ENABLED  37
+#define CF2_80  38
+#define CF2_100  39 /* hide achievments*/
+#define CF2_200  40
+#define CF2_400  41
+#define CF2_800  42 /* enable facebook updates*/
+#define CF2_1000  43 /* enable twitter updates*/
+#define CF2_2000  44 /* enable eq2 player updates */
+#define CF2_4000  45 /*eq2 players, link to alt chars */
+#define CF2_8000  46
+#define CF2_10000  47
+#define CF2_20000  48
+#define CF2_40000  49
+#define CF2_80000  50
+#define CF2_100000  51
+#define CF2_200000  52
+#define CF2_400000  53
+#define CF2_800000  54
+#define CF2_1000000  55
+#define CF2_2000000  56
+#define CF2_4000000  57
+#define CF2_8000000  58
+#define CF2_10000000  59
+#define CF2_20000000  60
+#define CF2_40000000  61
+#define CF2_80000000  62
+#define CF_MAXIMUM_FLAG  62
 #define CF_HIDE_STATUS  49 /* !!FORTESTING ONLY!! */
 #define CF_GM_HIDDEN  50 /* !!FOR TESTING ONLY!! */
 

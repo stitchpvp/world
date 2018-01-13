@@ -7143,10 +7143,10 @@ void Commands::Command_Toggle_Raids(Client* client)
 
 void Commands::Command_Toggle_LON(Client* client)
 {
-	Player* player = client->GetPlayer();
+	/*Player* player = client->GetPlayer();
 
 	player->toggle_character_flag(CF2_ALLOW_LON_INVITES);
-	client->Message(CHANNEL_COLOR_YELLOW,"You are %s accepting LoN invites.", player->get_character_flag(CF2_ALLOW_LON_INVITES)?"now":"no longer");
+	client->Message(CHANNEL_COLOR_YELLOW,"You are %s accepting LoN invites.", player->get_character_flag(CF2_ALLOW_LON_INVITES)?"now":"no longer");*/
 }
 
 void Commands::Command_Toggle_VoiceChat(Client* client)
