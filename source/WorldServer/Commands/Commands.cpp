@@ -7631,7 +7631,7 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	if (sep->IsSet(1) && sep->IsNumber(1)) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
-	if (sep->IsSet(0) && sep->IsNumber(0)) {
+	/*if (sep->IsSet(0) && sep->IsNumber(0)) {
 		client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
 	}
 
@@ -7649,11 +7649,10 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 
 	if (sep->IsSet(4) && sep->IsNumber(4)) {
 		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
-	}
+	}*/
 
-	client->GetPlayer()->changed = true;
-	client->GetPlayer()->info_changed = true;
-	client->GetCurrentZone()->SendSpawnChanges(client->GetPlayer());
+	if (sep->IsSet(0) && sep->IsNumber(0))
+		client->GetPlayer()->toggle_character_flag(atol(sep->arg[0]));
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

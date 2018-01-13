@@ -1562,7 +1562,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 						packet->setColorByName("equipment_colors", 0, i);
 						packet->setColorByName("equipment_highlights", 0, i);
 						continue;
-			}
+					}
 				}
 			}
 			packet->setDataByName("equipment_types", entity->equipment.equip_id[i], i);
