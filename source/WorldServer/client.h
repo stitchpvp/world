@@ -156,6 +156,7 @@ public:
 	void	Zone(const char* new_zone, bool set_coords = true);
 	void	Zone(int32 zoneid, bool set_coords = true);
 	void	Zone(int32 instanceid, bool set_coords = true, bool byInstanceID=false);
+	void    TeleportWithinZone(float x, float y, float z, float heading);
 	void	SendZoneInfo();
 	void	SendZoneSpawns();
 	void	HandleVerbRequest(EQApplicationPacket* app);
@@ -384,6 +385,8 @@ public:
 	void EndAutoMount();
 	bool GetOnAutoMount() { return on_auto_mount; }
 
+	bool	client_zoning;
+
 private:
 	void    SavePlayerImages();
 	void	SkillChanged(Skill* skill, int16 previous_value, int16 new_value);
@@ -443,7 +446,6 @@ private:
 	bool	ready_for_spawns;
 	bool	seencharsel;
 	bool	connected_to_zone;
-	bool	client_zoning;
 	bool	firstlogin;
 	bool	new_client_login;
 	Timer	pos_update;

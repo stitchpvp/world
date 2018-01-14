@@ -2177,6 +2177,8 @@ void Player::ClearEverything(){
 	player_spawn_index_map.clear();
 	player_spawn_id_map.clear();
 	player_spawn_reverse_id_map.clear();
+	HatedBy.clear();
+	ClearEncounterList();
 	map<int32, vector<int32>*>::iterator itr;
 	m_playerSpawnQuestsRequired.writelock(__FUNCTION__, __LINE__);
 	for (itr = player_spawn_quests_required.begin(); itr != player_spawn_quests_required.end(); itr++){

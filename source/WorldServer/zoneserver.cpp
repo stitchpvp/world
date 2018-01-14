@@ -1096,6 +1096,9 @@ void ZoneServer::CheckSendSpawnToClient(Client* client, bool initial_login) {
 			MutexMap<int32, float >::iterator spawn_iter = spawn_range_map.Get(client)->begin();
 			while(spawn_iter.Next()) {
 				spawn = GetSpawnByID(spawn_iter->first);
+
+				if (spawn == unknown_spawn) continue;
+
 				if(spawn && spawn->GetPrivateQuestSpawn()) {
 					if(!spawn->IsPrivateSpawn())
 						spawn->AddAllowAccessSpawn(spawn);
@@ -3500,11 +3503,15 @@ bool ZoneServer::SendRemoveSpawn(Client* client, Spawn* spawn, PacketStruct* pac
 	{
 		LogWrite(ZONE__DEBUG, 7, "Zone", "Processing SendRemoveSpawn for spawn index %u...", index);
 		packet->setDataByName("spawn_index", index);
-		client->GetPlayer()->GetPlayerSpawnMap()->erase(index);
-		client->GetPlayer()->GetPlayerSpawnIndexMap()->erase(spawn);
+
 		client->GetPlayer()->player_spawn_id_map.erase(cur_id);
 		client->GetPlayer()->player_spawn_reverse_id_map.erase(spawn);
-		client->GetPlayer()->RemoveSpawn(spawn); // sets it as removed
+
+		if (client->GetPlayer() != spawn) {
+			client->GetPlayer()->GetPlayerSpawnMap()->erase(index);
+			client->GetPlayer()->GetPlayerSpawnIndexMap()->erase(spawn);
+			client->GetPlayer()->RemoveSpawn(spawn); // sets it as removed
+		}
 
 		if(delete_spawn)
 			packet->setDataByName("delete", 1);	
@@ -3771,7 +3778,7 @@ void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool
 	LogWrite(ZONE__DEBUG, 3, "Zone", "Done processing RemoveSpawn function...");
 }
 
-void ZoneServer::RemoveSpawnFromClient(Spawn* spawn) {
+void ZoneServer::RemoveSpawnFromClient(Spawn* spawn, bool skip_if_client) {
 	Client* client = 0;
 	PacketStruct* packet = 0;
 	int16 packet_version = 0;
@@ -3786,7 +3793,7 @@ void ZoneServer::RemoveSpawnFromClient(Spawn* spawn) {
 			if (!client->IsConnected())
 				continue;
 
-			if (client->GetPlayer() == spawn)
+			if (skip_if_client && client->GetPlayer() == spawn)
 				continue;
 
 			if (!packet || packet_version != client->GetVersion())
@@ -5470,8 +5477,13 @@ void ZoneServer::SetupInstance(int32 createdInstanceID) {
 		instanceID = createdInstanceID;
 }
 
-void ZoneServer::RemoveDeadSpawn(Spawn* spawn){
-	AddDeadSpawn(spawn, 0);
+void ZoneServer::RemoveDeadSpawn(Spawn* spawn, bool immediate) {
+	if (immediate) {
+		if (dead_spawns.count(spawn->GetID()) > 0)
+			dead_spawns.erase(spawn->GetID());
+	} else {
+		AddDeadSpawn(spawn, 0);
+	}
 }
 
 void ZoneServer::AddDeadSpawn(Spawn* spawn, int32 timer){

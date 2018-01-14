@@ -444,9 +444,60 @@ void Client::DisplayDeadWindow()
 
 void Client::HandlePlayerRevive(int32 point_id)
 {
+	float x, y, z, heading;
+	const char* location_name = "Unknown";
+	RevivePoint* revive_point = 0;
+	bool use_safe_spot = false;
+	string* zone_name = nullptr;
+	string zone_desc = "Unknown";
+
+	if (point_id != 0xFFFFFFFF)
+		revive_point = GetCurrentZone()->GetRevivePoint(point_id);
+
+	if (revive_point && revive_point->zone_id != 0) {
+		zone_name = database.GetZoneName(revive_point->zone_id);
+
+		if (!zone_name || zone_name->length() == 0) {
+			use_safe_spot = true;
+		} else {
+			x = revive_point->x;
+			y = revive_point->y;
+			z = revive_point->z;
+			heading = revive_point->heading;
+			location_name = revive_point->location_name.c_str();
+			zone_desc = database.GetZoneDescription(revive_point->zone_id);
+		}
+	} else {
+		use_safe_spot = true;
+	}
+
+	if (use_safe_spot) {
+		x = GetCurrentZone()->GetSafeX();
+		y = GetCurrentZone()->GetSafeY();
+		z = GetCurrentZone()->GetSafeZ();
+		heading = GetCurrentZone()->GetSafeHeading();
+		location_name = "Zone Safe Point";
+		zone_desc = GetCurrentZone()->GetZoneDescription();
+	}
+
+	player->SetX(x);
+	player->SetY(y);
+	player->SetZ(z);
+	player->SetHeading(heading);
+
+	player->SetHP(player->GetTotalHP());
+	player->SetPower(player->GetTotalPower());
+
+	//GetCurrentZone()->RemoveDeadSpawn(player, true);
+
+	player->SetResurrecting(true);
+
+	Save();
+
+	SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
+
 	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
-	if(packet)
-	{
+	if (packet) {
 		packet->setDataByName("parameter1", 8);
 		QueuePacket(packet->serialize());
 		packet->setDataByName("parameter1", 16);
@@ -454,130 +505,27 @@ void Client::HandlePlayerRevive(int32 point_id)
 		safe_delete(packet);
 	}
 
-	SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
 	packet = configReader.getStruct("WS_Resurrected", GetVersion());
-	if(packet)
-	{
+	if (packet) {
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
-	}
-
-	float x, y, z, heading;
-	RevivePoint* revive_point = 0;
-	if(point_id != 0xFFFFFFFF)
-		revive_point = GetCurrentZone()->GetRevivePoint(point_id);
-
-	string zone_desc;
-	const char* location_name = "Unknown";
-
-	//revive at zone safe coords
-	if(!revive_point)
-	{
-		LogWrite(CCLIENT__WARNING, 0, "Client", "No Revive Point! Spawning player at safe coordinates!");
-		x = GetCurrentZone()->GetSafeX();
-		y = GetCurrentZone()->GetSafeY();
-		z = GetCurrentZone()->GetSafeZ();
-		heading = GetCurrentZone()->GetSafeHeading();
-		zone_desc = GetCurrentZone()->GetZoneDescription();
-		location_name = "Zone Safe Point";
-		Zone(GetCurrentZone()->GetZoneName(), false);
-	}
-	else
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "Sending player to chosen Revive Point.");
-		x = revive_point->x;
-		y = revive_point->y;
-		z = revive_point->z;
-		heading = revive_point->heading;
-		zone_desc = database.GetZoneDescription(revive_point->zone_id);
-		location_name = revive_point->location_name.c_str();
-		Zone(GetCurrentZone()->GetZoneName(), false);
-	}
-
-	player->SetResurrecting(true);
-	player->SetX(x);
-	player->SetY(y);
-	player->SetZ(z);
-	player->SetHeading(heading);
-	player->SetHP(player->GetTotalHP());
-	player->SetPower(player->GetTotalPower());
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "Attempt Revive @ %s, %.2f, %.2f, %.2f, %.2f, HP: %i, Pow: %i, %s", 
-		zone_desc.c_str(),
-		player->GetX(),
-		player->GetY(),
-		player->GetZ(),
-		player->GetHeading(),
-		player->GetHP(),
-		player->GetPower(),
-		location_name);
-
-	//player->ClearEverything();
-	Save();
-
-	if(revive_point && revive_point->zone_id != GetCurrentZone()->GetZoneID() && revive_point->zone_id != 0)
-	{
-		string* zone_name = database.GetZoneName(revive_point->zone_id);
-		if(!zone_name || zone_name->length() == 0)
-		{
-			LogWrite(CCLIENT__WARNING, 0, "Client", "Unable to zone player to revive zone ID '%u', using current zone's safe coords.", revive_point->zone_id);
-			x = GetCurrentZone()->GetSafeX();
-			y = GetCurrentZone()->GetSafeY();
-			z = GetCurrentZone()->GetSafeZ();
-			heading = GetCurrentZone()->GetSafeHeading();
-			location_name = "Zone Safe Point";
-		} 
-		else 
-		{
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "Sending player to revive zone ID '%u', using current zone's safe coords.", revive_point->zone_id);
-			location_name = revive_point->location_name.c_str();
-			player->ClearEverything();
-			Zone(zone_name->c_str(), false);
-		}
-		safe_delete(zone_name);
 	}
 
 	zone_desc = GetCurrentZone()->GetZoneDescription();
 	Message(CHANNEL_COLOR_REVIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
-	player->SetSpawnType(4);
-	packet = configReader.getStruct("WS_CancelMoveObjectMode", GetVersion());
-	if(packet)
-	{
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
+
+	if (use_safe_spot) {
+		Zone(GetCurrentZone()->GetZoneName(), false);
+	} else {
+		Zone(zone_name->c_str(), false);
 	}
 
-	packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
-	if(packet)
-	{
-		packet->setDataByName("x", x);
-		packet->setDataByName("y", y);
-		packet->setDataByName("z", z);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
-	}
+	safe_delete(zone_name);
 
-	packet = configReader.getStruct("WS_SetControlGhost", GetVersion());
-	if(packet)
-	{
-		packet->setDataByName("spawn_id", 0xFFFFFFFF);
-		packet->setDataByName("unknown2", 255);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
-	}
-
-	packet = configReader.getStruct("WS_SetPOVGhostCmd", GetVersion());
-	if(packet)
-	{
-		packet->setDataByName("spawn_id", 0xFFFFFFFF);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
-	}
-
-	GetCurrentZone()->RemoveSpawn(player, false);
+	//TeleportWithinZone(x, y, z, heading);
 	
 	m_resurrect.writelock(__FUNCTION__, __LINE__);
-	if(current_rez.active)
+	if (current_rez.active)
 		current_rez.should_delete = true;
 	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
 }
@@ -607,7 +555,7 @@ void Client::SendCharInfo(){
 	master_aa_list.DisplayAA(this);
 	ClientPacketFunctions::SendSkillBook(this);
 	ClientPacketFunctions::SendLoginCommandMessages(this);
-
+	
 	GetCurrentZone()->AddSpawn(player);
 
 	player->ClearProcs();
@@ -695,8 +643,9 @@ void Client::SendCharInfo(){
 
 	safe_delete(items);
 
-	if (!player->Alive())
+	if (!player->Alive()) {
 		DisplayDeadWindow();
+	}
 }
 
 void Client::SendZoneSpawns(){
@@ -706,7 +655,7 @@ void Client::SendZoneSpawns(){
 	QueuePacket(app);
 
 	ClientPacketFunctions::SendSkillSlotMappings(this);
-	ClientPacketFunctions::SendGameWorldTime ( this );
+	ClientPacketFunctions::SendGameWorldTime(this);
 	GetCurrentZone()->StartZoneInitialSpawnThread(this);
 }
 
@@ -3216,6 +3165,43 @@ void Client::Zone(const char* new_zone, bool set_coords)
 {
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request to '%s'", new_zone);
 	Zone(zone_list.Get(new_zone), set_coords);
+}
+
+void Client::TeleportWithinZone(float x, float y, float z, float heading) {
+	PacketStruct* packet = configReader.getStruct("WS_CancelMoveObjectMode", GetVersion());
+	if (packet) {
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+	}
+
+	packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
+	if (packet) {
+		packet->setDataByName("x", x);
+		packet->setDataByName("y", y);
+		packet->setDataByName("z", z);
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+	}
+
+	packet = configReader.getStruct("WS_SetControlGhost", GetVersion());
+	if (packet) {
+		packet->setDataByName("spawn_id", 0xFFFFFFFF);
+		packet->setDataByName("unknown2", 255);
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+	}
+
+	packet = configReader.getStruct("WS_SetPOVGhostCmd", GetVersion());
+	if (packet) {
+		packet->setDataByName("spawn_id", 0xFFFFFFFF);
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+	}
+
+	GetCurrentZone()->RemoveSpawnFromClient(GetPlayer(), false);
+
+	if (!GetPlayer()->IsResurrecting())
+		client_zoning = true;
 }
 
 float Client::DistanceFrom(Client* client){

@@ -259,7 +259,7 @@ public:
 	Sign*	AddSignSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentry);
 	void	AddSpawn(Spawn* spawn);
 	void	RemoveDeadEnemyList(Spawn* spawn);
-	void	RemoveDeadSpawn(Spawn* spawn);
+	void	RemoveDeadSpawn(Spawn* spawn, bool immediate = false);
 	
 	void	AddSpawnGroupLocation(int32 group_id, int32 location_id, int32 spawn_location_id);
 	void	AddSpawnGroupAssociation(int32 group_id1, int32 group_id2);
@@ -267,7 +267,7 @@ public:
 	void	AddSpawnGroupChance(int32 group_id, float percent);
 	
 	void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true, bool respawn = true, bool lock = true);
-	void RemoveSpawnFromClient(Spawn* spawn);
+	void RemoveSpawnFromClient(Spawn* spawn, bool skip_if_client = true);
 	void	ProcessSpawnLocations();
 	void	SendQuestUpdates(Client* client, Spawn* spawn = 0);
 	

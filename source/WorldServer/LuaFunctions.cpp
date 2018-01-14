@@ -1287,17 +1287,7 @@ int EQ2Emu_lua_SetPosition(lua_State* state){
 
 			if (client) {
 				if (should_zone) {
-					PacketStruct* packet = configReader.getStruct("WS_TeleportWithinZone", client->GetVersion());
-					if (packet)
-					{
-						packet->setDataByName("x", x);
-						packet->setDataByName("y", y);
-						packet->setDataByName("z", z);
-						client->QueuePacket(packet->serialize());
-					}
-					safe_delete(packet);
-
-					client->GetCurrentZone()->RemoveSpawnFromClient(spawn);
+					client->TeleportWithinZone(x, y, z, heading);
 				} else {
 					EQ2Packet* packet = client->GetPlayer()->Move(x, y, z, client->GetVersion(), (heading == 0 ? -1.0f : (heading + 180.0f)));
 					client->QueuePacket(packet);
