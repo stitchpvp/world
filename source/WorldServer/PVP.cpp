@@ -52,9 +52,25 @@ bool PVP::CanAttack(Player* attacker, Spawn* target)
 		if (target->IsPet())
 			entity_target =  static_cast<NPC*>(target)->GetOwner();
 
+		if (attacker->GetPVPImmune() || (entity_target->IsPlayer() && static_cast<Player*>(entity_target)->GetPVPImmune()))
+			return false;
+
+		return PVP::IsHostile(attacker, target);
+	} else {
+		return false;
+	}
+}
+
+bool PVP::IsHostile(Player* attacker, Spawn* target) {
+	if (PVP::IsEnabled(attacker->GetZone())) {
+		Entity* entity_target = static_cast<Entity*>(target);
+
+		if (target->IsPet())
+			entity_target = static_cast<NPC*>(target)->GetOwner();
+
 		// Alignment of 0 is currently "neutral"
 		// Not attackable by either - only meant for GM, perhaps.
-		if (entity_target->GetAlignment() == 0)
+		if (attacker->GetAlignment() == 0 || entity_target->GetAlignment() == 0)
 			return false;
 
 		return (attacker->GetAlignment() != entity_target->GetAlignment());

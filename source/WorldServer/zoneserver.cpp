@@ -1767,7 +1767,7 @@ void ZoneServer::SendSpawnChanges(Spawn* spawn){
 			for (itr = clients.begin(); itr != clients.end(); itr++) {
 				client = *itr;
 
-				if (spawn->IsPlayer() && client->GetPlayer()->CanAttackTarget((Player*)spawn) && ((Player*)spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH]) {
+				if (spawn->IsPlayer() && client->GetPlayer()->IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH]) {
 					int16 packet_version = client->GetVersion();
 					PacketStruct *packet = configReader.getStruct("WS_DestroyGhostCmd", packet_version);
 
@@ -1886,7 +1886,7 @@ void ZoneServer::SendSpawnChanges(){
 	while(spawn_iter.Next()){		
 		spawn = GetSpawnByID(spawn_iter->value);
 		if(spawn && spawn->changed){
-			if(!spawn->IsPlayer() || (spawn->IsPlayer() && (spawn->info_changed || spawn->vis_changed))){
+			if(!spawn->IsPlayer() || (spawn->IsPlayer() && (spawn->info_changed || spawn->vis_changed))) {
 				SendSpawnChanges(spawn);
 			}
 		}

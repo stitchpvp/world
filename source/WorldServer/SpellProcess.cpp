@@ -1016,7 +1016,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 					return;
 				}
 
-				if (target->IsPlayer() && caster->IsPlayer() && ((Player*)caster)->CanAttackTarget((Player*)target)) {
+				if (target->IsPlayer() && caster->IsPlayer() && static_cast<Player*>(caster)->IsHostile(static_cast<Player*>(target))) {
 					zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_A_FRIEND);
 					return;
 				}
@@ -1084,7 +1084,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 					return;
 				}
 
-				if (target->IsPlayer() && caster->IsPlayer() && !((Player*)caster)->CanAttackTarget((Player*)target)) 
+				if (target->IsPlayer() && caster->IsPlayer() && !static_cast<Player*>(caster)->CanAttackTarget(static_cast<Player*>(target)))
 				{
 					LogWrite(SPELL__DEBUG, 1, "Spell", "%s: Target (%s) is player and not attackable.", spell->GetName(), target->GetName());
 					zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);

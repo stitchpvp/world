@@ -767,6 +767,7 @@ public:
 	virtual void RemoveSkillBonus(int32 spell_id);
 	void CancelAllStealth();
 	bool CanAttackTarget(Spawn* target);
+	bool IsHostile(Spawn* target);
 	bool IsStealthed();
 	bool IsInvis();
 	void AddInvisSpell(LuaSpell* spell);

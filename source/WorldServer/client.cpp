@@ -28,6 +28,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include <zlib.h>
 #include <assert.h>
 #include <algorithm>
+#include <memory>
 #include "Player.h"
 #include "Commands/Commands.h"
 #include "ClientPacketFunctions.h"
@@ -38,6 +39,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Titles.h"
 #include "IRC/IRC.h"
 #include "Chat/Chat.h"
+#include "PVP.h"
 
 //#include "Quests.h"
 
@@ -1170,6 +1172,13 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 			pos_update.Start();
 			spawn_vis_update.Start(1000);
 			quest_pos_timer.Start();
+			if (player->Alive() && PVP::IsEnabled(GetCurrentZone())) {
+				shared_ptr<ActivityStatus> status(new ActivityStatus);
+				status->status = ACTIVITY_STATUS_IMMUNITY_REMAINING;
+				status->end_time = Timer::GetCurrentTime2() + (20 * 1000);
+				player->SetPVPImmune(true);
+				player->AddActivityStatus(status);
+			}
 			break;
 											  }
 		case OP_LootItemsRequestMsg:{
@@ -2466,6 +2475,8 @@ bool Client::Process(bool zone_process) {
 	}
 	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
 
+	GetPlayer()->CheckActivityStatuses();
+
 	// Quest timers
 	Quest* failed_step = 0;
 	MQuestTimers.writelock(__FUNCTION__, __LINE__);
@@ -3341,7 +3352,7 @@ void Client::HandleVerbRequest(EQApplicationPacket* app){
 				commands.push_back(spawn->secondary_command_list[i]);
 
 			if (spawn->IsPlayer()) {
-				if (!player->CanAttackTarget((Player*)spawn)) {
+				if (!player->IsHostile(static_cast<Player*>(spawn))) {
 					delete_commands.push_back(player->CreateEntityCommand("Inspect", 10000, "inspect_player", "", 0, 0));
 					delete_commands.push_back(player->CreateEntityCommand("Who", 10000, "who", "", 0, 0));
 
@@ -3357,8 +3368,8 @@ void Client::HandleVerbRequest(EQApplicationPacket* app){
 						delete_commands.push_back(player->CreateEntityCommand("add to ignore list", 10000, "ignore_add", "", 0, 0));
 					}
 
-					if (((Player *)spawn)->GetGroupMemberInfo()) {
-						if (player->IsGroupMember((Player *)spawn) && player->GetGroupMemberInfo()->leader) { //group leader
+					if (((Player*)spawn)->GetGroupMemberInfo()) {
+						if (player->IsGroupMember((Player*)spawn) && player->GetGroupMemberInfo()->leader) { //group leader
 							delete_commands.push_back(player->CreateEntityCommand("kick from group", 10000, "kickfromgroup", "", 0, 0));
 							delete_commands.push_back(player->CreateEntityCommand("make group leader", 10000, "makeleader", "", 0, 0));
 						}

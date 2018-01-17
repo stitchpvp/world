@@ -158,6 +158,11 @@ struct MovementData{
 	string lua_function;
 };
 
+struct ActivityStatus {
+	int16 status;
+	int32 end_time;
+};
+
 struct BasicInfoStruct{
 	sint32	cur_hp;
 	sint32	max_hp;
@@ -381,6 +386,9 @@ public:
 	}
 	void SetActivityStatus(int16 state, bool updateFlags = true){ 
 		SetInfo(&appearance.activity_status, state, updateFlags);
+	}
+	void SetActivityTimer(int32 timer, bool updateFlags = true) {
+		SetInfo(&appearance.activity_timer, timer, updateFlags);
 	}
 	void SetCollisionRadius(int32 radius, bool updateFlags = true){ 
 		SetPos(&appearance.pos.collision_radius, radius, updateFlags);
@@ -969,6 +977,7 @@ private:
 	deque<MovementLocation*>* movement_locations;
 	Mutex*			MMovementLocations;
 	Mutex*			MSpawnGroup;
+	Mutex*			MActivityStatuses;
 	int8			size_offset;
 	int				tmp_visual_state;
 	int				tmp_action_state;
@@ -1003,6 +1012,7 @@ private:
 	map<string, Quest*>			m_tempVariableQuest;
 	// m_tempVariables = stores user defined variables from lua, will not persist through a zone
 	map<string, string>			m_tempVariables;
+	vector<ActivityStatus*>     activity_statuses;
 
 	int16						m_illusionModel;
 

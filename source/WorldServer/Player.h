@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <set>
 #include <mutex>
+#include <memory>
 
 #define CF_COMBAT_EXPERIENCE_ENABLED  0
 #define CF_ENABLE_CHANGE_LASTNAME  1
@@ -552,6 +553,11 @@ public:
 	void	SetResurrecting(bool val);
 	int8	GetArrowColor(int8 spawn_level);
 	int8    GetTSArrowColor(int8 level);
+	void	AddActivityStatus(shared_ptr<ActivityStatus> status);
+	bool	HasActivityStatus(int16 type);
+	void	CheckActivityStatuses();
+	void	SetPVPImmune(bool val);
+	bool	GetPVPImmune() { return pvp_immune; }
 	Spawn*	GetSpawnByIndex(int16 index);
 	int16	GetIndexForSpawn(Spawn* spawn);
 	bool	WasSpawnRemoved(Spawn* spawn);
@@ -841,10 +847,12 @@ public:
 	// PVP players will be removed based on last activity time
 	mutex encounter_list_mutex;
 	map<int32, HostileEntity*> encounter_list;
+	vector<shared_ptr<ActivityStatus>> activity_statuses;
 
 private:
 	bool range_attack;
 	bool melee_attack;
+	bool pvp_immune = false;
 	int16 last_movement_activity;
 	bool returning_from_ld;
 	PlayerGroup* group;

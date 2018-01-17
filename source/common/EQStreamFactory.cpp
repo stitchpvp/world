@@ -120,7 +120,7 @@ struct sockaddr_in address;
 		return false;
 	}
 
-	if (bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
+	if (::bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
 		close(sock);
 		sock=-1;
 		return false;

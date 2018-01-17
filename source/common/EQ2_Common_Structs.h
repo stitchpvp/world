@@ -157,6 +157,7 @@ struct AppearanceData {
 	int16			model_type;
 	int16			soga_model_type;
 	int16			activity_status;
+	int32			activity_timer;
 	int16			visual_state;
 	int16			action_state;
 	int16			mood_state;

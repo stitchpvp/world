@@ -1048,13 +1048,11 @@ void Player::ProcessCombat() {
 	// Reset combat target
 	combat_target = 0;
 
-	if (Target->HasTarget()) {
-		if (!CanAttackTarget(Target)) {
-			Spawn* secondary_target = Target->GetTarget();
+	if (Target->HasTarget() && !IsHostile(Target)) {
+		Spawn* secondary_target = Target->GetTarget();
 
-			if (CanAttackTarget(secondary_target))
-				combat_target = secondary_target;
-		}
+		if (IsHostile(secondary_target))
+			combat_target = secondary_target;
 	}
 	
 	// If combat_target wasn't set in the above if set it to the original target

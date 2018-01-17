@@ -22,6 +22,7 @@
 #include "../common/timer.h"
 #include <time.h>
 #include <math.h>
+#include <memory>
 #include "Entity.h"
 #include "Widget.h"
 #include "Sign.h"
@@ -152,7 +153,7 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 		header->setDataByName("max_distance", primary_command_list[0]->distance);
 	}
 
-	if (IsPlayer() && player->CanAttackTarget(this)) {
+	if (IsPlayer() && player->IsHostile(this)) {
 		header->setMediumStringByName("default_command", "attack");
 		header->setDataByName("max_distance", 10000.0);
 	}
@@ -189,9 +190,14 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			if (appearance.attackable == 1)
 				arrow_color = player->GetArrowColor(GetLevel());
 
-			if (IsPlayer() && player->CanAttackTarget(this)) {
+			if (IsPlayer() && player->IsHostile(this)) {
 				arrow_color = player->GetArrowColor(GetLevel());
-				npc_con = -4;
+
+				if (player->CanAttackTarget(this)) {
+					npc_con = -4;
+				} else {
+					npc_con = -3;
+				}
 			} else if (IsPlayer()) {
 				npc_con = 4;
 			}
@@ -216,7 +222,7 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 
 	int8 vis_flags = 0;
 	if (MeetsSpawnAccessRequirements(player)){
-		if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget((Player*)this)))
+		if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this))))
 			vis_flags += 64;
 		if (appearance.show_level == 1)
 			vis_flags += 32;
@@ -285,7 +291,7 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
-	if (IsEntity() && player->CanAttackTarget(this)) {
+	if (IsEntity() && player->IsHostile(this)) {
 		footer->setDataByName("spawn_type", 1);
 	} else {
 		footer->setDataByName("spawn_type", 6);
@@ -1475,7 +1481,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setDataByName("interaction_flag", vis_flag_override);
 
 	if (IsPlayer() && Alive()) {
-		if (spawn->CanAttackTarget(this)) {
+		if (spawn->IsHostile(this)) {
 			packet->setDataByName("spawn_type", 4);
 		} else {
 			packet->setDataByName("spawn_type", 0);
@@ -1647,10 +1653,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	}
 
 	if (appearance.icon == 0) {
-		if (appearance.attackable == 1 || (IsPlayer() && spawn->CanAttackTarget((Player*)this))) {
-			appearance.icon = 0;
-		}
-		else if (appearance.encounter_level > 0) {
+		if (appearance.encounter_level > 0) {
 			appearance.icon = 4;
 		}
 		else {
@@ -1689,6 +1692,55 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("icon", temp_icon);//appearance.icon);
 
 	int16 temp_activity_status = 0;
+	int32 temp_activity_timer = 0;
+
+	if (IsPlayer()) {
+		Player* player = static_cast<Player*>(this);
+		shared_ptr<ActivityStatus> ret_status = nullptr;
+
+		for (const auto& status : player->activity_statuses) {
+			if ((!ret_status || status->status == ACTIVITY_STATUS_CAMPING || status->end_time > ret_status->end_time) && status->end_time > Timer::GetCurrentTime2())
+				ret_status = status;
+		}
+
+		if (ret_status) {
+			temp_activity_timer = ret_status->end_time;
+
+			if ((appearance.activity_status & ret_status->status) == 0) {
+				if (version >= 1188) {
+					if ((ret_status->status & ACTIVITY_STATUS_ROLEPLAYING) > 0)
+						temp_activity_status += ACTIVITY_STATUS_ROLEPLAYING_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_ANONYMOUS) > 0)
+						temp_activity_status += ACTIVITY_STATUS_ANONYMOUS_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_LINKDEAD) > 0)
+						temp_activity_status += ACTIVITY_STATUS_LINKDEAD_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_CAMPING) > 0)
+						temp_activity_status += ACTIVITY_STATUS_CAMPING_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_LFG) > 0)
+						temp_activity_status += ACTIVITY_STATUS_LFG_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_LFW) > 0)
+						temp_activity_status += ACTIVITY_STATUS_LFW_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_SOLID) > 0)
+						temp_activity_status += ACTIVITY_STATUS_SOLID_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_IMMUNITY_GAINED) > 0)
+						temp_activity_status += ACTIVITY_STATUS_IMMUNITY_GAINED_1188;
+
+					if ((ret_status->status & ACTIVITY_STATUS_IMMUNITY_REMAINING) > 0)
+						temp_activity_status += ACTIVITY_STATUS_IMMUNITY_REMAINING_1188;
+				} else {
+					temp_activity_status += ret_status->status;
+				}
+			}
+		}
+	}
+
 	if (version >= 1188) {
 		if ((appearance.activity_status & ACTIVITY_STATUS_ROLEPLAYING) > 0)
 			temp_activity_status += ACTIVITY_STATUS_ROLEPLAYING_1188;
@@ -1721,6 +1773,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		temp_activity_status = appearance.activity_status;
 	
 	packet->setDataByName("activity_status", temp_activity_status);
+	packet->setDataByName("activity_timer", temp_activity_timer);
 	
 	// If player and player has a follow target
 	if (IsPlayer()) {

@@ -1567,7 +1567,7 @@ bool TCPServer::Open(int16 in_port, char* errbuf) {
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse_addr, sizeof(reuse_addr));
 
 
-	if (bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
+	if (::bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
 #ifdef WIN32
 		closesocket(sock);
 #else

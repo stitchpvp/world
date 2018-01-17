@@ -20,6 +20,7 @@ class PVP {
 public:
 	static void HandlePlayerEncounter(Player* attacker, Player* target, bool is_hostile);
 	static bool CanAttack(Player*, Spawn*);
+	static bool IsHostile(Player* attacker, Spawn* target);
 	static string GetRank(Player*);
 	static int GetRankIndex(Player* player);
 	static void HandleFameChange(Player* attacker, Player* victim);

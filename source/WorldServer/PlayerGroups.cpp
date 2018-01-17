@@ -275,7 +275,7 @@ int8 PlayerGroupManager::Invite(Player* leader, Entity* member) {
 	MPendingInvites.writelock(__FUNCTION__, __LINE__);
 
 	// Disable npc's in group until we are ready for mercs
-	if (!member || (member->IsNPC() && !member->IsBot()) || member->CanAttackTarget(leader))
+	if (!member || (member->IsNPC() && !member->IsBot()) || member->IsHostile(leader))
 		ret = 6; // failure, not a valid target
 	else if (member->IsNPC() && (!member->IsBot() /*|| !member->IsMec()*/))
 		ret = 6;

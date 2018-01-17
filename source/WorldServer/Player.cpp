@@ -129,6 +129,8 @@ Player::~Player(){
 		safe_delete(itr->second);
 	}
 
+	activity_statuses.clear();
+
 	map<int8, map<int8, vector<HistoryData*> > >::iterator itr1;
 	map<int8, vector<HistoryData*> >::iterator itr2;
 	vector<HistoryData*>::iterator itr3;
@@ -3790,7 +3792,7 @@ bool Player::ShouldSendSpawn(Spawn* spawn){
 	// Think invalid spawns are coming from the mutex list, if spawn is invalid return false.
 	try
 	{
-		if (spawn->IsPlayer() && CanAttackTarget((Player*)spawn) && ((Player*)spawn)->IsStealthed() && !stats[ITEM_STAT_SEESTEALTH])
+		if (spawn->IsPlayer() && IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !stats[ITEM_STAT_SEESTEALTH])
 			return false;
 
 		if((WasSentSpawn(spawn->GetID()) == false || NeedsSpawnResent(spawn)) && (!spawn->IsPrivateSpawn() || spawn->AllowedAccess(this)))
@@ -3867,6 +3869,50 @@ int8 Player::GetTSArrowColor(int8 level){
 	else //if(diff < 0)
 		color = ARROW_COLOR_BLUE;
 	return color;
+}
+
+void Player::AddActivityStatus(shared_ptr<ActivityStatus> status) {
+	if (!HasActivityStatus(status->status)) {
+		activity_statuses.push_back(status);
+
+		changed = true;
+		info_changed = true;
+		GetZone()->AddChangedSpawn(this);
+	}
+}
+
+bool Player::HasActivityStatus(int16 type) {
+	for (auto const& status : activity_statuses) {
+		if (status->status == type)
+			return true;
+	}
+
+	return false;
+}
+
+void Player::CheckActivityStatuses() {
+	auto status = begin(activity_statuses);
+
+	while (status != end(activity_statuses)) {
+		if (Timer::GetCurrentTime2() > status->get()->end_time) {
+			if (status->get()->status == ACTIVITY_STATUS_IMMUNITY_REMAINING)
+				SetPVPImmune(false);
+
+			status = activity_statuses.erase(status);
+
+			changed = true;
+			info_changed = true;
+			GetZone()->AddChangedSpawn(this);
+		} else {
+			++status;
+		}
+	}
+}
+
+void Player::SetPVPImmune(bool val) {
+	pvp_immune = val;
+	changed = true;
+	vis_changed = true;
 }
 
 void Player::AddCoins(int64 val){
@@ -4050,10 +4096,6 @@ bool Player::IsGroupMember(Entity* player) {
 	}
 	return ret;
 }
-
-
-
-
 
 void Player::SetGroupInformation(PacketStruct* packet){
 	int8 det_count = 0;
