@@ -1266,15 +1266,20 @@ void Entity::CheckProcs(int8 type, Spawn* target) {
 		return;
 	}
 
+	vector<Proc*> procs;
+
 	MProcList.readlock(__FUNCTION__, __LINE__);
 	for (int8 i = 0; i < m_procList[type].size(); i++) {
 		Proc* proc = m_procList[type].at(i);
 		float roll = MakeRandomFloat(0, 100);
 
 		if (roll <= proc->chance)
-			CastProc(proc, type, target);
+			procs.push_back(proc);
 	}
 	MProcList.releasereadlock(__FUNCTION__, __LINE__);
+
+	for (const auto& proc : procs)
+		CastProc(proc, type, target);
 }
 
 void Entity::ClearProcs() {
