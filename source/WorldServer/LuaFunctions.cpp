@@ -727,20 +727,29 @@ int EQ2Emu_lua_MoveToLocation(lua_State* state){
 }
 
 int EQ2Emu_lua_Say(lua_State* state){
-	if(!lua_interface)
+	if (!lua_interface)
 		return 0;
+
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	string message = lua_interface->GetStringValue(state, 2);
 	Spawn* player = lua_interface->GetSpawn(state, 3);
 	int32 language = lua_interface->GetInt32Value(state, 4);
-	if(spawn && message.length() > 0){
-		Client* client = 0;
-		if(player && player->IsPlayer())
+
+	if (spawn && message.length() > 0) {
+		Client* client = nullptr;
+		int distance = 30;
+
+		if (player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
-		if(client)
-			spawn->GetZone()->HandleChatMessage(client, spawn, 0, CHANNEL_SAY, message.c_str(), 30, 0, true, language);
-		else
-			spawn->GetZone()->HandleChatMessage(spawn, 0, CHANNEL_SAY, message.c_str(), 30, 0, true, language);
+
+		if (spawn->IsNPC() && static_cast<NPC*>(spawn)->EngagedInCombat())
+			distance = 60;
+
+		if (client) {
+			spawn->GetZone()->HandleChatMessage(client, spawn, 0, CHANNEL_SAY, message.c_str(), distance, 0, true, language);
+		} else {
+			spawn->GetZone()->HandleChatMessage(spawn, 0, CHANNEL_SAY, message.c_str(), distance, 0, true, language);
+		}
 	}
 	lua_interface->ResetFunctionStack(state);
 	return 0;
@@ -787,21 +796,31 @@ int EQ2Emu_lua_SayOOC(lua_State* state){
 int EQ2Emu_lua_Emote(lua_State* state){
 	if(!lua_interface)
 		return 0;
+
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	string message = lua_interface->GetStringValue(state, 2);
 	Spawn* spawn2 = lua_interface->GetSpawn(state, 3);
 	Spawn* player = lua_interface->GetSpawn(state, 4);
 	char* to = 0;
+
 	if(spawn2)
 		to = spawn2->GetName();
-	if(spawn && message.length() > 0){
-		Client* client = 0;
-		if(player && player->IsPlayer())
+
+	if (spawn && message.length() > 0) {
+		Client* client = nullptr;
+		int distance = 30;
+
+		if (player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
-		if(client)
-			spawn->GetZone()->HandleChatMessage(client, spawn, to, CHANNEL_EMOTE, message.c_str(), 30);
-		else
-			spawn->GetZone()->HandleChatMessage(spawn, to, CHANNEL_EMOTE, message.c_str(), 30);
+
+		if (spawn->IsNPC() && static_cast<NPC*>(spawn)->EngagedInCombat())
+			distance = 60;
+
+		if (client) {
+			spawn->GetZone()->HandleChatMessage(client, spawn, to, CHANNEL_EMOTE, message.c_str(), distance);
+		} else {
+			spawn->GetZone()->HandleChatMessage(spawn, to, CHANNEL_EMOTE, message.c_str(), distance);
+		}
 	}
 	lua_interface->ResetFunctionStack(state);
 	return 0;

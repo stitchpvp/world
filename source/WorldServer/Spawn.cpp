@@ -1477,9 +1477,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	if (!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
 		packet->setDataByName("interaction_flag", 12); //this makes NPCs head turn to look at you
 
-	if (vis_flag_override)
-		packet->setDataByName("interaction_flag", vis_flag_override);
-
 	if (IsPlayer() && Alive()) {
 		if (spawn->IsHostile(this)) {
 			packet->setDataByName("spawn_type", 4);
