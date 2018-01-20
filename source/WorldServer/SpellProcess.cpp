@@ -1774,14 +1774,14 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 		Spawn* target = caster->GetZone()->GetSpawnByID(luaspell->initial_target);
 		SpellData* data = luaspell->spell->GetSpellData();
 		bool implied = false;
-		Spawn* secondary_target = 0;
+		Spawn* secondary_target = nullptr;
 		
 		//implied target check -- only use this for players
 		if (target && (target_type == SPELL_TARGET_OTHER || target_type == SPELL_TARGET_ENEMY_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE || target_type == SPELL_TARGET_OTHER_GROUP_AE))
 		{
 			if (caster->IsPlayer())
 			{
-				Player* player_caster = (Player*)caster;
+				Player* player_caster = static_cast<Player*>(caster);
 
 				if (target->HasTarget()) {
 					secondary_target = target->GetTarget();

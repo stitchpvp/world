@@ -55,7 +55,7 @@ bool PVP::CanAttack(Player* attacker, Spawn* target)
 		if (attacker->GetPVPImmune() || (entity_target->IsPlayer() && static_cast<Player*>(entity_target)->GetPVPImmune()))
 			return false;
 
-		return PVP::IsHostile(attacker, target);
+		return PVP::IsHostile(attacker, entity_target);
 	} else {
 		return false;
 	}
