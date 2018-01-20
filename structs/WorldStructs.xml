@@ -28679,6 +28679,18 @@ to zero and treated like placeholders." />
   <Data ElementName="pngData" Type="int8" />      
 </Data>
 </Struct>
+<Struct Name="WS_PaperdollImage" ClientVersion="63214" OpcodeName="OP_PaperdollImage">
+<Data ElementName="packetIndex" Type="int8" />
+<Data ElementName="totalNumPackets" Type="int8" />
+<Data ElementName="unknown" Type="int64" />
+<Data ElementName="image_type" Type="int8" />
+<Data ElementName="unknown2" Type="int32" />
+<Data ElementName="imageSize" Type="int32" />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="pngDataArray" Type="Array" ArraySizeVariable="imageSize">
+  <Data ElementName="pngData" Type="int8" />
+</Data>
+</Struct>
 <Struct Name="WS_FlightPathsMsg" ClientVersion="1" OpcodeName="OP_FlightPathsMsg">
 <Data ElementName="number_of_routes" Type="int16" />
 <Data ElementName="route_length_array" Type="Array" ArraySizeVariable="number_of_routes">
