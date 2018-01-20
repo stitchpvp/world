@@ -1476,7 +1476,7 @@ void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_nam
 			InfoStruct* info_struct = det.caster->GetInfoStruct();
 
 			if (levels->size() > 0) {
-				for (const auto& x : *levels) {
+				for (const auto x : *levels) {
 					int8 level = x->spell_level / 10;
 					int8 det_class = x->adventure_class;
 
@@ -1498,7 +1498,7 @@ void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_nam
 	for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
 		if (total_cure_level + it->first > cure_level) break;
 
-		for (const auto& spell : it->second) {
+		for (const auto spell : it->second) {
 			if (total_cure_level + it->first > cure_level) break;
 
 			GetZone()->SendDispellPacket(caster, this, cure_name, (string)spell->spell->GetName(), DISPELL_TYPE_CURE);
@@ -1691,8 +1691,11 @@ void Entity::CancelAllStealth() {
 	}
 }
 
-bool Entity::CanAttackTarget(Spawn *target) {
-	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && (static_cast<NPC*>(target))->GetOwner()->IsPlayer()))) {
+bool Entity::CanAttackTarget(Spawn* target) {
+	if (target == this)
+		return false;
+
+	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && static_cast<NPC*>(target)->GetOwner()->IsPlayer()))) {
 		return PVP::CanAttack(static_cast<Player*>(this), target);
 	} else {
 		if (target->IsPlayer()) {
@@ -1706,8 +1709,13 @@ bool Entity::CanAttackTarget(Spawn *target) {
 }
 
 bool Entity::IsHostile(Spawn* target) {
+	if (target == this)
+		return false;
+
 	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer()))) {
 		return PVP::IsHostile(static_cast<Player*>(this), target);
+	} else if (target->IsPlayer()) {
+		return true;
 	} else {
 		return target->GetAttackable();
 	}
@@ -1737,7 +1745,7 @@ void Entity::AddStealthSpell(LuaSpell* spell) {
 		AddChangedZoneSpawn();
 		if (IsPlayer()) {
 			((Player*)this)->SetResendSpawns(true);
-			((Player*)this)->SetCharSheetChanged(true);
+			//((Player*)this)->SetCharSheetChanged(true);
 		}
 	}
 }

@@ -7652,7 +7652,9 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	}*/
 
 	if (sep->IsSet(0) && sep->IsNumber(0))
-		client->GetPlayer()->toggle_character_flag(atol(sep->arg[0]));
+		client->GetPlayer()->temp_status = atol(sep->arg[0]);
+
+	client->QueuePacket(client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion()));
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {

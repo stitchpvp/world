@@ -4768,30 +4768,29 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(Client* client){
 	packet->setSmallStringByName("zone2", GetZoneName());
 	packet->setSmallStringByName("zone_desc", GetZoneDescription());
 	packet->setSmallStringByName("char_name", client->GetPlayer()->GetName());
-	//packet->setDataByName("unknown1", 1, 1);
-	int32 expansions = EXPANSION_UNKNOWN + EXPANSION_DOF + EXPANSION_KOS + EXPANSION_EOF + EXPANSION_ROK + EXPANSION_TSO + EXPANSION_DOV;
-	//packet->setDataByName("expansions_enabled", 82313211);//expansions 63181 
-	packet->setDataByName("expansions_enabled", 552075103);//expansions 63182 
+
+	packet->setDataByName("expansions_enabled", 0);
 	packet->setDataByName("x", client->GetPlayer()->GetX());
 	packet->setDataByName("y", client->GetPlayer()->GetY());
 	packet->setDataByName("z", client->GetPlayer()->GetZ());
-	packet->setDataByName("unknown1", 1, 1);//1, 1
-	// unknown3 can prevent screen shots from being taken if
-	//packet->setDataByName("unknown3", 2094661567, 1);			// Screenshots allowed with this value
-	//packet->setDataByName("unknown3", 3815767999, 1);			// Screenshots disabled with this value
-	//packet->setDataByName("unknown3", 1, 2);
+	packet->setDataByName("unknown1", 1, 1);
 
-	if (client->GetVersion() <= 63181){
-		packet->setDataByName("unknown3", 872447025,0);//63181 
-		packet->setDataByName("unknown3", 3085434875,1);// 63181 
-		packet->setDataByName("unknown3", 2147483633,2);// 63181 
-	}
-	else{
-		packet->setDataByName("unknown3a", 750796556);//63182 73821356
-		packet->setDataByName("unknown3b", 3991404383);// 63182 3991404383
-		packet->setDataByName("unknown3c", 4278189967);// 63182 4278189967
-		packet->setDataByName("unknown2a", 8);// 63182
-		packet->setDataByName("unknown2b", 8);// 63182
+	if (client->GetVersion() <= 63181) {
+		packet->setDataByName("unknown3", 872447025, 0);
+		packet->setDataByName("unknown3", 3085434875, 1);
+		packet->setDataByName("unknown3", 2147483633, 2);
+	} else if (client->GetVersion() >= 63225) {
+		packet->setDataByName("unknown2a", 9);
+		packet->setDataByName("unknown2b", 2304);
+		//packet->setDataByName("unknown3a", 512);
+		//packet->setDataByName("unknown3b", 4160708352);
+		//packet->setDataByName("unknown3c", 4294938605);
+	} else {
+		packet->setDataByName("unknown2a", 8);
+		packet->setDataByName("unknown2b", 8);
+		packet->setDataByName("unknown3a", 750796556);
+		packet->setDataByName("unknown3b", 3991404383);
+		packet->setDataByName("unknown3c", 4278189967);
 	}
 	
 	packet->setDataByName("year", world.GetWorldTimeStruct()->year);
@@ -4812,7 +4811,7 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(Client* client){
 	packet->setDataByName("zone_flags", zone_flags);
 
 	packet->setDataByName("unknown10b", 1);
-	packet->setDataByName("permission_level",3);// added on 63182  for now till we figur it out 0=none,1=visitor,2=friend,3=trustee,4=owner
+	//packet->setDataByName("permission_level",3);// added on 63182  for now till we figur it out 0=none,1=visitor,2=friend,3=trustee,4=owner
 	packet->setDataByName("num_adv", 9);
 
 	packet->setArrayDataByName("adv_name", "adv02_dun_drowned_caverns", 0);

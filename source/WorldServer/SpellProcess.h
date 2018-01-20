@@ -313,6 +313,9 @@ public:
 	/// <returns>Spawn* - the spells target</returns>
 	Spawn* GetSpellTarget(Entity* caster);
 
+	void SetInitialTarget(LuaSpell* lua_spell, Spawn* target);
+	bool CanCast(LuaSpell* lua_spell, bool harvest_spell);
+
 	/// <summary>Gets the currently casting spell for the given entity</summary>
 	/// <param name='caster'>Entity to get the spell for</param>
 	/// <returns>Spell* for the currently casting spell</returns>

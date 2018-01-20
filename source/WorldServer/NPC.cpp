@@ -704,7 +704,7 @@ Spell* NPC::GetNextSpell(float distance, int8 type){
 		if (distance < 0)
 			distance = 0;
 
-		for (const auto& tmpSpell : *spells) {
+		for (const auto tmpSpell : *spells) {
 			if (!tmpSpell || (type == AI_STRATEGY_OFFENSIVE && tmpSpell->GetSpellData()->friendly_spell > 0))
 				continue;
 

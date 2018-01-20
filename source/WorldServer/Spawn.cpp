@@ -167,6 +167,9 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 			header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn((*itr)), i);
 		}
 		MSpawnGroup->releasereadlock(__FUNCTION__, __LINE__);
+	} else if (player != this) {
+		header->setArrayLengthByName("group_size", 1);
+		header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(this), 0);
 	}
 
 	if (header->GetVersion() >= 57080)
@@ -206,11 +209,15 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 				vis_packet->setDataByName("pvp_difficulty", 6);
 
 			vis_packet->setDataByName("arrow_color", arrow_color);
-			vis_packet->setDataByName("locked_no_loot", appearance.locked_no_loot);
-			if (IsNPC() && player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY || player->IsStealthed() || player->IsInvis())
+			vis_packet->setDataByName("locked_no_loot", 1);
+
+			if (IsNPC() && (player->GetArrowColor(GetLevel()) == ARROW_COLOR_GRAY || player->IsStealthed() || player->IsInvis())) {
 				if (npc_con == -4)
 					npc_con = -3;
+			}
+
 			vis_packet->setDataByName("npc_con", npc_con);
+
 			if (appearance.attackable == 1 && IsNPC() && (player->GetFactions()->GetCon(faction_id) <= -4 || ((NPC*)this)->Brain()->GetHate(player) > 1))
 				vis_packet->setDataByName("npc_hate", ((NPC*)this)->Brain()->GetHatePercentage(player));
 			int8 quest_flag = player->CheckQuestFlag(this);
@@ -291,7 +298,7 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 	footer->setMediumStringByName("suffix", appearance.suffix_title);
 	footer->setMediumStringByName("last_name", appearance.last_name);
 
-	if (IsEntity() && player->IsHostile(this)) {
+	if (IsEntity()) {
 		footer->setDataByName("spawn_type", 1);
 	} else {
 		footer->setDataByName("spawn_type", 6);
@@ -1451,7 +1458,6 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	int16 version = packet->GetVersion();
 	if(appearance.targetable == 1 || appearance.show_level == 1 || appearance.display_name == 1){
-		appearance.locked_no_loot = 1; //for now
 		if(!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign()){
 			int8 percent = 0;
 			if(GetHP() > 0)
@@ -1637,6 +1643,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setColorByName("soga_hair_highlight", entity->features.soga_hair_highlight_color);
 
 		packet->setDataByName("body_age", entity->features.body_age);
+
+		if (spawn->IsHostile(this)) {
+			packet->setDataByName("unknown5", 1);
+			packet->setDataByName("unknown7", 255);
+		}
 	}
 	else{
 		EQ2_Color empty;
@@ -1649,14 +1660,13 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		packet->setColorByName("soga_eye_color", empty);
 	}
 
-	if (appearance.icon == 0) {
+	/*if (appearance.icon == 0) {
 		if (appearance.encounter_level > 0) {
 			appearance.icon = 4;
-		}
-		else {
+		} else {
 			appearance.icon = 6;
 		}
-	}
+	}*/
 	
 	// If Coe+ clients modify the values before we send
 	// if not then just send the value we have.

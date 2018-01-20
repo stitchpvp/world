@@ -193,6 +193,8 @@ void WorldDatabase::LoadCharacterActiveSpells(Player* player) {
 
 			spell_process->GetSpellTargets(lua_spell);
 			spell_process->CastProcessedSpell(lua_spell, true);
+
+			caster->GetZone()->GetSpellProcess()->CheckRecast(spell, caster, spell->GetModifiedRecast(caster));
 		}
 	}
 }

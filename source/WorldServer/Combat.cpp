@@ -1276,7 +1276,7 @@ void Entity::CheckProcs(int8 type, Spawn* target) {
 	}
 	MProcList.releasereadlock(__FUNCTION__, __LINE__);
 
-	for (const auto& proc : procs)
+	for (const auto proc : procs)
 		CastProc(proc, type, target);
 }
 

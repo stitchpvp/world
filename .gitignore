@@ -7,5 +7,6 @@
 *.user
 *.o
 
+bin
 win/VC10Projects/EQ2World__*/
 win/worldserver

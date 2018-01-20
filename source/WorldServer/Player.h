@@ -758,10 +758,12 @@ public:
 	void LockAllSpells();
 
 	/// <summary>Unlocks all Spells, Combat arts, and Abilities (not trade skill spells)</summary>
-	void UnlockAllSpells(bool modify_recast = false);
+	void UnlockAllSpells(bool first_load = false);
 
 	/// <summary>Locks the given spell as well as all spells with a shared timer</summary>
 	void LockSpell(Spell* spell, int16 recast);
+
+	bool HasLinkedSpellEffect(int32 timer_id);
 
 	/// <summary>Unlocks the given spell as well as all spells with shared timers</summary>
 	void UnlockSpell(Spell* spell);
@@ -779,7 +781,10 @@ public:
 	void UnQueueSpell(Spell* spell);
 
 	///<summary>Get all the spells the player has with the given id</summary>
-	vector<Spell*> GetSpellBookSpellsByTimer(int32 timerID);
+	vector<Spell*> GetSpellBookSpellsByTimer(int32 timerID, bool should_lock = true);
+
+	void AddSpellStatus(SpellBookEntry* spell, sint16 value);
+	void RemoveSpellStatus(SpellBookEntry* spell, sint16 value);
 
 	PacketStruct* GetQuestJournalPacket(Quest* quest, int16 version, int32 crc);
 
@@ -848,6 +853,8 @@ public:
 	mutex encounter_list_mutex;
 	map<int32, HostileEntity*> encounter_list;
 	vector<shared_ptr<ActivityStatus>> activity_statuses;
+
+	int8 temp_status = 0;
 
 private:
 	bool range_attack;
@@ -936,7 +943,7 @@ private:
 	void HandleHistoryXP(int8 subtype, int32 value, int32 value2);
 
 	/// <summary></summary>
-	void ModifySpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);
+	void ModifyRecast(SpellBookEntry* spell, int16 recast);
 
 	void InitXPTable();
 	map<int8, int32> m_levelXPReq;

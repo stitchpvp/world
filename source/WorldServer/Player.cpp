@@ -600,6 +600,10 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("bonus_health", bonus_health);
 		packet->setDataByName("stat_bonus_health", player->CalculateBonusMod());
 		packet->setDataByName("current_power", player->GetPower());
+		packet->setDataByName("unknown6", 4294967261, 0);
+		packet->setDataByName("unknown6", 625, 1);
+		packet->setDataByName("unknown7", -1, 0);
+		packet->setDataByName("unknown7", -1, 1);
 		packet->setDataByName("max_power", player->GetTotalPower());
 		packet->setDataByName("base_power", player->GetTotalPowerBase());
 		packet->setDataByName("bonus_power", floor( (float)(player->GetPrimaryStat() * player->CalculateBonusMod())));
@@ -702,8 +706,6 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 			player->SetPowerRegen(info_struct->level+(int)(info_struct->level/10)+4);
 		packet->setDataByName("hp_regen", player->GetHPRegen() + player->stats[ITEM_STAT_HPREGEN]);
 		packet->setDataByName("power_regen", player->GetPowerRegen() + player->stats[ITEM_STAT_MANAREGEN]);
-		packet->setDataByName("unknown11", -1, 0);
-		packet->setDataByName("unknown11", -1, 1);
 		packet->setDataByName("mitigation2_cur", 2367);
 		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvE
 		packet->setDataByName("mitigation_pct_pvp", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvP
@@ -1632,7 +1634,7 @@ EQ2Packet* Player::GetQuickbarPacket(int16 version){
 
 void Player::AddSpellBookEntry(int32 spell_id, int8 tier, sint32 slot, int32 type, int32 timer, bool save_needed){
 	SpellBookEntry* spell = new SpellBookEntry;
-	spell->status = 161;
+	spell->status = 0;
 	spell->slot = slot;
 	spell->spell_id = spell_id;
 	spell->type = type;
@@ -1733,130 +1735,151 @@ int16 Player::GetSpellPacketCount(){
 }
 
 void Player::LockAllSpells() {
-	vector<SpellBookEntry*>::iterator itr;
-
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		if ((*itr)->type != SPELL_BOOK_TYPE_TRADESKILL)
-			ModifySpellStatus((*itr), -66, false);
+	for (auto entry : spells) {
+		if (entry->type != SPELL_BOOK_TYPE_TRADESKILL) {
+			RemoveSpellStatus(entry, SPELL_STATUS_READY);
+		}
 	}
-
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void Player::UnlockAllSpells(bool modify_recast) {
-	vector<SpellBookEntry*>::iterator itr;
-
+void Player::UnlockAllSpells(bool first_load) {
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		if ((*itr)->type != SPELL_BOOK_TYPE_TRADESKILL)
-			if (!GetSpellEffect((*itr)->spell_id, this) || master_spell_list.GetSpell((*itr)->spell_id, (*itr)->tier)->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE)
-				ModifySpellStatus((*itr), 66, modify_recast);
-	}
+	for (auto entry : spells) {
+		if (first_load) {
+			AddSpellStatus(entry, SPELL_STATUS_ENABLED);
+			AddSpellStatus(entry, SPELL_STATUS_LEARNED);
+		}
 
+		if (entry->type != SPELL_BOOK_TYPE_TRADESKILL && entry->recast_available < Timer::GetCurrentTime2()) {
+			if (!GetSpellEffect(entry->spell_id, this) || master_spell_list.GetSpell(entry->spell_id, entry->tier)->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE) {
+				if (!HasLinkedSpellEffect(master_spell_list.GetSpell(entry->spell_id, entry->tier)->GetSpellData()->linked_timer))
+					AddSpellStatus(entry, SPELL_STATUS_READY);
+			}
+		}
+	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Player::LockSpell(Spell* spell, int16 recast) {
-	vector<SpellBookEntry*>::iterator itr;
-	SpellBookEntry* spell2;
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		spell2 = *itr;
-		if (spell2->spell_id == spell->GetSpellID() /*|| (spell->GetSpellData()->linked_timer > 0 && spell->GetSpellData()->linked_timer == spell2->timer)*/)
-			ModifySpellStatus(spell2, -66, true, recast);
+	for (auto entry : spells) {
+		if (entry->spell_id == spell->GetSpellID()) {
+			RemoveSpellStatus(entry, SPELL_STATUS_READY);
+
+			if (!GetSpellEffect(spell->GetSpellID(), this) || spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE) {
+				if (!HasLinkedSpellEffect(spell->GetSpellData()->linked_timer))
+					ModifyRecast(entry, recast);
+			}
+		}
 	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
+bool Player::HasLinkedSpellEffect(int32 timer_id) {
+	if (!timer_id)
+		return false;
+
+	vector<Spell*> linkedSpells = GetSpellBookSpellsByTimer(timer_id, false);
+	for (const auto &spell : linkedSpells) {
+		if (GetSpellEffect(spell->GetSpellID(), this))
+			return true;
+	}
+
+	return false;
+}
+
 void Player::UnlockSpell(Spell* spell) {
-	vector<SpellBookEntry*>::iterator itr;
-	SpellBookEntry* spell2;
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		spell2 = *itr;
-		if (spell2->spell_id == spell->GetSpellID() /*|| (spell->GetSpellData()->linked_timer > 0 && spell->GetSpellData()->linked_timer == spell2->timer)*/)
-			ModifySpellStatus(spell2, 66);
+	for (auto entry : spells) {
+		if (entry->spell_id == spell->GetSpellID() && entry->recast_available < Timer::GetCurrentTime2()) {
+			if (!GetSpellEffect(spell->GetSpellID(), this) || spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE) {
+				if (!HasLinkedSpellEffect(spell->GetSpellData()->linked_timer)) {
+					AddSpellStatus(entry, SPELL_STATUS_READY);
+					ModifyRecast(entry, 0);
+				}
+			}
+		}
 	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Player::LockTSSpells() {
-	vector<SpellBookEntry*>::iterator itr;
-
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		if ((*itr)->type == SPELL_BOOK_TYPE_TRADESKILL)
-			ModifySpellStatus(*itr, -66);
+	for (auto entry : spells) {
+		if (entry->type == SPELL_BOOK_TYPE_TRADESKILL) {
+			RemoveSpellStatus(entry, SPELL_STATUS_READY);
+		}
 	}
-
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
-	// Unlock all other types
+
 	UnlockAllSpells();
 }
 
 void Player::UnlockTSSpells() {
-	vector<SpellBookEntry*>::iterator itr;
-
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		if ((*itr)->type == SPELL_BOOK_TYPE_TRADESKILL)
-			ModifySpellStatus(*itr, 66);
+	for (auto entry : spells) {
+		if (entry->type == SPELL_BOOK_TYPE_TRADESKILL) {
+			AddSpellStatus(entry, SPELL_STATUS_READY);
+		}
 	}
-
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
-	// Lock all other types
+
 	LockAllSpells();
 }
 
 void Player::QueueSpell(Spell* spell) {
-	vector<SpellBookEntry*>::iterator itr;
-	SpellBookEntry* spell2;
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		spell2 = *itr;
-		if (spell2->spell_id == spell->GetSpellID())
-			ModifySpellStatus(spell2, 4, false);
+	for (auto entry : spells) {
+		if (entry->spell_id == spell->GetSpellID()) {
+			AddSpellStatus(entry, SPELL_STATUS_QUEUED);
+		}
 	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Player::UnQueueSpell(Spell* spell) {
-	vector<SpellBookEntry*>::iterator itr;
-	SpellBookEntry* spell2;
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
-	for (itr = spells.begin(); itr != spells.end(); itr++) {
-		spell2 = *itr;
-		if (spell2->spell_id == spell->GetSpellID())
-			ModifySpellStatus(spell2, -4, false);
+	for (auto entry : spells) {
+		if (entry->spell_id == spell->GetSpellID()) {
+			RemoveSpellStatus(entry, SPELL_STATUS_QUEUED);
+		}
 	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-vector<Spell*> Player::GetSpellBookSpellsByTimer(int32 timerID) {
+vector<Spell*> Player::GetSpellBookSpellsByTimer(int32 timerID, bool should_lock) {
 	vector<Spell*> ret;
 	vector<SpellBookEntry*>::iterator itr;
-	MSpellsBook.readlock(__FUNCTION__, __LINE__);
+
+	if (should_lock)
+		MSpellsBook.readlock(__FUNCTION__, __LINE__);
+
 	for (itr = spells.begin(); itr != spells.end(); itr++) {
 		if ((*itr)->timer == timerID)
 			ret.push_back(master_spell_list.GetSpell((*itr)->spell_id, (*itr)->tier));
 	}
-	MSpellsBook.releasereadlock(__FUNCTION__, __LINE__);
+
+	if (should_lock)
+		MSpellsBook.releasereadlock(__FUNCTION__, __LINE__);
+
 	return ret;
 }
 
-void Player::ModifySpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast, int16 recast) {
-	if (modify_recast) {
-		spell->recast = recast;
-		spell->recast_available = Timer::GetCurrentTime2()	+ (recast * 100);
-	}
+void Player::AddSpellStatus(SpellBookEntry* spell, sint16 value) {
+	if (!(spell->status & value))
+		spell->status += value;
+}
 
-	if (modify_recast || spell->recast_available <= Timer::GetCurrentTime2() || value == 4 || value == -4) {
-		int32 new_value = spell->status + value;
-		if (new_value < 161 || new_value > 165 && new_value < 227 || new_value > 231)
-			return;
-		spell->status = new_value;
-	}
+void Player::RemoveSpellStatus(SpellBookEntry* spell, sint16 value) {
+	if (spell->status & value)
+		spell->status -= value;
+}
+
+void Player::ModifyRecast(SpellBookEntry* spell, int16 recast) {
+	spell->recast = recast;
+	spell->recast_available = Timer::GetCurrentTime2()	+ (recast * 100);
 }
 
 void Player::SetSpellStatus(Spell* spell, int8 status){
@@ -2019,7 +2042,7 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 				spell = master_spell_list.GetSpell(spell_entry->spell_id, spell_entry->tier);
 				if(spell){
 					packet->setSubstructArrayDataByName("spells", "spell_id", spell_entry->spell_id, 0, ptr);
-					packet->setSubstructArrayDataByName("spells", "type", spell_entry->type, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "type", spell->GetSpellData()->spell_book_type, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "target_type", spell->GetSpellData()->target_type, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_available", spell_entry->recast_available, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_time", spell_entry->recast, 0, ptr);
@@ -2030,8 +2053,25 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 					packet->setSubstructArrayDataByName("spells", "unique_id", (spell_entry->tier+1)*-1, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "charges", 255, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "distance", 32 * spell->GetSpellData()->range, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown4", 1600, 0, ptr);
 
-					// Beastlord and Channeler spell support
+					packet->setSubstructArrayDataByName("spells", "unknown2", 2, 0, ptr);
+
+					// unknown 3 = spell research stuff?
+					/*packet->setSubstructArrayDataByName("spells", "unknown3", 224, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 16, 1, ptr);
+
+					packet->setSubstructArrayDataByName("spells", "unknown3", 49, 4, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 49, 6, ptr);
+
+					packet->setSubstructArrayDataByName("spells", "unknown3", 223, 8, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 151, 9, ptr);
+					//packet->setSubstructArrayDataByName("spells", "unknown3", 1, 12, ptr);
+
+					packet->setSubstructArrayDataByName("spells", "unknown6", 2, 0, ptr); // 1 = ?, 2 = researchable
+					packet->setSubstructArrayDataByName("spells", "unknown6", 2, 1, ptr);*/
+
+					/*// Beastlord and Channeler spell support
 					if (spell->GetSpellData()->savage_bar == 1)
 						packet->setSubstructArrayDataByName("spells", "unknown6", 32, 0, ptr); // advantages
 					else if (spell->GetSpellData()->savage_bar == 2)
@@ -2041,7 +2081,7 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 						// Slot req for channelers
 						// bitmask for slots 1 = slot 1, 2 = slot 2, 4 = slot 3, 8 = slot 4, 16 = slot 5, 32 = slot 6, 64 = slot 7, 128 = slot 8
 						packet->setSubstructArrayDataByName("spells", "savage_bar_slot", spell->GetSpellData()->savage_bar_slot, 0, ptr);
-					}
+					}*/
 
 					ptr++;
 				}

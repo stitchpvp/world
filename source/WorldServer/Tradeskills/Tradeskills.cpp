@@ -440,7 +440,7 @@ void TradeskillMgr::CheckTradeskillEvent(Client* client, int16 icon) {
 
 Tradeskill* TradeskillMgr::GetTradeskill(Client* client) {
 	if (tradeskillList.count(client) == 0)
-		return 0;
+		return nullptr;
 
 	return tradeskillList[client];
 }

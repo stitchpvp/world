@@ -242,7 +242,7 @@ void ClientPacketFunctions::SendUpdateSpellBook ( Client* client ){
 	EQ2Packet* app = client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion());
 	if(app)
 		client->QueuePacket(app);
-	client->GetPlayer()->UnlockAllSpells(true);
+	client->GetPlayer()->UnlockAllSpells();
 }
 
 void ClientPacketFunctions::SendLoginCommandMessages ( Client* client ){

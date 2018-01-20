@@ -851,6 +851,86 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown_mj21" Type="int32" Size="1" />
 <Data ElementName="unknown_mj22" Type="int32" Size="1" />
 </Struct>
+<Struct Name="WS_ZoneInfo" ClientVersion="63225" OpcodeName="OP_ZoneInfoMsg">
+<Data ElementName="server1" Type="EQ2_8Bit_String" />
+<Data ElementName="server2" Type="EQ2_8Bit_String" />
+<Data ElementName="unknown1" Type="int8" Size="2" />
+<Data ElementName="unknown2a" Type="int32" Size="1" />
+<Data ElementName="expansions_enabled" Type="int32" Size="1" />
+<Data ElementName="unknown3a" Type="int32" Size="1" />
+<Data ElementName="unknown2b" Type="int32" Size="1" />
+<Data ElementName="unknown3b" Type="int32" Size="1" />
+<Data ElementName="unknown3c" Type="int32" Size="1" />
+<Data ElementName="unknown3d" Type="int16" Size="1" />
+<Data ElementName="auction_website" Type="EQ2_8Bit_String" />
+<Data ElementName="auction_port" Type="int32" Size="1" />
+<Data ElementName="upload_page" Type="EQ2_8Bit_String" />
+<Data ElementName="upload_key" Type="EQ2_8Bit_String" />
+<Data ElementName="upload_key2" Type="EQ2_8Bit_String" />
+<Data ElementName="zone" Type="EQ2_8Bit_String" />
+<Data ElementName="zone2" Type="EQ2_8Bit_String" />
+<Data ElementName="parent_zone" Type="EQ2_8Bit_String" />
+<Data ElementName="zone_unknown2" Type="EQ2_8Bit_String" />
+<Data ElementName="zone_desc" Type="EQ2_8Bit_String" />
+<Data ElementName="char_name" Type="EQ2_8Bit_String" />
+<Data ElementName="x" Type="float" Size="1" />
+<Data ElementName="y" Type="float" Size="1" />
+<Data ElementName="z" Type="float" Size="1" />
+<Data ElementName="year" Type="int16" Size="1" />
+<Data ElementName="month" Type="int8" Size="1" />
+<Data ElementName="day" Type="int8" Size="1" />
+<Data ElementName="hour" Type="int8" Size="1" />
+<Data ElementName="minute" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="1" />
+<Data ElementName="unknown7" Type="float" Size="2" />
+<Data ElementName="unknown8" Type="int16" Size="1" />
+<Data ElementName="unknown9" Type="float" Size="1" />
+<Data ElementName="zone_flags" Type="int32" Size="1" />
+<Data ElementName="unknown10b" Type="int16" Size="1" />
+<Data ElementName="unknown11a" Type="int8" Size="1" />
+<Data ElementName="unknown11b" Type="int8" Size="1" />
+<Data ElementName="unknown11c" Type="int8" Size="1" />
+<Data ElementName="permission_level" Type="int8" Size="1" />
+<Data ElementName="unknown11e" Type="int8" Size="1" />
+<Data ElementName="num_adv" Type="int32" Size="1" />
+<Data ElementName="adv_array" Type="Array" ArraySizeVariable="num_adv">
+  <Data ElementName="adv_name" Type="EQ2_16Bit_String" />
+  <Data ElementName="adv_id" Type="int16" />
+</Data>
+<Data ElementName="num_client_setup" Type="int32" Size="1" />
+<Data ElementName="client_cmd_array" Type="Array" ArraySizeVariable="num_client_setup">
+  <Data ElementName="client_cmds" Type="EQ2_8Bit_String" />
+</Data>
+<Data ElementName="unknown12" Type="int32" Size="1" />
+<Data ElementName="tab_count" Type="int32" />
+<Data ElementName="tab_array" Type="Array" ArraySizeVariable="tab_count">
+  <Data ElementName="tab_index" Type="int32" />
+  <Data ElementName="tab_name" Type="EQ2_16Bit_String" />
+</Data>
+<Data ElementName="unknown_mj" Type="int8" Size="1" />
+<Data ElementName="unknown_mj1" Type="int32" Size="1" />
+<Data ElementName="unknown_mj2" Type="int32" Size="1" />
+<Data ElementName="unknown_mj3" Type="int32" Size="1" />
+<Data ElementName="unknown_mj4" Type="int32" Size="1" />
+<Data ElementName="unknown_mj5" Type="int32" Size="1" />
+<Data ElementName="unknown_mj6" Type="int32" Size="1" />
+<Data ElementName="unknown_mj7" Type="int32" Size="1" />
+<Data ElementName="unknown_mj8" Type="int32" Size="1" />
+<Data ElementName="unknown_mj9" Type="int32" Size="1" />
+<Data ElementName="unknown_mj10" Type="int32" Size="1" />
+<Data ElementName="unknown_mj11" Type="int32" Size="1" />
+<Data ElementName="unknown_mj12" Type="int32" Size="1" />
+<Data ElementName="unknown_mj13" Type="int32" Size="1" />
+<Data ElementName="unknown_mj14" Type="int32" Size="1" />
+<Data ElementName="unknown_mj15" Type="int32" Size="1" />
+<Data ElementName="unknown_mj16" Type="int32" Size="1" />
+<Data ElementName="unknown_mj17" Type="int32" Size="1" />
+<Data ElementName="unknown_mj18" Type="int32" Size="1" />
+<Data ElementName="unknown_mj19" Type="int32" Size="1" />
+<Data ElementName="unknown_mj20" Type="int32" Size="1" />
+<Data ElementName="unknown_mj21" Type="int32" Size="1" />
+<Data ElementName="unknown_mj22" Type="int32" Size="1" />
+</Struct>
 <Struct Name="Substruct_SpellEffects" ClientVersion="1" >
 <Data ElementName="spell_id" Type="int32" Size="1" />
 <Data ElementName="total_time" Type="float" Size="1" />

@@ -37,7 +37,7 @@ void PVP::HandlePlayerEncounter(Player* source, Player* target, bool is_hostile)
 		}
 		target->encounter_list_mutex.unlock();
 
-		for (const auto& spawn : to_add) {
+		for (const auto spawn : to_add) {
 			source->AddToEncounterList(spawn->GetID(), Timer::GetCurrentTime2(), true);
 			static_cast<Player*>(spawn)->AddToEncounterList(source->GetID(), Timer::GetCurrentTime2(), false);
 		}
