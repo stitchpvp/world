@@ -481,9 +481,7 @@ void CombatPetBrain::Think() {
 	if (GetBody()->GetOwner()->IsPlayer() && ((Player*)GetBody()->GetOwner())->GetInfoStruct()->pet_movement == 1)
 		return;
 
-	// Set target to owner
 	Entity* target = GetBody()->GetOwner();
-	GetBody()->SetTarget(target);
 
 	// Get distance from the owner
 	float distance = GetBody()->GetDistance(target);
@@ -513,9 +511,7 @@ void NonCombatPetBrain::Think() {
 	
 	LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "Pet AI code called for %s", GetBody()->GetName());
 
-	// Set target to owner
 	Entity* target = GetBody()->GetOwner();
-	GetBody()->SetTarget(target);
 
 	// Get distance from the owner
 	float distance = GetBody()->GetDistance(target);
