@@ -541,6 +541,9 @@
     <ClCompile Include="..\..\source\WorldServer\Trade.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\WorldServer\MasterServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\common\Common_Defines.h">
@@ -932,6 +935,12 @@
     </ClInclude>
     <ClInclude Include="..\..\source\WorldServer\Bots\BotBrain.h">
       <Filter>Header Files\Bots</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\WorldServer\MasterServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\common\picosha.h">
+      <Filter>Common Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

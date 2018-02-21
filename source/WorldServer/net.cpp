@@ -44,6 +44,7 @@ using namespace std;
 #include "../common/Common_Defines.h"
 
 #include "LoginServer.h"
+#include "MasterServer.h"
 #include "Commands/Commands.h"
 #include "Factions.h"
 #include "World.h"
@@ -76,6 +77,7 @@ NetConnection net;
 World world;
 EQStreamFactory eqsf(LoginStream);
 LoginServer loginserver;
+MasterServer master_server;
 LuaInterface* lua_interface = new LuaInterface();
 #include "MutexList.h"
 
@@ -437,12 +439,18 @@ int main(int argc, char** argv) {
 			world.Process();
 			client_list.Process();
 			loginserver.Process();
+			master_server.Process();
 			if(TimeoutTimer->Check()){
 				eqsf.CheckTimeout();
 			}
 			if (InterserverTimer.Check()) {
 				InterserverTimer.Start();
 				database.ping();
+
+				if (getenv("MASTER_SERVER_ENABLED") == "true" && !master_server.Connected() && master_server.Connect()) {
+					LogWrite(WORLD__INFO, 0, "Master", "Connected to Master Server");
+					master_server.SayHello();
+				}
 
 				if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
 					LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");

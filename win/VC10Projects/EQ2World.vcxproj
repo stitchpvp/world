@@ -469,6 +469,7 @@
     <ClCompile Include="..\..\source\WorldServer\LoginServer.cpp" />
     <ClCompile Include="..\..\source\WorldServer\LuaFunctions.cpp" />
     <ClCompile Include="..\..\source\WorldServer\LuaInterface.cpp" />
+    <ClCompile Include="..\..\source\WorldServer\MasterServer.cpp" />
     <ClCompile Include="..\..\source\WorldServer\net.cpp" />
     <ClCompile Include="..\..\source\WorldServer\NPC.cpp" />
     <ClCompile Include="..\..\source\WorldServer\NPC_AI.cpp" />
@@ -535,6 +536,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\common\DatabaseNew.h" />
     <ClInclude Include="..\..\source\common\DatabaseResult.h" />
+    <ClInclude Include="..\..\source\common\picosha.h" />
     <ClInclude Include="..\..\source\LUA\lapi.h" />
     <ClInclude Include="..\..\source\LUA\lauxlib.h" />
     <ClInclude Include="..\..\source\LUA\lcode.h" />
@@ -588,6 +590,7 @@
     <ClInclude Include="..\..\source\WorldServer\LoginServer.h" />
     <ClInclude Include="..\..\source\WorldServer\LuaFunctions.h" />
     <ClInclude Include="..\..\source\WorldServer\LuaInterface.h" />
+    <ClInclude Include="..\..\source\WorldServer\MasterServer.h" />
     <ClInclude Include="..\..\source\WorldServer\MutexHelper.h" />
     <ClInclude Include="..\..\source\WorldServer\MutexList.h" />
     <ClInclude Include="..\..\source\WorldServer\MutexMap.h" />
