@@ -8286,6 +8286,36 @@ int EQ2Emu_lua_RemoveSpell(lua_State* state) {
 	return 1;
 }
 
+int EQ2Emu_lua_DropChest(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn || !spawn->IsNPC())
+		return 0;
+
+	NPC* npc = static_cast<NPC*>(spawn);
+
+	if (static_cast<NPC*>(spawn)->HasLoot()) {
+		NPC* chest = npc->DropChest();
+
+		vector<int32>* encounter = npc->Brain()->GetEncounter();
+		for (const auto spawn_id : *encounter) {
+			Spawn* player = spawn->GetZone()->GetSpawnByID(spawn_id);
+
+			if (player && player->IsPlayer()) {
+				chest->Brain()->AddToEncounter(static_cast<Entity*>(spawn));
+			}
+		}
+
+		spawn->GetZone()->AddSpawn(chest);
+		spawn->GetZone()->AddDeadSpawn(chest, 0xFFFFFFFF);
+	}
+
+	return 1;
+}
+
 int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 	if (!lua_interface)
 		return 0;

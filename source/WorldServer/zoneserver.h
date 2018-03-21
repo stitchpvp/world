@@ -258,6 +258,7 @@ public:
 	Widget*	AddWidgetSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentry);
 	Sign*	AddSignSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentry);
 	void	AddSpawn(Spawn* spawn);
+	void	AddDeadSpawn(Spawn* spawn, int32 timer = 0xFFFFFFFF);
 	void	RemoveDeadEnemyList(Spawn* spawn);
 	void	RemoveDeadSpawn(Spawn* spawn, bool immediate = false);
 	
@@ -614,7 +615,6 @@ private:
 	void	ClientProcess();																					// never used outside zone server
 	void	RemoveClient(Client* client);																		// never used outside zone server
 	void	DeterminePosition(SpawnLocation* spawnlocation, Spawn* spawn);										// never used outside zone server
-	void	AddDeadSpawn(Spawn* spawn, int32 timer = 0xFFFFFFFF);												// never used outside zone server
 	int32	CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn = false);							// never used outside zone server
 	float	GetSpawnGroupChance(int32 group_id);																// never used outside zone server
 	vector<int32>*	GetAssociatedLocations(set<int32>* groups);											// never used outside zone server
