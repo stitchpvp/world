@@ -1803,7 +1803,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		int32 spell_id = 0;
 		LuaSpell* spell = 0;
 		((Entity*)this)->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
-		while(i < 30){
+		while(i < NUM_SPELL_EFFECTS){
 			//Change value of spell id for this packet if spell exists
 			spell_id = info->spell_effects[i].spell_id;
 			if(spell_id > 0)

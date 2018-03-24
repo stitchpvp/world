@@ -481,7 +481,7 @@ bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters) {
 	if(lua_pcall(spell->state, num_parameters, 0, 0) != 0){
 		LogError("Error running %s", lua_tostring(spell->state, -1));
 		lua_pop(spell->state, 1);
-		RemoveSpell(spell, false);
+		RemoveSpell(spell, nullptr);
 		return false;
 	}
 	return true;
