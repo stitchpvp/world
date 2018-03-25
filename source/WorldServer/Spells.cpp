@@ -448,12 +448,16 @@ int16 Spell::GetHPRequired(Spawn* spawn){
 
 int16 Spell::GetPowerRequired(Spawn* spawn){
 	int16 power_req = spell->power_req;
-	if(spawn && spell->power_req_percent > 0){
-		double result = ((double)spell->power_req_percent/100)*spawn->GetTotalPower();
-		if(result >= (((int16)result) + .5))
+
+	if (spawn && spell->power_req_percent > 0) {
+		double result = ((double)spell->power_req_percent/100)*spawn->GetTotalPowerBase();
+
+		if (result >= (((int16)result) + .5))
 			result++;
+
 		power_req = (int16)result;
 	}
+
 	return power_req;
 }
 
