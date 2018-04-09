@@ -4548,30 +4548,29 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 
-	int32 amount = lua_interface->GetInt32Value(state);
+	Spawn* target = lua_interface->GetSpawn(state);
+	int32 amount = lua_interface->GetInt32Value(state, 2);
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	WardInfo* ward = 0;
-
 	ZoneServer* zone = spell->caster->GetZone();
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	if (zone->GetSpawnByID(spell->targets.at(0))->IsEntity()) {
-		Entity* target = static_cast<Entity*>(zone->GetSpawnByID(spell->targets.at(0)));
-		ward = target->GetWard(spell);
-		if (ward) {
+
+	if (!target)
+		return 1;
+
+	if (target->IsEntity()) {
+		WardInfo* ward = static_cast<Entity*>(target)->GetWard(spell);
+
+		if (ward && ward->DamageLeft != ward->BaseDamage) {
 			ward->DamageLeft += amount;
 			if (ward->DamageLeft > ward->BaseDamage)
 				ward->DamageLeft = ward->BaseDamage;
 
-			for (int32 i = 0; i < spell->targets.size(); i++) {
-				if (Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i)))
-					zone->SendHealPacket(ward->Spell->caster, spawn, HEAL_PACKET_TYPE_REGEN_ABSORB, amount, ward->Spell->spell->GetName());
+			zone->SendHealPacket(ward->Spell->caster, static_cast<Entity*>(target), HEAL_PACKET_TYPE_REGEN_ABSORB, amount, ward->Spell->spell->GetName());
+
+			if (spell->caster->IsPlayer()) {
+				ClientPacketFunctions::SendMaintainedExamineUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, ward->DamageLeft, 1);
 			}
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-
-	if (ward && spell->caster->IsPlayer())
-		ClientPacketFunctions::SendMaintainedExamineUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, ward->DamageLeft, 1);
 
 	return 0;
 }

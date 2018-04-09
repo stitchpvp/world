@@ -4438,7 +4438,7 @@ void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, in
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
-void ZoneServer::SendHealPacket(Spawn* caster, Spawn* target, int16 heal_type, int32 heal_amt, const char* spell_name){
+void ZoneServer::SendHealPacket(Spawn* caster, Spawn* target, int16 heal_type, int32 heal_amt, const char* spell_name) {
 	Client* client = 0;
 	vector<Client*>::iterator client_itr;
 
@@ -4462,7 +4462,6 @@ void ZoneServer::SendHealPacket(Spawn* caster, Spawn* target, int16 heal_type, i
 			packet->setDataByName("heal_amt", heal_amt);
 			packet->setDataByName("spellname", spell_name);
 			packet->setDataByName("type", heal_type);
-			packet->setDataByName("unknown2", 1);
 			EQ2Packet* app = packet->serialize();
 			client->QueuePacket(app);
 			safe_delete(packet);

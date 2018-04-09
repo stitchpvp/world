@@ -125,7 +125,7 @@ void SpellProcess::Process(){
 		while(itr.Next()){
 			spell = itr->value;
 
-			if (!spell->spell->GetSpellData()->duration_until_cancel && spell->timer.Check()){
+			if (spell->timer.Check()) {
 				spell->num_calls++;
 
 				// ProcessSpell(spell, flase) will atempt to call the tick() function in the lua script
@@ -150,11 +150,11 @@ void SpellProcess::Process(){
 					}
 				}
 				
-				if ((spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100)
+				if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100)
 					DeleteCasterSpell(spell);
-			}
-			else
+			} else {
 				CheckRemoveTargetFromSpell(spell);
+      }
 		}
 	}
 	if (SpellCancelList.size() > 0){

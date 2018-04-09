@@ -125,7 +125,6 @@ void PVP::HandleFameChange(Player* attacker, Player* victim) {
 
 		vector<Player*> fame_recipients;
 
-
 		zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
 		zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
 	}

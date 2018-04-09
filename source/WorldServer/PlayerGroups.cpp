@@ -607,6 +607,9 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 						if (group_member == caster)
 							continue;
 
+						if (!group_member->Alive())
+							continue;
+
 						client = (*target_itr)->client;
 
 						has_effect = false;

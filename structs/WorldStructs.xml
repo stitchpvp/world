@@ -17083,6 +17083,15 @@ to zero and treated like placeholders." />
 <Data ElementName="type" Type="int8" />
 <Data ElementName="unknown2" Type="int8" />
 </Struct>
+<Struct Name="WS_HearHeal" ClientVersion="64600" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearHealCmd">
+<Data ElementName="caster" Type="int32" />
+<Data ElementName="target" Type="int32" />
+<Data ElementName="heal_amt" Type="int64" />
+<Data ElementName="spellname" Type="EQ2_16Bit_String" Size="1"/>
+<Data ElementName="crit_type" Type="int8" />
+<Data ElementName="unknown" Type="int8" />
+<Data ElementName="type" Type="int8" />
+</Struct>
 <Struct Name="WS_HearDeath" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearDeathCmd">
 <Data ElementName="attacker" Type="int32" />
 <Data ElementName="defender" Type="int32" />
