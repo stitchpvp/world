@@ -16803,6 +16803,869 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown188o" Type="int32" Size="1" />
 <Data ElementName="unknown189" Type="int8" Size="1" />
 </Struct>
+<Struct Name="WS_CharacterSheet" ClientVersion="64600" OpcodeName="OP_UpdateCharacterSheetMsg">
+<Data ElementName="character_name" Type="char" Size="40" />
+<Data ElementName="unknown1" Type="int16" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="gender" Type="int8" Size="1" />
+<Data ElementName="exiled" Type="int8" Size="1" />
+<Data ElementName="class1" Type="int32" Size="1" />
+<Data ElementName="class2" Type="int32" Size="1" />
+<Data ElementName="class3" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class1" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class2" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class3" Type="int32" Size="1" />
+<Data ElementName="level" Type="int16" Size="1" />
+<Data ElementName="effective_level" Type="int16" Size="1" />
+<Data ElementName="tradeskill_level" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="account_age_base" Type="int16" Size="1" />
+<Data ElementName="account_age_bonus" Type="int16" Size="1" />
+<Data ElementName="deity" Type="char" Size="32" />
+<Data ElementName="unknown_deity" Type="int8" Size="36" />
+<Data ElementName="last_name" Type="char" Size="20" />
+<Data ElementName="unknown3" Type="int8" Size="1" />
+<Data ElementName="character_name2" Type="char" Size="40" />
+<Data ElementName="character_name2_unknown" Type="int16" Size="1" />
+<Data ElementName="character_name3" Type="char" Size="40" />
+<Data ElementName="character_name3_unknown" Type="int16" Size="1" />    
+<Data ElementName="current_hp" Type="sint64" Size="1" />
+<Data ElementName="max_hp" Type="int64" Size="1" />
+<Data ElementName="base_hp" Type="int32" Size="1" />
+<Data ElementName="base_hp2" Type="int32" Size="1" />
+<Data ElementName="current_power" Type="sint32" Size="1" />
+<Data ElementName="max_power" Type="sint32" Size="1" />
+<Data ElementName="base_power" Type="int32" Size="1" />
+<Data ElementName="conc_used" Type="int8" Size="1" />
+<Data ElementName="conc_max" Type="int8" Size="1" />
+<Data ElementName="savagery" Type="sint32" Size="1" />
+<Data ElementName="max_savagery" Type="sint32" Size="1" />
+<Data ElementName="unknown4b" Type="int32" Size="1" />
+<Data ElementName="savagery_level" Type="int32" Size="1" />
+<Data ElementName="max_savagery_level" Type="int32" Size="1" />
+<Data ElementName="unknown4c" Type="int8" Size="4" />
+<Data ElementName="dissonance" Type="sint32" Size="1" />
+<Data ElementName="max_dissonance" Type="sint32" Size="1" />
+<Data ElementName="base_dissonance" Type="sint32" Size="1" />
+<Data ElementName="hp_regen" Type="int32" Size="1" />
+<Data ElementName="power_regen" Type="int32" Size="1" />
+<Data ElementName="unknown6" Type="int32" Size="2" />
+<Data ElementName="unknown7" Type="float" Size="2" />
+<Data ElementName="stat_bonus_health" Type="float" Size="1" />
+<Data ElementName="stat_bonus_power" Type="float" Size="1" />
+<Data ElementName="bonus_health" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int32" Size="1" />
+<Data ElementName="bonus_power" Type="int32" Size="1" />
+<Data ElementName="stat_bonus_damage" Type="float" Size="1" />
+<Data ElementName="mitigation_pct_pve" Type="int16" Size="1" />
+<Data ElementName="mitigation_pct_pvp" Type="int16" Size="1" />
+<Data ElementName="toughness" Type="int16" Size="1" />
+<Data ElementName="toughness_resist_dmg_pvp" Type="float" Size="1" />
+<Data ElementName="lethality" Type="int16" Size="1" />
+<Data ElementName="lethality_pct" Type="float" Size="1" />
+<Data ElementName="avoidance_pct" Type="int16" Size="1" />
+<Data ElementName="avoidance_reduction" Type="int16" Size="1" />
+<Data ElementName="avoidance" Type="int16" Size="1" />
+<Data ElementName="unknown10" Type="int16" Size="1" />
+<Data ElementName="avoidance_base" Type="int16" Size="1" />
+<Data ElementName="unknown10a" Type="int16" Size="1" />
+<Data ElementName="parry" Type="int16" Size="1" />
+<Data ElementName="unknown11" Type="int16" Size="1" />
+<Data ElementName="block" Type="int16" Size="1" />
+<Data ElementName="unknown12" Type="int16" Size="1" />
+<Data ElementName="uncontested_block" Type="int16" Size="1" />
+<Data ElementName="unknown13" Type="int16" Size="1" />
+<Data ElementName="uncontested_riposte" Type="int16" Size="1" />
+<Data ElementName="uncontested_dodge" Type="int16" Size="1" />
+<Data ElementName="uncontested_parry" Type="int16" Size="1" />
+<Data ElementName="str" Type="int32" Size="1" />
+<Data ElementName="sta" Type="int32" Size="1" />
+<Data ElementName="agi" Type="int32" Size="1" />
+<Data ElementName="wis" Type="int32" Size="1" />
+<Data ElementName="int" Type="int32" Size="1" />
+<Data ElementName="str_base" Type="int32" Size="1" />
+<Data ElementName="sta_base" Type="int32" Size="1" />
+<Data ElementName="agi_base" Type="int32" Size="1" />
+<Data ElementName="wis_base" Type="int32" Size="1" />
+<Data ElementName="int_base" Type="int32" Size="1" />
+<Data ElementName="mitigation_cur" Type="int32" Size="1" />
+<Data ElementName="elemental" Type="int32" Size="1" />
+<Data ElementName="noxious" Type="int32" Size="1" />
+<Data ElementName="arcane" Type="int32" Size="1" />
+<Data ElementName="mitigation_base" Type="int32" Size="1" />
+<Data ElementName="elemental_base" Type="int32" Size="1" />
+<Data ElementName="noxious_base" Type="int32" Size="1" />
+<Data ElementName="arcane_base" Type="int32" Size="1" />
+<Data ElementName="unknown14" Type="int16" Size="1" />
+<Data ElementName="elemental_absorb_pve" Type="int16" Size="1" />
+<Data ElementName="noxious_absorb_pve" Type="int16" Size="1" />
+<Data ElementName="arcane_absorb_pve" Type="int16" Size="1" />
+<Data ElementName="unknown15" Type="int16" Size="1" />
+<Data ElementName="elemental_absorb_pvp" Type="int16" Size="1" />
+<Data ElementName="noxious_absorb_pvp" Type="int16" Size="1" />
+<Data ElementName="arcane_absorb_pvp" Type="int16" Size="1" />  
+<Data ElementName="unknown16" Type="int16" Size="1" />
+<Data ElementName="elemental_dmg_reduction" Type="int16" Size="1" />
+<Data ElementName="noxious_dmg_reduction" Type="int16" Size="1" /> 
+<Data ElementName="arcane_dmg_reduction" Type="int16" Size="1" />
+<Data ElementName="unknown17" Type="int16" Size="1" />
+<Data ElementName="elemental_dmg_reduction_pct" Type="int16" Size="1" />
+<Data ElementName="noxious_dmg_reduction_pct" Type="int16" Size="1" />
+<Data ElementName="arcane_dmg_reduction_pct" Type="int16" Size="1" />
+<Data ElementName="current_adv_xp" Type="float" Size="1" />
+<Data ElementName="needed_adv_xp" Type="float" Size="1" />
+<Data ElementName="debt_adv_xp" Type="float" Size="1" />
+<Data ElementName="current_trade_xp" Type="float" Size="1" />
+<Data ElementName="needed_trade_xp" Type="float" Size="1" />
+<Data ElementName="debt_trade_xp" Type="float" Size="1" />	
+<Data ElementName="unknown18a" Type="int16" Size="1" />
+<Data ElementName="unknown18b" Type="int16" Size="1" />
+<Data ElementName="unknown18c" Type="int16" Size="1" />
+<Data ElementName="unknown18d" Type="int16" Size="1" />
+<Data ElementName="unknown18e" Type="int16" Size="1" />
+<Data ElementName="unknown18f" Type="int16" Size="1" />
+<Data ElementName="unknown19" Type="int16" Size="1" />
+<Data ElementName="adventure_vitality" Type="int16" Size="1" />
+<Data ElementName="adventure_vitality_yellow_arrow" Type="int16" Size="1" />
+<Data ElementName="assigned_aa" Type="int16" Size="1" />
+<Data ElementName="max_aa" Type="int32" Size="1" />
+<Data ElementName="server_bonus" Type="int16" Size="1" />
+<Data ElementName="adventure_vet_bonus" Type="int16" Size="1" />
+<Data ElementName="tradeskill_vet_bonus" Type="int16" Size="1" />
+<Data ElementName="dungeon_finder_bonus" Type="int16" Size="1" />
+<Data ElementName="recruit_friend" Type="int16" Size="1" />
+<Data ElementName="recruit_friend_bonus" Type="int16" Size="1" />
+<Data ElementName="tradeskill_vitality_blue_arrow" Type="int16" Size="1" />
+<Data ElementName="mentor_bonus" Type="int16" Size="1" />
+<Data ElementName="unknown20" Type="int8" Size="1" />
+<Data ElementName="adventure_vitality_blue_arrow" Type="int16" Size="1" />
+<Data ElementName="tradeskill_vitality" Type="int16" Size="1" />
+<Data ElementName="unknown21" Type="int16" Size="1" />
+<Data ElementName="unknown23" Type="int16" Size="1" />
+<Data ElementName="unknown24a" Type="int16" Size="1" />
+<Data ElementName="unknown24b" Type="int16" Size="1" />
+<Data ElementName="aa_towards_next" Type="int16" Size="1" />
+<Data ElementName="unknown24c2" Type="int16" Size="1" />
+<Data ElementName="unassigned_aa" Type="int16" Size="1" />
+<Data ElementName="aa_green_bar" Type="int16" Size="1" />
+<Data ElementName="adv_xp_to_aa_xp_slider" Type="int16" Size="1" />
+<Data ElementName="unknown24b2" Type="int16" Size="1" />
+<Data ElementName="aa_blue_bar" Type="int16" Size="1" />
+<Data ElementName="bonus_achievement_xp" Type="int16" Size="1" />
+<Data ElementName="unknown24c1" Type="int16" Size="1" />
+<Data ElementName="unknown22" Type="int16" Size="1" />
+<Data ElementName="items_found" Type="int32" Size="1" />
+<Data ElementName="named_npcs_killed" Type="int32" Size="1" />
+<Data ElementName="quests_completed" Type="int32" Size="1" />
+<Data ElementName="exploration_events" Type="int32" Size="1" />
+<Data ElementName="completed_collections" Type="int32" Size="1" />
+<Data ElementName="unknown24d" Type="int32" Size="1" />
+<Data ElementName="unknown24e" Type="int32" Size="1" />
+<Data ElementName="unknown25" Type="int8" Size="1" />
+<Data ElementName="unknown26" Type="int16" Size="1" />
+<Data ElementName="unknown27" Type="int16" Size="1" />
+<Data ElementName="unknown28" Type="int16" Size="1" />
+<Data ElementName="unknown29" Type="int16" Size="1" />
+<Data ElementName="unknown6307301" Type="int16" Size="1" />
+<Data ElementName="unknown6307302" Type="int16" Size="1" />
+<Data ElementName="total_prestige_points" Type="int16" Size="1" />
+<Data ElementName="unassigned_prestige_points" Type="int16" Size="1" />
+<Data ElementName="unknown30" Type="int16" Size="1" />
+<Data ElementName="unknown31" Type="int16" Size="1" />
+<Data ElementName="total_tradeskill_points" Type="int16" Size="1" />
+<Data ElementName="unassigned_tradeskill_points" Type="int16" Size="1" />
+<Data ElementName="unknown32" Type="int16" Size="1" />
+<Data ElementName="unknown33" Type="int16" Size="1" />
+<Data ElementName="total_tradeskill_prestige_points" Type="int16" Size="1" />
+<Data ElementName="unassigned_tradeskill_prestige_points" Type="int16" Size="1" />
+<Data ElementName="unknown63073" Type="int32" Size="2" />
+<Data ElementName="coins_copper" Type="int32" Size="1" />
+<Data ElementName="coins_silver" Type="int32" Size="1" />
+<Data ElementName="coins_gold" Type="int32" Size="1" />
+<Data ElementName="coins_plat" Type="int32" Size="1" />
+<Data ElementName="unknown34" Type="int32" Size="5" />
+<Data ElementName="spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
+<Data ElementName="detrimental_spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
+<Data ElementName="passive_spell_effects" Substruct="Substruct_PassiveEffects" Size="100" />
+<Data ElementName="unknown35" Type="int8" Size="486" />
+<Data ElementName="trauma_count" Type="int8" Size="1" />
+<Data ElementName="arcane_count" Type="int8" Size="1" />
+<Data ElementName="noxious_count" Type="int8" Size="1" />
+<Data ElementName="elemental_count" Type="int8" Size="1" />
+<Data ElementName="curse_count" Type="int8" Size="1" />
+<Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
+<Data ElementName="breath" Type="float" Size="1" />
+<Data ElementName="breathe_underwater" Type="int8" Size="1" />
+<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
+<Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
+<Data ElementName="melee_pri_delay" Type="float" Size="1" />
+<Data ElementName="melee_sec_dmg_min" Type="int32" Size="1" />
+<Data ElementName="melee_sec_dmg_max" Type="int32" Size="1" />
+<Data ElementName="melee_sec_delay" Type="float" Size="1" />
+<Data ElementName="ranged_dmg_min" Type="int32" Size="1" />
+<Data ElementName="ranged_dmg_max" Type="int32" Size="1" />
+<Data ElementName="ranged_delay" Type="float" Size="1" />
+<Data ElementName="unknown37" Type="int32" Size="1" />
+<Data ElementName="unknown38" Type="int32" Size="1" />
+<Data ElementName="unknown39" Type="int32" Size="1" />
+<Data ElementName="unknown40" Type="int32" Size="1" />
+<Data ElementName="ability_mod_pve" Type="float" Size="1" />
+<Data ElementName="unknown41" Type="float" Size="1" />
+<Data ElementName="unknown42" Type="float" Size="1" />
+<Data ElementName="unknown43" Type="float" Size="1" />
+<Data ElementName="unknown44" Type="float" Size="1" />
+<Data ElementName="ability_mod_pvp" Type="float" Size="1" />
+<Data ElementName="base_melee_crit" Type="float" Size="1" />
+<Data ElementName="base_spell_crit" Type="float" Size="1" />
+<Data ElementName="base_taunt_crit" Type="float" Size="1" />
+<Data ElementName="base_heal_crit" Type="float" Size="1" />
+<!--<Data ElementName="unknown44a" Type="int16" Size="1" />--> <!-- 58588 - Required to make it in the game -->
+<Data ElementName="flags" Type="int32" Size="1" />
+<Data ElementName="flags2" Type="int32" Size="1" />
+<Data ElementName="unknown45" Type="float" Size="1" />
+<Data ElementName="unknown46" Type="float" Size="1" />
+<Data ElementName="unknown47" Type="float" Size="1" />
+<Data ElementName="unknown48" Type="float" Size="1" />
+<Data ElementName="unknown49" Type="float" Size="1" />
+<Data ElementName="unknown50" Type="float" Size="1" />
+<Data ElementName="unknown51" Type="float" Size="1" />
+<Data ElementName="unknown52" Type="float" Size="1" />
+<Data ElementName="unknown53" Type="float" Size="1" />
+<Data ElementName="unknown54" Type="float" Size="1" />
+<Data ElementName="unknown55" Type="float" Size="1" />
+<Data ElementName="unknown56" Type="float" Size="1" />
+<Data ElementName="unknown57" Type="float" Size="1" />
+<Data ElementName="unknown58" Type="float" Size="1" />
+<Data ElementName="unknown59" Type="float" Size="1" />
+<Data ElementName="unknown60" Type="float" Size="1" />
+<Data ElementName="unknown61" Type="float" Size="1" />
+<Data ElementName="unknown62" Type="float" Size="1" />
+<Data ElementName="unknown63" Type="float" Size="1" />
+<Data ElementName="unknown64" Type="float" Size="1" />
+<Data ElementName="unknown65" Type="float" Size="1" />
+<Data ElementName="unknown66" Type="float" Size="1" />
+<Data ElementName="unknown67" Type="float" Size="1" />
+<Data ElementName="unknown68" Type="float" Size="1" />
+<Data ElementName="unknown69" Type="float" Size="1" />
+<Data ElementName="unknown70" Type="float" Size="1" />
+<Data ElementName="unknown71" Type="float" Size="1" />
+<Data ElementName="unknown72" Type="float" Size="1" />
+<Data ElementName="unknown73" Type="float" Size="1" />
+<Data ElementName="unknown74" Type="float" Size="1" />
+<Data ElementName="unknown75" Type="float" Size="1" />
+<Data ElementName="unknown76" Type="float" Size="1" />
+<Data ElementName="unknown77" Type="float" Size="1" />
+<Data ElementName="unknown78" Type="float" Size="1" />
+<Data ElementName="unknown79" Type="float" Size="1" />
+<Data ElementName="unknown80" Type="float" Size="1" />
+<Data ElementName="unknown81" Type="float" Size="1" />
+<Data ElementName="unknown82" Type="float" Size="1" />
+<Data ElementName="unknown83" Type="float" Size="1" />
+<Data ElementName="unknown84" Type="float" Size="1" />
+<Data ElementName="unknown85" Type="float" Size="1" />
+<Data ElementName="unknown86" Type="float" Size="1" />
+<Data ElementName="unknown87" Type="float" Size="1" />
+<Data ElementName="unknown88" Type="float" Size="1" />
+<Data ElementName="unknown89" Type="float" Size="1" />
+<Data ElementName="unknown90" Type="float" Size="1" />
+<Data ElementName="unknown91" Type="float" Size="1" />
+<Data ElementName="unknown92" Type="float" Size="1" />
+<Data ElementName="unknown93" Type="float" Size="1" />
+<Data ElementName="unknown94" Type="float" Size="1" />
+<Data ElementName="unknown95" Type="float" Size="1" />
+<Data ElementName="unknown96" Type="float" Size="1" />
+<Data ElementName="unknown97" Type="float" Size="1" />
+<Data ElementName="unknown98" Type="float" Size="1" />
+<Data ElementName="unknown99" Type="float" Size="1" />
+<Data ElementName="unknown100" Type="float" Size="1" />
+<Data ElementName="unknown101" Type="float" Size="1" />
+<Data ElementName="unknown102" Type="float" Size="1" />
+<Data ElementName="unknown103" Type="float" Size="1" />
+<Data ElementName="unknown104" Type="float" Size="1" />
+<Data ElementName="unknown105" Type="float" Size="1" />
+<Data ElementName="unknown106" Type="float" Size="1" />
+<Data ElementName="unknown107" Type="float" Size="1" />
+<Data ElementName="unknown108" Type="float" Size="1" />
+<Data ElementName="unknown109" Type="float" Size="1" />
+<Data ElementName="unknown110" Type="float" Size="1" />
+<Data ElementName="out_of_combat_health_regen" Type="float" Size="1" />
+<Data ElementName="out_of_combat_power_regen" Type="float" Size="1" />
+<Data ElementName="in_combat_regen" Type="float" Size="1" />
+<Data ElementName="deflect" Type="float" Size="1" />
+<Data ElementName="increase_max_health" Type="float" Size="1" />
+<Data ElementName="increase_max_health2" Type="float" Size="1" /> <!-- used when bonus is applied to both health & power -->
+<Data ElementName="unknown117" Type="float" Size="1" />
+<Data ElementName="increase_speed" Type="float" Size="1" />
+<Data ElementName="unknown119" Type="float" Size="1" />
+<Data ElementName="increase_ground_speed" Type="float" Size="1" />
+<Data ElementName="increase_air_speed" Type="float" Size="1" />
+<Data ElementName="unknown122" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 8 which involves skill buff -->
+<Data ElementName="unknown123" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 3 which involves skill buff -->
+<Data ElementName="unknown124" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 3 which involves skill buff -->
+<Data ElementName="in_combat_movement_speed" Type="float" Size="1" />
+<Data ElementName="haste" Type="float" Size="1" />
+<Data ElementName="increase_max_power" Type="float" Size="1" />
+<Data ElementName="increase_max_power2" Type="float" Size="1" /> <!-- used when bonus is applied to both health & power -->
+<Data ElementName="unknown128" Type="float" Size="1" />
+<Data ElementName="drunk" Type="float" Size="1" />
+<Data ElementName="unknown129" Type="float" Size="1" />
+<Data ElementName="hate_mod" Type="float" Size="1" />
+<Data ElementName="adventure_effects_bonus" Type="float" Size="1" />
+<Data ElementName="tradeskill_effects_bonus" Type="float" Size="1" />
+<Data ElementName="unknown130" Type="float" Size="1" />
+<Data ElementName="unknown131" Type="float" Size="1" />
+<Data ElementName="unknown131a" Type="float" Size="1" />
+<Data ElementName="dps" Type="float" Size="1" />
+<Data ElementName="unknown132" Type="float" Size="1" />
+<Data ElementName="unknown133" Type="float" Size="1" />
+<Data ElementName="unknown134" Type="float" Size="1" />
+<Data ElementName="base_avoidance" Type="float" Size="1" />
+<Data ElementName="unknown136" Type="float" Size="1" />
+<Data ElementName="uncontested_riposte_pve" Type="float" Size="1" />
+<Data ElementName="uncontested_parry_pve" Type="float" Size="1" />
+<Data ElementName="unknown139" Type="float" Size="1" />
+<Data ElementName="melee_ae" Type="float" Size="1" />
+<Data ElementName="multi_attack" Type="float" Size="1" />
+<Data ElementName="spell_multi_attack" Type="float" Size="1" /> <!-- spell_doublecast -->
+<Data ElementName="ability_double_cast" Type="float" Size="1" />
+<Data ElementName="flurry" Type="float" Size="1" />
+<Data ElementName="unknown141" Type="float" Size="1" />
+<Data ElementName="bountiful_harvest" Type="float" Size="1" />
+<Data ElementName="block_chance" Type="float" Size="1" />
+<Data ElementName="unknown142" Type="float" Size="1" />
+<Data ElementName="unknown143" Type="float" Size="1" />
+<Data ElementName="crit_chance" Type="float" Size="1" />
+<Data ElementName="unknown144" Type="float" Size="1" />
+<Data ElementName="unknown145" Type="float" Size="1" />
+<Data ElementName="crit_bonus" Type="float" Size="1" />
+<Data ElementName="potency" Type="float" Size="1" />
+<Data ElementName="unknown146" Type="float" Size="1" />
+<Data ElementName="reuse_speed" Type="float" Size="1" />
+<Data ElementName="recovery_speed" Type="float" Size="1" />
+<Data ElementName="casting_speed" Type="float" Size="1" />
+<Data ElementName="spell_reuse_speed" Type="float" Size="1" />
+<Data ElementName="unknown147" Type="float" Size="1" />
+<Data ElementName="decrease_falling_dmg" Type="float" Size="1" />
+<Data ElementName="unknown149" Type="float" Size="1" />
+<Data ElementName="unknown150" Type="float" Size="1" />
+<Data ElementName="unknown151" Type="float" Size="1" />
+<Data ElementName="unknown152" Type="float" Size="1" />
+<Data ElementName="unknown153" Type="float" Size="1" />
+<Data ElementName="unknown154" Type="float" Size="1" />
+<Data ElementName="unknown155" Type="float" Size="1" />
+<Data ElementName="unknown156" Type="float" Size="1" />
+<Data ElementName="loot_coin" Type="float" Size="1" />
+<Data ElementName="mitigation_increase" Type="float" Size="1" />
+<Data ElementName="unknown159" Type="float" Size="1" />
+<Data ElementName="unknown160" Type="float" Size="1" />
+<Data ElementName="strikethrough" Type="float" Size="1" />
+<Data ElementName="unknown161" Type="float" Size="1" />
+<Data ElementName="accuracy" Type="float" Size="1" />
+<Data ElementName="unknown162" Type="float" Size="1" />
+<Data ElementName="unknown163" Type="float" Size="1" />
+<Data ElementName="unknown164" Type="float" Size="1" />
+<Data ElementName="unknown165" Type="float" Size="1" />
+<Data ElementName="unknown166" Type="float" Size="1" />
+<Data ElementName="unknown167" Type="float" Size="1" />
+<Data ElementName="unknown168" Type="float" Size="1" />
+<Data ElementName="lethality_pve" Type="float" Size="1" />
+<Data ElementName="unknown170" Type="float" Size="1" />
+<Data ElementName="unknown171" Type="float" Size="1" />
+<Data ElementName="unknown172" Type="float" Size="1" />
+<Data ElementName="unknown173" Type="float" Size="1" />
+<Data ElementName="pvp_crit_mit" Type ="float" Size="1" />
+<Data ElementName="unknown174" Type ="float" Size="1" />
+<Data ElementName="unknown175" Type ="float" Size="1" />
+<Data ElementName="unknown200" Type ="float" Size="1" />
+<Data ElementName="unknown201" Type ="float" Size="1" />
+<Data ElementName="unknown202" Type ="float" Size="1" />
+<Data ElementName="unknown203" Type ="float" Size="1" />
+<Data ElementName="unknown204" Type ="float" Size="1" />
+<Data ElementName="unknown205" Type ="float" Size="1" />
+<Data ElementName="unknown206" Type ="float" Size="1" />
+<Data ElementName="unknown207" Type ="float" Size="1" />
+<Data ElementName="unknown208" Type ="float" Size="1" />
+<Data ElementName="unknown209" Type ="float" Size="1" />
+<Data ElementName="unknown210" Type ="float" Size="1" />
+<Data ElementName="unknown211" Type ="float" Size="1" />
+<Data ElementName="unknown212" Type ="float" Size="1" />
+<Data ElementName="unknown213" Type ="float" Size="1" />
+<Data ElementName="unknown214" Type ="float" Size="1" />
+<Data ElementName="unknown215" Type ="float" Size="1" />
+<Data ElementName="unknown216" Type ="float" Size="1" />
+<Data ElementName="unknown217" Type ="float" Size="1" />
+<Data ElementName="unknown218" Type ="float" Size="1" />
+<Data ElementName="unknown219" Type ="float" Size="1" />
+<Data ElementName="unknown220" Type ="float" Size="1" />
+<Data ElementName="unknown221" Type ="float" Size="1" />
+<Data ElementName="unknown222" Type ="float" Size="1" />
+<Data ElementName="unknown223" Type ="float" Size="1" />
+<Data ElementName="unknown224" Type ="float" Size="1" />
+<Data ElementName="unknown225" Type ="float" Size="1" />
+<Data ElementName="unknown226" Type ="float" Size="1" />
+<Data ElementName="unknown227" Type ="float" Size="1" />
+<Data ElementName="unknown228" Type ="float" Size="1" />
+<Data ElementName="unknown229" Type ="float" Size="1" />
+<Data ElementName="unknown230" Type ="float" Size="1" />
+<Data ElementName="unknown231" Type ="float" Size="1" />
+<Data ElementName="unknown232" Type ="float" Size="1" />
+<Data ElementName="unknown233" Type ="float" Size="1" />
+<Data ElementName="unknown234" Type ="float" Size="1" />
+<Data ElementName="unknown235" Type ="float" Size="1" />
+<Data ElementName="unknown236" Type ="float" Size="1" />
+<Data ElementName="unknown237" Type ="float" Size="1" />
+<Data ElementName="unknown238" Type ="float" Size="1" />
+<Data ElementName="unknown239" Type ="float" Size="1" />
+<Data ElementName="unknown240" Type ="float" Size="1" />
+<Data ElementName="unknown241" Type ="float" Size="1" />
+<Data ElementName="unknown242" Type ="float" Size="1" />
+<Data ElementName="uncontested_riposte_gear_cap" Type ="float" Size="1" />
+<Data ElementName="uncontested_dodge_gear_cap" Type ="float" Size="1" />
+<Data ElementName="uncontested_parry_gear_cap" Type ="float" Size="1" />
+<Data ElementName="unknown246" Type ="float" Size="1" />
+<Data ElementName="unknown247" Type ="float" Size="1" />
+<Data ElementName="unknown248" Type ="float" Size="1" />
+<Data ElementName="unknown249" Type ="float" Size="1" />
+<Data ElementName="unknown250" Type ="float" Size="1" />
+<Data ElementName="unknown251" Type ="float" Size="1" />
+<Data ElementName="unknown252" Type ="float" Size="1" />
+<Data ElementName="unknown253" Type ="float" Size="1" />
+<Data ElementName="unknown254" Type ="float" Size="1" />
+<Data ElementName="unknown255" Type ="float" Size="1" />
+<Data ElementName="unknown256" Type ="float" Size="1" />
+<Data ElementName="unknown257" Type ="float" Size="1" />
+<Data ElementName="unknown258" Type ="float" Size="1" />
+<Data ElementName="unknown259" Type ="float" Size="1" />
+<Data ElementName="unknown260" Type ="float" Size="1" />
+<Data ElementName="unknown261" Type ="float" Size="1" />
+<Data ElementName="unknown262" Type ="float" Size="1" />
+<Data ElementName="unknown263" Type ="float" Size="1" />
+<Data ElementName="unknown264" Type ="float" Size="1" />
+<Data ElementName="unknown265" Type ="float" Size="1" />
+<Data ElementName="unknown266" Type ="float" Size="1" />
+<Data ElementName="unknown267" Type ="float" Size="1" />
+<Data ElementName="unknown268" Type ="float" Size="1" />
+<Data ElementName="unknown269" Type ="float" Size="1" />
+<Data ElementName="unknown270" Type ="float" Size="1" />
+<Data ElementName="unknown271" Type ="float" Size="1" />
+<Data ElementName="unknown272" Type ="float" Size="1" />
+<Data ElementName="unknown273" Type ="float" Size="1" />
+<Data ElementName="unknown274" Type ="float" Size="1" />
+<Data ElementName="unknown275" Type ="float" Size="1" />
+<Data ElementName="unknown276" Type ="float" Size="1" />
+<Data ElementName="unknown277" Type ="float" Size="1" />
+<Data ElementName="unknown278" Type ="float" Size="1" />
+<Data ElementName="unknown279" Type ="float" Size="1" />
+<Data ElementName="unknown280" Type ="float" Size="1" />
+<Data ElementName="unknown281" Type ="float" Size="1" />
+<Data ElementName="unknown282" Type ="float" Size="1" />
+<Data ElementName="unknown283" Type ="float" Size="1" />
+<Data ElementName="unknown284" Type ="float" Size="1" />
+<Data ElementName="unknown285" Type ="float" Size="1" />
+<Data ElementName="unknown286" Type ="float" Size="1" />
+<Data ElementName="unknown287" Type ="float" Size="1" />
+<Data ElementName="unknown288" Type ="float" Size="1" />
+<Data ElementName="unknown289" Type ="float" Size="1" />
+<Data ElementName="unknown290" Type ="float" Size="1" />
+<Data ElementName="unknown291" Type ="float" Size="1" />
+<Data ElementName="unknown292" Type ="float" Size="1" />
+<Data ElementName="unknown293" Type ="float" Size="1" />
+<Data ElementName="unknown294" Type ="float" Size="1" />
+<Data ElementName="unknown295" Type ="float" Size="1" />
+<Data ElementName="unknown296" Type ="float" Size="1" />
+<Data ElementName="unknown297" Type ="float" Size="1" />
+<Data ElementName="unknown298" Type ="float" Size="1" />
+<Data ElementName="unknown299" Type ="float" Size="1" />
+<Data ElementName="unknown300" Type ="float" Size="1" />
+<Data ElementName="unknown301" Type ="float" Size="1" />
+<Data ElementName="unknown302" Type ="float" Size="1" />
+<Data ElementName="unknown303" Type ="float" Size="1" />
+<Data ElementName="unknown304" Type ="float" Size="1" />
+<Data ElementName="unknown305" Type ="float" Size="1" />
+<Data ElementName="unknown306" Type ="float" Size="1" />
+<Data ElementName="unknown307" Type ="float" Size="1" />
+<Data ElementName="unknown308" Type ="float" Size="1" />
+<Data ElementName="unknown308000" Type ="float" Size="1" />
+<Data ElementName="unknown308001" Type ="float" Size="1" />
+<Data ElementName="unknown308002" Type ="float" Size="1" />
+<Data ElementName="unknown308003" Type ="float" Size="1" />
+<Data ElementName="unknown308004" Type ="float" Size="1" />
+<Data ElementName="unknown308005" Type ="float" Size="1" />
+<Data ElementName="unknown308006" Type ="float" Size="1" />
+<Data ElementName="unknown308007" Type ="float" Size="1" />
+<Data ElementName="unknown308008" Type ="float" Size="1" />
+<Data ElementName="unknown308009" Type ="float" Size="1" />
+<Data ElementName="unknown308010" Type ="float" Size="1" />
+<Data ElementName="unknown308011" Type ="float" Size="1" />
+<Data ElementName="unknown308012" Type ="float" Size="1" />
+<Data ElementName="unknown308013" Type ="float" Size="1" />
+<Data ElementName="unknown308014" Type ="float" Size="1" />
+<Data ElementName="unknown308015" Type ="float" Size="1" />
+<Data ElementName="unknown308016" Type ="float" Size="1" />
+<Data ElementName="unknown308017" Type ="float" Size="1" />
+<Data ElementName="unknown308018" Type ="float" Size="1" />
+<Data ElementName="unknown308019" Type ="float" Size="1" />
+<Data ElementName="unknown308020" Type ="float" Size="1" />
+<Data ElementName="unknown308021" Type ="float" Size="1" />
+<Data ElementName="unknown308022" Type ="float" Size="1" />
+<Data ElementName="unknown308023" Type ="float" Size="1" />
+<Data ElementName="unknown308024" Type ="float" Size="1" />
+<Data ElementName="unknown308025" Type ="float" Size="1" />
+<Data ElementName="unknown308026" Type ="float" Size="1" />
+<Data ElementName="unknown308027" Type ="float" Size="1" />
+<Data ElementName="unknown308028" Type ="float" Size="1" />
+<Data ElementName="unknown308029" Type ="float" Size="1" />
+<Data ElementName="unknown308030" Type ="float" Size="1" />
+<Data ElementName="unknown308031" Type ="float" Size="1" />
+<Data ElementName="unknown308032" Type ="float" Size="1" />
+<Data ElementName="unknown308033" Type ="float" Size="1" />
+<Data ElementName="unknown308034" Type ="float" Size="1" />
+<Data ElementName="unknown308035" Type ="float" Size="1" />
+<Data ElementName="unknown308036" Type ="float" Size="1" />
+<Data ElementName="unknown308037" Type ="float" Size="1" />
+<Data ElementName="unknown308038" Type ="float" Size="1" />
+<Data ElementName="unknown308039" Type ="float" Size="1" />
+<Data ElementName="unknown308040" Type ="float" Size="1" />
+<Data ElementName="unknown308041" Type ="float" Size="1" />
+<Data ElementName="unknown308042" Type ="float" Size="1" />
+<Data ElementName="unknown308043" Type ="float" Size="1" />
+<Data ElementName="unknown308044" Type ="float" Size="1" />
+<Data ElementName="unknown308045" Type ="float" Size="1" />
+<Data ElementName="unknown308046" Type ="float" Size="1" />
+<Data ElementName="unknown308047" Type ="float" Size="1" />
+<Data ElementName="unknown308048" Type ="float" Size="1" />
+<Data ElementName="unknown308049" Type ="float" Size="1" />
+<Data ElementName="unknown308050" Type ="float" Size="1" />
+<Data ElementName="unknown308052" Type ="float" Size="1" />
+<Data ElementName="unknown308053" Type ="float" Size="1" />
+<Data ElementName="unknown308054" Type ="float" Size="1" />
+<Data ElementName="unknown308055" Type ="float" Size="1" />
+<Data ElementName="unknown308056" Type ="float" Size="1" />
+<Data ElementName="unknown308057" Type ="float" Size="1" />
+<Data ElementName="unknown308058" Type ="float" Size="1" />
+<Data ElementName="unknown308059" Type ="float" Size="1" />
+<Data ElementName="unknown308060" Type ="float" Size="1" />
+<Data ElementName="unknown308061" Type ="float" Size="1" />
+<Data ElementName="unknown308062" Type ="float" Size="1" />
+<Data ElementName="unknown308063" Type ="float" Size="1" />
+<Data ElementName="unknown308064" Type ="float" Size="1" />
+<Data ElementName="unknown308065" Type ="float" Size="1" />
+<Data ElementName="unknown308066" Type ="float" Size="1" />
+<Data ElementName="unknown308067" Type ="float" Size="1" />
+<Data ElementName="unknown308068" Type ="float" Size="1" />
+<Data ElementName="unknown308069" Type ="float" Size="1" />
+<Data ElementName="unknown308070" Type ="float" Size="1" />
+<Data ElementName="unknown308071" Type ="float" Size="1" />
+<Data ElementName="unknown308072" Type ="float" Size="1" />
+<Data ElementName="unknown308073" Type ="float" Size="1" />
+<Data ElementName="unknown308074" Type ="float" Size="1" />
+<Data ElementName="unknown308075" Type ="float" Size="1" />
+<Data ElementName="unknown308076" Type ="float" Size="1" />
+<Data ElementName="unknown308077" Type ="float" Size="1" />
+<Data ElementName="unknown308078" Type ="float" Size="1" />
+<Data ElementName="unknown308079" Type ="float" Size="1" />
+<Data ElementName="unknown308080" Type ="float" Size="1" />
+<Data ElementName="unknown308081" Type ="float" Size="1" />
+<Data ElementName="unknown308082" Type ="float" Size="1" />
+<Data ElementName="unknown308083" Type ="float" Size="1" />
+<Data ElementName="unknown308084" Type ="float" Size="1" />
+<Data ElementName="unknown308085" Type ="float" Size="1" />
+<Data ElementName="unknown308086" Type ="float" Size="1" />
+<Data ElementName="unknown308087" Type ="float" Size="1" />
+<Data ElementName="unknown308088" Type ="float" Size="1" />
+<Data ElementName="unknown308089" Type ="float" Size="1" />
+<Data ElementName="unknown308090" Type ="float" Size="1" />
+<Data ElementName="unknown308091" Type ="float" Size="1" />
+<Data ElementName="unknown308092" Type ="float" Size="1" />
+<Data ElementName="unknown308093" Type ="float" Size="1" />
+<Data ElementName="unknown308094" Type ="float" Size="1" />
+<Data ElementName="unknown308095" Type ="float" Size="1" />
+<Data ElementName="unknown308096" Type ="float" Size="1" />
+<Data ElementName="unknown308097" Type ="float" Size="1" />
+<Data ElementName="unknown308098" Type ="float" Size="1" />
+<Data ElementName="unknown308099" Type ="float" Size="1" />
+<Data ElementName="unknown308100" Type ="float" Size="1" />
+<Data ElementName="unknown308101" Type ="float" Size="1" />
+<Data ElementName="out_of_combat_health_regen_pvp" Type="float" Size="1" />
+<Data ElementName="out_of_combat_power_regen_pvp" Type="float" Size="1" />
+<Data ElementName="in_combat_regen_pvp" Type="float" Size="1" />
+<Data ElementName="deflect_pvp" Type="float" Size="1" />
+<Data ElementName="increase_max_heath_pvp" Type="float" Size="1" />
+<Data ElementName="increase_max_health2_pvp" Type="float" Size="1" /> <!-- used when bonus is applied to both health & power -->
+<Data ElementName="unknown312" Type ="float" Size="1" />
+<Data ElementName="increase_speed_pvp" Type="float" Size="1" />
+<Data ElementName="unknown313" Type="float" Size="1" />
+<Data ElementName="increase_ground_speed_pvp" Type="float" Size="1" />
+<Data ElementName="increase_air_speed_pvp" Type="float" Size="1" />
+<Data ElementName="unknown314" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 8 which involves skill buff -->
+<Data ElementName="unknown315" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 3 which involves skill buff -->
+<Data ElementName="unknown316" Type="float" Size="1" /> <!-- see coldain pegasus buff this has a value of 3 which involves skill buff -->
+<Data ElementName="in_combat_movement_speed_pvp" Type="float" Size="1" />
+<Data ElementName="Haste_pvp" Type="float" Size="1" />
+<Data ElementName="increase_max_power_pvp" Type="float" Size="1" />
+<Data ElementName="increase_max_power2_pvp" Type="float" Size="1" /> <!-- used when bonus is applied to both health & power -->
+<Data ElementName="unknown321" Type="float" Size="1" />
+<Data ElementName="unknown322" Type="float" Size="1" />
+<Data ElementName="unknown323" Type="float" Size="1" />
+<Data ElementName="hate_mod_pvp" Type="float" Size="1" />
+<Data ElementName="unknown325" Type="float" Size="1" />
+<Data ElementName="unknown326" Type="float" Size="1" />
+<Data ElementName="unknown327" Type="float" Size="1" />
+<Data ElementName="unknown328" Type="float" Size="1" />
+<Data ElementName="dps_pvp" Type="float" Size="1" />
+<Data ElementName="unknown330" Type="float" Size="1" />
+<Data ElementName="unknown331" Type="float" Size="1" />
+<Data ElementName="unknown332" Type="float" Size="1" />
+<Data ElementName="base_avoidance_pvp" Type="float" Size="1" />
+<Data ElementName="unknown334" Type="float" Size="1" />
+<Data ElementName="uncontested_riposte_pvp" Type="float" Size="1" />
+<Data ElementName="uncontested_parry_pvp" Type="float" Size="1" />
+<Data ElementName="unknown337" Type="float" Size="1" />
+<Data ElementName="unknown338" Type="float" Size="1" />
+<Data ElementName="multi_attack_pvp" Type="float" Size="1" />
+<Data ElementName="spell_multi_attack_pvp" Type="float" Size="1" /> <!-- spell_doublecast -->
+<Data ElementName="unknown341" Type="float" Size="1" />
+<Data ElementName="unknown342" Type="float" Size="1" />
+<Data ElementName="unknown343" Type="float" Size="1" />
+<Data ElementName="block_chance_pvp" Type="float" Size="1" />
+<Data ElementName="unknown345" Type="float" Size="1" />
+<Data ElementName="unknown346" Type="float" Size="1" />
+<Data ElementName="crit_chance_pvp" Type="float" Size="1" />
+<Data ElementName="unknown348" Type="float" Size="1" />
+<Data ElementName="unknown349" Type="float" Size="1" />
+<Data ElementName="crit_bonus_pvp" Type="float" Size="1" />
+<Data ElementName="potency_pvp" Type="float" Size="1" />
+<Data ElementName="unknown352" Type="float" Size="1" />
+<Data ElementName="reuse_speed_pvp" Type="float" Size="1" />
+<Data ElementName="recovery_speed_pvp" Type="float" Size="1" />
+<Data ElementName="casting_speed_pvp" Type="float" Size="1" />
+<Data ElementName="unknown356" Type="float" Size="1" />
+<Data ElementName="unknown357" Type="float" Size="1" />
+<Data ElementName="unknown358" Type="float" Size="1" />
+<Data ElementName="decrease_falling_dmg_pvp" Type="float" Size="1" />
+<Data ElementName="unknown360" Type="float" Size="1" />
+<Data ElementName="unknown361" Type="float" Size="1" />
+<Data ElementName="unknown362" Type="float" Size="1" />
+<Data ElementName="unknown363" Type="float" Size="1" />
+<Data ElementName="unknown364" Type="float" Size="1" />
+<Data ElementName="unknown365" Type="float" Size="1" />
+<Data ElementName="unknown366" Type="float" Size="1" />
+<Data ElementName="unknown367" Type="float" Size="1" />
+<Data ElementName="loot_coin_pvp" Type="float" Size="1" />
+<Data ElementName="mitigation_increase_pvp" Type="float" Size="1" />
+<Data ElementName="unknown370" Type="float" Size="1" />
+<Data ElementName="strikethrough_pvp" Type="float" Size="1" />
+<Data ElementName="unknown372" Type="float" Size="1" />
+<Data ElementName="unknown373" Type="float" Size="1" />
+<Data ElementName="unknown374" Type="float" Size="1" />
+<Data ElementName="unknown375" Type="float" Size="1" />
+<Data ElementName="unknown376" Type="float" Size="1" />
+<Data ElementName="unknown377" Type="float" Size="1" />
+<Data ElementName="unknown378" Type="float" Size="1" />
+<Data ElementName="unknown379" Type="float" Size="1" />
+<Data ElementName="unknown380" Type="float" Size="1" />
+<Data ElementName="unknown381" Type="float" Size="1" />
+<Data ElementName="lethality_pvp" Type="float" Size="1" />
+<Data ElementName="unknown383" Type="float" Size="1" />
+<Data ElementName="unknown384" Type="float" Size="1" />
+<Data ElementName="unknown385" Type="float" Size="1" />
+<Data ElementName="unknown386" Type="float" Size="1" />
+<Data ElementName="unknown387" Type="float" Size="1" />
+<Data ElementName="unknown388" Type="float" Size="1" />
+<Data ElementName="unknown389" Type="float" Size="1" />
+<Data ElementName="unknown390" Type="float" Size="1" />
+<Data ElementName="unknown391" Type="float" Size="1" />
+<Data ElementName="unknown392" Type="float" Size="1" />
+<Data ElementName="unknown393" Type="float" Size="1" />
+<Data ElementName="unknown394" Type="float" Size="1" />
+<Data ElementName="unknown395" Type="float" Size="1" />
+<Data ElementName="unknown396" Type="float" Size="1" />
+<Data ElementName="unknown397" Type="float" Size="1" />
+<Data ElementName="unknown398" Type="float" Size="1" />
+<Data ElementName="unknown458" Type ="float" Size="1" />
+<Data ElementName="unknown459" Type ="float" Size="1" />
+<Data ElementName="unknown460" Type ="float" Size="1" />
+<Data ElementName="unknown461" Type ="float" Size="1" />
+<Data ElementName="unknown462" Type ="float" Size="1" />
+<Data ElementName="unknown463" Type ="float" Size="1" />
+<Data ElementName="unknown177" Type ="float" Size="1" />
+<Data ElementName="unknown465" Type ="float" Size="1" />
+<Data ElementName="unknown466" Type ="float" Size="1" />
+<Data ElementName="unknown467" Type ="float" Size="1" />
+<Data ElementName="unknown178" Type ="float" Size="1" />
+<Data ElementName="unknown470" Type ="float" Size="1" />
+<Data ElementName="unknown471" Type ="float" Size="1" />
+<Data ElementName="unknown472" Type ="float" Size="1" />
+<Data ElementName="unknown473" Type ="float" Size="1" />
+<Data ElementName="unknown474" Type ="float" Size="1" />
+<Data ElementName="unknown475" Type ="float" Size="1" />
+<Data ElementName="unknown476" Type ="float" Size="1" />
+<Data ElementName="unknown417" Type="float" Size="1" />
+<Data ElementName="unknown418" Type="float" Size="1" />
+<Data ElementName="unknown419" Type="float" Size="1" />
+<Data ElementName="unknown420" Type="float" Size="1" />
+<Data ElementName="unknown421" Type="float" Size="1" />
+<Data ElementName="unknown422" Type="float" Size="1" />
+<Data ElementName="unknown423" Type="float" Size="1" />
+<Data ElementName="unknown424" Type="float" Size="1" />
+<Data ElementName="unknown425" Type="float" Size="1" />
+<Data ElementName="unknown426" Type="float" Size="1" />
+<Data ElementName="unknown427" Type="float" Size="1" />
+<Data ElementName="unknown428" Type="float" Size="1" />
+<Data ElementName="unknown429" Type="float" Size="1" />
+<Data ElementName="unknown430" Type="float" Size="1" />
+<Data ElementName="unknown431" Type="float" Size="1" />
+<Data ElementName="unknown432" Type="float" Size="1" />
+<Data ElementName="unknown433" Type="float" Size="1" />
+<Data ElementName="unknown434" Type="float" Size="1" />
+<Data ElementName="unknown435" Type="float" Size="1" />
+<Data ElementName="unknown436" Type="float" Size="1" />
+<Data ElementName="unknown437" Type="float" Size="1" />
+<Data ElementName="unknown438" Type="float" Size="1" />
+<Data ElementName="unknown439" Type="float" Size="1" />
+<Data ElementName="unknown440" Type="float" Size="1" />
+<Data ElementName="unknown441" Type="float" Size="1" />
+<Data ElementName="unknown180" Type="int8" Size="1" />
+<Data ElementName="unknown524" Type="int8" Size="1" />
+<Data ElementName="unknown181a" Type="int8" Size="1" />
+<Data ElementName="unknown181b" Type="int8" Size="1" />
+<Data ElementName="unknown442" Type ="float" Size="1" />
+<Data ElementName="unknown443" Type ="float" Size="1" />
+<Data ElementName="unknown444" Type ="float" Size="1" />
+<Data ElementName="unknown445" Type ="float" Size="1" />
+<Data ElementName="unknown446" Type ="float" Size="1" />
+<Data ElementName="unknown447" Type ="float" Size="1" />
+<Data ElementName="unknown448" Type ="float" Size="1" />
+<Data ElementName="unknown449" Type ="float" Size="1" />
+<Data ElementName="unknown450" Type ="float" Size="1" />
+<Data ElementName="unknown451" Type ="float" Size="1" />
+<Data ElementName="unknown452" Type ="float" Size="1" />
+<Data ElementName="unknown453" Type ="float" Size="1" />
+<Data ElementName="unknown454" Type ="float" Size="1" />
+<Data ElementName="unknown455" Type ="float" Size="1" />
+<Data ElementName="unknown456" Type ="float" Size="1" />
+<Data ElementName="unknown457" Type ="float" Size="1" />
+<Data ElementName="durability_mod" Type="float" Size="1" />
+<Data ElementName="durability_add" Type="float" Size="1" />
+<Data ElementName="progress_mod" Type="float" Size="1" />
+<Data ElementName="progress_add" Type="float" Size="1" />
+<Data ElementName="success_mod" Type="float" Size="1" />
+<Data ElementName="crit_success_mod" Type="float" Size="1" />
+<Data ElementName="unknown458" Type ="float" Size="1" />
+<Data ElementName="rare_harvest_chance" Type="float" Size="1" />
+<Data ElementName="max_crafting" Type="float" Size="1" />
+<Data ElementName="component_refund" Type="float" Size="1" />
+<Data ElementName="unknown459" Type ="float" Size="1" />
+<Data ElementName="refine_quantity_mod" Type ="float" Size="1" />
+<Data ElementName="ex_durability_mod" Type="float" Size="1" />
+<Data ElementName="ex_durability_add" Type="float" Size="1" />
+<Data ElementName="ex_crit_success_mod" Type="float" Size="1" />
+<Data ElementName="ex_crit_failure_mod" Type="float" Size="1" />
+<Data ElementName="ex_progress_mod" Type="float" Size="1" />
+<Data ElementName="ex_progress_add" Type="float" Size="1" />
+<Data ElementName="ex_success_mod" Type="float" Size="1" />
+<Data ElementName="unknown477" Type ="float" Size="1" />
+<Data ElementName="unknown478" Type ="float" Size="1" />
+<Data ElementName="unknown479" Type ="float" Size="1" />
+<Data ElementName="unknown480" Type ="float" Size="1" />
+<Data ElementName="unknown481" Type ="float" Size="1" />
+<Data ElementName="unknown482" Type ="float" Size="1" />
+<Data ElementName="unknown483" Type ="float" Size="1" />
+<Data ElementName="unknown484" Type ="float" Size="1" />
+<Data ElementName="unknown485" Type ="float" Size="1" />
+<Data ElementName="unknown486" Type ="float" Size="1" />
+<Data ElementName="unknown487" Type ="float" Size="1" />
+<Data ElementName="unknown488" Type ="float" Size="1" />
+<Data ElementName="unknown489" Type ="float" Size="1" />
+<Data ElementName="unknown490" Type ="float" Size="1" />
+<Data ElementName="unknown491" Type ="float" Size="1" />
+<Data ElementName="unknown492" Type ="float" Size="1" />
+<Data ElementName="unknown493" Type ="float" Size="1" />
+<Data ElementName="unknown494" Type ="float" Size="1" />
+<Data ElementName="unknown495" Type ="float" Size="1" />
+<Data ElementName="unknown496" Type ="float" Size="1" />
+<Data ElementName="unknown497" Type ="float" Size="1" />
+<Data ElementName="unknown498" Type ="float" Size="1" />
+<Data ElementName="unknown499" Type ="float" Size="1" />
+<Data ElementName="unknown500" Type ="float" Size="1" />
+<Data ElementName="unknown501" Type ="float" Size="1" />
+<Data ElementName="unknown502" Type ="float" Size="1" />
+<Data ElementName="unknown503" Type ="float" Size="1" />
+<Data ElementName="unknown504" Type ="float" Size="1" />
+<Data ElementName="unknown505" Type ="float" Size="1" />
+<Data ElementName="unknown506" Type ="float" Size="1" />
+<Data ElementName="unknown507" Type ="float" Size="1" />
+<Data ElementName="unknown508" Type ="float" Size="1" />
+<Data ElementName="unknown509" Type ="float" Size="1" />
+<Data ElementName="unknown510" Type ="float" Size="1" />
+<Data ElementName="unknown511" Type ="float" Size="1" />
+<Data ElementName="unknown512" Type ="float" Size="1" />
+<Data ElementName="unknown513" Type ="float" Size="1" />
+<Data ElementName="unknown514" Type ="float" Size="1" />
+<Data ElementName="haste_tt" Type ="int32" Size="1" />
+<Data ElementName="dps_pve_tt" Type ="int32" Size="1" />
+<Data ElementName="dps_pvp_tt" Type ="int32" Size="1" />
+<Data ElementName="multi_attack_pve_tt" Type ="float" Size="1" />
+<Data ElementName="multi_attack_pvp_tt" Type ="float" Size="1" />
+<Data ElementName="unknown520" Type ="float" Size="1" />
+<Data ElementName="unknown521" Type ="float" Size="1" />
+<Data ElementName="unknown522" Type ="float" Size="1" />
+<Data ElementName="unknown523" Type ="float" Size="1" />
+<Data ElementName="unknown550" Type ="int8" Size="1" />
+<Data ElementName="vision" Type ="int16" Size="1" />
+<Data ElementName="unknown551" Type ="int8" Size="1" />
+<Data ElementName="unknown525a" Type ="int8" Size="264" />
+<Data ElementName="unknown525b" Type ="int32" Size="12" />
+<Data ElementName="unknown525c" Type ="int8" Size="34" />
+<Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" />
+<Data ElementName="unknown182" Type="int16" Size="1" />
+<Data ElementName="unknown183" Type="int8" Size="410" />
+<Data ElementName="pet_id" Type="int32" Size="1" />
+<Data ElementName="pet_name" Type="char" Size="32" />
+<Data ElementName="unknown184" Type="int8" Size="9" />
+<Data ElementName="pet_health_pct" Type="float" Size="1" />
+<Data ElementName="pet_power_pct" Type="float" Size="1" />
+<Data ElementName="unknown185" Type="int8" Size="1" />
+<Data ElementName="pet_movement" Type="int8" Size="1" />
+<Data ElementName="pet_behavior" Type="int8" Size="1" />
+<Data ElementName="unknown186" Type="int8" Size="8" />
+<Data ElementName="merc_id" Type="int32" Size="1" />
+<Data ElementName="merc_name" Type="char" Size="32" />
+<Data ElementName="merc_unknown21" Type="int8" Size="9" />
+<Data ElementName="merc_health_pct" Type="float" Size="1" />
+<Data ElementName="merc_power_pct" Type="float" Size="1" />
+<Data ElementName="merc_unknown21b" Type="int8" Size="1" />
+<Data ElementName="merc_movement" Type="int8" Size="1" />
+<Data ElementName="merc_behavior" Type="int8" Size="1" />
+<Data ElementName="merc_unknown21c" Type="int8" Size="101" />
+<Data ElementName="unknown527" Type="int8" Size="9" />
+<Data ElementName="unknown526" Type="int8" Size="23" />
+<Data ElementName="rain" Type="float" Size="1" />
+<Data ElementName="rain2" Type="float" Size="1" />
+<Data ElementName="status_points" Type="int32" Size="1" />
+<Data ElementName="guild_status" Type="int32" Size="1" />
+<Data ElementName="unknown187" Type="int8" Size="1" />
+<Data ElementName="house_zone" Type="char" Size="48" />
+<Data ElementName="unknown189a" Type="int8" Size="151" />
+<Data ElementName="bind_zone" Type="char" Size="32" />
+<Data ElementName="unknown188a" Type="int32" Size="1" />
+<Data ElementName="unknown188b" Type="int32" Size="1" />
+<Data ElementName="unknown188c" Type="int32" Size="1" />
+<Data ElementName="unknown188d" Type="int32" Size="1" />
+<Data ElementName="unknown188e" Type="int32" Size="1" />
+<Data ElementName="unknown188f" Type="int32" Size="1" />
+<Data ElementName="unknown188g" Type="int32" Size="1" />
+<Data ElementName="unknown188h" Type="int32" Size="1" />
+<Data ElementName="mount_equip_index" Type="int32" Size="1" />
+<Data ElementName="mount_appearance_index" Type="int32" Size="1" />
+<Data ElementName="unknown188k" Type="int32" Size="1" />
+<Data ElementName="unknown188l" Type="int32" Size="1" />
+<Data ElementName="unknown188m" Type="int32" Size="1" />
+<Data ElementName="unknown188n" Type="int32" Size="1" />
+<Data ElementName="unknown188o" Type="int32" Size="1" />
+<Data ElementName="unknown189" Type="int8" Size="1" />
+</Struct>
 <Struct Name="WS_EquipmentSets" ClientVersion="63136" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EquipmentSets">
 <Data ElementName="category" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="unknown_mj1" Type="int16" Size="1" />
@@ -17042,10 +17905,9 @@ to zero and treated like placeholders." />
 <Struct Name="WS_HearSpellDamage" ClientVersion="63120" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
 <Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
 <Data ElementName="damage_type" Type="int8" />
-<Data ElementName="damage" Type="int16" />
+<Data ElementName="damage" Type="int64" />
 <Data ElementName="unknown" Type="int8" />
 <Data ElementName="spell_name" Type="EQ2_8Bit_String" Size="1" />
-<!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
 <Data ElementName="unknown2" Type="int8" Size="5" />
 </Struct>
 <Struct Name="WS_HearHeal" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearHealCmd">

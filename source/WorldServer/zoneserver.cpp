@@ -4395,13 +4395,12 @@ void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, in
 			case DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE:
 				packet = configReader.getStruct("WS_HearSimpleDamage", client->GetVersion());
 				break;
+			case DAMAGE_PACKET_TYPE_RANGE_CRIT_DMG:
 			case DAMAGE_PACKET_TYPE_SPELL_DAMAGE2:
 			case DAMAGE_PACKET_TYPE_SPELL_DAMAGE3:
 			case DAMAGE_PACKET_TYPE_SPELL_CRIT_DMG:
 			case DAMAGE_PACKET_TYPE_SPELL_DAMAGE:
 				packet = configReader.getStruct("WS_HearSpellDamage", client->GetVersion());
-				if (packet)
-					packet->setSubstructDataByName("header", "unknown", 5);
 				break;
 			case DAMAGE_PACKET_TYPE_RANGE_DAMAGE:
 				packet = configReader.getStruct("WS_HearRangeDamage", client->GetVersion());

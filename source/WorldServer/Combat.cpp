@@ -830,7 +830,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE) {
 				type = DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG;
 			} else if (type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE) {
-				type = 0xC3;
+				type = DAMAGE_PACKET_TYPE_RANGE_CRIT_DMG;
 			} else if (type == DAMAGE_PACKET_TYPE_SPELL_DAMAGE) {
 				type = DAMAGE_PACKET_TYPE_SPELL_CRIT_DMG;
 			}
