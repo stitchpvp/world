@@ -359,7 +359,7 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 	packet->setSubstructDataByName("spell_info", "max_aoe_targets",spell->max_aoe_targets);
 	packet->setSubstructDataByName("spell_info", "friendly_spell",spell->friendly_spell);
 
-	vector<LUAData> data = GetScaledLUAData(client->GetPlayer()->GetLevel());
+	vector<LUAData> scaled_data = GetScaledLUAData(client->GetPlayer()->GetLevel());
 
 	packet->setSubstructArrayLengthByName("spell_info", "num_effects", effects.size());
 
@@ -369,11 +369,11 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 		for (unsigned int x = 0; x <= 8; x++) {
 			string search = "%" + to_string(x + 1);
 
-			if (x <= data.size() && description.find(search) != string::npos && (data.at(x).type == 0 || data.at(x).type == 1)) {
-				if (data.at(x).type == 0) {
-					description.replace(description.find(search), search.length(), to_string(abs(data.at(x).int_value)));
+			if (x <= scaled_data.size() && description.find(search) != string::npos && (scaled_data.at(x).type == 0 || scaled_data.at(x).type == 1)) {
+				if (scaled_data.at(x).type == 0) {
+					description.replace(description.find(search), search.length(), to_string(abs(scaled_data.at(x).int_value)));
 				} else {
-					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(data.at(x).float_value))));
+					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(scaled_data.at(x).float_value))));
 				}
 			}
 		}
