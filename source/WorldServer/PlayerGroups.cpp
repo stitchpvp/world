@@ -62,6 +62,9 @@ bool PlayerGroup::AddMember(Entity* member) {
 
 	member->SetGroupMemberInfo(gmi);
 	member->UpdateGroupMemberInfo();
+	member->changed = true;
+	member->info_changed = true;
+	member->AddChangedZoneSpawn();
 	m_members.push_back(gmi);
 
 	SendGroupUpdate();
@@ -82,8 +85,12 @@ bool PlayerGroup::RemoveMember(Entity* member) {
 	for (itr = m_members.begin(); itr != m_members.end(); itr++) {
 		if (gmi == *itr)
 			erase_itr = itr;
-		if ((*itr)->client)
+		if ((*itr)->client) {
 			(*itr)->client->GetPlayer()->SetCharSheetChanged(true);
+			(*itr)->member->changed = true;
+			(*itr)->member->info_changed = true;
+			(*itr)->member->AddChangedZoneSpawn();
+		}
 	}
 	if (erase_itr != m_members.end()) {
 		ret = true;

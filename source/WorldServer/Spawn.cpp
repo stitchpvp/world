@@ -168,8 +168,24 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 		}
 		MSpawnGroup->releasereadlock(__FUNCTION__, __LINE__);
 	} else if (player != this) {
-		header->setArrayLengthByName("group_size", 1);
-		header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(this), 0);
+		if (IsPlayer() && static_cast<Player*>(this)->GetGroupMemberInfo()) {
+			world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+
+			deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(static_cast<Player*>(this)->GetGroupMemberInfo()->group_id);
+
+			header->setArrayLengthByName("group_size", members->size());
+
+			int i = 0;
+			for (const auto* info : *members) {
+				header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(info->client->GetPlayer()), i);
+				i++;
+			}
+
+			world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+		} else {
+			header->setArrayLengthByName("group_size", 1);
+			header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(this), 0);
+		}
 	}
 
 	if (header->GetVersion() >= 57080)
@@ -1480,6 +1496,10 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 	packet->setDataByName("unknown4", (int8)GetLevel());
 	packet->setDataByName("difficulty", appearance.encounter_level);
 	packet->setDataByName("heroic_flag", appearance.heroic_flag);
+
+	if (PVP::IsEnabled() && IsPlayer() && static_cast<Player*>(this)->GetGroupMemberInfo())
+		packet->setDataByName("heroic_flag", 1);
+
 	if (!IsObject() && !IsGroundSpawn() && !IsWidget() && !IsSign())
 		packet->setDataByName("interaction_flag", 12); //this makes NPCs head turn to look at you
 
