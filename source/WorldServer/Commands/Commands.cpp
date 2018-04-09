@@ -1100,35 +1100,39 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 									   }
 		case COMMAND_USEABILITY:{
-			if(sep && sep->arg[0][0] && sep->IsNumber(0)){
+			if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
 				if(client->GetPlayer()->GetHP() == 0){
-					client->SimpleMessage(CHANNEL_COLOR_RED,"You cannot do that right now.");
-				}
-				else{
+					client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot do that right now.");
+				} else {
 					int32 spell_id = atoul(sep->arg[0]);
-					int8 spell_tier = 0;
-					if(sep->arg[1][0] && sep->IsNumber(1))
+					int8 spell_tier = 1;
+
+					if (sep->IsSet(1) && sep->IsNumber(1)) {
 						spell_tier = atoi(sep->arg[1]);
-					else
-						spell_tier = client->GetPlayer()->GetSpellTier(spell_id);
-					if (!spell_tier) 
+					}
+
+					if (!spell_tier) {
 						spell_tier = 1;
-					Spell* spell = master_spell_list.GetSpell(spell_id, spell_tier);
-					if (spell) {
-						if (strncmp(spell->GetName(), "Gathering", 9) == 0 || strncmp(spell->GetName(), "Mining", 6) == 0 || strncmp(spell->GetName(), "Trapping", 8) == 0 || strncmp(spell->GetName(), "Foresting", 9) == 0 || strncmp(spell->GetName(), "Fishing", 7) == 0 || strncmp(spell->GetName(), "Collecting", 10) == 0)
-							client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true, true);
-						else
-						{
-							if (client->GetPlayer()->HasTarget())
-								client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget());
-							else
-								client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer());
+					}
+
+					if (client->GetPlayer()->HasSpell(spell_id, spell_tier, true) || client->GetAdminStatus() >= 200) {
+						Spell* spell = master_spell_list.GetSpell(spell_id, spell_tier);
+
+						if (spell) {
+							if (strncmp(spell->GetName(), "Gathering", 9) == 0 || strncmp(spell->GetName(), "Mining", 6) == 0 || strncmp(spell->GetName(), "Trapping", 8) == 0 || strncmp(spell->GetName(), "Foresting", 9) == 0 || strncmp(spell->GetName(), "Fishing", 7) == 0 || strncmp(spell->GetName(), "Collecting", 10) == 0) {
+								client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true, true);
+							} else {
+								if (client->GetPlayer()->HasTarget()) {
+									client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget());
+								} else {
+									client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer());
+								}
+							}
 						}
 					}
 				}
-			}
-			else{
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Usage:  /useability {spell_id} [spell_tier]");
+			} else {
+				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage:  /useability {spell_id} [spell_tier]");
 			}
 			break;
 								}
