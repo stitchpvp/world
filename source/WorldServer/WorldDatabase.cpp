@@ -4151,6 +4151,105 @@ void WorldDatabase::LoadTraits(){
 	LogWrite(SPELL__INFO, 0, "Traits", "Loaded %u Trait(s)", master_trait_list.Size());
 }
 
+Spell* WorldDatabase::GenerateSpell(DatabaseResult& result, string spell_name, string hash_string) {
+	string hash_hex;
+	picosha2::hash256_hex_string(hash_string, hash_hex);
+	sint32 spell_id = std::stoi(hash_hex.substr(0, 7), nullptr, 16);
+
+	SpellData* data = new SpellData;
+
+	data->id = spell_id;
+	data->tier = 1;
+	data->name.data = spell_name;
+	data->name.size = data->name.data.length();
+	data->description.data = result.GetStringStr("description");
+	data->description.size = data->description.data.length();
+	data->icon = result.GetSInt16Str("icon");
+	data->icon_heroic_op = result.GetInt16Str("icon_heroic_op");
+	data->icon_backdrop = result.GetInt16Str("icon_backdrop");
+	data->spell_visual = result.GetInt32Str("spell_visual");
+	data->type = result.GetInt16Str("type");
+	data->target_type = result.GetInt8Str("target_type");
+	data->cast_type = result.GetInt8Str("cast_type");
+	data->spell_book_type = result.GetInt32Str("spell_book_type");
+	data->det_type = result.GetInt8Str("det_type");
+	data->incurable = (result.GetInt8Str("incurable") == 1);
+	data->control_effect_type = result.GetInt8Str("control_effect_type");
+	data->casting_flags = result.GetInt32Str("casting_flags");
+	data->savage_bar = result.GetInt8Str("savage_bar");
+	data->savage_bar_slot = result.GetInt8Str("savage_bar_slot");
+	data->spell_type = result.IsNullStr("spell_type") ? 0 : result.GetInt8Str("spell_type");
+
+	/* Toggles */
+	data->interruptable = (result.GetInt8Str("interruptable") == 1);
+	data->duration_until_cancel = (result.GetInt8Str("duration_until_cancel") == 1);
+	data->can_effect_raid = result.GetInt8Str("can_effect_raid");
+	data->affect_only_group_members = result.GetInt8Str("affect_only_group_members");
+	data->display_spell_tier = result.GetInt8Str("display_spell_tier");
+	data->friendly_spell = result.GetInt8Str("friendly_spell");
+	data->group_spell = result.GetInt8Str("group_spell");
+	data->is_active = result.GetInt8Str("is_active");
+	data->persist_though_death = (result.GetInt8Str("persist_through_death") == 1);
+	data->cast_while_moving = (result.GetInt8Str("cast_while_moving") == 1);
+	data->not_maintained = (result.GetInt8Str("not_maintained") == 1);
+
+	/* Skill Requirements */
+	data->class_skill = result.GetInt32Str("class_skill");
+	data->mastery_skill = result.GetInt32Str("mastery_skill");
+	// no min_class_skill_req?
+
+	/* Cost  */
+	data->req_concentration = result.GetInt16Str("req_concentration");
+	data->hp_req = result.GetInt16Str("hp_req");
+	data->hp_upkeep = result.GetInt16Str("hp_upkeep");
+	data->hp_req_percent = result.GetInt8Str("hp_req_percent");
+	data->power_req = 0; //result.GetInt16Str("power_req");
+	data->power_upkeep = result.GetInt16Str("power_upkeep");
+	data->power_req_percent = result.GetInt8Str("power_req_percent");
+	data->savagery_req = result.GetInt16Str("savagery_req");
+	data->savagery_upkeep = result.GetInt16Str("savagery_upkeep");
+	data->savagery_req_percent = result.GetInt8Str("savagery_req_percent");
+	data->dissonance_req = result.GetInt16Str("dissonance_req");
+	data->dissonance_upkeep = result.GetInt16Str("dissonance_upkeep");
+	data->dissonance_req_percent = result.GetInt8Str("dissonance_req_percent");
+
+	/* Spell Parameters */
+	data->call_frequency = result.GetInt32Str("call_frequency");
+	data->cast_time = result.GetInt16Str("cast_time");
+	data->duration1 = result.GetInt32Str("duration1");
+	data->duration2 = result.GetInt32Str("duration2");
+	data->hit_bonus = result.GetFloatStr("hit_bonus");
+	data->max_aoe_targets = result.GetInt16Str("max_aoe_targets");
+	data->min_range = result.GetFloatStr("min_range");
+	data->radius = result.GetFloatStr("radius");
+	data->range = result.GetFloatStr("range");
+	data->recast = result.GetFloatStr("recast");
+	data->recovery = result.GetFloatStr("recovery");
+	data->resistibility = result.GetFloatStr("resistibility");
+	data->linked_timer = result.GetInt32Str("linked_timer_id");
+
+	/* Cast Messaging */
+	string message = result.GetStringStr("success_message");
+	if (message.length() > 0)
+		data->success_message = message;
+
+	message = result.GetStringStr("fade_message");
+	if (message.length() > 0)
+		data->fade_message = string(message);
+
+	message = result.GetStringStr("effect_message");
+	if (message.length() > 0)
+		data->effect_message = string(message);
+
+	string lua_script = result.GetStringStr("lua_script");
+	if (lua_script.length() > 0)
+		data->lua_script = string(lua_script);
+
+	Spell* spell = new Spell(data);
+
+	return spell;
+}
+
 void WorldDatabase::LoadSpells()
 {
 	DatabaseResult result;
@@ -4177,155 +4276,74 @@ void WorldDatabase::LoadSpells()
 	if (database_new.Select(&result, query_string)) {
 		while (result.Next()) {
 			int32 spell_id = result.GetInt32Str("id");
-			string spell_name = result.GetStringStr("name");
 
 			vector<SpellDisplayEffect*> spell_display_effects = LoadSpellEffect(spell_id);
 			vector<LUAData*> lua_data = LoadSpellLuaData(spell_id);
+			map<int32, Spell*> spell_map;
 			
 			if (level_data && level_data->count(spell_id) > 0) {
-				int spell_num = 0;
+				int spell_num = 1;
 
 				for (const auto spell_level : level_data->at(spell_id)) {
-					spell_num++;
-					total++;
+					Spell* spell = nullptr;
 
-					SpellData* data = new SpellData;
+					if (spell_map.count(spell_level->spell_level) == 0) {
+						string spell_name = result.GetStringStr("name");
+						string hash_string = spell_name + " " + to_string(spell_id) + to_string(spell_level->spell_level);
 
-					string hash_str = spell_name + " " + to_string(spell_level->spell_level);
-					string hash_hex;
-					picosha2::hash256_hex_string(hash_str, hash_hex);
-					sint32 hash = std::stoi(hash_hex.substr(0, 7), nullptr, 16);
-
-					data->id = hash;
-					data->tier = 1;
-					data->name.data = spell_name;
-
-					if (level_data->at(spell_id).size() > 1 && spell_num > 1) {
-						data->name.data += " " + int_to_roman(spell_num);
-					}
-
-					data->name.size = data->name.data.length();
-					data->description.data = result.GetStringStr("description");
-					data->description.size = data->description.data.length();
-					data->icon = result.GetSInt16Str("icon");
-					data->icon_heroic_op = result.GetInt16Str("icon_heroic_op");
-					data->icon_backdrop = result.GetInt16Str("icon_backdrop");
-					data->spell_visual = result.GetInt32Str("spell_visual");
-					data->type = result.GetInt16Str("type");
-					data->target_type = result.GetInt8Str("target_type");
-					data->cast_type = result.GetInt8Str("cast_type");
-					data->spell_book_type = result.GetInt32Str("spell_book_type");
-					data->det_type = result.GetInt8Str("det_type");
-					data->incurable = (result.GetInt8Str("incurable") == 1);
-					data->control_effect_type = result.GetInt8Str("control_effect_type");
-					data->casting_flags = result.GetInt32Str("casting_flags");
-					data->savage_bar = result.GetInt8Str("savage_bar");
-					data->savage_bar_slot = result.GetInt8Str("savage_bar_slot");
-					data->spell_type = result.IsNullStr("spell_type") ? 0 : result.GetInt8Str("spell_type");
-
-					/* Toggles */
-					data->interruptable = (result.GetInt8Str("interruptable") == 1);
-					data->duration_until_cancel = (result.GetInt8Str("duration_until_cancel") == 1);
-					data->can_effect_raid = result.GetInt8Str("can_effect_raid");
-					data->affect_only_group_members = result.GetInt8Str("affect_only_group_members");
-					data->display_spell_tier = result.GetInt8Str("display_spell_tier");
-					data->friendly_spell = result.GetInt8Str("friendly_spell");
-					data->group_spell = result.GetInt8Str("group_spell");
-					data->is_active = result.GetInt8Str("is_active");
-					data->persist_though_death = (result.GetInt8Str("persist_through_death") == 1);
-					data->cast_while_moving = (result.GetInt8Str("cast_while_moving") == 1);
-					data->not_maintained = (result.GetInt8Str("not_maintained") == 1);
-
-					/* Skill Requirements */
-					data->class_skill = result.GetInt32Str("class_skill");
-					data->mastery_skill = result.GetInt32Str("mastery_skill");
-					// no min_class_skill_req?
-
-					/* Cost  */
-					data->req_concentration = result.GetInt16Str("req_concentration");
-					data->hp_req = result.GetInt16Str("hp_req");
-					data->hp_upkeep = result.GetInt16Str("hp_upkeep");
-					data->hp_req_percent = result.GetInt8Str("hp_req_percent");
-					data->power_req = 0; //result.GetInt16Str("power_req");
-					data->power_upkeep = result.GetInt16Str("power_upkeep");
-					data->power_req_percent = result.GetInt8Str("power_req_percent");
-					data->savagery_req = result.GetInt16Str("savagery_req");
-					data->savagery_upkeep = result.GetInt16Str("savagery_upkeep");
-					data->savagery_req_percent = result.GetInt8Str("savagery_req_percent");
-					data->dissonance_req = result.GetInt16Str("dissonance_req");
-					data->dissonance_upkeep = result.GetInt16Str("dissonance_upkeep");
-					data->dissonance_req_percent = result.GetInt8Str("dissonance_req_percent");
-
-					/* Spell Parameters */
-					data->call_frequency = result.GetInt32Str("call_frequency");
-					data->cast_time = result.GetInt16Str("cast_time");
-					data->duration1 = result.GetInt32Str("duration1");
-					data->duration2 = result.GetInt32Str("duration2");
-					data->hit_bonus = result.GetFloatStr("hit_bonus");
-					data->max_aoe_targets = result.GetInt16Str("max_aoe_targets");
-					data->min_range = result.GetFloatStr("min_range");
-					data->radius = result.GetFloatStr("radius");
-					data->range = result.GetFloatStr("range");
-					data->recast = result.GetFloatStr("recast");
-					data->recovery = result.GetFloatStr("recovery");
-					data->resistibility = result.GetFloatStr("resistibility");
-					data->linked_timer = result.GetInt32Str("linked_timer_id");
-
-					/* Cast Messaging */
-					string message = result.GetStringStr("success_message");
-					if (message.length() > 0)
-						data->success_message = message;
-
-					message = result.GetStringStr("fade_message");
-					if (message.length() > 0)
-						data->fade_message = string(message);
-
-					message = result.GetStringStr("effect_message");
-					if (message.length() > 0)
-						data->effect_message = string(message);
-
-					string lua_script = result.GetStringStr("lua_script");
-					if (lua_script.length() > 0)
-						data->lua_script = string(lua_script);
-
-					Spell* spell = new Spell(data);
-
-					for (auto lua_datum : lua_data) {
-						if (lua_datum->is_scaling) {
-							spell->AddSpellLuaData(lua_datum->type, lua_datum->int_value * spell_level->spell_level, lua_datum->float_value * spell_level->spell_level, lua_datum->bool_value, lua_datum->string_value);
-						} else {
-							spell->AddSpellLuaData(lua_datum->type, lua_datum->int_value, lua_datum->float_value, lua_datum->bool_value, lua_datum->string_value);
+						if (level_data->at(spell_id).size() > 1 && spell_num > 1) {
+							spell_name += " " + int_to_roman(spell_num);
 						}
-					}
 
-					for (const auto spell_display_effect : spell_display_effects) {
-						string description = spell_display_effect->description;
+						spell = GenerateSpell(result, spell_name, hash_string);
+						spell_map.insert(pair<int32, Spell*>(spell_level->spell_level, spell));
 
-						for (int i = 0; i <= 15; i++) {
-							string search = "%" + to_string(i + 1);
+						for (auto lua_datum : lua_data) {
+							spell->AddSpellLuaData(lua_datum->type, lua_datum->int_value, lua_datum->float_value, lua_datum->bool_value, lua_datum->string_value, lua_datum->flat_value, lua_datum->is_scaling);
+						}
 
-							if (description.find(search) != string::npos && (spell->GetLUAData()->at(i) && (spell->GetLUAData()->at(i)->type == 0) || (spell->GetLUAData()->at(i)->type == 1))) {
-								if (spell->GetLUAData()->at(i)->type == 0) {
-									description.replace(description.find(search), search.length(), to_string(spell->GetLUAData()->at(i)->int_value));
-								} else {
-									description.replace(description.find(search), search.length(), to_string(static_cast<int>(spell->GetLUAData()->at(i)->float_value)));
-								}
+						for (const auto spell_display_effect : spell_display_effects) {
+							spell->AddSpellEffect(spell_display_effect->percentage, spell_display_effect->subbullet, spell_display_effect->description);
+						}
+
+						int max_level = 0;
+						for (const auto other_level : level_data->at(spell_id)) {
+							if (other_level->spell_level > max_level && other_level->spell_level > spell_level->spell_level) {
+								max_level = other_level->spell_level;
 							}
 						}
 
-						spell->AddSpellEffect(spell_display_effect->percentage, spell_display_effect->subbullet, description);
+						spell->GetSpellData()->max_level = max_level;
+						master_spell_list.AddSpell(spell->GetSpellID(), 1, spell);
+
+						spell_num++;
+						total++;
+					} else {
+						spell = spell_map.find(spell_level->spell_level)->second;
 					}
 
 					spell->AddSpellLevel(spell_level->adventure_class, spell_level->tradeskill_class, spell_level->spell_level * 10);
-
-					master_spell_list.AddSpell(hash, 1, spell);
 				}
 			}
+
+			string spell_name = result.GetStringStr("name");
+			string hash_string = spell_name + " " + to_string(spell_id);
+
+			Spell* spell = GenerateSpell(result, spell_name, hash_string);
+			for (auto lua_datum : lua_data) {
+				spell->AddSpellLuaData(lua_datum->type, lua_datum->int_value, lua_datum->float_value, lua_datum->bool_value, lua_datum->string_value, lua_datum->flat_value, lua_datum->is_scaling);
+			}
+
+			for (const auto spell_display_effect : spell_display_effects) {
+				spell->AddSpellEffect(spell_display_effect->percentage, spell_display_effect->subbullet, spell_display_effect->description);
+			}
+			master_spell_list.AddSpell(spell->GetSpellID(), 1, spell);
+
+			total++;
 		}
 	}
 	
-	if(lua_interface) 
-	{
+	if (lua_interface) {
 		LogWrite(SPELL__DEBUG, 0, "Spells", "Loading Spells Scripts...");
 		LoadSpellScriptData();
 	}
@@ -4347,12 +4365,13 @@ vector<LUAData*> WorldDatabase::LoadSpellLuaData(int32 spell_id) {
 	DatabaseResult result;
 	vector<LUAData*> lua_data;
 
-	if (database_new.Select(&result, "SELECT value_type, value, is_scaling FROM spell_data WHERE spell_id = %u ORDER BY index_field", spell_id)) {
+	if (database_new.Select(&result, "SELECT value_type, value, flat_value, is_scaling FROM spell_data WHERE spell_id = %u ORDER BY index_field", spell_id)) {
 		while (result.Next()) {
 			LUAData* data = new LUAData;
 			data->int_value = 0;
 			data->float_value = 0;
 			data->bool_value = false;
+			data->flat_value = result.GetInt32Str("flat_value");
 			data->is_scaling = result.GetInt8Str("is_scaling") == 0 ? false : true;
 
 			const char* type = result.GetStringStr("value_type");

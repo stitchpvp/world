@@ -197,6 +197,7 @@ struct LUAData{
 	bool	bool_value;
 	float	float_value;
 	string	string_value;
+	sint32 flat_value;
 	bool  is_scaling;
 };
 struct SpellScriptTimer {
@@ -281,6 +282,7 @@ struct SpellData{
 	int8	savage_bar;
 	int8	savage_bar_slot;
 	int8	spell_type;
+	int16	max_level;
 };
 class Spell{
 public:
@@ -292,7 +294,7 @@ public:
 	EQ2Packet* SerializeAASpell(Client* client, AltAdvanceData* data, bool display, int16 packet_type = 0, int8 sub_packet_type = 0);
 	void AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level);
 	void AddSpellEffect(int8 percentage, int8 subbullet, string description);
-	void AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value);
+	void AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value, int flat_value = 0, bool is_scaling = false);
 	void AddSpellLuaDataInt(int value);
 	void AddSpellLuaDataFloat(float value);
 	void AddSpellLuaDataBool(bool value);
@@ -313,6 +315,7 @@ public:
 	SpellData* GetSpellData();
 	bool ScribeAllowed(Player* player);
 	vector<LUAData*>* GetLUAData();
+	vector<LUAData> GetScaledLUAData(int level);
 	vector <LevelArray*>* GetSpellLevels();
 	vector <SpellDisplayEffect*>* GetSpellEffects();
 	const char* GetName();

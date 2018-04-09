@@ -314,6 +314,7 @@ public:
 	int32	GetCharacterAccountID(int32 character_id);
 	void	LoadEntityCommands(ZoneServer* zone);
 	void	LoadSpells();
+	Spell* GenerateSpell(DatabaseResult& result, string spell_name, string hash_string);
 	void	LoadSpellEffects();
 	vector<SpellDisplayEffect*>	LoadSpellEffect(int32 spell_id);
 	vector<LUAData*> LoadSpellLuaData(int32 spell_id);

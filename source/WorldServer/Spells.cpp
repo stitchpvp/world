@@ -65,13 +65,15 @@ Spell::~Spell(){
 	safe_delete(spell);
 }
 
-void Spell::AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value){
+void Spell::AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value, int flat_value, bool is_scaling) {
 	LUAData* data = new LUAData;
 	data->type = type;
 	data->int_value = int_value;
 	data->float_value = float_value;
 	data->bool_value = bool_value;
 	data->string_value = string_value;
+	data->flat_value = flat_value;
+	data->is_scaling = is_scaling;
 	MSpellInfo.lock();
 	lua_data.push_back(data);
 	MSpellInfo.unlock();
@@ -239,9 +241,26 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool
 	packet->setSubstructDataByName(name, "max_aoe_targets", spell->max_aoe_targets);
 	packet->setSubstructDataByName(name, "friendly_spell", spell->friendly_spell);
 
+	vector<LUAData> data = GetScaledLUAData(client->GetPlayer()->GetLevel());
+
 	packet->setSubstructArrayLengthByName(name, "num_effects", effects.size());
-	for(int32 i=0;i<effects.size();i++){
-		packet->setArrayDataByName("effect", effects[i]->description.c_str(), i);
+
+	for (int32 i = 0; i < effects.size(); i++) {
+		string description = effects[i]->description;
+
+		for (unsigned int x = 0; x <= 8; x++) {
+			string search = "%" + to_string(x + 1);
+
+			if (x <= data.size() && description.find(search) != string::npos && (data.at(x).type == 0 || data.at(x).type == 1)) {
+				if (data.at(x).type == 0) {
+					description.replace(description.find(search), search.length(), to_string(abs(data.at(x).int_value)));
+				} else {
+					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(data.at(x).float_value))));
+				}
+			}
+		}
+
+		packet->setArrayDataByName("effect", description.c_str(), i);
 		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
 		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
 	}
@@ -339,12 +358,31 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 	packet->setSubstructDataByName("spell_info", "radius",spell->radius);
 	packet->setSubstructDataByName("spell_info", "max_aoe_targets",spell->max_aoe_targets);
 	packet->setSubstructDataByName("spell_info", "friendly_spell",spell->friendly_spell);
+
+	vector<LUAData> data = GetScaledLUAData(client->GetPlayer()->GetLevel());
+
 	packet->setSubstructArrayLengthByName("spell_info", "num_effects", effects.size());
-	for(int32 i=0;i<effects.size();i++){
-		packet->setArrayDataByName("effect", effects[i]->description.c_str(), i);
+
+	for (int32 i = 0; i < effects.size(); i++) {
+		string description = effects[i]->description;
+
+		for (unsigned int x = 0; x <= 8; x++) {
+			string search = "%" + to_string(x + 1);
+
+			if (x <= data.size() && description.find(search) != string::npos && (data.at(x).type == 0 || data.at(x).type == 1)) {
+				if (data.at(x).type == 0) {
+					description.replace(description.find(search), search.length(), to_string(abs(data.at(x).int_value)));
+				} else {
+					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(data.at(x).float_value))));
+				}
+			}
+		}
+
+		packet->setArrayDataByName("effect", description.c_str(), i);
 		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
 		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
 	}
+
 	packet->setSubstructDataByName("spell_info", "display_spell_tier", spell->display_spell_tier);
 	packet->setSubstructDataByName("spell_info", "minimum_range", spell->min_range);
 	packet->setSubstructDataByName("spell_info", "range",spell->range);
@@ -437,12 +475,16 @@ void Spell::AddSpellEffect(int8 percentage, int8 subbullet, string description){
 
 int16 Spell::GetHPRequired(Spawn* spawn){
 	int16 hp_req = spell->hp_req;
-	if(spawn && spell->hp_req_percent > 0){
-		double result = ((double)spell->hp_req_percent/100)*spawn->GetTotalHP();
-		if(result >= (((int16)result) + .5))
+
+	if (spawn && spell->hp_req_percent > 0) {
+		double result = ((double)spell->hp_req_percent/100)*spawn->GetTotalHPBase();
+
+		if (result >= (((int16)result) + .5))
 			result++;
+
 		hp_req = (int16)result;
 	}
+
 	return hp_req;
 }
 
@@ -534,6 +576,44 @@ int8 Spell::GetSpellTier(){
 vector<LUAData*>* Spell::GetLUAData(){
 	return &lua_data;
 }
+
+vector<LUAData> Spell::GetScaledLUAData(int level) {
+	vector<LUAData*>* data = GetLUAData();
+	vector<LUAData> ret;
+
+	for (LUAData* datum : *data) {
+		LUAData scaled_datum;
+		scaled_datum.type = datum->type;
+		scaled_datum.is_scaling = datum->is_scaling;
+		scaled_datum.flat_value = datum->flat_value;
+
+		switch(datum->type) {
+			case 0:
+				scaled_datum.int_value = datum->int_value;
+				if (scaled_datum.is_scaling)
+					scaled_datum.int_value *= level;
+				scaled_datum.int_value += scaled_datum.flat_value;
+				break;
+			case 1:
+				scaled_datum.float_value = datum->float_value;
+				if (scaled_datum.is_scaling)
+					scaled_datum.float_value *= level;
+				scaled_datum.float_value += scaled_datum.flat_value;
+				break;
+			case 2:
+				scaled_datum.bool_value = datum->bool_value;
+				break;
+			case 3:
+				scaled_datum.string_value = datum->string_value;
+				break;
+		}
+
+		ret.push_back(scaled_datum);
+	}
+
+	return ret;
+}
+
 SpellData* Spell::GetSpellData(){
 	return spell;
 }

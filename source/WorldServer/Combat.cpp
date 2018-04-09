@@ -1223,29 +1223,28 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	*/
 	if (!item_proc) {
 		// Append spell data to the param list
-		vector<LUAData*>* data = proc->spell->spell->GetLUAData();
-		for(int32 i = 0; i < data->size(); i++) {
-			switch(data->at(i)->type) {
-			case 0:{
-				lua_interface->SetSInt32Value(proc->spell->state, data->at(i)->int_value);
-				break;
-				   }
-			case 1:{
-				lua_interface->SetFloatValue(proc->spell->state, data->at(i)->float_value);
-				break;
-				   }
-			case 2:{
-				lua_interface->SetBooleanValue(proc->spell->state, data->at(i)->bool_value);
-				break;
-				   }
-			case 3:{
-				lua_interface->SetStringValue(proc->spell->state, data->at(i)->string_value.c_str());
-				break;
-				   }
-			default:{
-				LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in Entity::CastProc for Spell '%s'", (int)data->at(i)->type, proc->spell->spell->GetName());
-				return false;
-					}
+		vector<LUAData> data = proc->spell->spell->GetScaledLUAData(GetLevel());
+		for (int32 i = 0; i < data.size(); i++) {
+			switch (data.at(i).type) {
+				case 0:
+					lua_interface->SetSInt32Value(proc->spell->state, data.at(i).int_value);
+					break;
+
+				case 1:
+					lua_interface->SetFloatValue(proc->spell->state, data.at(i).float_value);
+					break;
+
+				case 2:
+					lua_interface->SetBooleanValue(proc->spell->state, data.at(i).bool_value);
+					break;
+
+				case 3:
+					lua_interface->SetStringValue(proc->spell->state, data.at(i).string_value.c_str());
+					break;
+
+				default:
+					LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in Entity::CastProc for Spell '%s'", (int)data.at(i).type, proc->spell->spell->GetName());
+					return false;
 			}
 			num_args++;
 		}
