@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "../common/MiscFunctions.h"
 #include "Entity.h"
 #include <math.h>
 #include "Items/Items.h"
@@ -1367,6 +1368,62 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 
 		// Reset ward pointer
 		ward = 0;
+	}
+
+	return damage;
+}
+
+void Entity::AddStoneskin(LuaSpell* luaspell, StoneskinInfo* stoneskin) {
+	if (m_stoneskinList.count(luaspell) == 0) {
+		m_stoneskinList[luaspell] = stoneskin;
+	}
+}
+
+void Entity::RemoveStoneskin(LuaSpell* luaspell) {
+	if (m_stoneskinList.count(luaspell) > 0) {
+		safe_delete(m_stoneskinList[luaspell]);
+		m_stoneskinList.erase(luaspell);
+	}
+}
+
+int32 Entity::CheckStoneskins(int32 damage, Entity* attacker) {
+	int total_absorbed = 0;
+
+	for (auto& kv : m_stoneskinList) {
+		LuaSpell* spell = kv.first;
+		StoneskinInfo* stoneskin = kv.second;
+
+		if (!stoneskin->infinite && damage >= stoneskin->DamageLeft) {
+			damage -= stoneskin->DamageLeft;
+			total_absorbed += stoneskin->DamageLeft;
+			stoneskin->DamageLeft = 0;
+
+			if (!stoneskin->keepStoneskin) {
+				RemoveStoneskin(spell);
+				GetZone()->GetSpellProcess()->DeleteCasterSpell(spell);
+			}
+		} else {
+			if (!stoneskin->infinite)
+				stoneskin->DamageLeft -= damage;
+
+			total_absorbed = damage;
+			damage = 0;
+			break;
+		}
+	}
+
+	if (total_absorbed > 0) {
+		string absorbed_str = FormatWithCommas(total_absorbed);
+
+		if (IsPlayer()) {
+			string message = "Your stoneskin absorbed " + absorbed_str + " points of damage!";
+			GetZone()->GetClientBySpawn(this)->SimpleMessage(109, message.c_str());
+		}
+
+		if (attacker->IsPlayer()) {
+			string message = "Your target's stoneskin absorbed " + absorbed_str + " points of damage!";
+			GetZone()->GetClientBySpawn(attacker)->SimpleMessage(109, message.c_str());
+		}
 	}
 
 	return damage;

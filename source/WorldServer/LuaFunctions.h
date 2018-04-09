@@ -290,6 +290,9 @@ int EQ2Emu_lua_AddToWard(lua_State* state);
 int EQ2Emu_lua_RemoveWard(lua_State* state);
 int EQ2Emu_lua_GetWardAmountLeft(lua_State* state);
 
+int EQ2Emu_lua_AddStoneskin(lua_State* state);
+int EQ2Emu_lua_RemoveStoneskin(lua_State* state);
+
 //Combat AI related
 int EQ2Emu_lua_SetTarget(lua_State* state);
 int EQ2Emu_lua_IsPet(lua_State* state);

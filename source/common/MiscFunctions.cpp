@@ -29,6 +29,8 @@
 #endif
 #include <iostream>
 #include <iomanip>
+#include <locale>
+#include <sstream>
 #ifdef WIN32
 	#include <io.h>
 #endif
@@ -915,4 +917,11 @@ strlcpy(char *dst, const char *src, size_t size) {
 	}
 
 	return(s - src - 1);
+}
+
+string FormatWithCommas(int value) {
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << std::fixed << value;
+	return ss.str();
 }

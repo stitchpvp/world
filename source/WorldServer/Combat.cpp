@@ -786,25 +786,21 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	sint32 damage = 0;
 	bool crit = false;
 
-	if(low_damage > high_damage)
+	if (low_damage > high_damage)
 		high_damage = low_damage;
-	if(low_damage == high_damage)
+
+	if (low_damage == high_damage) {
 		damage = low_damage;
-	else
+	} else {
 		 damage = MakeRandomInt(low_damage, high_damage);
+	}
 
-	if(!no_calcs) {
-		//this can be simplified by taking out the / 2, but I wanted the damage to be more consistent
-		//damage = (rand()%((int)(high_damage/2-low_damage/2) + low_damage/2)) + (rand()%((int)(high_damage/2-low_damage/2) + low_damage/2)); 
-		//damage = (rand()%((int)(high_damage-low_damage) + low_damage)) + (rand()%((int)(high_damage-low_damage) + low_damage)); 
-
-		//DPS mod is only applied to auto attacks
+	if (!no_calcs) {
 		if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE ) {
+			//DPS mod is only applied to auto attacks
 			damage *= (info_struct.dps_multiplier);
-		}
-		//Potency and ability mod is only applied to spells/CAs
-		else { 
-			// Potency mod
+		} else {
+			// Potency and ability mod is only applied to spells/CAs
 			damage *= ((stats[ITEM_STAT_POTENCY] / 100) + 1);
 
 			// Ability mod can only give up to half of damage after potency
@@ -813,37 +809,40 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		}
 
 
-		if(!crit_mod || crit_mod == 1){
-			//force crit if crit_mod == 1
-			if(crit_mod == 1)
+		if (crit_mod == 1) {
+			crit = true;
+		} else {
+			float chance = max((float)0, (info_struct.crit_chance - victim->stats[ITEM_STAT_CRITAVOIDANCE]));
+
+			if (MakeRandomFloat(0, 100) <= chance)
 				crit = true;
-
-			// Crit Roll
-			else {
-				float chance = max((float)0, (info_struct.crit_chance - victim->stats[ITEM_STAT_CRITAVOIDANCE]));
-				if (MakeRandomFloat(0, 100) <= chance)
-					crit = true;
-			}
-			if(crit){
-				//Apply total crit multiplier with crit bonus
-				if(info_struct.crit_bonus > 0)
-					damage *= (1.3 + (info_struct.crit_bonus / 100));
-				else
-					damage *= 1.3;
-
-				// Change packet type to crit
-				if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE)
-					type = DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG;
-				else if (type == DAMAGE_PACKET_TYPE_SPELL_DAMAGE)
-					type = DAMAGE_PACKET_TYPE_SPELL_CRIT_DMG;
-			}
 		}
 
-		// Rudimentary mitigation
-		if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE) {
-			damage *= 1 - victim->GetMitigationPercentage(GetLevel());
-			damage *= 1 - victim->GetInfoStruct()->physical_damage_reduction / 100.0;
+		if (crit) {
+			//Apply total crit multiplier with crit bonus
+			if (info_struct.crit_bonus > 0) {
+				damage *= (1.3 + (info_struct.crit_bonus / 100));
+			} else {
+				damage *= 1.3;
+			}
+
+			// Change packet type to crit
+			if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE) {
+				type = DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG;
+			} else if (type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE) {
+				type = 0xC3;
+			} else if (type == DAMAGE_PACKET_TYPE_SPELL_DAMAGE) {
+				type = DAMAGE_PACKET_TYPE_SPELL_CRIT_DMG;
+			}
 		}
+	}
+
+	damage = victim->CheckStoneskins(damage, this);
+
+	// Rudimentary mitigation
+	if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE || type == DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG) {
+		damage *= 1 - victim->GetMitigationPercentage(GetLevel());
+		damage *= 1 - victim->GetInfoStruct()->physical_damage_reduction / 100.0;
 	}
 
 	if(damage <= 0){

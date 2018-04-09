@@ -83,6 +83,8 @@ size_t strlcpy(char *dst, const char *src, size_t size);
 bool INIReadBool(FILE *f, const char *section, const char *property, bool *out);
 bool INIReadInt(FILE *f, const char *section, const char *property, int *out);
 
+string FormatWithCommas(int value);
+
 template<class Type> void AddData(Type input, string* datastring){
 	if(datastring)
 		datastring->append((char*)&input, sizeof(input));

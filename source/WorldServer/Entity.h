@@ -262,9 +262,18 @@ struct WardInfo {
 	bool		keepWard;
 };
 
+
 #define WARD_TYPE_ALL 0
 #define WARD_TYPE_PHYSICAL 1
 #define WARD_TYPE_MAGICAL 2
+
+struct StoneskinInfo {
+	LuaSpell*	Spell;
+	int32		BaseDamage;
+	int32		DamageLeft;
+	bool		keepStoneskin;
+	bool		infinite;
+};
 
 struct Proc {
 	LuaSpell*	spell;
@@ -718,6 +727,10 @@ public:
 	/// <returns>The amount of damage left after wards</returns>
 	int32 CheckWards(int32 damage, int8 damage_type);
 
+	void AddStoneskin(LuaSpell* luaspell, StoneskinInfo* stoneskin);
+	void RemoveStoneskin(LuaSpell* luaspell);
+	int32 CheckStoneskins(int32 damage, Entity* attacker);
+
 	map<int16, float> stats;
 
 	/// <summary>Adds a proc to the list of current procs</summary>
@@ -853,6 +866,7 @@ private:
 	Entity* cosmeticPet;
 
 	map<LuaSpell*, WardInfo*> m_wardList;
+	map<LuaSpell*, StoneskinInfo*> m_stoneskinList;
 
 	// int8 = type, vector<Proc*> = list of pointers to proc info
 	map <int8, vector<Proc*> > m_procList;

@@ -4478,6 +4478,34 @@ int EQ2Emu_lua_GetArchetypeName(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_AddStoneskin(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* target = lua_interface->GetSpawn(state);
+	int32 damage = lua_interface->GetInt32Value(state, 2);
+	bool keepStoneskin = (lua_interface->GetInt8Value(state, 3) == 1);
+	bool infinite = (lua_interface->GetInt8Value(state, 4) == 1);
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+
+	if (!target)
+		return 0;
+
+	if (target->IsEntity()) {
+		StoneskinInfo* stoneskin = new StoneskinInfo;
+		stoneskin->Spell = spell;
+		stoneskin->BaseDamage = damage;
+		stoneskin->DamageLeft = damage;
+		stoneskin->keepStoneskin = keepStoneskin;
+		stoneskin->infinite = infinite;
+
+		static_cast<Entity*>(target)->AddStoneskin(spell, stoneskin);
+	}
+
+	return 0;
+}
+
 int EQ2Emu_lua_AddWard(lua_State* state) {
 	if (!lua_interface)
 		return 0;
@@ -4567,6 +4595,21 @@ int EQ2Emu_lua_GetWardAmountLeft(lua_State* state) {
 			return 1;
 		}
 	}
+	return 0;
+}
+
+int EQ2Emu_lua_RemoveStoneskin(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+
+	Spawn* target = lua_interface->GetSpawn(state);
+
+	if (target && target->IsEntity()) {
+		static_cast<Entity*>(target)->RemoveStoneskin(spell);
+	}
+
 	return 0;
 }
 
