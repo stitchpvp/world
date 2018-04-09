@@ -3587,6 +3587,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	// to when you are actually able to select traits.
 	QueuePacket(GetPlayer()->GetPlayerInfo()->serialize(GetVersion()));
 	QueuePacket(master_trait_list.GetTraitListPacket(this));
+	ClientPacketFunctions::SendSkillBook(this);
 
 	if (GetPlayer()->SpawnedBots.size() > 0) {
 		map<int32, int32>::iterator itr;

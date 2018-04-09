@@ -8440,3 +8440,24 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state){
 
 	return 1;
 }
+
+int EQ2Emu_lua_SendSkillUpdate(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA SendSkillUpdate command error: spawn is not valid");
+		return 0;
+	}
+
+	if (!spawn->IsPlayer()) {
+		lua_interface->LogError("LUA SendSkillUpdate command error: spawn is not a player");
+		return 0;
+	}
+
+	ClientPacketFunctions::SendSkillBook(spawn->GetZone()->GetClientBySpawn(spawn));
+
+	return 1;
+}

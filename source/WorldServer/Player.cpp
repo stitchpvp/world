@@ -1226,7 +1226,7 @@ vector<EQ2Packet*>	Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, in
 				lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
 
 			if (to_item->GetItemScript() && lua_interface)
-				lua_interface->RunItemScript(item->GetItemScript(), "equipped", to_item, this);
+				lua_interface->RunItemScript(to_item->GetItemScript(), "equipped", to_item, this);
 
 			item_list.RemoveItem(to_item);
 			equipment_list.SetItem(item->details.slot_id, to_item);
