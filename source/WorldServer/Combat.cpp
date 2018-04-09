@@ -887,6 +887,9 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	if(victim->IsEntity())
 		((Entity*)victim)->CheckInterruptSpell(this);
 
+	if (victim->IsStealthed() || victim->IsInvis())
+		victim->CancelAllStealth();
+
 	if (victim->GetHP() <= 0) {
 		KillSpawn(victim, damage_type, blow_type);
 	} else if (victim->EngagedInCombat()) {

@@ -1767,7 +1767,7 @@ void ZoneServer::SendSpawnChanges(Spawn* spawn){
 			for (itr = clients.begin(); itr != clients.end(); itr++) {
 				client = *itr;
 
-				if (spawn->IsPlayer() && client->GetPlayer()->IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH]) {
+				if (spawn->IsPlayer() && client->GetPlayer()->IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH] && client->GetPlayer()->GetDistance(spawn) > 30) {
 					int16 packet_version = client->GetVersion();
 					PacketStruct *packet = configReader.getStruct("WS_DestroyGhostCmd", packet_version);
 

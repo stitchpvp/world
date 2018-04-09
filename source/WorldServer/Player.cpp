@@ -907,43 +907,47 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 
 		player->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
 		player->GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
-		for(int i=0;i<NUM_SPELL_EFFECTS;i++){
+		for (int i=0; i<NUM_SPELL_EFFECTS; i++) {
 			packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
-      packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
+			packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
 
-      if (info_struct->maintained_effects[i].spell_id != 0xFFFFFFFF) {
-        packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "target_type", info_struct->maintained_effects[i].target_type, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
-        packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
+			if (info_struct->maintained_effects[i].spell_id != 0xFFFFFFFF) {
+				packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "target_type", info_struct->maintained_effects[i].target_type, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
+				packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
 
-        Spawn* maintained_target = player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target);
+				Spawn* maintained_target = player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target);
 
-        if (maintained_target)
-          packet->setSubstructDataByName("maintained_effects", "target", player->GetIDWithPlayerSpawn(maintained_target), i, 0);
+				if (maintained_target)
+					packet->setSubstructDataByName("maintained_effects", "target", player->GetIDWithPlayerSpawn(maintained_target), i, 0);
 
-        expireTimestamp = info_struct->maintained_effects[i].expire_timestamp;
-        if(expireTimestamp == 0xFFFFFFFF)
-          expireTimestamp = 0;
-        packet->setSubstructDataByName("maintained_effects", "expire_timestamp", expireTimestamp, i, 0);
-      }
+				expireTimestamp = info_struct->maintained_effects[i].expire_timestamp;
+				if(expireTimestamp == 0xFFFFFFFF)
+					expireTimestamp = 0;
+				packet->setSubstructDataByName("maintained_effects", "expire_timestamp", expireTimestamp, i, 0);
+			}
 
-      packet->setSubstructDataByName("spell_effects", "spell_id", info_struct->spell_effects[i].spell_id, i, 0);
+			int32 spell_id = info_struct->spell_effects[i].spell_id;
+			if (info_struct->spell_effects[i].spell && !info_struct->spell_effects[i].spell->spell->GetSpellData()->friendly_spell)
+				spell_id = 0xFFFFFFFF;
 
-      if (info_struct->spell_effects[i].spell_id != 0xFFFFFFFF) {
-        packet->setSubstructDataByName("spell_effects", "cancellable", 3, i, 0);
-        packet->setSubstructDataByName("spell_effects", "total_time", info_struct->spell_effects[i].total_time, i, 0);
-        packet->setSubstructDataByName("spell_effects", "icon", info_struct->spell_effects[i].icon, i, 0);
-        packet->setSubstructDataByName("spell_effects", "icon_type", info_struct->spell_effects[i].icon_backdrop, i, 0);
+			packet->setSubstructDataByName("spell_effects", "spell_id", spell_id, i, 0);
 
-        expireTimestamp = info_struct->spell_effects[i].expire_timestamp;
-        if(expireTimestamp == 0xFFFFFFFF)
-          expireTimestamp = 0;
-        packet->setSubstructDataByName("spell_effects", "expire_timestamp", expireTimestamp, i, 0);
-      }
+			if (spell_id != 0xFFFFFFFF) {
+				packet->setSubstructDataByName("spell_effects", "cancellable", 3, i, 0);
+				packet->setSubstructDataByName("spell_effects", "total_time", info_struct->spell_effects[i].total_time, i, 0);
+				packet->setSubstructDataByName("spell_effects", "icon", info_struct->spell_effects[i].icon, i, 0);
+				packet->setSubstructDataByName("spell_effects", "icon_type", info_struct->spell_effects[i].icon_backdrop, i, 0);
+
+				expireTimestamp = info_struct->spell_effects[i].expire_timestamp;
+				if(expireTimestamp == 0xFFFFFFFF)
+					expireTimestamp = 0;
+				packet->setSubstructDataByName("spell_effects", "expire_timestamp", expireTimestamp, i, 0);
+			}
 		}
 		player->GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
 		player->GetSpellEffectMutex()->releasereadlock(__FUNCTION__, __LINE__);
@@ -3836,7 +3840,7 @@ bool Player::ShouldSendSpawn(Spawn* spawn){
 	// Think invalid spawns are coming from the mutex list, if spawn is invalid return false.
 	try
 	{
-		if (spawn->IsPlayer() && IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !stats[ITEM_STAT_SEESTEALTH])
+		if (spawn->IsPlayer() && IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !stats[ITEM_STAT_SEESTEALTH] && GetDistance(spawn) > 30)
 			return false;
 
 		if((WasSentSpawn(spawn->GetID()) == false || NeedsSpawnResent(spawn)) && (!spawn->IsPrivateSpawn() || spawn->AllowedAccess(this)))
