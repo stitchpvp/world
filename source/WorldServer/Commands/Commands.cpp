@@ -7609,9 +7609,39 @@ void Commands::Command_ResetEncounter(Client* client) {
 	Spawn* target = client->GetPlayer()->GetTarget();
 
 	if (target && target->IsNPC()) {
-		static_cast<NPC*>(target)->Brain()->ClearHate();
-		static_cast<NPC*>(target)->Brain()->ClearEncounter();
-		static_cast<NPC*>(target)->GetZone()->RemoveSpellTimersFromSpawn(target, true, true);
+		NPC* npc = static_cast<NPC*>(target);
+
+		npc->Brain()->ClearHate();
+		npc->Brain()->ClearEncounter();
+		npc->GetZone()->RemoveSpellTimersFromSpawn(npc, true, true);
+
+		if (npc->HasPet() && npc->GetPet()->IsNPC()) {
+			NPC* pet = static_cast<NPC*>(npc->GetPet());
+			pet->Brain()->ClearHate();
+			pet->Brain()->ClearEncounter();
+			pet->GetZone()->RemoveSpellTimersFromSpawn(pet, true, true);
+		}
+
+		if (npc->HasSpawnGroup()) {
+			vector<Spawn*>* group = npc->GetSpawnGroup();
+
+			for (auto* member : *group) {
+				if (member->IsNPC()) {
+					NPC* member_npc = static_cast<NPC*>(member);
+
+					member_npc->Brain()->ClearHate();
+					member_npc->Brain()->ClearEncounter();
+					member_npc->GetZone()->RemoveSpellTimersFromSpawn(member_npc, true, true);
+
+					if (member_npc->HasPet() && member_npc->GetPet()->IsNPC()) {
+						NPC* pet = static_cast<NPC*>(member_npc->GetPet());
+						pet->Brain()->ClearHate();
+						pet->Brain()->ClearEncounter();
+						pet->GetZone()->RemoveSpellTimersFromSpawn(pet, true, true);
+					}
+				}
+			}
+		}
 	}
 }
 
