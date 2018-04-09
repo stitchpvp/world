@@ -1844,18 +1844,23 @@ void Entity::RemoveInvisSpell(LuaSpell* spell) {
 
 void Entity::RemoveStealthSpell(LuaSpell* spell) {
 	MutexList<LuaSpell*>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
+
 	if (!stealth_list || stealth_list->size(true) == 0)
 		return;
 
 	stealth_list->Remove(spell);
 	RemoveSpellEffect(spell);
-	if (stealth_list->size() == 0){
+
+	if (stealth_list->size() == 0) {
 		info_changed = true;
 		changed = true;
+
 		AddChangedZoneSpawn();
-		if (IsPlayer())
+
+		if (IsPlayer()) {
 			((Player*)this)->SetResendSpawns(true);
 			((Player*)this)->SetCharSheetChanged(true);
+		}
 	}
 }
 
