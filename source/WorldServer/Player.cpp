@@ -3946,8 +3946,11 @@ void Player::CheckActivityStatuses() {
 
 	while (status != end(activity_statuses)) {
 		if (Timer::GetCurrentTime2() > status->get()->end_time) {
-			if (status->get()->status == ACTIVITY_STATUS_IMMUNITY_REMAINING)
+			if (status->get()->status == ACTIVITY_STATUS_IMMUNITY_REMAINING) {
 				SetPVPImmune(false);
+			} else if (status->get()->status == ACTIVITY_STATUS_IMMUNITY_GAINED) {
+				SetPVPImmune(true);
+			}
 
 			status = activity_statuses.erase(status);
 
