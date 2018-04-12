@@ -4289,7 +4289,7 @@ void WorldDatabase::LoadSpells()
 
 					if (spell_map.count(spell_level->spell_level) == 0) {
 						string spell_name = result.GetStringStr("name");
-						string hash_string = spell_name + " " + to_string(spell_id) + to_string(spell_level->spell_level);
+						string hash_string = spell_name + " " + to_string(spell_id) + " " + to_string(spell_level->spell_level);
 
 						if (level_data->at(spell_id).size() > 1 && spell_num > 1) {
 							spell_name += " " + int_to_roman(spell_num);
@@ -4365,14 +4365,14 @@ vector<LUAData*> WorldDatabase::LoadSpellLuaData(int32 spell_id) {
 	DatabaseResult result;
 	vector<LUAData*> lua_data;
 
-	if (database_new.Select(&result, "SELECT value_type, value, flat_value, is_scaling FROM spell_data WHERE spell_id = %u ORDER BY index_field", spell_id)) {
+	if (database_new.Select(&result, "SELECT value_type, value, flat_value, scale_per_level FROM spell_data WHERE spell_id = %u ORDER BY index_field", spell_id)) {
 		while (result.Next()) {
 			LUAData* data = new LUAData;
 			data->int_value = 0;
 			data->float_value = 0;
 			data->bool_value = false;
 			data->flat_value = result.GetInt32Str("flat_value");
-			data->is_scaling = result.GetInt8Str("is_scaling") == 0 ? false : true;
+			data->is_scaling = result.GetInt8Str("scale_per_level") == 0 ? false : true;
 
 			const char* type = result.GetStringStr("value_type");
 
