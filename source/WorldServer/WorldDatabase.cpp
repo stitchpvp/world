@@ -4289,7 +4289,7 @@ void WorldDatabase::LoadSpells()
 
 					if (spell_map.count(spell_level->spell_level) == 0) {
 						string spell_name = result.GetStringStr("name");
-						string hash_string = spell_name + " " + to_string(spell_id) + " " + to_string(spell_level->spell_level);
+						string hash_string = to_string(spell_id) + " " + to_string(spell_level->spell_level);
 
 						if (level_data->at(spell_id).size() > 1 && spell_num > 1) {
 							spell_name += " " + int_to_roman(spell_num);
@@ -4327,7 +4327,7 @@ void WorldDatabase::LoadSpells()
 			}
 
 			string spell_name = result.GetStringStr("name");
-			string hash_string = spell_name + " " + to_string(spell_id);
+			string hash_string = to_string(spell_id);
 
 			Spell* spell = GenerateSpell(result, spell_name, hash_string);
 			for (auto lua_datum : lua_data) {
