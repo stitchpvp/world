@@ -5339,9 +5339,9 @@ Spell* ZoneServer::GetSpell(Entity* caster){
 	return spell;
 }
 
-void ZoneServer::ProcessSpell(Spell* spell, Entity* caster, Spawn* target, bool lock, bool harvest_spell){
+void ZoneServer::ProcessSpell(Spell* spell, Entity* caster, Spawn* target, bool harvest_spell, bool force_cast) {
 	if(spellProcess)
-		spellProcess->ProcessSpell(this, spell, caster, target, lock, harvest_spell);
+		spellProcess->ProcessSpell(this, spell, caster, target, harvest_spell, force_cast);
 }
 
 void ZoneServer::ProcessEntityCommand(EntityCommand* entity_command, Entity* caster, Spawn* target, bool lock) {

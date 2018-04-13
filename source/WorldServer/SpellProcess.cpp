@@ -420,12 +420,14 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
 				float recast = spell->spell->GetModifiedRecast(spell->caster);
 
+				UnlockAllSpells(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
+
 				if (recast > 0) {
 					CheckRecast(spell->spell, spell->caster, recast);
-					if (spell->caster && spell->caster->IsPlayer())
+
+					if (spell->caster && spell->caster->IsPlayer()) {
 						SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
-				} else {
-					UnlockSpell(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->spell);
+					}
 				}
 			}
 
@@ -993,6 +995,29 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
 						return false;
 					}
+
+					if (spell->MustBeFlanking() || spell->MustBeBehind()) {
+						bool is_flanking = caster->FlankingTarget(target);
+						bool is_behind = caster->BehindTarget(target);
+
+						if (spell->MustBeFlanking() && spell->MustBeBehind()) {
+							if (!is_flanking && !is_behind) {
+								client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind or flanking your target.");
+								return false;
+							}
+						} else if (spell->MustBeFlanking() && !is_flanking) {
+							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be flanking your target.");
+							return false;
+						} else if (spell->MustBeBehind() && !is_behind) {
+							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind your target.");
+							return false;
+						}
+					}
+
+					if (spell->MustBeStealthed() && !caster->IsStealthed()) {
+						client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be sneaking to use this ability.");
+						return false;
+					}
 				}
 			} else if (target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE) {
 				if (target->Alive()) {
@@ -1013,7 +1038,7 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 	return true;
 }
 
-void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target, bool lock, bool harvest_spell) {
+void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target, bool harvest_spell, bool force_cast) {
 	if (spell && caster) {
 		Client* client = nullptr;
 		LuaSpell* lua_spell = nullptr;
@@ -1034,7 +1059,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 		SetInitialTarget(lua_spell, target);
 
-		if (CanCast(lua_spell, harvest_spell)) {
+		if (force_cast || CanCast(lua_spell, harvest_spell)) {
 			if (!harvest_spell) {
 				GetSpellTargets(lua_spell);
 			} else {
@@ -1074,7 +1099,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			LockAllSpells(client);
 			SendStartCast(lua_spell, client);
 				
-			if (caster->IsInvis())
+			if (spell->GetSpellData()->type == SPELL_TYPE_SPELL && (caster->IsInvis() || caster->IsStealthed()))
 				caster->CancelAllStealth();
 
 			int16 cast_time = spell->GetModifiedCastTime(caster);
@@ -1312,11 +1337,19 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	if (!passive)
 		SendFinishedCast(spell, client);
 
+	if (spell->caster->IsInvis() || spell->caster->IsStealthed())
+		spell->caster->CancelAllStealth(spell);
+
 	if (!spell->spell->GetSpellData()->friendly_spell) {
 		if (spell->caster->IsPlayer()) {
 			static_cast<Player*>(spell->caster)->InCombat(true);
-			if (!static_cast<Player*>(spell->caster)->GetRangeAttack()) {
+
+			if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
 				static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
+				static_cast<Player*>(spell->caster)->SetRangeAttack(false);
+			} else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+				static_cast<Player*>(spell->caster)->SetRangeAttack(true);
+				static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
 			}
 		} else {
 			spell->caster->InCombat(true);

@@ -23,6 +23,8 @@
 #include "../common/Log.h"
 #include "Traits/Traits.h"
 #include "AltAdvancement/AltAdvancement.h"
+#include <sstream>
+#include <iomanip>
 
 extern ConfigReader configReader;
 extern WorldDatabase database;
@@ -243,27 +245,7 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool
 
 	vector<LUAData> data = GetScaledLUAData(client->GetPlayer()->GetLevel());
 
-	packet->setSubstructArrayLengthByName(name, "num_effects", effects.size());
-
-	for (int32 i = 0; i < effects.size(); i++) {
-		string description = effects[i]->description;
-
-		for (unsigned int x = 0; x <= 8; x++) {
-			string search = "%" + to_string(x + 1);
-
-			if (x <= data.size() && description.find(search) != string::npos && (data.at(x).type == 0 || data.at(x).type == 1)) {
-				if (data.at(x).type == 0) {
-					description.replace(description.find(search), search.length(), to_string(abs(data.at(x).int_value)));
-				} else {
-					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(data.at(x).float_value))));
-				}
-			}
-		}
-
-		packet->setArrayDataByName("effect", description.c_str(), i);
-		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
-		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
-	}
+	PopulateSpellDescription(packet, data, name);
 
 	if (display_tier == true) {
 		packet->setSubstructDataByName(name, "display_spell_tier", spell->display_spell_tier);
@@ -361,27 +343,7 @@ EQ2Packet* Spell::SerializeAASpell(Client* client, AltAdvanceData* data, bool di
 
 	vector<LUAData> scaled_data = GetScaledLUAData(client->GetPlayer()->GetLevel());
 
-	packet->setSubstructArrayLengthByName("spell_info", "num_effects", effects.size());
-
-	for (int32 i = 0; i < effects.size(); i++) {
-		string description = effects[i]->description;
-
-		for (unsigned int x = 0; x <= 8; x++) {
-			string search = "%" + to_string(x + 1);
-
-			if (x <= scaled_data.size() && description.find(search) != string::npos && (scaled_data.at(x).type == 0 || scaled_data.at(x).type == 1)) {
-				if (scaled_data.at(x).type == 0) {
-					description.replace(description.find(search), search.length(), to_string(abs(scaled_data.at(x).int_value)));
-				} else {
-					description.replace(description.find(search), search.length(), to_string(abs(static_cast<int>(scaled_data.at(x).float_value))));
-				}
-			}
-		}
-
-		packet->setArrayDataByName("effect", description.c_str(), i);
-		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
-		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
-	}
+	PopulateSpellDescription(packet, scaled_data);
 
 	packet->setSubstructDataByName("spell_info", "display_spell_tier", spell->display_spell_tier);
 	packet->setSubstructDataByName("spell_info", "minimum_range", spell->min_range);
@@ -575,6 +537,67 @@ int8 Spell::GetSpellTier(){
 
 vector<LUAData*>* Spell::GetLUAData(){
 	return &lua_data;
+}
+
+void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scaled_data, const char* substruct_name) {
+	int num_effects = effects.size();
+
+	for (int32 i = 0; i < effects.size(); i++) {
+		string description = effects[i]->description;
+
+		for (unsigned int x = 0; x <= 8; x++) {
+			string search = "%" + to_string(x + 1);
+
+			if (x <= scaled_data.size() && description.find(search) != string::npos && (scaled_data.at(x).type == 0 || scaled_data.at(x).type == 1)) {
+				if (scaled_data.at(x).type == 0) {
+					auto amount = abs(scaled_data.at(x).int_value);
+
+					description.replace(description.find(search), search.length(), to_string(amount));
+				} else if (scaled_data.at(x).type == 1) {
+					auto amount = abs(scaled_data.at(x).float_value);
+
+					if (scaled_data.at(x).is_scaling) {
+						description.replace(description.find(search), search.length(), to_string(static_cast<int>(amount)));
+					} else {
+						ostringstream rounded_amount;
+						rounded_amount << setprecision(2) << amount;
+
+						description.replace(description.find(search), search.length(), rounded_amount.str());
+					}
+				}
+			}
+		}
+
+		packet->setArrayDataByName("effect", description.c_str(), i);
+		packet->setArrayDataByName("percentage", effects[i]->percentage, i);
+		packet->setArrayDataByName("subbulletflag", effects[i]->subbullet, i);
+	}
+
+	if (MustBeFlanking() && MustBeBehind()) {
+		packet->setArrayDataByName("effect", "Must be flanking or behind", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
+	} else if (MustBeFlanking()) {
+		packet->setArrayDataByName("effect", "Must be flanking", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
+	} else if (MustBeBehind()) {
+		packet->setArrayDataByName("effect", "Must be behind", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
+	}
+
+	if (MustBeStealthed()) {
+		packet->setArrayDataByName("effect", "Must be stealthed", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
+	}
+
+	packet->setSubstructArrayLengthByName(substruct_name, "num_effects", num_effects);
 }
 
 vector<LUAData> Spell::GetScaledLUAData(int level) {
@@ -868,18 +891,30 @@ int16 MasterSpellList::GetClosestVersion(int16 version) {
 	return ret;
 }
 
-bool Spell::CastWhileStunned(){
-	return (spell->casting_flags & CASTING_FLAG_STUNNED) == CASTING_FLAG_STUNNED;
+bool Spell::CastWhileStunned() {
+	return (spell->casting_flags & CASTING_FLAG_USABLE_STUNNED) == CASTING_FLAG_USABLE_STUNNED;
 }
 
-bool Spell::CastWhileMezzed(){
-	return (spell->casting_flags & CASTING_FLAG_MEZZED) == CASTING_FLAG_MEZZED;
+bool Spell::CastWhileMezzed() {
+	return (spell->casting_flags & CASTING_FLAG_USABLE_MEZZED) == CASTING_FLAG_USABLE_MEZZED;
 }
 
-bool Spell::CastWhileStifled(){
-	return (spell->casting_flags & CASTING_FLAG_STIFLED) == CASTING_FLAG_STIFLED;
+bool Spell::CastWhileStifled() {
+	return (spell->casting_flags & CASTING_FLAG_USABLE_STIFLED) == CASTING_FLAG_USABLE_STIFLED;
 }
 
-bool Spell::CastWhileFeared(){
-	return (spell->casting_flags & CASTING_FLAG_FEARED) == CASTING_FLAG_FEARED;
+bool Spell::CastWhileFeared() {
+	return (spell->casting_flags & CASTING_FLAG_USABLE_FEARED) == CASTING_FLAG_USABLE_FEARED;
+}
+
+bool Spell::MustBeFlanking() {
+	return (spell->casting_flags & CASTING_FLAG_MUST_BE_FLANKING) == CASTING_FLAG_MUST_BE_FLANKING;
+}
+
+bool Spell::MustBeBehind() {
+	return (spell->casting_flags & CASTING_FLAG_MUST_BE_BEHIND) == CASTING_FLAG_MUST_BE_BEHIND;
+}
+
+bool Spell::MustBeStealthed() {
+	return (spell->casting_flags & CASTING_FLAG_MUST_BE_STEALTHED) == CASTING_FLAG_MUST_BE_STEALTHED;
 }

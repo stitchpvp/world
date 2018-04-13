@@ -778,7 +778,7 @@ public:
 	vector<DetrimentalEffects>* GetDetrimentalSpellEffects();
 	void RemoveEffectsFromLuaSpell(LuaSpell* spell);
 	virtual void RemoveSkillBonus(int32 spell_id);
-	void CancelAllStealth();
+	void CancelAllStealth(LuaSpell* exclude_spell = nullptr);
 	bool CanAttackTarget(Spawn* target);
 	bool IsHostile(Spawn* target);
 	bool IsStealthed();

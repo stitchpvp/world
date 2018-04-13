@@ -1768,6 +1768,12 @@ void Player::UnlockAllSpells(bool first_load) {
 			Spell* spell = master_spell_list.GetSpell(entry->spell_id, entry->tier);
 
 			if (spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE || (!GetSpellEffect(spell->GetSpellID(), this) && !HasLinkedSpellEffect(spell))) {
+				if (spell->MustBeBehind() || spell->MustBeFlanking()) continue;
+				if (spell->MustBeStealthed() && !IsStealthed()) {
+					RemoveSpellStatus(entry, SPELL_STATUS_READY);
+					continue;
+				}
+
 				AddSpellStatus(entry, SPELL_STATUS_READY);
 			}
 		}
@@ -1784,6 +1790,8 @@ void Player::LockSpell(Spell* spell, int16 recast) {
 			if (spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE || (!GetSpellEffect(spell->GetSpellID(), this) && !HasLinkedSpellEffect(spell))) {
 				ModifyRecast(entry, recast);
 			}
+
+			break;
 		}
 	}
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
@@ -1794,8 +1802,13 @@ void Player::UnlockSpell(Spell* spell) {
 	for (auto entry : spells) {
 		if (entry->spell_id == spell->GetSpellID() && entry->recast_available < Timer::GetCurrentTime2()) {
 			if (spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE || (!GetSpellEffect(spell->GetSpellID(), this) && !HasLinkedSpellEffect(spell))) {
+				if (spell->MustBeBehind() || spell->MustBeFlanking()) break;
+				if (spell->MustBeStealthed() && !IsStealthed()) break;
+
 				AddSpellStatus(entry, SPELL_STATUS_READY);
 				ModifyRecast(entry, 0);
+
+				break;
 			}
 		}
 	}

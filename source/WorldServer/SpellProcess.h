@@ -168,9 +168,8 @@ public:
 	/// <param name='spell'>The Spell to cast</param>
 	/// <param name='caster'>The Entity casting the spell</param>
 	/// <param name='target'>The target(Spawn) of the spell</param>
-	/// <param name='lock'>??? not currently used</param>
 	/// <param name='harvest_spell'>Is this a harvest spell?</param>
-	void ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target = 0, bool lock = true, bool harvest_spell = false);
+	void ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target = 0, bool harvest_spell = false, bool force_cast = true);
 
 	/// <summary>Cast an EntityCommand (right click menu)</summary>
 	/// <param name='zone'>The current ZoneServer</param>

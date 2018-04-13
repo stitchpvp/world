@@ -357,7 +357,7 @@ public:
 	void	RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, bool delete_recast = true);
 	void	Interrupted(Entity* caster, Spawn* interruptor, int16 error_code, bool cancel = false, bool from_movement = false);
 	Spell*	GetSpell(Entity* caster);
-	void	ProcessSpell(Spell* spell, Entity* caster, Spawn* target = 0, bool lock = true, bool harvest_spell = false);
+	void	ProcessSpell(Spell* spell, Entity* caster, Spawn* target = 0, bool harvest_spell = false, bool force_cast = false);
 	void	ProcessEntityCommand(EntityCommand* entity_command, Entity* caster, Spawn* target, bool lock = true);
 	void	AddPlayerTracking(Player* player);
 	void	RemovePlayerTracking(Player* player, int8 mode);

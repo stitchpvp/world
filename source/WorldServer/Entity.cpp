@@ -1710,12 +1710,13 @@ DetrimentalEffects* Entity::GetDetrimentalEffect(int32 spell_id, Entity* caster)
 	return ret;
 }
 
-void Entity::CancelAllStealth() {
+void Entity::CancelAllStealth(LuaSpell* exclude_spell) {
 	bool did_change = false;
 	MutexList<LuaSpell*>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
 	if (stealth_list){
 		MutexList<LuaSpell*>::iterator itr = stealth_list->begin();
 		while (itr.Next()){
+			if (exclude_spell == itr.value) continue;
 			if (itr.value->caster == this)
 				GetZone()->GetSpellProcess()->AddSpellCancel(itr.value);
 			else{
@@ -1729,6 +1730,7 @@ void Entity::CancelAllStealth() {
 	if (invis_list){
 		MutexList<LuaSpell*>::iterator invis_itr = invis_list->begin();
 		while (invis_itr.Next()){
+			if (exclude_spell == invis_itr.value) continue;
 			if (invis_itr.value->caster == this)
 				GetZone()->GetSpellProcess()->AddSpellCancel(invis_itr.value);
 			else{

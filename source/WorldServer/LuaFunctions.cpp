@@ -1093,6 +1093,7 @@ int EQ2Emu_lua_CastSpell(lua_State* state){
 	int32 spell_id = lua_interface->GetInt32Value(state, 2);
 	int8 spell_tier = lua_interface->GetInt8Value(state, 3);
 	Spawn* caster = lua_interface->GetSpawn(state, 4);
+	bool force_cast = lua_interface->GetBooleanValue(state, 5);
 
 	if (!target) {
 		lua_interface->LogError("LUA CastSpell command error: target is not a valid spawn");
@@ -1120,7 +1121,7 @@ int EQ2Emu_lua_CastSpell(lua_State* state){
 	if (!caster)
 		caster = target;
 
-	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target));
+	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target), force_cast);
 	return 0;
 }
 

@@ -28,6 +28,9 @@
 #include "../common/Mutex.h"
 #include "AltAdvancement/AltAdvancement.h"
 
+#define SPELL_TYPE_SPELL		0
+#define SPELL_TYPE_COMBAT_ART	1
+
 #define SPELL_TARGET_SELF			0
 #define SPELL_TARGET_OTHER			1
 #define SPELL_TARGET_GROUP_AE		2
@@ -163,10 +166,19 @@
 #define SPELL_ERROR_NO_RESPONSE_110							113
 #define SPELL_ERROR_ALREADY_CAST_ON_TARGET					114
 
-#define CASTING_FLAG_MEZZED    1
-#define CASTING_FLAG_STIFLED   2
-#define CASTING_FLAG_STUNNED   4
-#define CASTING_FLAG_FEARED    8
+#define CASTING_FLAG_ENABLE_MELEE_AUTO			1
+#define CASTING_FLAG_ENABLE_RANGED_AUTO         2
+#define CASTING_FLAG_USABLE_MEZZED				4
+#define CASTING_FLAG_USABLE_STIFLED				8
+#define CASTING_FLAG_USABLE_STUNNED				16
+#define CASTING_FLAG_USABLE_FEARED				32
+#define CASTING_FLAG_MUST_BE_IN_FRONT_OF		64
+#define CASTING_FLAG_MUST_BE_FLANKING			128
+#define CASTING_FLAG_MUST_BE_BEHIND				256
+#define CASTING_FLAG_MUST_BE_STEALTHED			512
+#define CASTING_FLAG_MUST_HAVE_RANGED_WEAPON	1024
+#define CASTING_FLAG_NOT_USABLE_IN_COMBAT		2048
+#define CASTING_FLAG_DOES_NOT_BREAK_STEALTH		4096
 
 // Spell type is for AI so code knows what a spell is
 #define SPELL_TYPE_UNSET		1
@@ -331,7 +343,9 @@ public:
 	bool CastWhileMezzed();
 	bool CastWhileStifled();
 	bool CastWhileFeared();
-
+	bool MustBeFlanking();
+	bool MustBeBehind();
+	bool MustBeStealthed();
 
 private:
 	bool heal_spell;
@@ -345,6 +359,8 @@ private:
 	vector<SpellDisplayEffect*> effects;
 	vector <LevelArray*> levels;
 	Mutex MSpellInfo;
+
+	void PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scaled_data, const char* substruct_name = "spell_info");
 };
 class MasterSpellList{
 public:
