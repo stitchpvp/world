@@ -346,6 +346,7 @@ public:
 	bool MustBeFlanking();
 	bool MustBeBehind();
 	bool MustBeStealthed();
+	bool ShouldCancelStealth();
 
 private:
 	bool heal_spell;

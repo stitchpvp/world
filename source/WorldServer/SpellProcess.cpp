@@ -1099,7 +1099,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			LockAllSpells(client);
 			SendStartCast(lua_spell, client);
 				
-			if (spell->GetSpellData()->type == SPELL_TYPE_SPELL && (caster->IsInvis() || caster->IsStealthed()))
+			if (spell->GetSpellData()->type == SPELL_TYPE_SPELL && spell->ShouldCancelStealth() && (caster->IsInvis() || caster->IsStealthed()))
 				caster->CancelAllStealth();
 
 			int16 cast_time = spell->GetModifiedCastTime(caster);
@@ -1337,7 +1337,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	if (!passive)
 		SendFinishedCast(spell, client);
 
-	if (spell->caster->IsInvis() || spell->caster->IsStealthed())
+	if (spell->spell->ShouldCancelStealth() && (spell->caster->IsInvis() || spell->caster->IsStealthed()))
 		spell->caster->CancelAllStealth(spell);
 
 	if (!spell->spell->GetSpellData()->friendly_spell) {

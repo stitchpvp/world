@@ -918,3 +918,7 @@ bool Spell::MustBeBehind() {
 bool Spell::MustBeStealthed() {
 	return (spell->casting_flags & CASTING_FLAG_MUST_BE_STEALTHED) == CASTING_FLAG_MUST_BE_STEALTHED;
 }
+
+bool Spell::ShouldCancelStealth() {
+	return (spell->casting_flags & CASTING_FLAG_DOES_NOT_BREAK_STEALTH) == 0;
+}
