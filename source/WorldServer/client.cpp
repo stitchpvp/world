@@ -656,6 +656,7 @@ void Client::SendZoneSpawns(){
 	EQ2Packet* app = new EQ2Packet(OP_MoveableObjectPlacementCriteri, blah, sizeof(blah));
 	QueuePacket(app);
 
+	GetPlayer()->SortSpellBook();
 	ClientPacketFunctions::SendSkillSlotMappings(this);
 	ClientPacketFunctions::SendGameWorldTime(this);
 	GetCurrentZone()->StartZoneInitialSpawnThread(this);
