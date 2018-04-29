@@ -145,7 +145,7 @@ Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug
 	connected = false;
 	camp_timer = 0;
 	disconnect_timer = 0;
-	client_zoning = true;
+	client_zoning = false;
 	player_pos_changed = false;
 	++numclients;
 	if (world.GetServerStatisticValue(STAT_SERVER_MOST_CONNECTIONS) < numclients)
