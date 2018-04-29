@@ -914,17 +914,17 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 		return false;
 	}
 
-	if ((caster->IsMezzed() && !spell->CastWhileMezzed()) || (caster->IsStunned() && !spell->CastWhileStunned())) {
+	if ((caster->IsMezzed() && !caster->IsMezImmune() && !spell->CastWhileMezzed()) || (caster->IsStunned() && !caster->IsStunImmune() && !spell->CastWhileStunned())) {
 		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STUNNED);
 		return false;
 	}
 
-	if (caster->IsStifled() && !spell->CastWhileStifled()) {
+	if (caster->IsStifled() && !caster->IsStifleImmune() && !spell->CastWhileStifled()) {
 		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STIFFLED);
 		return false;
 	}
 
-	if (caster->IsFeared() && !spell->CastWhileFeared()) {
+	if (caster->IsFeared() && !caster->IsFearImmune() && !spell->CastWhileFeared()) {
 		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_FEARED);
 		return false;
 	}

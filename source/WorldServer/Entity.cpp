@@ -2085,32 +2085,32 @@ bool Entity::IsSnared() {
 
 bool Entity::IsMezzed(){
 	MutexList<LuaSpell*>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
-	return  (!mez_spells || mez_spells->size(true) == 0 || IsMezImmune()) == false;
+	return  (mez_spells && mez_spells->size(true) > 0);
 }
 
 bool Entity::IsStifled(){
 	MutexList<LuaSpell*>* stifle_list = control_effects[CONTROL_EFFECT_TYPE_STIFLE];
-	return  (!stifle_list || stifle_list->size(true) == 0 || IsStifleImmune()) == false;
+	return  (stifle_list && stifle_list->size(true) > 0);
 }
 
 bool Entity::IsDazed(){
 	MutexList<LuaSpell*>* daze_list = control_effects[CONTROL_EFFECT_TYPE_DAZE];
-	return  (!daze_list || daze_list->size(true) == 0 || IsDazeImmune()) == false;
+	return  (daze_list && daze_list->size(true) > 0);
 }
 
 bool Entity::IsStunned(){
 	MutexList<LuaSpell*>* stun_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
-	return (!stun_list || stun_list->size(true) == 0 || IsStunImmune()) == false;
+	return (stun_list && stun_list->size(true) > 0);
 }
 
 bool Entity::IsRooted(){
 	MutexList<LuaSpell*>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
-	return (!root_list || root_list->size(true) == 0 || IsRootImmune()) == false;
+	return (root_list && root_list->size(true) > 0);
 }
 
 bool Entity::IsFeared(){
 	MutexList<LuaSpell*>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
-	return (!fear_list || fear_list->size(true) == 0 || IsFearImmune()) == false;
+	return (fear_list && fear_list->size(true) > 0);
 }
 
 bool Entity::IsWarded() {
