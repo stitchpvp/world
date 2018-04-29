@@ -152,13 +152,11 @@ int16 Spell::GetLevelRequired(Client* client){
 
 void Spell::SetPacketInformation(PacketStruct* packet, Client* client, bool display_tier) {
 	SetSpellPacketInformation(packet, client, display_tier, false);
-	SetSpellPacketInformation(packet, client, display_tier, true);
+	//SetSpellPacketInformation(packet, client, display_tier, true);
 }
 
 void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool display_tier, bool pvp) {
 	const char* name = "spell_info";
-	if (pvp)
-		name = "pvp_spell_info";
 
 	packet->setSubstructDataByName(name, "id", spell->id);
 	packet->setSubstructDataByName(name, "icon", spell->icon);
@@ -198,12 +196,15 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, Client* client, bool
 	if (spell->type != 2) {
 		packet->setSubstructArrayLengthByName(name, "num_levels", levels.size());
 
-		for (int32 i=0;i<levels.size();i++) {
+		for (int32 i=0; i < levels.size(); i++) {
 			packet->setArrayDataByName("adventure_class", levels[i]->adventure_class, i);
 			packet->setArrayDataByName("tradeskill_class", levels[i]->tradeskill_class, i);
 			packet->setArrayDataByName("spell_level", levels[i]->spell_level, i);
 		}
 	}
+
+	packet->setSubstructDataByName(name, "uses_remaining", 0xFFFF);
+	packet->setSubstructDataByName(name, "damage_remaining", 0xFFFF);
 
 	packet->setSubstructDataByName(name, "unknown9", 20);
 
@@ -383,44 +384,34 @@ EQ2Packet* Spell::SerializeSpell(Client* client, bool display, bool trait_displa
 		else
 			packet->setSubstructDataByName("info_header", "show_popup", 0);
 	
-	if(packet_type > 0)
+	if (packet_type > 0) {
 		packet->setSubstructDataByName("info_header", "packettype", packet_type*256 + 0xFE);
-	else
+	} else {
 		packet->setSubstructDataByName("info_header", "packettype", GetItemPacketType(version));
-	//packet->setDataByName("unknown2",5);
-	//packet->setDataByName("unknown7", 1);
-	//packet->setDataByName("unknown9", 20);
-	//packet->setDataByName("unknown10", 1, 2);
+	}
+
 	if(sub_packet_type == 0)
 		sub_packet_type = 0x83;
-	packet->setSubstructDataByName("info_header", "packetsubtype", sub_packet_type);
-	//packet->setDataByName("unknown3",2);
-	//packet->setDataByName("unknown7", 50);
-	if(sub_packet_type == 0x81)
-		SetPacketInformation(packet, client);
-	else
-		SetPacketInformation(packet, client, true);
-	packet->setSubstructDataByName("spell_info", "uses_remaining", 0xFFFF);
-	packet->setSubstructDataByName("spell_info", "damage_remaining", 0xFFFF);
-	//packet->PrintPacket();
-	// This adds the second portion to the spell packet. Could be used for bonuses etc.?
-	string* data1 = packet->serializeString();
-	uchar*  data2 = (uchar*)data1->c_str();
-	uchar*  ptr2 = data2;
-	int32 size = data1->length() * 2;
-	uchar* data3 = new uchar[size];
-	memcpy(data3, data2, data1->length());
-	uchar* ptr = data3;
-	size -=17;
-	memcpy(ptr, &size, sizeof(int32)); 
-	size +=3;
-	ptr += data1->length();
-	ptr2 += 14;
-	memcpy(ptr, ptr2, data1->length() - 14);
 
-	EQ2Packet* outapp = new EQ2Packet(OP_ClientCmdMsg, data3, size);
-	//DumpPacket(outapp);
-	safe_delete_array(data3);
+	packet->setSubstructDataByName("info_header", "packetsubtype", sub_packet_type);
+
+	if (sub_packet_type == 0x81) {
+		SetPacketInformation(packet, client);
+	} else {
+		SetPacketInformation(packet, client, true);
+	}
+
+	string* generic_string_data = packet->serializeString();
+	int32 size = (generic_string_data->length() * 2) - 16;
+
+	uchar* out_data = new uchar[size+1];
+	uchar* out_ptr = out_data;
+	memcpy(out_ptr, (uchar*)generic_string_data->c_str(), generic_string_data->length());
+	out_ptr += generic_string_data->length();
+	memcpy(out_ptr, (uchar*)generic_string_data->c_str() + 16, generic_string_data->length() - 16);
+
+	EQ2Packet* outapp = new EQ2Packet(OP_ClientCmdMsg, out_data, size);
+	safe_delete_array(out_data);
 	safe_delete(packet);
 	return outapp;
 }
@@ -542,7 +533,17 @@ vector<LUAData*>* Spell::GetLUAData(){
 void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scaled_data, const char* substruct_name) {
 	int num_effects = effects.size();
 
-	for (int32 i = 0; i < effects.size(); i++) {
+	if (MustBeFlanking() || MustBeBehind())
+		++num_effects;
+
+	if (MustBeStealthed())
+		++num_effects;
+
+	packet->setSubstructArrayLengthByName(substruct_name, "num_effects", num_effects);
+
+	num_effects = effects.size();
+
+	for (int32 i = 0; i < effects.size(); ++i) {
 		string description = effects[i]->description;
 
 		for (unsigned int x = 0; x <= 8; x++) {
@@ -578,6 +579,16 @@ void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scal
 		packet->setArrayDataByName("percentage", 100, num_effects);
 		packet->setArrayDataByName("subbulletflag", 0, num_effects);
 		num_effects += 1;
+	} else if (MustBeFlanking() && MustBeInFrontOf()) {
+		packet->setArrayDataByName("effect", "Must be in front of or flanking", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
+	} else if (MustBeInFrontOf()) {
+		packet->setArrayDataByName("effect", "Must be in front of", num_effects);
+		packet->setArrayDataByName("percentage", 100, num_effects);
+		packet->setArrayDataByName("subbulletflag", 0, num_effects);
+		num_effects += 1;
 	} else if (MustBeFlanking()) {
 		packet->setArrayDataByName("effect", "Must be flanking", num_effects);
 		packet->setArrayDataByName("percentage", 100, num_effects);
@@ -596,8 +607,6 @@ void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scal
 		packet->setArrayDataByName("subbulletflag", 0, num_effects);
 		num_effects += 1;
 	}
-
-	packet->setSubstructArrayLengthByName(substruct_name, "num_effects", num_effects);
 }
 
 vector<LUAData> Spell::GetScaledLUAData(int level) {
@@ -909,6 +918,10 @@ bool Spell::CastWhileFeared() {
 
 bool Spell::MustBeFlanking() {
 	return (spell->casting_flags & CASTING_FLAG_MUST_BE_FLANKING) == CASTING_FLAG_MUST_BE_FLANKING;
+}
+
+bool Spell::MustBeInFrontOf() {
+	return (spell->casting_flags & CASTING_FLAG_MUST_BE_IN_FRONT_OF) == CASTING_FLAG_MUST_BE_IN_FRONT_OF;
 }
 
 bool Spell::MustBeBehind() {

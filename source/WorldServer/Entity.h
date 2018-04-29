@@ -331,6 +331,7 @@ struct ThreatTransfer {
 #define CONTROL_EFFECT_TYPE_FLIGHT 12
 #define CONTROL_EFFECT_TYPE_GLIDE 13
 #define CONTROL_EFFECT_TYPE_SAFEFALL 14
+#define CONTROL_EFFECT_TYPE_TAUNT 15
 
 #define IMMUNITY_TYPE_MEZ 1
 #define IMMUNITY_TYPE_STIFLE 2
@@ -462,6 +463,7 @@ public:
 	bool	IsDualWield();
 	bool	BehindTarget(Spawn* target);
 	bool	FlankingTarget(Spawn* target);
+	double SpawnAngle(Spawn* target);
 	void	ChangePrimaryWeapon();
 	void	ChangeSecondaryWeapon();
 	void	ChangeRangedWeapon();
@@ -731,6 +733,9 @@ public:
 	void RemoveStoneskin(LuaSpell* luaspell);
 	int32 CheckStoneskins(int32 damage, Entity* attacker);
 
+	void SetTriggerCount(LuaSpell* luaspell, int16 count);
+	int16 GetTriggerCount(LuaSpell* luaspell);
+
 	map<int16, float> stats;
 
 	/// <summary>Adds a proc to the list of current procs</summary>
@@ -830,6 +835,7 @@ public:
 	set<int32> HatedBy;
 
 	float GetMitigationPercentage(int enemy_level) { return info_struct.cur_mitigation / ((40 * enemy_level) + info_struct.cur_mitigation + 200.0); }
+	float GetSpellMitigationPercentage(int enemy_level, int8 damage_type);
 
 protected:
 	bool	in_combat;
@@ -867,6 +873,7 @@ private:
 
 	map<LuaSpell*, WardInfo*> m_wardList;
 	map<LuaSpell*, StoneskinInfo*> m_stoneskinList;
+	map<LuaSpell*, int16> m_triggerCounts;
 
 	// int8 = type, vector<Proc*> = list of pointers to proc info
 	map <int8, vector<Proc*> > m_procList;

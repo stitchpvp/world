@@ -1120,7 +1120,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 
 						if (spell) {
 							if (strncmp(spell->GetName(), "Gathering", 9) == 0 || strncmp(spell->GetName(), "Mining", 6) == 0 || strncmp(spell->GetName(), "Trapping", 8) == 0 || strncmp(spell->GetName(), "Foresting", 9) == 0 || strncmp(spell->GetName(), "Fishing", 7) == 0 || strncmp(spell->GetName(), "Collecting", 10) == 0) {
-								client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true, true);
+								client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true);
 							} else {
 								if (client->GetPlayer()->HasTarget()) {
 									client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget());
@@ -2690,32 +2690,34 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 		}
 		case COMMAND_BUY_FROM_BROKER:{
-			if(sep && sep->arg[1][0] && sep->IsNumber(0) && sep->IsNumber(1)){
+			/*if(sep && sep->arg[1][0] && sep->IsNumber(0) && sep->IsNumber(1)){
 				int32 item_id = atoul(sep->arg[0]);
 				int8 quantity = atoul(sep->arg[1]);
 				client->AddItem(item_id, quantity);
-			}
+			}*/
 			break;
 		}
 		case COMMAND_SEARCH_STORES_PAGE:{
-			if(sep && sep->arg[0][0] && sep->IsNumber(0)){
+			/*if(sep && sep->arg[0][0] && sep->IsNumber(0)){
 				int32 page = atoul(sep->arg[0]);
 				client->SearchStore(page);
-			}
+			}*/
 			break;
 		}
 		case COMMAND_SEARCH_STORES:{
-			if(sep && sep->arg[0][0]){
+			/*if (sep && sep->arg[0][0]) {
 				const char* values = sep->argplus[0];
-				if(values){
+
+				if (values) {
 					map<string, string> str_values = TranslateBrokerRequest(values);
 					vector<Item*>* items = master_item_list.GetItems(str_values);
-					if(items){
+
+					if (items) {
 						client->SetItemSearch(items);
 						client->SearchStore(0);
 					}
-					}
 				}
+			}*/
 			break;
 		}
 		
@@ -4324,10 +4326,15 @@ void Commands::Command_Guild(Client* client, Seperator* sep)
 		{
 			const char* guild_name = sep->argplus[0];
 
-			if (!guild_list.GetGuild(guild_name))
-				world.CreateGuild(guild_name, client, client->GetPlayer()->GetGroupMemberInfo()->group_id);
-			else
+			if (!guild_list.GetGuild(guild_name)) {
+				int group_id = 0;
+				if (client->GetPlayer()->GetGroupMemberInfo())
+					group_id = client->GetPlayer()->GetGroupMemberInfo()->group_id;
+
+				world.CreateGuild(guild_name, client, group_id);
+			} else {
 				client->SimpleMessage(CHANNEL_COLOR_WHITE, "A guild with that name already exists.");
+			}
 		}
 		else if (strncmp(command, "search", length) == 0)
 			client->ShowGuildSearchWindow();
@@ -7683,10 +7690,22 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
 	}*/
 
-	if (sep->IsSet(0) && sep->IsNumber(0))
-		client->GetPlayer()->temp_status = atol(sep->arg[0]);
-
-	client->QueuePacket(client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion()));
+	//if (sep->IsSet(0) && sep->IsNumber(0) && atoi(sep->arg[0]) == 1) {
+	//	shared_ptr<ActivityStatus> status(new ActivityStatus);
+	//	status->status = ACTIVITY_STATUS_IMMUNITY_GAINED;
+	//	status->end_time = Timer::GetCurrentTime2() + (20 * 1000);
+	//	client->GetPlayer()->AddActivityStatus(status);
+	//} else {
+	//	shared_ptr<ActivityStatus> status(new ActivityStatus);
+	//	status->status = ACTIVITY_STATUS_IMMUNITY_REMAINING;
+	//	status->end_time = Timer::GetCurrentTime2() + (20 * 1000);
+	//	client->GetPlayer()->AddActivityStatus(status);
+	//}
+	
+	if (sep->IsSet(0) && sep->IsNumber(0)) {
+		client->SimpleMessage(atoi(sep->arg[0]), "TESTING");
+		//client->GetCurrentZone()->SendDamagePacket(client->GetPlayer(), client->GetPlayer(), DAMAGE_PACKET_TYPE_SPELL_DAMAGE, atoi(sep->arg[0]), DAMAGE_PACKET_DAMAGE_TYPE_MENTAL, 0, "Test Spell");
+	}
 }
 
 void Commands::Command_LeaveChannel(Client *client, Seperator *sep) {
@@ -8461,25 +8480,44 @@ void Commands::Command_Heal(Client* client) {
 		player = client->GetCurrentZone()->GetClientBySpawn(client->GetPlayer()->GetTarget())->GetPlayer();
 
 	if (!player->Alive()) {
-		Spell* spell = master_spell_list.GetSpell(1002182, 1);
-		LuaSpell* lua_spell = nullptr;
+		Client* target_client = client->GetCurrentZone()->GetClientBySpawn(player);
 
-		if (spell && lua_interface) {
-			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
+		if (client) {
+			PacketStruct* packet = configReader.getStruct("WS_Resurrected", target_client->GetVersion());
+
+			if (packet) {
+				target_client->QueuePacket(packet->serialize());
+			}
+
+			packet = configReader.getStruct("WS_ServerControlFlags", target_client->GetVersion());
+			if (packet) {
+				packet->setDataByName("parameter1", 8);
+				target_client->QueuePacket(packet->serialize());
+				packet->setDataByName("parameter1", 16);
+				target_client->QueuePacket(packet->serialize());
+			}
+
+			safe_delete(packet);
+			target_client->SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
+
+			PendingResurrection* rez = target_client->GetCurrentRez();
+			if (rez && rez->caster) {
+				player->GetZone()->GetSpellProcess()->DeleteCasterSpell(rez->spell, false);
+			}
 		}
 
-		if (lua_spell) {
-			lua_spell->caster = client->GetPlayer();
-			lua_spell->initial_target = player->GetID();
-			lua_spell->spell = spell;
-
-			client->GetCurrentZone()->GetSpellProcess()->GetSpellTargets(lua_spell);
-			client->GetCurrentZone()->GetSpellProcess()->CastProcessedSpell(lua_spell, true);
-		}
-	} else {
-		int32 heal_amount = player->GetTotalHP() - player->GetHP();
-
-		if (heal_amount > 0)
-			client->GetPlayer()->ProcHeal(player, "Heal", heal_amount, heal_amount, "Dev Heal");
+		player->SetSpawnType(4);
+		player->SetTempActionState(-1);
+		player->appearance.attackable = 1;
+		player->SendSpawnChanges(true);
 	}
+
+	int32 heal_amount = player->GetTotalHP() - player->GetHP();
+	int32 power_amount = player->GetTotalPower() - player->GetPower();
+
+	if (heal_amount > 0)
+		client->GetPlayer()->ProcHeal(player, "Heal", heal_amount, heal_amount, "Dev Heal");
+
+	if (power_amount > 0)
+		client->GetPlayer()->ProcHeal(player, "Power", power_amount, power_amount, "Dev Heal");
 }

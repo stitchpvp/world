@@ -402,7 +402,7 @@ vector<Item*>* MasterItemList::GetItems(string name, int32 itype, int32 ltype, i
 					}
 					case ITEM_BROKER_STAT_TYPE_HEAT:{
 						for (itr = item->item_stats.begin(); itr != item->item_stats.end() && !stat_found; itr++) {
-							if ((*itr)->stat_type_combined == ITEM_STAT_VS_HEAT) {
+							if ((*itr)->stat_type_combined == ITEM_STAT_VS_ELEMENTAL) {
 								stat_found = true;
 								break;
 							}
@@ -424,7 +424,7 @@ vector<Item*>* MasterItemList::GetItems(string name, int32 itype, int32 ltype, i
 					}
 					case ITEM_BROKER_STAT_TYPE_MAGIC:{
 						for (itr = item->item_stats.begin(); itr != item->item_stats.end() && !stat_found; itr++) {
-							if ((*itr)->stat_type_combined == ITEM_STAT_VS_MAGIC) {
+							if ((*itr)->stat_type_combined == ITEM_STAT_VS_ARCANE) {
 								stat_found = true;
 								break;
 							}
@@ -457,7 +457,7 @@ vector<Item*>* MasterItemList::GetItems(string name, int32 itype, int32 ltype, i
 					}
 					case ITEM_BROKER_STAT_TYPE_POISON:{
 						for (itr = item->item_stats.begin(); itr != item->item_stats.end() && !stat_found; itr++) {
-							if ((*itr)->stat_type_combined == ITEM_STAT_VS_POISON) {
+							if ((*itr)->stat_type_combined == ITEM_STAT_VS_NOXIOUS) {
 								stat_found = true;
 								break;
 							}

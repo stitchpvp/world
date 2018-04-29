@@ -377,18 +377,24 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 	}
 		
 	luaspell->last_spellattack_hit = true;
-	//If this spell is a tick and has already crit, force the tick to crit
-	if(is_tick){
-		if(luaspell->crit)
-			crit_mod = 1;
-		else
-			crit_mod = 2;
-	}
-	if(DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, spell->GetName(), crit_mod, is_tick, no_calcs) && !luaspell->crit)
-		luaspell->crit = true;
 
-	CheckProcs(PROC_TYPE_OFFENSIVE, victim);
-	CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
+	if (is_tick) {
+		if (luaspell->crit) {
+			crit_mod = 1;
+		} else {
+			crit_mod = 2;
+		}
+	} else {
+		CheckProcs(PROC_TYPE_OFFENSIVE, victim);
+
+		if (spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_SPELL) {
+			CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
+		} else if (spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_COMBAT_ART) {
+			CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
+		}
+	}
+
+	luaspell->crit = DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, spell->GetName(), crit_mod, is_tick, no_calcs);
 
 	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
 		Entity* pet = 0;
@@ -840,9 +846,11 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	damage = victim->CheckStoneskins(damage, this);
 
 	// Rudimentary mitigation
-	if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE || type == DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG) {
+	if (damage_type == DAMAGE_PACKET_DAMAGE_TYPE_SLASH || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_CRUSH || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_PIERCE) {
 		damage *= 1 - victim->GetMitigationPercentage(GetLevel());
 		damage *= 1 - victim->GetInfoStruct()->physical_damage_reduction / 100.0;
+	} else if (damage_type == DAMAGE_PACKET_DAMAGE_TYPE_DISEASE || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_POISON || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_HEAT || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_COLD || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_MAGIC || damage_type == DAMAGE_PACKET_DAMAGE_TYPE_DIVINE) {
+		damage *= 1 - victim->GetSpellMitigationPercentage(GetLevel(), damage_type);
 	}
 
 	if(damage <= 0){

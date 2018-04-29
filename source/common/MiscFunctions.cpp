@@ -925,3 +925,15 @@ string FormatWithCommas(int value) {
 	ss << std::fixed << value;
 	return ss.str();
 }
+
+double GetVectorLength(double x, double z) {
+	return sqrt(GetDotProduct(x, z, x, z));
+}
+
+double NormalizeValue(double val, double length) {
+	return val / length;
+}
+
+double GetDotProduct(double ax, double az, double bx, double bz) {
+	return (ax * bx) + (az * bz);
+};

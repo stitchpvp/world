@@ -90,6 +90,7 @@ struct LuaSpell{
 	bool            had_triggers;
 	bool            had_dmg_remaining;
 	bool			was_cured;
+	bool			cancelled;
 	Mutex           MSpellTargets;
 	int32           effect_bitmask;
 

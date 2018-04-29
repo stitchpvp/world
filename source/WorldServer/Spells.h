@@ -344,6 +344,7 @@ public:
 	bool CastWhileStifled();
 	bool CastWhileFeared();
 	bool MustBeFlanking();
+	bool MustBeInFrontOf();
 	bool MustBeBehind();
 	bool MustBeStealthed();
 	bool ShouldCancelStealth();

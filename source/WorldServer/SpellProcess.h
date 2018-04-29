@@ -169,7 +169,7 @@ public:
 	/// <param name='caster'>The Entity casting the spell</param>
 	/// <param name='target'>The target(Spawn) of the spell</param>
 	/// <param name='harvest_spell'>Is this a harvest spell?</param>
-	void ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target = 0, bool harvest_spell = false, bool force_cast = true);
+	void ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target = 0, bool harvest_spell = false, bool force_cast = false);
 
 	/// <summary>Cast an EntityCommand (right click menu)</summary>
 	/// <param name='zone'>The current ZoneServer</param>
@@ -303,6 +303,11 @@ public:
 	/// <param name='caster'>The entity casting the spell </param>
 	bool IsReady(Spell* spell, Entity* caster);
 
+	/// <summary>Checks to see if the spell is on cooldown for an entity </summary>
+	/// <param name='spell'>The spell being cast</param>
+	/// <param name='caster'>The entity casting the spell </param>
+	bool OnCooldown(Spell* spell, Entity* cater);
+
 	/// <summary>Send the spell book update packet to the given client</summary>
 	/// <param name='client'>Client to send the packet to</param>
 	void SendSpellBookUpdate(Client* client);
@@ -375,6 +380,8 @@ public:
 	void KillHOBySpawnID(int32 spawn_id);
 
 	void AddSpellCancel(LuaSpell* spell);
+
+	void CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 initial_target, int32 duration = 0);
 
 private:
 	/// <summary>Sends the spell data to the lua script</summary>

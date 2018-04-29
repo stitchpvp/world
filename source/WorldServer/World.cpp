@@ -1500,16 +1500,19 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
 				values->vs_pierce += value;
 				break;
 			}
-			case ITEM_STAT_VS_HEAT:{
+			case ITEM_STAT_VS_ELEMENTAL:{
 				values->vs_heat += value;
+				values->vs_cold += value;
 				break;
 			}
 			case ITEM_STAT_VS_COLD:{
 				values->vs_cold += value;
 				break;
 			}
-			case ITEM_STAT_VS_MAGIC:{
+			case ITEM_STAT_VS_ARCANE:{
 				values->vs_magic += value;
+				values->vs_mental += value;
+				values->vs_divine += value;
 				break;
 			}
 			case ITEM_STAT_VS_MENTAL:{
@@ -1524,8 +1527,9 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
 				values->vs_disease += value;
 				break;
 			}
-			case ITEM_STAT_VS_POISON:{
+			case ITEM_STAT_VS_NOXIOUS:{
 				values->vs_poison += value;
+				values->vs_disease += value;
 				break;
 			}
 			case ITEM_STAT_HEALTH:{

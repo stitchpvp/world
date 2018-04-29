@@ -337,9 +337,9 @@ extern MasterItemList master_item_list;
 #define ITEM_STAT_INT					4
 
 #define ITEM_STAT_VS_PHYSICAL			200
-#define ITEM_STAT_VS_HEAT				201 //elemental
-#define ITEM_STAT_VS_POISON				202 //noxious
-#define ITEM_STAT_VS_MAGIC				203 //arcane
+#define ITEM_STAT_VS_ELEMENTAL			201
+#define ITEM_STAT_VS_NOXIOUS			202
+#define ITEM_STAT_VS_ARCANE				203
 #define ITEM_STAT_VS_DROWNING			210
 #define ITEM_STAT_VS_FALLING			211
 #define ITEM_STAT_VS_PAIN				212

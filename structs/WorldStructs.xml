@@ -20004,7 +20004,6 @@ to zero and treated like placeholders." />
 <Struct Name="WS_ExamineSpellInfo" ClientVersion="63119" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
 <Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
-<Data ElementName="pvp_spell_info" Substruct="WS_SpellInfo" Size="1" />
 </Struct>
 <Struct Name="WS_ExamineSpecialSpellInfo" ClientVersion="57048" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />

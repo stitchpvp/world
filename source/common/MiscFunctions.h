@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <vector>
 #include <map>
+#include <cmath>
 
 #ifndef ERRBUF_SIZE
 #define ERRBUF_SIZE		1024
@@ -84,6 +85,10 @@ bool INIReadBool(FILE *f, const char *section, const char *property, bool *out);
 bool INIReadInt(FILE *f, const char *section, const char *property, int *out);
 
 string FormatWithCommas(int value);
+
+double GetVectorLength(double x, double z);
+double NormalizeValue(double val, double length);
+double GetDotProduct(double ax, double az, double bx, double bz);
 
 template<class Type> void AddData(Type input, string* datastring){
 	if(datastring)

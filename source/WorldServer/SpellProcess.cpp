@@ -152,9 +152,9 @@ void SpellProcess::Process(){
 				
 				if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100)
 					DeleteCasterSpell(spell);
-			} else {
-				CheckRemoveTargetFromSpell(spell);
-      }
+			}
+
+			CheckRemoveTargetFromSpell(spell);
 		}
 	}
 	if (SpellCancelList.size() > 0){
@@ -294,15 +294,24 @@ bool SpellProcess::IsReady(Spell* spell, Entity* caster) {
 	if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE && caster->IsPlayer() && static_cast<Player*>(caster)->HasLinkedSpellEffect(spell))
 		return false;
 
-	bool ret = true;	
+	if (OnCooldown(spell, caster))
+		return false;
+
+	return true;
+}
+
+bool SpellProcess::OnCooldown(Spell* spell, Entity* caster) {
+	bool ret = false;
+
 	MRecastTimers.readlock(__FUNCTION__, __LINE__);
 	for (const auto recast_timer : recast_timers) {
 		if (recast_timer->spell == spell && recast_timer->caster == caster) {
-			ret = false;
+			ret = true;
 			break;
 		}
 	}
 	MRecastTimers.releasereadlock(__FUNCTION__, __LINE__);
+
 	return ret;
 }
 
@@ -376,7 +385,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 
 	if (spell) {
 		ZoneServer* zone = spell->caster->GetZone();
-
+		
 		if (active_spells.count(spell) > 0)
 			active_spells.Remove(spell);
 
@@ -428,6 +437,8 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 					if (spell->caster && spell->caster->IsPlayer()) {
 						SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
 					}
+				} else {
+					UnlockSpell(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->spell);
 				}
 			}
 
@@ -749,6 +760,9 @@ void SpellProcess::CheckSpellQueue(Spell* spell, Entity* caster) {
 	if (!caster->IsPlayer())
 		return;
 
+	if (GetSpell(caster) == spell)
+		return;
+
 	Spell* existing_spell = nullptr;
 
 	if (spell_que.count(caster) > 0) {
@@ -940,6 +954,11 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 		return false;
 	}
 
+	if (spell->MustBeStealthed() && !caster->IsStealthed()) {
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be sneaking to use this ability.");
+		return false;
+	}
+
 	if (spell->GetSpellData()->max_aoe_targets == 0) {
 		Spawn* target = caster->GetZone()->GetSpawnByID(lua_spell->initial_target);
 
@@ -1005,6 +1024,14 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 								client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind or flanking your target.");
 								return false;
 							}
+						} else if (spell->MustBeFlanking() && spell->MustBeInFrontOf()) {
+							if (!is_flanking && is_behind) {
+								client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of or flanking your target.");
+								return false;
+							}
+						} else if (spell->MustBeInFrontOf() && (is_flanking || is_behind)) {
+							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of your target.");
+							return false;
 						} else if (spell->MustBeFlanking() && !is_flanking) {
 							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be flanking your target.");
 							return false;
@@ -1012,11 +1039,6 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind your target.");
 							return false;
 						}
-					}
-
-					if (spell->MustBeStealthed() && !caster->IsStealthed()) {
-						client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be sneaking to use this ability.");
-						return false;
 					}
 				}
 			} else if (target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE) {
@@ -1059,7 +1081,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 		SetInitialTarget(lua_spell, target);
 
-		if (force_cast || CanCast(lua_spell, harvest_spell)) {
+		if ((force_cast && !OnCooldown(spell, caster)) || CanCast(lua_spell, harvest_spell)) {
 			if (!harvest_spell) {
 				GetSpellTargets(lua_spell);
 			} else {
@@ -1334,9 +1356,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		spell->caster->GetZone()->TriggerCharSheetTimer();
 	}
 
-	if (!passive)
-		SendFinishedCast(spell, client);
-
 	if (spell->spell->ShouldCancelStealth() && (spell->caster->IsInvis() || spell->caster->IsStealthed()))
 		spell->caster->CancelAllStealth(spell);
 
@@ -1355,6 +1374,9 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 			spell->caster->InCombat(true);
 		}
 	}
+
+	if (!passive)
+		SendFinishedCast(spell, client);
 
 
 	/*MutexList<LuaSpell*>::iterator itr = active_spells.begin();
@@ -2219,4 +2241,30 @@ void SpellProcess::AddSpellCancel(LuaSpell* spell){
 	MSpellCancelList.writelock(__FUNCTION__, __LINE__);
 	SpellCancelList.push_back(spell);
 	MSpellCancelList.releasewritelock(__FUNCTION__, __LINE__);
+}
+
+void SpellProcess::CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 initial_target, int32 duration) {
+	Spell* spell = master_spell_list.GetSpell(spell_id, tier);
+
+	if (spell) {
+		if (duration > 0) {
+			spell->GetSpellData()->duration1 = duration;
+			spell->GetSpellData()->duration2 = duration;
+		}
+
+		LuaSpell* lua_spell = nullptr;
+
+		if (lua_interface) {
+			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
+		}
+
+		if (lua_spell) {
+			lua_spell->caster = caster;
+			lua_spell->initial_target = initial_target;
+			lua_spell->spell = spell;
+
+			GetSpellTargets(lua_spell);
+			CastProcessedSpell(lua_spell, true);
+		}
+	}
 }

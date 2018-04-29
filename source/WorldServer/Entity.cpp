@@ -440,47 +440,44 @@ int8 Entity::GetWieldType(){
 	return melee_combat_data.wield_type;
 }
 
-bool Entity::BehindTarget(Spawn* target){
-	float target_angle = 360 - target->GetHeading();	
-	float angle = 360 - GetHeading();
-	if(target_angle > angle)
-		angle = target_angle - angle;
-	else
-		angle -= target_angle;
-	return (angle < 90 || angle > 270);
+double Entity::SpawnAngle(Spawn* target) {
+	double diff_x = -(GetX()) - -(target->GetX());
+	double diff_z = GetZ() - target->GetZ();
+	double diff_length = GetVectorLength(diff_x, diff_z);
+	diff_x /= diff_length;
+	diff_z /= diff_length;
+
+	float heading = target->GetHeading();
+	if (heading < 270) {
+		heading += 90;
+	} else {
+		heading -= 270;
+	}
+
+	double dir_x = cos(heading * (3.14159 / 180.0));
+	double dir_z = sin(heading * (3.14159 / 180.0));
+
+	return GetDotProduct(dir_x, dir_z, diff_x, diff_z) * -1;
+}
+
+bool Entity::BehindTarget(Spawn* target) {
+	double product = SpawnAngle(target);
+
+	if (product < -0.75) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 bool Entity::FlankingTarget(Spawn* target) {
-	float angle;
-	double diff_x = target->GetX() - GetX();
-	double diff_z = target->GetZ() - GetZ();
-	if (diff_z == 0) {
-	   if (diff_x > 0)
-		   angle = 90;
-	   else
-		   angle = 270;
+	double product = SpawnAngle(target);
+
+	if (product <= 0.45 && product > -0.75) {
+		return true;
+	} else {
+		return false;
 	}
-	else
-		angle = ((atan(diff_x / diff_z)) * 180) / 3.14159265358979323846;
-	if (angle < 0)
-		angle = angle + 360;
-	else
-		angle = angle + 180;
-	if (diff_x < 0)
-		angle = angle + 180;
-	
-	if (angle > GetHeading())
-		angle = angle - GetHeading();
-	else
-		angle = GetHeading() - angle;
-
-	if (angle > 360)
-		angle -= 360;
-
-	//LogWrite(SPAWN__ERROR, 0, "Angle", "spawn heading = %f", GetHeading());
-	//LogWrite(SPAWN__ERROR, 0, "Angle", "angle = %f", angle);
-
-	return (angle >= 45 && angle <= 315);
 }
 
 float Entity::GetShieldBlockChance(){
@@ -883,10 +880,10 @@ void Entity::CalculateBonuses(){
 	if (info->cold < 0)
 		info->cold = 0;
 
-	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 	info->cur_mitigation += values->vs_slash;
 	info->cur_mitigation += values->vs_pierce;
 	info->cur_mitigation += values->vs_crush;
+	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 	if (info->cur_mitigation < 0)
 		info->cur_mitigation = 0;
 
@@ -1068,28 +1065,43 @@ void Entity::AddMezSpell(LuaSpell* spell) {
 
 	MutexList<LuaSpell*>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
 
-	if (IsPlayer() && !IsStunned() && !IsMezImmune() && mez_spells->size(true) == 0){
+	if (IsMezImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
+	if (IsPlayer() && !IsStunned() && mez_spells->size(true) == 0) {
 		((Player*)this)->SetPlayerControlFlag(1, 16, true);
+
 		if (!IsRooted())
 			((Player*)this)->SetPlayerControlFlag(1, 8, true);
+
 		if (!IsStifled() && !IsFeared())
 			GetZone()->LockAllSpells((Player*)this);
 	}
 
 	mez_spells->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(198606554, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
 }
 
 void Entity::RemoveMezSpell(LuaSpell* spell) {
 	MutexList<LuaSpell*>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
+
 	if (!mez_spells || mez_spells->size(true) == 0)
 		return;
 
 	mez_spells->Remove(spell);
-	if (mez_spells->size(true) == 0){
-		if (IsPlayer() && !IsMezImmune() && !IsStunned()){
+
+	if (mez_spells->size(true) == 0) {
+		if (IsPlayer() && !IsStunned()) {
 			if (!IsStifled() && !IsFeared())
 				GetZone()->UnlockAllSpells((Player*)this);
+
 			((Player*)this)->SetPlayerControlFlag(1, 16, false);
+
 			if (!IsRooted())
 				((Player*)this)->SetPlayerControlFlag(1, 8, false);
 		}
@@ -1130,10 +1142,19 @@ void Entity::AddStifleSpell(LuaSpell* spell) {
 	if (!control_effects[CONTROL_EFFECT_TYPE_STIFLE])
 		control_effects[CONTROL_EFFECT_TYPE_STIFLE] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STIFLE]->size(true) == 0 && !IsStifleImmune() && !IsMezzedOrStunned())
+	if (IsStifleImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
+	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STIFLE]->size(true) == 0 && !IsMezzedOrStunned())
 		GetZone()->LockAllSpells((Player*)this);
 
 	control_effects[CONTROL_EFFECT_TYPE_STIFLE]->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(115537460, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
 }
 
 void Entity::RemoveStifleSpell(LuaSpell* spell) {
@@ -1143,7 +1164,7 @@ void Entity::RemoveStifleSpell(LuaSpell* spell) {
 
 	stifle_list->Remove(spell);
 
-	if (IsPlayer() && stifle_list->size(true) == 0 && !IsStifleImmune() && !IsMezzedOrStunned())
+	if (IsPlayer() && stifle_list->size(true) == 0 && !IsMezzedOrStunned())
 		GetZone()->UnlockAllSpells((Player*)this);
 }
 
@@ -1154,11 +1175,21 @@ void Entity::AddDazeSpell(LuaSpell* spell) {
 	if (!control_effects[CONTROL_EFFECT_TYPE_DAZE])
 		control_effects[CONTROL_EFFECT_TYPE_DAZE] = new MutexList<LuaSpell*>;
 
+	if (IsDazeImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
 	control_effects[CONTROL_EFFECT_TYPE_DAZE]->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(84058492, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
 }
 
 void Entity::RemoveDazeSpell(LuaSpell* spell) {
 	MutexList<LuaSpell*>* daze_list = control_effects[CONTROL_EFFECT_TYPE_DAZE];
+
 	if (!daze_list || daze_list->size(true) == 0)
 		return;
 
@@ -1172,30 +1203,45 @@ void Entity::AddStunSpell(LuaSpell* spell) {
 	if (!control_effects[CONTROL_EFFECT_TYPE_STUN])
 		control_effects[CONTROL_EFFECT_TYPE_STUN] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STUN]->size(true) == 0 && !IsStunImmune()){
-		if (!IsMezzed()){
+	if (IsStunImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
+	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STUN]->size(true) == 0) {
+		if (!IsMezzed()) {
 			((Player*)this)->SetPlayerControlFlag(1, 16, true);
+
 			if (!IsRooted())
 				((Player*)this)->SetPlayerControlFlag(1, 8, true);
+
 			if (!IsStifled() && !IsFeared())
 				GetZone()->LockAllSpells((Player*)this);
 		}
 	}
 
 	control_effects[CONTROL_EFFECT_TYPE_STUN]->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(72388327, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
 }
 
 void Entity::RemoveStunSpell(LuaSpell* spell) {
 	MutexList<LuaSpell*>* stun_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
+
 	if (!stun_list || stun_list->size(true) == 0)
 		return;
 
 	stun_list->Remove(spell);
-	if (stun_list->size(true) == 0){
-		if (IsPlayer() && !IsMezzed() && !IsStunImmune()){
+
+	if (stun_list->size(true) == 0) {
+		if (IsPlayer() && !IsMezzed()) {
 			((Player*)this)->SetPlayerControlFlag(1, 16, false);
+
 			if (!IsRooted())
 				((Player*)this)->SetPlayerControlFlag(1, 8, false);
+
 			if (!IsStifled() && !IsFeared())
 				GetZone()->UnlockAllSpells((Player*)this);
 		}
@@ -1427,6 +1473,18 @@ int32 Entity::CheckStoneskins(int32 damage, Entity* attacker) {
 	}
 
 	return damage;
+}
+
+void Entity::SetTriggerCount(LuaSpell* luaspell, int16 count) {
+	m_triggerCounts[luaspell] = count;
+}
+
+int16 Entity::GetTriggerCount(LuaSpell* luaspell) {
+	if (m_triggerCounts.count(luaspell) > 0) {
+		return m_triggerCounts[luaspell];
+	}
+
+	return 0;
 }
 
 float Entity::CalculateCastingSpeedMod() {
@@ -1717,6 +1775,7 @@ void Entity::CancelAllStealth(LuaSpell* exclude_spell) {
 		MutexList<LuaSpell*>::iterator itr = stealth_list->begin();
 		while (itr.Next()){
 			if (exclude_spell == itr.value) continue;
+			itr.value->cancelled = true;
 			if (itr.value->caster == this)
 				GetZone()->GetSpellProcess()->AddSpellCancel(itr.value);
 			else{
@@ -1731,6 +1790,7 @@ void Entity::CancelAllStealth(LuaSpell* exclude_spell) {
 		MutexList<LuaSpell*>::iterator invis_itr = invis_list->begin();
 		while (invis_itr.Next()){
 			if (exclude_spell == invis_itr.value) continue;
+			invis_itr.value->cancelled = true;
 			if (invis_itr.value->caster == this)
 				GetZone()->GetSpellProcess()->AddSpellCancel(invis_itr.value);
 			else{
@@ -1782,7 +1842,19 @@ bool Entity::IsHostile(Spawn* target) {
 
 bool Entity::IsStealthed(){
 	MutexList<LuaSpell*>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
-	return  (!stealth_list || stealth_list->size(true) == 0) == false;
+
+	if (!stealth_list || stealth_list->size(true) == 0)
+		return false;
+
+	MutexList<LuaSpell*>::iterator itr = stealth_list->begin();
+
+	while (itr.Next()) {
+		if (!itr.value->cancelled) {
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 bool Entity::IsInvis(){
@@ -1801,10 +1873,14 @@ void Entity::AddStealthSpell(LuaSpell* spell) {
 	if (control_effects[CONTROL_EFFECT_TYPE_STEALTH]->size(true) == 1){
 		info_changed = true;
 		changed = true;
+
 		AddChangedZoneSpawn();
+
 		if (IsPlayer()) {
-			((Player*)this)->SetResendSpawns(true);
-			//((Player*)this)->SetCharSheetChanged(true);
+			static_cast<Player*>(this)->SetMeleeAttack(false);
+			static_cast<Player*>(this)->SetRangeAttack(false);
+			static_cast<Player*>(this)->SetResendSpawns(true);
+			static_cast<Player*>(this)->SetCharSheetChanged(true);
 		}
 	}
 }
@@ -1820,10 +1896,15 @@ void Entity::AddInvisSpell(LuaSpell* spell) {
 	if (control_effects[CONTROL_EFFECT_TYPE_INVIS]->size(true) == 1){
 		info_changed = true;
 		changed = true;
+
 		AddChangedZoneSpawn();
-		if (IsPlayer())
-			((Player*)this)->SetResendSpawns(true);
-			((Player*)this)->SetCharSheetChanged(true);
+
+		if (IsPlayer()) {
+			static_cast<Player*>(this)->SetMeleeAttack(false);
+			static_cast<Player*>(this)->SetRangeAttack(false);
+			static_cast<Player*>(this)->SetResendSpawns(true);
+			static_cast<Player*>(this)->SetCharSheetChanged(true);
+		}
 	}
 }
 
@@ -1873,26 +1954,38 @@ void Entity::AddRootSpell(LuaSpell* spell) {
 	if (!control_effects[CONTROL_EFFECT_TYPE_ROOT])
 		control_effects[CONTROL_EFFECT_TYPE_ROOT] = new MutexList<LuaSpell*>;
 
-	if (control_effects[CONTROL_EFFECT_TYPE_ROOT]->size(true) == 0 && !IsRootImmune()) {
-		if (IsPlayer()){
+	if (IsRootImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
+	if (control_effects[CONTROL_EFFECT_TYPE_ROOT]->size(true) == 0) {
+		if (IsPlayer()) {
 			if (!IsMezzedOrStunned())
 				((Player*)this)->SetPlayerControlFlag(1, 8, true); // heading movement only
-		}
-		else
+		} else {
 			SetSpeedMultiplier(0.0f);
+		}
 	}
 
 	control_effects[CONTROL_EFFECT_TYPE_ROOT]->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(56998827, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
+
 }
 
 void Entity::RemoveRootSpell(LuaSpell* spell) {
 	MutexList<LuaSpell*>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
+
 	if (!root_list || root_list->size(true) == 0)
 		return;
 
 	root_list->Remove(spell);
-	if (root_list->size(true) == 0 && !IsRootImmune()) {
-		if (IsPlayer()){
+
+	if (root_list->size(true) == 0) {
+		if (IsPlayer()) {
 			if (!IsMezzedOrStunned())
 				((Player*)this)->SetPlayerControlFlag(1, 8, false); // heading movement only
 		} else {
@@ -1908,24 +2001,36 @@ void Entity::AddFearSpell(LuaSpell* spell){
 	if (!control_effects[CONTROL_EFFECT_TYPE_FEAR])
 		control_effects[CONTROL_EFFECT_TYPE_FEAR] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_FEAR]->size(true) == 0 && !IsFearImmune()){
+	if (IsFearImmune()) {
+		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
+		return;
+	}
+
+	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_FEAR]->size(true) == 0) {
 		((Player*)this)->SetPlayerControlFlag(4, 4, true); // feared
+
 		if (!IsMezzedOrStunned() && !IsStifled())
 			GetZone()->LockAllSpells((Player*)this);
 	}
 
 	control_effects[CONTROL_EFFECT_TYPE_FEAR]->Add(spell);
+
+	if (spell->caster->IsPlayer() && IsPlayer()) {
+		GetZone()->GetSpellProcess()->CastSpell(154756066, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
+	}
 }
 
 void Entity::RemoveFearSpell(LuaSpell* spell){
 	MutexList<LuaSpell*>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
+
 	if (!fear_list || fear_list->size(true) == 0)
 		return;
 
 	fear_list->Remove(spell);
 
-	if (IsPlayer() && fear_list->size(true) == 0 && !IsFearImmune()){
+	if (IsPlayer() && fear_list->size(true) == 0) {
 		((Player*)this)->SetPlayerControlFlag(4, 4, false); // feared disabled
+
 		if (!IsMezzedOrStunned() && !IsStifled())
 			GetZone()->LockAllSpells((Player*)this);
 	}
@@ -2210,7 +2315,7 @@ bool Entity::IsRootImmune(){
 	return (immunities[IMMUNITY_TYPE_ROOT] && immunities[IMMUNITY_TYPE_ROOT]->size(true) > 0);
 }
 
-void Entity::AddFearImmunity(LuaSpell* spell){
+void Entity::AddFearImmunity(LuaSpell* spell) {
 	if (!spell)
 		return;
 
@@ -2588,4 +2693,39 @@ void Entity::CustomizeAppearance(PacketStruct* packet) {
 void Entity::AddSkillBonus(int32 spell_id, int32 skill_id, float value) {
 	// handled in npc or player
 	return;
+}
+
+float Entity::GetSpellMitigationPercentage(int enemy_level, int8 damage_type) {
+	int resist_value = 0;
+	switch(damage_type) {
+		case DAMAGE_PACKET_DAMAGE_TYPE_HEAT:
+			resist_value = GetInfoStruct()->heat;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_COLD:
+			resist_value = GetInfoStruct()->cold;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_MAGIC:
+			resist_value = GetInfoStruct()->magic;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_MENTAL:
+			resist_value = GetInfoStruct()->mental;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_DIVINE:
+			resist_value = GetInfoStruct()->divine;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_DISEASE:
+			resist_value = GetInfoStruct()->disease;
+			break;
+
+		case DAMAGE_PACKET_DAMAGE_TYPE_POISON:
+			resist_value = GetInfoStruct()->poison;
+			break;
+	}
+
+	return 0.6 * resist_value / static_cast<float>((enemy_level - GetLevel()) * 25 + resist_value + 400);
 }

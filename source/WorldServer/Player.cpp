@@ -644,27 +644,6 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("max_savagery_level", 5);
 		packet->setDataByName("dissonance", 5000);
 		packet->setDataByName("max_dissonance", 10000);
-		if (version <= 996){
-			packet->setDataByName("heat", info_struct->heat);
-			packet->setDataByName("cold", info_struct->cold);
-			packet->setDataByName("magic", info_struct->magic);
-			packet->setDataByName("mental", info_struct->mental);
-			packet->setDataByName("divine", info_struct->divine);
-			packet->setDataByName("disease", info_struct->disease);
-			packet->setDataByName("poison", info_struct->poison);
-			packet->setDataByName("heat_base", info_struct->heat_base);
-			packet->setDataByName("cold_base", info_struct->cold_base);
-			packet->setDataByName("magic_base", info_struct->magic_base);
-			packet->setDataByName("mental_base", info_struct->mental_base);
-			packet->setDataByName("divine_base", info_struct->divine_base);
-			packet->setDataByName("disease_base", info_struct->disease_base);
-			packet->setDataByName("poison_base", info_struct->poison_base);
-		}
-		else{
-			packet->setDataByName("elemental", info_struct->heat);
-			packet->setDataByName("noxious", info_struct->poison);
-			packet->setDataByName("arcane", info_struct->magic);
-		}
 		packet->setDataByName("mitigation_cur2", info_struct->cur_mitigation);
 		packet->setDataByName("mitigation_max2", info_struct->max_mitigation);
 		packet->setDataByName("mitigation_base2", info_struct->mitigation_base);
@@ -709,17 +688,46 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 			player->SetPowerRegen(info_struct->level+(int)(info_struct->level/10)+4);
 		packet->setDataByName("hp_regen", player->GetHPRegen() + player->stats[ITEM_STAT_HPREGEN]);
 		packet->setDataByName("power_regen", player->GetPowerRegen() + player->stats[ITEM_STAT_MANAREGEN]);
+
 		packet->setDataByName("mitigation2_cur", 2367);
 		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvE
 		packet->setDataByName("mitigation_pct_pvp", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvP
-		//packet->setDataByName("avoidance", 169); //Avoidance
+
+		packet->setDataByName("elemental_base", info_struct->elemental_base);
+		packet->setDataByName("noxious_base", info_struct->noxious_base);
+		packet->setDataByName("arcane_base", info_struct->arcane_base);
+
+		if (version <= 996) {
+			packet->setDataByName("heat", info_struct->heat);
+			packet->setDataByName("cold", info_struct->cold);
+			packet->setDataByName("magic", info_struct->magic);
+			packet->setDataByName("mental", info_struct->mental);
+			packet->setDataByName("divine", info_struct->divine);
+			packet->setDataByName("disease", info_struct->disease);
+			packet->setDataByName("poison", info_struct->poison);
+			packet->setDataByName("heat_base", info_struct->heat_base);
+			packet->setDataByName("cold_base", info_struct->cold_base);
+			packet->setDataByName("magic_base", info_struct->magic_base);
+			packet->setDataByName("mental_base", info_struct->mental_base);
+			packet->setDataByName("divine_base", info_struct->divine_base);
+			packet->setDataByName("disease_base", info_struct->disease_base);
+			packet->setDataByName("poison_base", info_struct->poison_base);
+		} else {
+			packet->setDataByName("elemental", info_struct->heat);
+			packet->setDataByName("noxious", info_struct->poison);
+			packet->setDataByName("arcane", info_struct->magic);
+			packet->setDataByName("elemental_absorb_pve", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_HEAT) * 1000);
+			packet->setDataByName("elemental_absorb_pvp", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_HEAT) * 1000);
+			packet->setDataByName("arcane_absorb_pve", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_MAGIC) * 1000);
+			packet->setDataByName("arcane_absorb_pvp", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_MAGIC) * 1000);
+			packet->setDataByName("noxious_absorb_pve", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_DISEASE) * 1000);
+			packet->setDataByName("noxious_absorb_pvp", player->GetSpellMitigationPercentage(player->GetLevel(), DAMAGE_PACKET_DAMAGE_TYPE_DISEASE) * 1000);
+		}
+
 		packet->setDataByName("avoidance_base", 0); //Base Avoidance
 		packet->setDataByName("base_avoidance_pct", info_struct->base_avoidance_pct); //Base Avoidance pct
 		packet->setDataByName("parry", info_struct->parry_base);
 		packet->setDataByName("block", info_struct->block_base);
-		packet->setDataByName("elemental_base", info_struct->elemental_base);
-		packet->setDataByName("noxious_base", info_struct->noxious_base);
-		packet->setDataByName("arcane_base", info_struct->arcane_base);
 		packet->setDataByName("current_adv_xp", info_struct->xp);//67875);
 		packet->setDataByName("needed_adv_xp", info_struct->xp_needed);//116500);
 		packet->setDataByName("current_trade_xp", info_struct->ts_xp);// 3459);
@@ -2524,6 +2532,7 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 	}
 
  	SetHeading((sint16)(direction1 * 64), (sint16)(direction2 * 64), true);
+
 	if(activity != last_movement_activity)
 	{
 		if(GetZone() && GetZone()->GetDrowningVictim(this) && (activity == UPDATE_ACTIVITY_RUNNING || activity == UPDATE_ACTIVITY_IN_WATER_ABOVE)) // not drowning anymore

@@ -537,7 +537,7 @@ void GroundSpawn::HandleUse(Client* client, string type){
 	if (type == GetHarvestSpellType() && MeetsSpawnAccessRequirements(client->GetPlayer())) {
 		Spell* spell = master_spell_list.GetSpellByName(GetHarvestSpellName().c_str());
 		if (spell)
-			client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true, true);
+			client->GetCurrentZone()->ProcessSpell(spell, client->GetPlayer(), client->GetPlayer()->GetTarget(), true);
 	}
 	else if (appearance.show_command_icon == 1 && MeetsSpawnAccessRequirements(client->GetPlayer())) {
 		EntityCommand* entity_command = FindEntityCommand(type);

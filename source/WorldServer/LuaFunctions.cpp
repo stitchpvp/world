@@ -7063,13 +7063,13 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 	return 0;
 }
 
-int EQ2Emu_lua_SetSpellTriggerCount(lua_State* state){
+int EQ2Emu_lua_SetSpellTriggerCount(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 
-	if (!spell){
+	if (!spell) {
 		lua_interface->LogError("LUA SetSpellTriggerCount command error: you must use this function in a spellscript!");
 		return 0;
 	}
@@ -7077,7 +7077,7 @@ int EQ2Emu_lua_SetSpellTriggerCount(lua_State* state){
 	int16 triggerCount = lua_interface->GetInt16Value(state);
 	bool cancel_after_triggers = (lua_interface->GetInt8Value(state, 2) == 1);
 
-	if (!triggerCount){
+	if (!triggerCount) {
 		lua_interface->LogError("LUA SetSpellTriggerCount command error: used trigger value equals zero!");
 		return 0;
 	}
@@ -7133,6 +7133,84 @@ int EQ2Emu_lua_RemoveTriggerFromSpell(lua_State* state){
 	return 0;
 }
 
+int EQ2Emu_lua_SetPlayerTriggerCount(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+	Spawn* target = lua_interface->GetSpawn(state, 1);
+	int16 triggerCount = lua_interface->GetInt16Value(state, 2);
+
+	if (!spell) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: you must use this function in a spellscript!");
+		return 0;
+	}
+
+	if (!target) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target is not a valid spawn");
+		return 0;
+	}
+
+	if (!target->IsEntity()) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target (%s) is not an entity", target->GetName());
+		return 0;
+	}
+
+	if (!triggerCount) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: used trigger value equals zero!");
+		return 0;
+	}
+
+	static_cast<Entity*>(target)->SetTriggerCount(spell, triggerCount);
+
+	return 0;
+}
+
+int EQ2Emu_lua_RemoveTriggerFromPlayer(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+	Spawn* target = lua_interface->GetSpawn(state, 1);
+	int16 remove_count = lua_interface->GetInt16Value(state, 2);
+
+	if (!spell) {
+		lua_interface->LogError("LUA RemoveTriggerFromPlayer command error: you must use this function in a spellscript!");
+		return 0;
+	}
+
+	if (!target) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target is not a valid spawn");
+		return 0;
+	}
+
+	if (!target->IsEntity()) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target (%s) is not an entity", target->GetName());
+		return 0;
+	}
+
+	int16 remaining = static_cast<Entity*>(target)->GetTriggerCount(spell);
+
+	if (!remove_count)
+		remove_count = 1;
+
+	if (remove_count >= remaining) {
+		remaining = 0;
+	} else {
+		remaining -= remove_count;
+	}
+
+	static_cast<Entity*>(target)->SetTriggerCount(spell, remaining);
+
+	if (remaining == 0)
+		spell->caster->GetZone()->GetSpellProcess()->RemoveTargetFromSpell(spell, target);
+
+	if (target == spell->caster)
+		ClientPacketFunctions::SendMaintainedExamineUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->slot_pos, remaining, 0);
+
+	return 0;
+}
+
 int EQ2Emu_lua_CopySpawnAppearance(lua_State* state){
 	if (!lua_interface)
 		return 0;
@@ -7159,21 +7237,22 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state){
 		return 0;
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	int8 type = lua_interface->GetInt8Value(state);
-	Spawn* spawn = lua_interface->GetSpawn(state, 2);
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	int8 type = lua_interface->GetInt8Value(state, 2);
 
-	if (!spell){
+	if (!spell) {
 		lua_interface->LogError("LUA AddImmunitySpell command error: This must be used in a spellscript");
 		return 0;
 	}
 
-	if (spawn){
-		if (!spawn->IsEntity()){
-			lua_interface->LogError("LUA AddImmunitySpell command error: The spawn provided is not an entity");
-			return 0;
-		}
-		Entity* entity = static_cast<Entity*>(spawn);
-		switch (type){
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("LUA AddImmunitySpell command error: The spawn provided is not an entity");
+		return 0;
+	}
+
+	Entity* entity = static_cast<Entity*>(spawn);
+
+	switch (type) {
 		case IMMUNITY_TYPE_AOE:
 			entity->AddAOEImmunity(spell);
 			if (!(spell->effect_bitmask & EFFECT_FLAG_AOE_IMMUNE))
@@ -7211,60 +7290,6 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state){
 			break;
 		default:
 			lua_interface->LogError("LUA AddImmunitySpell command error: invalid immunity type");
-		}
-	}
-	else {
-		bool should_break = false;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++){
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
-			if (!spawn || !spawn->IsEntity())
-				continue;
-			Entity* entity = static_cast<Entity*>(spawn);
-			switch (type){
-			case IMMUNITY_TYPE_AOE:
-				entity->AddAOEImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_AOE_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_AOE_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_STUN:
-				entity->AddStunImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STUN_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_STUN_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_ROOT:
-				entity->AddRootImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_ROOT_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_ROOT_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_DAZE:
-				entity->AddDazeImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_DAZE_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_DAZE_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_FEAR:
-				entity->AddFearImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_FEAR_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_FEAR_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_MEZ:
-				entity->AddMezImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_MEZ_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_MEZ_IMMUNE;
-				break;
-			case IMMUNITY_TYPE_STIFLE:
-				entity->AddStifleImmunity(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STIFLE_IMMUNE))
-					spell->effect_bitmask += EFFECT_FLAG_STIFLE_IMMUNE;
-				break;
-			default:
-				lua_interface->LogError("LUA AddImmunitySpell command error: invalid immunity type");
-				should_break = true;
-			}
-			if (should_break)
-				break;
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
 	return 0;
