@@ -598,6 +598,10 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 					continue;
 
 				luaspell = me[i].spell;
+
+				if (!luaspell)
+					continue;
+
 				spell = luaspell->spell;
 
 				if (spell && spell->GetSpellData()->group_spell && spell->GetSpellData()->friendly_spell &&
