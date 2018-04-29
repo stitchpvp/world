@@ -451,7 +451,7 @@ void WorldDatabase::SaveHiddenGuildEvent(Guild* guild, GuildEvent* guild_event) 
 	if (guild && guild_event) {
 		LogWrite(GUILD__DEBUG, 3, "Guilds", "Saving Hidden Event (%u) for guild '%s' (%u)...", guild_event->event_id, guild->GetName(), guild->GetID());
 		Query query;
-		query.RunQuery2(Q_INSERT, "INSERT INTO `guild_events` (`guild_id`, `event_id`, `event_date`, `event_type`, `description`, `display`, `locked`, `archived`) VALUES (%u, %u, %u, %u, '%s', 0, %u, 0)", guild->GetID(), guild_event->event_id, guild_event->type, guild_event->date, getSafeEscapeString(guild_event->description.c_str()).c_str(), guild_event->locked);
+		query.RunQuery2(Q_INSERT, "INSERT INTO `guild_events` (`guild_id`, `event_id`, `event_type`, `event_date`, `description`, `display`, `locked`, `archived`) VALUES (%u, %u, %u, %u, '%s', 0, %u, 0)", guild->GetID(), guild_event->event_id, guild_event->type, guild_event->date, getSafeEscapeString(guild_event->description.c_str()).c_str(), guild_event->locked);
 	}
 }
 
