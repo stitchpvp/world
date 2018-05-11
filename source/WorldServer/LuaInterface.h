@@ -207,7 +207,7 @@ public:
 	LuaSpell*		GetCurrentSpell(lua_State* state);
 	void			SetCurrentSpell(lua_State* state, LuaSpell* spell);
 	bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters);
-	LuaSpell*		GetSpell(const char* name);
+	LuaSpell* GetSpell(const char* name);
 	void			UseItemScript(const char* name, lua_State* state, bool val);
 	void			UseSpawnScript(const char* name, lua_State* state, bool val);
 	void			UseZoneScript(const char* name, lua_State* state, bool val);

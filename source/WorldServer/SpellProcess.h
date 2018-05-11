@@ -360,10 +360,8 @@ public:
 
 	void ClearSpellScriptTimerList();
 
-	MutexList<LuaSpell*>* GetActiveSpells() { return &active_spells; }
-
 	void RemoveTargetFromSpell(LuaSpell* spell, Spawn* target);
-	void CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete = true);
+	void CheckRemoveTargetFromSpell();
 
 	/// <summary>Adds a solo HO to the SpellProcess</summary>
 	/// <param name='client'>The client who is starting the HO</param>
@@ -383,6 +381,8 @@ public:
 
 	void CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 initial_target, int32 duration = 0);
 
+	bool HasActiveSpell(LuaSpell* spell, bool lock_required = true);
+
 private:
 	/// <summary>Sends the spell data to the lua script</summary>
 	/// <param name='spell'>LuaSpell to call the lua script for</param>
@@ -392,7 +392,8 @@ private:
 	Mutex MSpellProcess;
 	Mutex MRecastTimers;
 	MutexMap<Entity*,Spell*> spell_que;
-	MutexList<LuaSpell*> active_spells;
+	mutex active_spells_mutex;
+	vector<LuaSpell*> active_spells;
 	MutexList<CastTimer*> cast_timers;
 	MutexList<InterruptStruct*>interrupt_list;
 	vector<RecastTimer*> recast_timers;

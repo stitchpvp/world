@@ -371,12 +371,9 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 	}
 
 	int8 hit_result = 0;
-	bool is_tick = false; // if spell is already active, this is a tick
-	if (GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell)){
-		is_tick = true;
-	}
-		
 	luaspell->last_spellattack_hit = true;
+
+	bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
 	if (is_tick) {
 		if (luaspell->crit) {
@@ -475,7 +472,7 @@ bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
-	 bool is_tick = GetZone()->GetSpellProcess()->GetActiveSpells()->count(luaspell);
+	 bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
 	 if (!is_tick) {
 		 CheckProcs(PROC_TYPE_HEALING, target);

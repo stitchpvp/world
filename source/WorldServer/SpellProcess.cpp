@@ -47,16 +47,14 @@ void SpellProcess::RemoveAllSpells(){
 	MSpellProcess.lock();	
 	ClearSpellScriptTimerList();
 
-	MutexList<LuaSpell*>::iterator active_spells_itr = active_spells.begin();
-	while(active_spells_itr.Next()){
-		DeleteCasterSpell(active_spells_itr->value);
-	}
+	{
+		lock_guard<mutex> guard(active_spells_mutex);
 
-	active_spells_itr = active_spells.begin();
-	while(active_spells_itr.Next()){
-		active_spells.Remove(active_spells_itr->value, true);
+		for (auto luaspell : active_spells) {
+			DeleteCasterSpell(luaspell);
+		};
+		active_spells.clear();
 	}
-	active_spells.clear();	
 
 	InterruptStruct* interrupt = 0;
 	MutexList<InterruptStruct*>::iterator interrupt_list_itr = interrupt_list.begin();
@@ -115,48 +113,78 @@ void SpellProcess::Process(){
 	MSpellProcess.lock();
 	CheckSpellScriptTimers();
 
-	if(active_spells.size(true) > 0){		
-		LuaSpell* spell = 0;
-		MutexList<LuaSpell*>::iterator itr = active_spells.begin();
-		map<LuaSpell*, vector<Spawn*> >::iterator remove_itr;
-		vector<Spawn*>::iterator target_itr;
-		vector<Spawn*>::iterator remove_target_itr;
+	{
+		lock_guard<mutex> guard(active_spells_mutex);
 
-		while(itr.Next()){
-			spell = itr->value;
+		if (active_spells.size() > 0) {	
+			auto spell_itr = begin(active_spells);
 
-			if (spell->timer.Check()) {
-				spell->num_calls++;
+			while (spell_itr != end(active_spells)) {
+				auto spell = (*spell_itr);
 
-				// ProcessSpell(spell, flase) will atempt to call the tick() function in the lua script
-				// if there is no tick function it will return false, this will cause the server to crash in the event
-				// of a spell that has a duration but is not a "until canceled" spell or a spell with a tick (tradeskill buffs)
-				// to counter this check to see if the spell has a call_frequency > 0 before we call ProcessSpell()
-				if (spell->spell->GetSpellData()->call_frequency > 0) {
-					if (spell->targets.size() > 0) {
-						ZoneServer* zone = spell->caster->GetZone();
-						Spawn* target = 0;
+				if (spell->timer.Check()) {
+					spell->num_calls++;
 
+					// ProcessSpell(spell, flase) will atempt to call the tick() function in the lua script
+					// if there is no tick function it will return false, this will cause the server to crash in the event
+					// of a spell that has a duration but is not a "until canceled" spell or a spell with a tick (tradeskill buffs)
+					// to counter this check to see if the spell has a call_frequency > 0 before we call ProcessSpell()
+					if (spell->spell->GetSpellData()->call_frequency > 0) {
 						spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-						for (int32 i = 0; i < spell->targets.size(); i++) {
-							target = zone->GetSpawnByID(spell->targets[i]);
+						if (spell->targets.size() > 0) {
+							ZoneServer* zone = spell->caster->GetZone();
+							Spawn* target = 0;
 
-							if (!ProcessSpell(spell, target, false)) {
-								active_spells.Remove(spell, true, 2000);
-								break;
+							for (int32 i = 0; i < spell->targets.size(); i++) {
+								target = zone->GetSpawnByID(spell->targets[i]);
+
+								if (!ProcessSpell(spell, target, false)) {
+									spell_itr = active_spells.erase(spell_itr);
+									break;
+								}
 							}
 						}
 						spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 					}
-				}
-				
-				if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100)
-					DeleteCasterSpell(spell);
-			}
 
-			CheckRemoveTargetFromSpell(spell);
+					if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100) {
+						DeleteCasterSpell(spell);
+					}
+				}
+
+				spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+				if (spell->targets.size() == 0) {
+					spell_itr = active_spells.erase(spell_itr);
+
+					if (spell->caster) {
+						spell->caster->RemoveMaintainedSpell(spell);
+
+						if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
+							float recast = spell->spell->GetModifiedRecast(spell->caster);
+
+							UnlockAllSpells(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
+
+							if (recast > 0) {
+								CheckRecast(spell->spell, spell->caster, recast);
+
+								if (spell->caster && spell->caster->IsPlayer()) {
+									SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
+								}
+							} else {
+								UnlockSpell(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->spell);
+							}
+						}
+					}
+				} else {
+					++spell_itr;
+				}
+				spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+			}
 		}
 	}
+
+	CheckRemoveTargetFromSpell();
+
 	if (SpellCancelList.size() > 0){
 		MSpellCancelList.writelock(__FUNCTION__, __LINE__);
 		vector<LuaSpell*>::iterator itr = SpellCancelList.begin();
@@ -364,87 +392,45 @@ void SpellProcess::CheckInterrupt(InterruptStruct* interrupt){
 
 bool SpellProcess::DeleteCasterSpell(Spawn* caster, Spell* spell){
 
-	bool ret = false;
-	// need to use size(true) to get pending updates to the list as well
-	if (caster && spell && active_spells.size() > 0) {
-		LuaSpell* lua_spell = 0;
-		MutexList<LuaSpell*>::iterator itr = active_spells.begin();
-		while (itr.Next()){
-			lua_spell = itr->value;
-			if (lua_spell->spell == spell && lua_spell->caster == caster) {
-				ret = DeleteCasterSpell(lua_spell);
-				break;
+	auto ret = false;
+
+	{
+		lock_guard<mutex> guard(active_spells_mutex);
+
+		if (caster && spell && active_spells.size() > 0) {
+			for (auto luaspell : active_spells) {
+				if (luaspell->spell == spell && luaspell->caster == caster) {
+					ret = DeleteCasterSpell(luaspell);
+					break;
+				}
 			}
 		}
 	}
+
 	return ret;
 }
 
-bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function){
-	bool ret = false;
+bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function) {
+	auto ret = false;
 
 	if (spell) {
-		ZoneServer* zone = spell->caster->GetZone();
+		auto zone = spell->caster->GetZone();
 		
-		if (active_spells.count(spell) > 0)
-			active_spells.Remove(spell);
+		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+		for (const auto& target_id : spell->targets) {
+			auto target = zone->GetSpawnByID(target_id);
 
-		if (spell->caster) {
-			spell->caster->RemoveMaintainedSpell(spell);
+			if (target) {
+				RemoveTargetFromSpell(spell, target);
 
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < spell->targets.size(); i++) {
-				Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
-
-				if (target && lua_interface) {
-					static_cast<Entity*>(target)->RemoveEffectsFromLuaSpell(spell);
-					lua_interface->RemoveSpell(spell, target, call_remove_function, SpellScriptTimersHasSpell(spell));
-				}
-
-				if (target && target->IsEntity()) {
-					((Entity*)target)->RemoveSpellEffect(spell);
-					if (spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel))
-						((Entity*)target)->RemoveDetrimentalSpell(spell);
-				} else {
-					spell->caster->RemoveSpellEffect(spell);
-					if (spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel))
-						spell->caster->RemoveDetrimentalSpell(spell);
-				}
-
-				if (target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0) {
-					Client* client = target->GetZone()->GetClientBySpawn(target);
-
-					if (client) {
-						string fade_message = spell->spell->GetSpellData()->fade_message;
-
-						if (fade_message.find("%t") != string::npos)
-							fade_message.replace(fade_message.find("%t"), 2, target->GetName());
-
-						client->Message(CHANNEL_COLOR_SPELL_FADE, fade_message.c_str());
-					}
+				if (target == spell->caster) {
+					ret = true;
 				}
 			}
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-
-			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
-				float recast = spell->spell->GetModifiedRecast(spell->caster);
-
-				UnlockAllSpells(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
-
-				if (recast > 0) {
-					CheckRecast(spell->spell, spell->caster, recast);
-
-					if (spell->caster && spell->caster->IsPlayer()) {
-						SendSpellBookUpdate(spell->caster->GetZone()->GetClientBySpawn(spell->caster));
-					}
-				} else {
-					UnlockSpell(spell->caster->GetZone()->GetClientBySpawn(spell->caster), spell->spell);
-				}
-			}
-
-			ret = true;
-		}	
+		}
+		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
+
 	return ret;
 }
 
@@ -1344,7 +1330,9 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 			if (!spell->spell->GetSpellData()->not_maintained)
 				spell->caster->AddMaintainedSpell(spell);
 			
-			active_spells.Add(spell);
+			active_spells_mutex.lock();
+			active_spells.push_back(spell);
+			active_spells_mutex.unlock();
 		}
 
 		if (spell->num_triggers > 0)
@@ -1649,36 +1637,31 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			 }
 		}
 	}
-	if(remove_all){				
-		LuaSpell* spell = 0;
-		MutexList<LuaSpell*>::iterator itr = active_spells.begin();
-		while(itr.Next()){
-			spell = itr->value;
-			if (!spell)
-				continue;
-			if (spell->spell->GetSpellData()->persist_though_death && spell->caster->GetZone()->GetClientBySpawn(spell->caster)->IsConnected())
-				continue;
-			if (spell->caster == spawn && spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
-				spell->caster = spell->caster->GetZone()->unknown_spawn;
-				continue;
-			}
-			if(spell->caster == spawn){
-				DeleteCasterSpell(spell);
-				continue;
-			}
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (i = 0; i < spell->targets.size(); i++){
-				if (spawn->GetID() == spell->targets.at(i)){
-					if (spawn->IsEntity()) {
-						static_cast<Entity*>(spawn)->RemoveSpellEffect(spell);
-						static_cast<Entity*>(spawn)->RemoveDetrimentalSpell(spell);
-					}
-					RemoveTargetFromSpell(spell, spawn);
-					break;
+
+	if(remove_all) {
+		{
+			lock_guard<mutex> guard(active_spells_mutex);
+
+			for (auto spell : active_spells) {
+				if (spell->spell->GetSpellData()->persist_though_death && spell->caster->GetZone()->GetClientBySpawn(spell->caster)->IsConnected())
+					continue;
+
+				if (spell->caster == spawn && spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
+					spell->caster = spell->caster->GetZone()->unknown_spawn;
+					continue;
 				}
+
+				spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+				for (const auto& target_id : spell->targets) {
+					if (spawn->GetID() == target_id){
+						RemoveTargetFromSpell(spell, spawn);
+						break;
+					}
+				}
+				spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			}
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
+
 		MRecastTimers.writelock(__FUNCTION__, __LINE__);
 		if(recast_timers.size() > 0 && delete_recast){			
 			vector<RecastTimer*>::iterator itr = recast_timers.begin();
@@ -2092,57 +2075,73 @@ void SpellProcess::RemoveTargetFromSpell(LuaSpell* spell, Spawn* target){
 	MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete){
-	if (!spell)
-		return;
-
-	if (remove_target_list.size() > 0){
-		map<LuaSpell*, vector<Spawn*>*>::iterator remove_itr;
-		vector<Spawn*>::iterator remove_target_itr;
-		vector<int32>::iterator target_itr;
-		vector<int32>* targets;
-		vector<Spawn*>* remove_targets = 0;
-		Spawn* remove_spawn = 0;
-		bool should_delete = false;
-
+void SpellProcess::CheckRemoveTargetFromSpell() {
+	if (remove_target_list.size() > 0) {
 		MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
-		for (remove_itr = remove_target_list.begin(); remove_itr != remove_target_list.end(); remove_itr++){
-			if (remove_itr->first == spell){
-				targets = &spell->targets;
-				remove_targets = remove_itr->second;
-				if (remove_targets && targets){
-					for (remove_target_itr = remove_targets->begin(); remove_target_itr != remove_targets->end(); remove_target_itr++){
-						remove_spawn = (*remove_target_itr);
-						if (remove_spawn){
-							spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-							for (target_itr = targets->begin(); target_itr != targets->end(); target_itr++){
-								if (remove_spawn->GetID() == (*target_itr)){
-									targets->erase(target_itr);
-									if (remove_spawn->IsEntity()) {
-										static_cast<Entity*>(remove_spawn)->RemoveEffectsFromLuaSpell(spell);
-										lua_interface->RemoveSpell(spell, remove_spawn, true, false);
-									}
-									break;
-								}
-							}
-							spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
-							if (targets->size() == 0 && allow_delete){
-								should_delete = true;
-								break;
-							}
+
+		for (auto& kv : remove_target_list) {
+			auto spell = kv.first;
+			auto targets = kv.second;
+			auto should_delete = false;
+			vector<Spawn*> to_remove;
+
+			for (const auto& target : *targets) {
+				if (target) {
+					spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
+
+					for (auto spell_itr = spell->targets.begin(); spell_itr != spell->targets.end(); ++spell_itr) {
+						auto spell_target = (*spell_itr);
+
+						if (target->GetID() == spell_target) {
+							spell->targets.erase(spell_itr);
+							to_remove.push_back(target);
+
+							break;
+						}
+					}
+
+					if (spell->targets.size() == 0)
+						should_delete = true;
+
+					spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+				}
+			}
+
+			for (const auto target : to_remove) {
+				lua_interface->RemoveSpell(spell, target, true, should_delete);
+
+				if (target->IsEntity()) {
+					static_cast<Entity*>(target)->RemoveSpellEffect(spell);
+					static_cast<Entity*>(target)->RemoveEffectsFromLuaSpell(spell);
+
+					if (spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel)) {
+						static_cast<Entity*>(target)->RemoveDetrimentalSpell(spell);
+					}
+
+					if (target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0) {
+						auto client = target->GetZone()->GetClientBySpawn(target);
+
+						if (client) {
+							auto fade_message = spell->spell->GetSpellData()->fade_message;
+
+							if (fade_message.find("%t") != string::npos)
+								fade_message.replace(fade_message.find("%t"), 2, target->GetName());
+
+							client->Message(CHANNEL_COLOR_SPELL_FADE, fade_message.c_str());
 						}
 					}
 				}
-				break;
 			}
+
+			if (targets)
+				targets->clear();
+
+			safe_delete(targets);
 		}
-		remove_target_list.erase(spell);
-		if (remove_targets)
-			remove_targets->clear();
-		safe_delete(remove_targets);
+
+		remove_target_list.clear();
+
 		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
-		if (should_delete)
-			DeleteCasterSpell(spell);
 	}
 }
 
@@ -2267,4 +2266,17 @@ void SpellProcess::CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 in
 			CastProcessedSpell(lua_spell, true);
 		}
 	}
+}
+
+bool SpellProcess::HasActiveSpell(LuaSpell* spell, bool lock_required) {
+	mutex dummy_mutex;
+	lock_guard<mutex> guard(lock_required ? active_spells_mutex : dummy_mutex);
+
+	for (const auto active_spell : active_spells) {
+		if (spell == active_spell) {
+			return true;
+		}
+	}
+
+	return false;
 }
