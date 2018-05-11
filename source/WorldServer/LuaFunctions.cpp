@@ -7245,6 +7245,11 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state){
 		return 0;
 	}
 
+	if (!spawn) {
+		lua_interface->LogError("LUA AddImmunitySpell command error: The spawn provided is not valid");
+		return 0;
+	}
+
 	if (!spawn->IsEntity()) {
 		lua_interface->LogError("LUA AddImmunitySpell command error: The spawn provided is not an entity");
 		return 0;
@@ -7300,84 +7305,50 @@ int EQ2Emu_lua_RemoveImmunitySpell(lua_State* state){
 		return 0;
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	int8 type = lua_interface->GetInt8Value(state);
-	Spawn* spawn = lua_interface->GetSpawn(state, 2);
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	int8 type = lua_interface->GetInt8Value(state, 2);
 
-	if (!spell){
+	if (!spell) {
 		lua_interface->LogError("LUA RemoveImmunitySpell command error: This must be used in a spellscript");
 		return 0;
 	}
 
-	if (spawn){
-		if (!spawn->IsEntity()){
-			lua_interface->LogError("LUA RemoveImmunitySpell command error: The spawn provided is not an entity");
-			return 0;
-		}
-		Entity* entity = static_cast<Entity*>(spawn);
-		switch (type){
-		case IMMUNITY_TYPE_AOE:
-			entity->RemoveAOEImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_STUN:
-			entity->RemoveStunImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_ROOT:
-			entity->RemoveRootImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_DAZE:
-			entity->RemoveDazeImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_FEAR:
-			entity->RemoveFearImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_MEZ:
-			entity->RemoveMezImmunity(spell);
-			break;
-		case IMMUNITY_TYPE_STIFLE:
-			entity->RemoveStifleImmunity(spell);
-			break;
-		default:
-			lua_interface->LogError("LUA RemoveImmunitySpell command error: invalid immunity type");
-		}
+	if (!spawn) {
+		lua_interface->LogError("LUA RemoveImmunitySpell command error: The spawn provided is not valid");
+		return 0;
 	}
-	else {
-		bool should_break = false;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++){
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
-			if (!spawn || !spawn->IsEntity())
-				continue;
-			Entity* entity = static_cast<Entity*>(spawn);
-			switch (type){
-			case IMMUNITY_TYPE_AOE:
-				entity->RemoveAOEImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_STUN:
-				entity->RemoveStunImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_ROOT:
-				entity->RemoveRootImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_DAZE:
-				entity->RemoveDazeImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_FEAR:
-				entity->RemoveFearImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_MEZ:
-				entity->RemoveMezImmunity(spell);
-				break;
-			case IMMUNITY_TYPE_STIFLE:
-				entity->RemoveStifleImmunity(spell);
-				break;
-			default:
-				lua_interface->LogError("LUA RemoveImmunitySpell command error: invalid immunity type");
-				should_break = true;
-			}
-			if (should_break)
-				break;
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("LUA RemoveImmunitySpell command error: The spawn provided is not an entity");
+		return 0;
+	}
+
+	Entity* entity = static_cast<Entity*>(spawn);
+
+	switch (type) {
+	case IMMUNITY_TYPE_AOE:
+		entity->RemoveAOEImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_STUN:
+		entity->RemoveStunImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_ROOT:
+		entity->RemoveRootImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_DAZE:
+		entity->RemoveDazeImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_FEAR:
+		entity->RemoveFearImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_MEZ:
+		entity->RemoveMezImmunity(spell);
+		break;
+	case IMMUNITY_TYPE_STIFLE:
+		entity->RemoveStifleImmunity(spell);
+		break;
+	default:
+		lua_interface->LogError("LUA RemoveImmunitySpell command error: invalid immunity type");
 	}
 
 	return 0;

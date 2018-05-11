@@ -79,7 +79,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)worldserver\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\$(ProjectName)__Debug_$(Platform)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\..\..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)worldserver\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\$(ProjectName)__$(Configuration)_$(PlatformName)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\..\..\bin\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\$(ProjectName)__$(Configuration)_$(PlatformName)\</IntDir>
