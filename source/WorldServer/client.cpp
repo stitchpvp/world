@@ -1174,7 +1174,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 			spawn_vis_update.Start(1000);
 			quest_pos_timer.Start();
 			if (player->Alive() && PVP::IsEnabled(GetCurrentZone())) {
-				shared_ptr<ActivityStatus> status(new ActivityStatus);
+				auto status = make_shared<ActivityStatus>();
 				status->status = ACTIVITY_STATUS_IMMUNITY_REMAINING;
 				status->end_time = Timer::GetCurrentTime2() + (20 * 1000);
 				player->SetPVPImmune(true);

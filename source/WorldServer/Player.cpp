@@ -131,6 +131,10 @@ Player::~Player(){
 
 	activity_statuses.clear();
 
+	for (auto &kv : packet_cache) {
+		safe_delete(kv.second);
+	}
+
 	map<int8, map<int8, vector<HistoryData*> > >::iterator itr1;
 	map<int8, vector<HistoryData*> >::iterator itr2;
 	vector<HistoryData*>::iterator itr3;
@@ -320,263 +324,23 @@ float PlayerInfo::GetBindZoneHeading(){
 	return bind_heading;
 }
 
-PacketStruct* PlayerInfo::serialize2(int16 version){
-	player->CalculateBonuses();
-	PacketStruct* packet = configReader.getStruct("WS_CharacterSheet", version);
-	if(packet){
-		packet->setDataByName("deity", "None");
-		packet->setDataByName("character_name", info_struct->name);
-		packet->setDataByName("race", info_struct->race);
-		packet->setDataByName("gender", info_struct->gender);
-		packet->setDataByName("class1", info_struct->class1);
-		packet->setDataByName("class2", info_struct->class2);
-		packet->setDataByName("class3", info_struct->class3);
-		packet->setDataByName("tradeskill_class1", info_struct->tradeskill_class1);
-		packet->setDataByName("tradeskill_class2", info_struct->tradeskill_class2);
-		packet->setDataByName("tradeskill_class3", info_struct->tradeskill_class3);
-		packet->setDataByName("level", info_struct->level);
-		packet->setDataByName("effective_level", info_struct->level);
-		packet->setDataByName("tradeskill_level", info_struct->tradeskill_level);
-		packet->setDataByName("account_age_base", info_struct->account_age_base);
-		for(int8 i=0;i<sizeof(info_struct->account_age_bonus);i++)
-			packet->setDataByName("account_age_bonus", info_struct->account_age_bonus[i]);
-		packet->setDataByName("deity", info_struct->deity);
-		packet->setDataByName("current_hp", player->GetHP());
-		packet->setDataByName("max_hp",player-> GetTotalHP());
-		packet->setDataByName("base_hp", player->GetTotalHPBase());
-		float bonus_health = floor( (float)(info_struct->sta * player->CalculateBonusMod()));
-		packet->setDataByName("bonus_health", bonus_health);
-		packet->setDataByName("stat_bonus_health", player->CalculateBonusMod());
-		packet->setDataByName("current_power", player->GetPower());
-		packet->setDataByName("max_power", player->GetTotalPower());
-		packet->setDataByName("base_power", player->GetTotalPowerBase());
-		packet->setDataByName("bonus_power", floor( (float)(player->GetPrimaryStat() * player->CalculateBonusMod())));
-		packet->setDataByName("stat_bonus_power", player->CalculateBonusMod());
-		packet->setDataByName("conc_used", info_struct->cur_concentration);
-		packet->setDataByName("conc_max", info_struct->max_concentration);
-		packet->setDataByName("attack", info_struct->cur_attack);
-		packet->setDataByName("attack_base", info_struct->attack_base);
-		packet->setDataByName("absorb", info_struct->absorb);
-		packet->setDataByName("mitigation_skill1", info_struct->mitigation_skill1);
-		packet->setDataByName("mitigation_skill2", info_struct->mitigation_skill2);
-		packet->setDataByName("mitigation_skill3", info_struct->mitigation_skill3);
-		CalculateXPPercentages();
-		packet->setDataByName("exp_yellow", info_struct->xp_yellow);
-		packet->setDataByName("exp_blue", info_struct->xp_blue);
-		packet->setDataByName("tradeskill_exp_yellow", info_struct->tradeskill_exp_yellow);
-		packet->setDataByName("tradeskill_exp_blue", info_struct->tradeskill_exp_blue);
-		packet->setDataByName("flags", info_struct->flags);
-		packet->setDataByName("flags2", info_struct->flags2);
-		packet->setDataByName("str", info_struct->str);
-		packet->setDataByName("sta", info_struct->sta);
-		packet->setDataByName("agi", info_struct->agi);
-		packet->setDataByName("wis", info_struct->wis);
-		packet->setDataByName("int", info_struct->intel);
-		packet->setDataByName("str_base", info_struct->str_base);
-		packet->setDataByName("sta_base", info_struct->sta_base);
-		packet->setDataByName("agi_base", info_struct->agi_base);
-		packet->setDataByName("wis_base", info_struct->wis_base);
-		packet->setDataByName("int_base", info_struct->intel_base);
-		packet->setDataByName("mitigation_cur", info_struct->cur_mitigation);
-		packet->setDataByName("mitigation_max", info_struct->max_mitigation);
-		packet->setDataByName("mitigation_base", info_struct->mitigation_base);
-		packet->setDataByName("heat", info_struct->heat);
-		packet->setDataByName("cold", info_struct->cold);
-		packet->setDataByName("magic", info_struct->magic);
-		packet->setDataByName("mental", info_struct->mental);
-		packet->setDataByName("divine", info_struct->divine);
-		packet->setDataByName("disease", info_struct->disease);
-		packet->setDataByName("poison", info_struct->poison);
-		packet->setDataByName("heat_base", info_struct->heat_base);
-		packet->setDataByName("cold_base", info_struct->cold_base);
-		packet->setDataByName("magic_base", info_struct->magic_base);
-		packet->setDataByName("mental_base", info_struct->mental_base);
-		packet->setDataByName("divine_base", info_struct->divine_base);
-		packet->setDataByName("disease_base", info_struct->disease_base);
-		packet->setDataByName("poison_base", info_struct->poison_base);
-		packet->setDataByName("mitigation_cur2", info_struct->cur_mitigation);
-		packet->setDataByName("mitigation_max2", info_struct->max_mitigation);
-		packet->setDataByName("mitigation_base2", info_struct->mitigation_base);
-		packet->setDataByName("coins_copper", info_struct->coin_copper);
-		packet->setDataByName("coins_silver", info_struct->coin_silver);
-		packet->setDataByName("coins_gold", info_struct->coin_gold);
-		packet->setDataByName("coins_plat", info_struct->coin_plat);
-		packet->setDataByName("weight", info_struct->weight);
-		packet->setDataByName("max_weight", info_struct->max_weight);
-		packet->setDataByName("pet_name", info_struct->pet_name);
-		packet->setDataByName("status_points", info_struct->status_points);
-		string* bind_name = 0;
-		if(bind_zone_id > 0)
-			bind_name = database.GetZoneName(bind_zone_id);
-		if(bind_name){
-			packet->setDataByName("bind_zone", bind_name->c_str());
-			safe_delete(bind_name);
-		}
-		else
-			packet->setDataByName("bind_zone", "None");
-		string* house_name = 0;
-		if(house_zone_id > 0)
-			house_name = database.GetZoneName(house_zone_id);
-		if(house_name){
-			packet->setDataByName("house_zone", house_name->c_str());
-			safe_delete(house_name);
-		}
-		else
-			packet->setDataByName("house_zone", "None");
-		//packet->setDataByName("account_age_base", 14);
-		if(player->GetHPRegen() == 0)
-			player->SetHPRegen((int)(info_struct->level*.75)+(int)(info_struct->level/10)+3);
-		if(player->GetPowerRegen() == 0)
-			player->SetPowerRegen(info_struct->level+(int)(info_struct->level/10)+4);
-		packet->setDataByName("hp_regen", player->GetHPRegen());
-		packet->setDataByName("power_regen", player->GetPowerRegen());
-		/*packet->setDataByName("unknown11", -1, 0);
-		packet->setDataByName("unknown11", -1, 1);
-		packet->setDataByName("unknown13", 201, 0);
-		packet->setDataByName("unknown13", 201, 1);
-		packet->setDataByName("unknown13", 234, 2);
-		packet->setDataByName("unknown13", 201, 3);
-		packet->setDataByName("unknown13", 214, 4);
-		packet->setDataByName("unknown13", 234, 5);
-		packet->setDataByName("unknown13", 234, 6);
-
-		packet->setDataByName("unknown14", 78);
-		*/
-		packet->setDataByName("adventure_exp_vitality", (int16)(player->GetXPVitality() *10));
-		//packet->setDataByName("unknown15b", 9911);
-		packet->setDataByName("unknown15a", 78);
-		packet->setDataByName("xp_yellow_vitality_bar", info_struct->xp_yellow_vitality_bar);
-		packet->setDataByName("xp_blue_vitality_bar", info_struct->xp_blue_vitality_bar);
-		packet->setDataByName("tradeskill_exp_vitality", 100);
-		packet->setDataByName("unknown15c", 200);
-
-		//packet->setDataByName("unknown15", 100, 10);
-		packet->setDataByName("unknown18", 16880, 1);
-		/*packet->setDataByName("unknown19", 1);
-		packet->setDataByName("unknown19", 3, 1);
-		packet->setDataByName("unknown19", 1074301064, 2);
-		packet->setDataByName("unknown19", 1, 3);
-		packet->setDataByName("unknown19", 3, 4);
-		packet->setDataByName("unknown19", 1074301064, 5);
-		packet->setDataByName("unknown19", 6, 6);
-		packet->setDataByName("unknown19", 14, 7);
-		packet->setDataByName("unknown19", 1083179008, 8);*/
-		player->SetGroupInformation(packet);
-		packet->setDataByName("unknown20", 1, 107);
-		packet->setDataByName("unknown20", 1, 108);
-		packet->setDataByName("unknown20", 1, 109);
-		packet->setDataByName("unknown20", 1, 110);
-		packet->setDataByName("unknown20", 1, 111);
-		//packet->setDataByName("unknown20b", 255);
-		//packet->setDataByName("unknown20b", 255, 1);
-		//packet->setDataByName("unknown20b", 255, 2);
-		packet->setDataByName("unknown11", 123);
-		packet->setDataByName("unknown11", 234, 1);
-		
-		//packet->setDataByName("in_combat", 32768);	
-		//make name flash red
-		/*packet->setDataByName("unknown20", 8);
-		packet->setDataByName("unknown20", 38, 70);
-		packet->setDataByName("unknown20", 17, 77);
-		packet->setDataByName("unknown20", 1, 112); //melee stats and such
-		packet->setDataByName("unknown20", 1, 113);
-		packet->setDataByName("unknown20", 1, 114);
-		packet->setDataByName("unknown20", 1, 115);
-
-		packet->setDataByName("unknown20", 4294967295, 309);
-		packet->setDataByName("unknown22", 2, 4);
-		packet->setDataByName("unknown23", 2, 29);
-		*/
-	//packet->setDataByName("unknown20b", 1, i); // pet bar in here
-	//	for(int i=0;i<19;i++)
-	//		packet->setDataByName("unknown7", 257, i);
-		//packet->setDataByName("unknown21", info_struct->rain, 2);
-		packet->setDataByName("rain", info_struct->rain);
-		/*packet->setDataByName("unknown22", 3, 4);
-		packet->setDataByName("unknown23", 3, 161);
-		packet->setDataByName("unknown20", 103);
-		packet->setDataByName("unknown20", 1280, 70);
-		packet->setDataByName("unknown20", 9, 71);
-		packet->setDataByName("unknown20", 5, 72);
-		packet->setDataByName("unknown20", 4294967271, 73);
-		packet->setDataByName("unknown20", 5, 75);
-		packet->setDataByName("unknown20", 1051, 77);
-		packet->setDataByName("unknown20", 3, 78);
-		packet->setDataByName("unknown20", 6, 104);
-		packet->setDataByName("unknown20", 1, 105);
-		packet->setDataByName("unknown20", 20, 106);
-		packet->setDataByName("unknown20", 3, 107);
-		packet->setDataByName("unknown20", 1, 108);
-		packet->setDataByName("unknown20", 1, 109);
-		packet->setDataByName("unknown20", 4278190080, 494);
-		packet->setDataByName("unknown20b", 255);
-		packet->setDataByName("unknown20b", 255, 1);
-		packet->setDataByName("unknown20b", 255, 2);
-		packet->setDataByName("unknown20", 50, 75);
-		*/
-		packet->setDataByName("rain2", -102.24);
-		for (int i=0; i < NUM_SPELL_EFFECTS; i++) {
-			packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "target", info_struct->maintained_effects[i].target, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "spell_id", info_struct->maintained_effects[i].spell_id, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "slot_pos", info_struct->maintained_effects[i].slot_pos, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "icon", info_struct->maintained_effects[i].icon, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "icon_type", info_struct->maintained_effects[i].icon_backdrop, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "conc_used", info_struct->maintained_effects[i].conc_used, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "unknown3", 1, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "total_time", info_struct->maintained_effects[i].total_time, i, 0);
-			packet->setSubstructDataByName("maintained_effects", "expire_timestamp", info_struct->maintained_effects[i].expire_timestamp, i, 0);
-
-			if (info_struct->spell_effects[i].spell->spell->GetSpellData()->friendly_spell) {
-				packet->setSubstructDataByName("spell_effects", "spell_id", info_struct->spell_effects[i].spell_id, i, 0);
-				if(info_struct->spell_effects[i].spell_id > 0 && info_struct->spell_effects[i].spell_id < 0xFFFFFFFF)
-					packet->setSubstructDataByName("spell_effects", "unknown2", 514, i, 0);
-				packet->setSubstructDataByName("spell_effects", "total_time", info_struct->spell_effects[i].total_time, i, 0);
-				packet->setSubstructDataByName("spell_effects", "expire_timestamp", info_struct->spell_effects[i].expire_timestamp, i, 0);
-				packet->setSubstructDataByName("spell_effects", "icon", info_struct->spell_effects[i].icon, i, 0);
-				packet->setSubstructDataByName("spell_effects", "icon_type", info_struct->spell_effects[i].icon_backdrop, i, 0);
-			}
-		}
-		return packet;	
-	}
-	return 0;
-}
-
-EQ2Packet* PlayerInfo::serialize3(PacketStruct* packet, int16 version){
-	if(packet){
-		string* data = packet->serializeString();
-		int32 size = data->length();
-		//DumpPacket((uchar*)data->c_str(), size);
-		uchar* tmp = new uchar[size];
-		if(!changes){
-			orig_packet = new uchar[size];
-			changes = new uchar[size];
-			memcpy(orig_packet, (uchar*)data->c_str(), size);
-			size = Pack(tmp, (uchar*)data->c_str(), size, size, version);
-		}
-		else{
-			memcpy(changes, (uchar*)data->c_str(), size);
-			Encode(changes, orig_packet, size);
-			size = Pack(tmp, changes, size, size, version);
-			//cout << "INFO HERE:\n";
-			//DumpPacket(tmp, size);
-		}
-		EQ2Packet* ret_packet = new EQ2Packet(OP_UpdateCharacterSheetMsg, tmp, size+4);
-		safe_delete_array(tmp);
-		safe_delete(packet);
-		return ret_packet;
-	}
-	return 0;
-}
-
 void PlayerInfo::SetAccountAge(int16 age){
 	info_struct->account_age_base = age;
 }
 
 EQ2Packet* PlayerInfo::serialize(int16 version){
 	player->CalculateBonuses();
-	PacketStruct* packet = configReader.getStruct("WS_CharacterSheet", version);
-	if(packet){
+
+	PacketStruct* packet = nullptr;
+
+	if (player->packet_cache.count("WS_CharacterSheet") > 0) {
+		packet = player->packet_cache["WS_CharacterSheet"];
+	} else {
+		packet = configReader.getStruct("WS_CharacterSheet", version);
+		player->packet_cache["WS_CharacterSheet"] = packet;
+	}
+	
+	if (packet) {
 		packet->setDataByName("deity", "None");
 		//packet->setDataByName("exiled", 1);
 		packet->setDataByName("character_name", info_struct->name);
@@ -1061,7 +825,6 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		}
 
 		EQ2Packet* ret_packet = new EQ2Packet(OP_UpdateCharacterSheetMsg, tmp, size+4);
-		safe_delete(packet);
 		safe_delete_array(tmp);
 		return ret_packet;
 	}

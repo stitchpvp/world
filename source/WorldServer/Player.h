@@ -318,8 +318,6 @@ public:
 	PlayerInfo(Player* in_player);
 	
 	EQ2Packet* serialize(int16 version);
-	PacketStruct* serialize2(int16 version);
-	EQ2Packet* serialize3(PacketStruct* packet, int16 version);
 	EQ2Packet* serializePet(int16 version);
 	void CalculateXPPercentages();
 	void CalculateTSXPPercentages();
@@ -853,6 +851,8 @@ public:
 	mutex encounter_list_mutex;
 	map<int32, HostileEntity*> encounter_list;
 	vector<shared_ptr<ActivityStatus>> activity_statuses;
+
+	map<string, PacketStruct*> packet_cache;
 
 	int8 temp_status = 0;
 
