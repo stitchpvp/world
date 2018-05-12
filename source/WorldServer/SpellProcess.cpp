@@ -57,14 +57,16 @@ void SpellProcess::RemoveAllSpells(){
 		active_spells.clear();
 	}
 
-	InterruptStruct* interrupt = 0;
-	MutexList<InterruptStruct*>::iterator interrupt_list_itr = interrupt_list.begin();
-	while(interrupt_list_itr.Next()){
-		interrupt = interrupt_list_itr->value;
-		CheckInterrupt(interrupt);
-		interrupt_list.Remove(interrupt_list_itr->value, true);		
+	{
+		lock_guard<mutex> guard(interrupt_list_mutex);
+
+		for (auto interrupt : interrupt_list) {
+			CheckInterrupt(interrupt);
+			safe_delete(interrupt);
+		}
+
+		interrupt_list.clear();
 	}
-	interrupt_list.clear();
 
 	{
 		lock_guard<mutex> guard(cast_timers_mutex);
@@ -202,15 +204,18 @@ void SpellProcess::Process(){
 		SpellCancelList.clear();
 		MSpellCancelList.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	if(interrupt_list.size(true) > 0){		
-		InterruptStruct* interrupt = 0;
-		MutexList<InterruptStruct*>::iterator itr = interrupt_list.begin();
-		while(itr.Next()){
-			interrupt = itr->value;
-			CheckInterrupt(interrupt);
-			safe_delete(interrupt);
+
+	{
+		lock_guard<mutex> guard(interrupt_list_mutex);
+
+		if (interrupt_list.size() > 0) {
+			for (auto interrupt : interrupt_list) {
+				CheckInterrupt(interrupt);
+				safe_delete(interrupt);
+			}
+
+			interrupt_list.clear();
 		}
-		interrupt_list.clear();
 	}
 
 	vector<CastTimer*> finished_casts;
@@ -1673,7 +1678,11 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 			interrupt->target = target;
 			interrupt->error_code = error_code;
 			spell->interrupted = true;
-			interrupt_list.Add(interrupt);
+
+			{
+				lock_guard<mutex> guard(interrupt_list_mutex);
+				interrupt_list.push_back(interrupt);
+			}
 
 			Client* client = 0;
 			if(interruptor && interruptor->IsPlayer())
@@ -1748,14 +1757,18 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			}
 		}
 
-		if(interrupt_list.size() > 0){			
-			InterruptStruct* interrupt = 0;
-			MutexList<InterruptStruct*>::iterator itr = interrupt_list.begin();
-			while(itr.Next()){
-				interrupt = itr->value;
-				if(interrupt && interrupt->interrupted == spawn){
-					interrupt_list.Remove(interrupt);
-				}
+		{
+			lock_guard<mutex> guard(interrupt_list_mutex);
+
+			if (interrupt_list.size() > 0) {
+				interrupt_list.erase(
+					remove_if(
+						interrupt_list.begin(),
+						interrupt_list.end(),
+						[&](InterruptStruct* interrupt) { return interrupt->interrupted == spawn; }
+					),
+					interrupt_list.end()
+				);
 			}
 		}
 	}

@@ -23,8 +23,6 @@
 #include "Spells.h"
 #include "zoneserver.h"
 #include "LuaInterface.h"
-#include "MutexMap.h"
-#include "MutexList.h"
 #include "World.h"
 #include "HeroicOp/HeroicOp.h"
 
@@ -393,7 +391,8 @@ private:
 	vector<LuaSpell*> active_spells;
 	mutex cast_timers_mutex;
 	vector<CastTimer*> cast_timers;
-	MutexList<InterruptStruct*>interrupt_list;
+	mutex interrupt_list_mutex;
+	vector<InterruptStruct*> interrupt_list;
 	vector<RecastTimer*> recast_timers;
 	int32 last_checked_time;
 	vector<SpellScriptTimer*> m_spellScriptList;
