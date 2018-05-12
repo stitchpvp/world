@@ -52,7 +52,8 @@ void SpellProcess::RemoveAllSpells(){
 
 		for (auto luaspell : active_spells) {
 			DeleteCasterSpell(luaspell);
-		};
+		}
+
 		active_spells.clear();
 	}
 
@@ -65,13 +66,16 @@ void SpellProcess::RemoveAllSpells(){
 	}
 	interrupt_list.clear();
 
-	MutexList<CastTimer*>::iterator cast_timers_itr = cast_timers.begin();	
-	while(cast_timers_itr.Next()){
-		safe_delete(cast_timers_itr->value->timer);
-		safe_delete(cast_timers_itr->value->spell);
-		cast_timers.Remove(cast_timers_itr->value, true);
+	{
+		lock_guard<mutex> guard(cast_timers_mutex);
+
+		for (auto cast_timer : cast_timers) {
+			safe_delete(cast_timer->timer);
+			safe_delete(cast_timer->spell);
+		}
+
+		cast_timers.clear();
 	}
-	cast_timers.clear();
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
 	recast_timers.clear();
@@ -205,39 +209,54 @@ void SpellProcess::Process(){
 		}
 		interrupt_list.clear();
 	}
-	if(cast_timers.size(true) > 0){
-		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
-		while (itr.Next()) {
-			cast_timer = itr->value;
-			if (cast_timer) {
-				if (cast_timer->timer->Check(false)) {
-					if (cast_timer->spell) {
-						Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
-						if (client) {
-							PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
+
+	{
+		lock_guard<mutex> guard(cast_timers_mutex);
+
+		vector<CastTimer*> to_remove;
+
+		if (cast_timers.size() > 0) {
+			for (const auto cast_timer : cast_timers) {
+				if (cast_timer) {
+					if (cast_timer->timer->Check(false)) {
+						to_remove.push_back(cast_timer);
+
+						if (cast_timer->spell) {
+							Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
+
+							if (client) {
+								PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
+
 								if (packet) {
 									packet->setMediumStringByName("spell_name", cast_timer->spell->spell->GetSpellData()->name.data.c_str());
 									client->QueuePacket(packet->serialize());
 									safe_delete(packet);
 								}
+							}
+
+							if (cast_timer->spell && cast_timer->spell->caster) {
+								cast_timer->spell->caster->IsCasting(false);
+							}
+
+							if (!cast_timer->delete_timer) {
+								CastProcessedSpell(cast_timer->spell);
+							}
+						} else if (cast_timer->entity_command && !cast_timer->delete_timer) {
+							CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
 						}
-						if (cast_timer->spell && cast_timer->spell->caster)
-							cast_timer->spell->caster->IsCasting(false);
-						cast_timer->delete_timer = true;
-						CastProcessedSpell(cast_timer->spell);
-					} else if (cast_timer->entity_command && cast_timer->timer->Check(false)) {
-						cast_timer->delete_timer = true;
-						CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
+					} else if (cast_timer->delete_timer) {
+						to_remove.push_back(cast_timer);
 					}
 				}
 			}
-			if (cast_timer->delete_timer) {
+
+			for (const auto cast_timer : to_remove) {
 				safe_delete(cast_timer->timer);
-				cast_timers.Remove(cast_timer, true);
+				cast_timers.erase(remove(cast_timers.begin(), cast_timers.end(), cast_timer), cast_timers.end());
 			}
 		}
 	}
+
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
 	if (recast_timers.size() > 0){
 		vector<RecastTimer*>::iterator itr = recast_timers.begin();
@@ -769,52 +788,46 @@ void SpellProcess::SendSpellBookUpdate(Client* client){
 	}
 }
 
-LuaSpell* SpellProcess::GetLuaSpell(Entity* caster){
-	LuaSpell* spell = 0;
-	if(caster && cast_timers.size() > 0){		
-		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
-		while(itr.Next()){
-			 cast_timer = itr->value;
-			 if(cast_timer && cast_timer->spell && cast_timer->spell->caster == caster){
-				spell = cast_timer->spell;
-				break;
+LuaSpell* SpellProcess::GetLuaSpell(Entity* caster) {
+	lock_guard<mutex> guard(cast_timers_mutex);
+
+	if (caster && cast_timers.size() > 0) {		
+		for (const auto cast_timer : cast_timers) {
+			 if (cast_timer && cast_timer->spell && cast_timer->spell->caster == caster) {
+				return cast_timer->spell;
 			 }
 		}
 	}
-	return spell;
+
+	return nullptr;
 }
 
-Spell* SpellProcess::GetSpell(Entity* caster){
-	Spell* spell = 0;
-	if(cast_timers.size() > 0){		
-		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
-		while(itr.Next()){
-			 cast_timer = itr->value;
-			 if(cast_timer && cast_timer->spell && cast_timer->spell->caster == caster){
-				spell = cast_timer->spell->spell;
-				break;
-			 }
+Spell* SpellProcess::GetSpell(Entity* caster) {
+	lock_guard<mutex> guard(cast_timers_mutex);
+
+	if (cast_timers.size() > 0){		
+		for (const auto cast_timer : cast_timers) {
+			if (cast_timer && cast_timer->spell && cast_timer->spell->caster == caster) {
+				return cast_timer->spell->spell;
+			}
 		}
 	}
-	return spell;
+
+	return nullptr;
 }
 
-Spawn* SpellProcess::GetSpellTarget(Entity* caster){
-	Spawn* target = 0;
-	if(cast_timers.size() > 0){		
-		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
-		while(itr.Next()){
-			 cast_timer = itr->value;
-			 if(cast_timer && cast_timer->spell->caster == caster){
-				target = caster->GetZone()->GetSpawnByID(cast_timer->spell->initial_target);
-				break;
+Spawn* SpellProcess::GetSpellTarget(Entity* caster) {
+	lock_guard<mutex> guard(cast_timers_mutex);
+
+	if (cast_timers.size() > 0) {
+		for (const auto cast_timer : cast_timers) {
+			 if (cast_timer && cast_timer->spell->caster == caster) {
+				return caster->GetZone()->GetSpawnByID(cast_timer->spell->initial_target);
 			 }
 		}
 	}
-	return target;
+
+	return nullptr;
 }
 
 void SpellProcess::SetInitialTarget(LuaSpell* lua_spell, Spawn* target) {
@@ -1120,7 +1133,11 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 				cast_timer->delete_timer = false;
 				cast_timer->timer = new Timer(cast_time * 10);
 				cast_timer->zone = zone;
-				cast_timers.Add(cast_timer);
+
+				{
+					lock_guard<mutex> guard(cast_timers_mutex);
+					cast_timers.push_back(cast_timer);
+				}
 
 				if (caster) {
 					caster->IsCasting(true);
@@ -1166,7 +1183,12 @@ void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_
 				cast_timer->delete_timer = false;
 				cast_timer->timer = new Timer(entity_command->cast_time * 10);
 				cast_timer->zone = zone;
-				cast_timers.Add(cast_timer);
+
+				{
+					lock_guard<mutex> guard(cast_timers_mutex);
+					cast_timers.push_back(cast_timer);
+				}
+
 				caster->IsCasting(true);
 			}
 		}
@@ -1626,15 +1648,16 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 
 void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, bool delete_recast){
 	int32 i = 0;
-	if(cast_timers.size() > 0){		
-		CastTimer* cast_timer = 0;
-		MutexList<CastTimer*>::iterator itr = cast_timers.begin();
-		while(itr.Next()){
-			 cast_timer = itr->value;
-			 if(cast_timer && cast_timer->spell && cast_timer->spell->caster == spawn){
-				cast_timer->spell->caster = 0;
-				cast_timer->delete_timer = true;
-			 }
+
+	{
+		lock_guard<mutex> guard(cast_timers_mutex);
+
+		if (cast_timers.size() > 0) {
+			for (auto cast_timer : cast_timers) {
+				if (cast_timer && cast_timer->spell && cast_timer->spell->caster == spawn) {
+					cast_timer->delete_timer = true;
+				}
+			}
 		}
 	}
 

@@ -394,7 +394,8 @@ private:
 	MutexMap<Entity*,Spell*> spell_que;
 	mutex active_spells_mutex;
 	vector<LuaSpell*> active_spells;
-	MutexList<CastTimer*> cast_timers;
+	mutex cast_timers_mutex;
+	vector<CastTimer*> cast_timers;
 	MutexList<InterruptStruct*>interrupt_list;
 	vector<RecastTimer*> recast_timers;
 	int32 last_checked_time;
