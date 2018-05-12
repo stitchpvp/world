@@ -213,51 +213,51 @@ void SpellProcess::Process(){
 		interrupt_list.clear();
 	}
 
+	vector<CastTimer*> finished_casts;
+
 	{
 		lock_guard<mutex> guard(cast_timers_mutex);
-
-		vector<CastTimer*> to_remove;
 
 		if (cast_timers.size() > 0) {
 			for (const auto cast_timer : cast_timers) {
 				if (cast_timer) {
-					if (cast_timer->timer->Check(false)) {
-						to_remove.push_back(cast_timer);
-
-						if (cast_timer->spell) {
-							Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
-
-							if (client) {
-								PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
-
-								if (packet) {
-									packet->setMediumStringByName("spell_name", cast_timer->spell->spell->GetSpellData()->name.data.c_str());
-									client->QueuePacket(packet->serialize());
-									safe_delete(packet);
-								}
-							}
-
-							if (cast_timer->spell && cast_timer->spell->caster) {
-								cast_timer->spell->caster->IsCasting(false);
-							}
-
-							if (!cast_timer->delete_timer) {
-								CastProcessedSpell(cast_timer->spell);
-							}
-						} else if (cast_timer->entity_command && !cast_timer->delete_timer) {
-							CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
-						}
-					} else if (cast_timer->delete_timer) {
-						to_remove.push_back(cast_timer);
+					if (cast_timer->timer->Check(false) || cast_timer->delete_timer) {
+						finished_casts.push_back(cast_timer);
 					}
 				}
 			}
+		}
+	}
 
-			for (const auto cast_timer : to_remove) {
-				safe_delete(cast_timer->timer);
-				cast_timers.erase(remove(cast_timers.begin(), cast_timers.end(), cast_timer), cast_timers.end());
+	for (const auto cast_timer : finished_casts) {
+		if (!cast_timer->delete_timer) {
+			if (cast_timer->spell) {
+				Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
+
+				if (client) {
+					PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
+
+					if (packet) {
+						packet->setMediumStringByName("spell_name", cast_timer->spell->spell->GetSpellData()->name.data.c_str());
+						client->QueuePacket(packet->serialize());
+						safe_delete(packet);
+					}
+				}
+
+				if (cast_timer->spell && cast_timer->spell->caster) {
+					cast_timer->spell->caster->IsCasting(false);
+				}
+
+				if (!cast_timer->delete_timer) {
+					CastProcessedSpell(cast_timer->spell);
+				}
+			} else if (cast_timer->entity_command && !cast_timer->delete_timer) {
+				CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
 			}
 		}
+
+		safe_delete(cast_timer->timer);
+		cast_timers.erase(remove(cast_timers.begin(), cast_timers.end(), cast_timer), cast_timers.end());
 	}
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
