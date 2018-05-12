@@ -289,10 +289,6 @@ public:
 	/// <param name='hostile_only'>Set to true to only remove hostile spells, default is false</param>
 	void RemoveSpellFromQueue(Entity* caster, bool hostile_only = false);
 
-	/// <summary>Clear the queue for the given caster</summary>
-	/// <param name='caster'>Entity to clear the queue for, is not player function does nothing</param>
-	void CheckSpellQueue(Entity* caster);
-
 	/// <summary>Check the given enities queue for the spell, if found remove, if not found add</summary>
 	/// <param name='spell'>Spell to check for</param>
 	/// <param name='caster'>Entity's queue to check, if not player function does nothing</param>
@@ -391,7 +387,8 @@ private:
 	bool ProcessSpell(LuaSpell* spell, Spawn * target, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
 	Mutex MSpellProcess;
 	Mutex MRecastTimers;
-	MutexMap<Entity*,Spell*> spell_que;
+	mutex spell_queue_mutex;
+	map<Entity*, Spell*> spell_queue;
 	mutex active_spells_mutex;
 	vector<LuaSpell*> active_spells;
 	mutex cast_timers_mutex;

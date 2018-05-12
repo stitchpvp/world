@@ -99,7 +99,10 @@ void SpellProcess::RemoveAllSpells(){
 	m_groupHO.clear();
 	MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
 
-	spell_que.clear();
+	{
+		lock_guard<mutex> guard(spell_queue_mutex);
+		spell_queue.clear();
+	}
 	
 	MSpellCancelList.writelock(__FUNCTION__, __LINE__);
 	SpellCancelList.clear();
@@ -272,14 +275,30 @@ void SpellProcess::Process(){
 		}
 	}
 	MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
-	if(spell_que.size(true) > 0){
-		MutexMap<Entity*, Spell*>::iterator itr = spell_que.begin();
-		while(itr.Next()){
-			if(itr->first->IsCasting() == false && IsReady(itr->second, itr->first)){
-				RemoveSpellFromQueue(itr->second, itr->first);
-				ProcessSpell(itr->first->GetZone(), itr->second, itr->first, itr->first->GetTarget());
+
+	map<Entity*, Spell*> to_cast;
+
+	{
+		lock_guard<mutex> guard(spell_queue_mutex);
+
+		if (spell_queue.size() > 0) {
+			for (const auto& queued_spell : spell_queue) {
+				Entity* caster = queued_spell.first;
+				Spell* spell = queued_spell.second;
+
+				if (!caster->IsCasting() && IsReady(spell, caster)) {
+					to_cast.insert(pair<Entity*, Spell*>(caster, spell));
+				}
 			}
 		}
+	}
+
+	for (const auto& cast_spell : to_cast) {
+		Entity* caster = cast_spell.first;
+		Spell* spell = cast_spell.second;
+
+		RemoveSpellFromQueue(spell, caster);
+		ProcessSpell(caster->GetZone(), spell, caster, caster->GetTarget());
 	}
 
 	// Check solo HO timers
@@ -717,47 +736,61 @@ bool SpellProcess::AddDissonance(LuaSpell* spell) {
 }
 
 void SpellProcess::AddSpellToQueue(Spell* spell, Entity* caster){
-	if(caster && caster->IsPlayer() && spell){
-		spell_que.Put(caster, spell);
-		((Player*)caster)->QueueSpell(spell);
-		Client* client = caster->GetZone()->GetClientBySpawn(caster);
-		if(client)
-			SendSpellBookUpdate(client);
-	}
-}
+	if (caster && caster->IsPlayer() && spell) {
+		{
+			lock_guard<mutex> guard(spell_queue_mutex);
+			spell_queue.insert(pair<Entity*, Spell*>(caster, spell));
+		}
 
-void SpellProcess::RemoveSpellFromQueue(Spell* spell, Entity* caster){
-	if(caster && caster->IsPlayer() && spell){
-		spell_que.erase(caster);
-		((Player*)caster)->UnQueueSpell(spell);
-		Client* client = caster->GetZone()->GetClientBySpawn(caster);
-		if(client)
-			SendSpellBookUpdate(client);
-	}
-}
+		static_cast<Player*>(caster)->QueueSpell(spell);
 
-void SpellProcess::RemoveSpellFromQueue(Entity* caster, bool hostile_only) {
-	if (caster && spell_que.count(caster) > 0) {
-		Spell* spell = spell_que.Get(caster);
-		if (spell) {
-			bool remove = true;
-			if (hostile_only && spell->GetSpellData()->target_type != SPELL_TARGET_OTHER)
-				remove = false;
-			if (remove) {
-				spell_que.erase(caster);
-				((Player*)caster)->UnQueueSpell(spell);
-				Client* client = caster->GetZone()->GetClientBySpawn(caster);
-				if (client)
-					SendSpellBookUpdate(client);
-			}
+		Client* client = caster->GetZone()->GetClientBySpawn(caster);
+		if (client) {
+			SendSpellBookUpdate(client);
 		}
 	}
 }
 
-void SpellProcess::CheckSpellQueue(Entity* caster){
-	if(caster && caster->IsPlayer()){
-		if(spell_que.count(caster) > 0)
-			RemoveSpellFromQueue(spell_que.Get(caster), caster);	
+void SpellProcess::RemoveSpellFromQueue(Spell* spell, Entity* caster){
+	if (caster && caster->IsPlayer() && spell) {
+		{
+			lock_guard<mutex> guard(spell_queue_mutex);
+			spell_queue.erase(caster);
+		}
+
+		static_cast<Player*>(caster)->UnQueueSpell(spell);
+
+		Client* client = caster->GetZone()->GetClientBySpawn(caster);
+		if (client) {
+			SendSpellBookUpdate(client);
+		}
+	}
+}
+
+void SpellProcess::RemoveSpellFromQueue(Entity* caster, bool hostile_only) {
+	lock_guard<mutex> guard(spell_queue_mutex);
+
+	if (caster && spell_queue.count(caster) > 0) {
+		Spell* spell = spell_queue[caster];
+
+		if (spell) {
+			bool remove = true;
+
+			if (hostile_only && (spell->GetSpellData()->target_type != SPELL_TARGET_OTHER  || spell->GetSpellData()->friendly_spell)) {
+				remove = false;
+			}
+
+			if (remove) {
+				spell_queue.erase(caster);
+
+				static_cast<Player*>(caster)->UnQueueSpell(spell);
+
+				Client* client = caster->GetZone()->GetClientBySpawn(caster);
+				if (client) {
+					SendSpellBookUpdate(client);
+				}
+			}
+		}
 	}
 }
 
@@ -770,13 +803,20 @@ void SpellProcess::CheckSpellQueue(Spell* spell, Entity* caster) {
 
 	Spell* existing_spell = nullptr;
 
-	if (spell_que.count(caster) > 0) {
-		existing_spell = spell_que.Get(caster);
+	unique_lock<mutex> guard(spell_queue_mutex);
+
+	if (spell_queue.count(caster) > 0) {
+		existing_spell = spell_queue[caster];
+
+		guard.unlock();
 		RemoveSpellFromQueue(existing_spell, caster);
+		guard.lock();
 	}
 
 	if (!existing_spell || existing_spell != spell) {
+		guard.unlock();
 		AddSpellToQueue(spell, caster);
+		guard.lock();
 	}
 }
 
@@ -1699,9 +1739,15 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			}
 		}
 		MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
-		if(spell_que.size() > 0 && spawn->IsEntity()){
-			spell_que.erase((Entity*)spawn);
+
+		{
+			lock_guard<mutex> guard(spell_queue_mutex);
+
+			if (spell_queue.size() > 0 && spawn->IsEntity()) {
+				spell_queue.erase(static_cast<Entity*>(spawn));
+			}
 		}
+
 		if(interrupt_list.size() > 0){			
 			InterruptStruct* interrupt = 0;
 			MutexList<InterruptStruct*>::iterator itr = interrupt_list.begin();
