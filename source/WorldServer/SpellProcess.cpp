@@ -142,10 +142,9 @@ void SpellProcess::Process(){
 						spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 						if (spell->targets.size() > 0) {
 							ZoneServer* zone = spell->caster->GetZone();
-							Spawn* target = 0;
 
 							for (int32 i = 0; i < spell->targets.size(); i++) {
-								target = zone->GetSpawnByID(spell->targets[i]);
+								Spawn* target = zone->GetSpawnByID(spell->targets[i]);
 
 								if (!ProcessSpell(spell, target, false)) {
 									spell_itr = active_spells.erase(spell_itr);
@@ -194,16 +193,14 @@ void SpellProcess::Process(){
 
 	CheckRemoveTargetFromSpell();
 
+	MSpellCancelList.writelock(__FUNCTION__, __LINE__);
 	if (SpellCancelList.size() > 0){
-		MSpellCancelList.writelock(__FUNCTION__, __LINE__);
-		vector<LuaSpell*>::iterator itr = SpellCancelList.begin();
-		while (itr != SpellCancelList.end()){
-			DeleteCasterSpell(*itr);
-			itr++;
+		for (auto spell : SpellCancelList) {
+			DeleteCasterSpell(spell);
 		}
 		SpellCancelList.clear();
-		MSpellCancelList.releasewritelock(__FUNCTION__, __LINE__);
 	}
+	MSpellCancelList.releasewritelock(__FUNCTION__, __LINE__);
 
 	{
 		lock_guard<mutex> guard(interrupt_list_mutex);
@@ -267,15 +264,17 @@ void SpellProcess::Process(){
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
 	if (recast_timers.size() > 0){
-		vector<RecastTimer*>::iterator itr = recast_timers.begin();
+		auto itr = recast_timers.begin();
+
 		while (itr != recast_timers.end()) {
-			RecastTimer* recast_timer = *itr;
+			RecastTimer* recast_timer = (*itr);
+
 			if (recast_timer->timer->Check(false)) {
 				UnlockSpell(recast_timer->client, recast_timer->spell);
 				safe_delete(recast_timer->timer);
 				itr = recast_timers.erase(itr);
 			} else {
-				itr++;
+				++itr;
 			}
 		}
 	}
@@ -309,19 +308,17 @@ void SpellProcess::Process(){
 	// Check solo HO timers
 	MSoloHO.writelock(__FUNCTION__, __LINE__);
 	if (m_soloHO.size() > 0) {
-		map<Client*, HeroicOP*>::iterator itr = m_soloHO.begin();
-		map<Client*, HeroicOP*>::iterator delete_itr;
+		auto itr = m_soloHO.begin();
+
 		while (itr != m_soloHO.end()) {
 			if (itr->second->GetWheel() && Timer::GetCurrentTime2() >= (itr->second->GetStartTime() + (itr->second->GetTotalTime() * 1000))) {
 				itr->second->SetComplete(1);
 				ClientPacketFunctions::SendHeroicOPUpdate(itr->first, itr->second);
 				safe_delete(itr->second);
-				delete_itr = itr;
+				itr = m_soloHO.erase(itr);
+			} else {
 				itr++;
-				m_soloHO.erase(delete_itr);
 			}
-			else
-				itr++;
 		}
 	}
 	MSoloHO.releasewritelock(__FUNCTION__, __LINE__);
@@ -329,28 +326,26 @@ void SpellProcess::Process(){
 	// Check group HO timers
 	MGroupHO.writelock(__FUNCTION__, __LINE__);
 	if (m_groupHO.size() > 0) {
-		map<int32, HeroicOP*>::iterator itr = m_groupHO.begin();
-		map<int32, HeroicOP*>::iterator delete_itr;
+		auto itr = m_groupHO.begin();
+
 		while (itr != m_groupHO.end()) {
 			if (itr->second->GetWheel() && Timer::GetCurrentTime2() >= (itr->second->GetStartTime() + (itr->second->GetTotalTime() * 1000))) {
 				itr->second->SetComplete(1);
 
 				world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
-				deque<GroupMemberInfo*>::iterator itr2;
 				deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(itr->first);
-				for (itr2 = members->begin(); itr2 != members->end(); itr2++) {
-					if ((*itr2)->client)
-						ClientPacketFunctions::SendHeroicOPUpdate((*itr2)->client, itr->second);
+				for (auto group_member : *members) {
+					if (group_member->client) {
+						ClientPacketFunctions::SendHeroicOPUpdate(group_member->client, itr->second);
+					}
 				}
 				world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 
 				safe_delete(itr->second);
-				delete_itr = itr;
+				itr = m_groupHO.erase(itr);
+			} else {
 				itr++;
-				m_groupHO.erase(delete_itr);
 			}
-			else
-				itr++;
 		}
 	}
 	MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
@@ -389,7 +384,7 @@ bool SpellProcess::OnCooldown(Spell* spell, Entity* caster) {
 void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_override, bool check_linked_timers) {
 	if (spell && caster) {
 		if (timer_override > 0) {
-			RecastTimer* timer = new RecastTimer;
+			auto timer = new RecastTimer;
 			timer->caster = caster;
 			timer->spell = spell;
 			timer->timer = new Timer((int32)(timer_override * 1000));
@@ -409,20 +404,22 @@ void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_overrid
 			((Player*)caster)->LockSpell(spell, timer_override * 10);
 
 			if (check_linked_timers && spell->GetSpellData()->linked_timer > 0) {
-				vector<Spell*> linkedSpells = ((Player*)caster)->GetSpellBookSpellsByTimer(spell->GetSpellData()->linked_timer);
-				for (int8 i = 0; i < linkedSpells.size(); i++) {
-					Spell* spell2 = linkedSpells.at(i);
-					if (spell2 && spell2 != spell)
+				vector<Spell*> linkedSpells = static_cast<Player*>(caster)->GetSpellBookSpellsByTimer(spell->GetSpellData()->linked_timer);
+
+				for (auto spell2 : linkedSpells) {
+					if (spell2 && spell2 != spell) {
 						CheckRecast(spell2, caster, timer_override, false);
+					}
 				}
 			}
 		}
 	}
 }
 void SpellProcess::CheckInterrupt(InterruptStruct* interrupt){
-	if(!interrupt || !interrupt->interrupted || !interrupt->interrupted->IsEntity())
+	if (!interrupt || !interrupt->interrupted || !interrupt->interrupted->IsEntity())
 		return;
-	Entity* entity = (Entity*)interrupt->interrupted;
+
+	auto entity = static_cast<Entity*>(interrupt->interrupted);
 	Client* client = entity->GetZone()->GetClientBySpawn(entity);
 	if(client)
 		SendFinishedCast(GetLuaSpell(entity), client);
@@ -479,79 +476,79 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 
 bool SpellProcess::ProcessSpell(LuaSpell* spell, Spawn* target, bool first_cast, const char* function, SpellScriptTimer* timer) {
 	bool ret = false;
-	if(lua_interface && !spell->interrupted){
+
+	if (lua_interface && !spell->interrupted) {
 		lua_interface->AddSpawnPointers(spell, first_cast, false, function, timer);
 		
 		if (target)
 			lua_interface->SetSpawnValue(spell->state, target);
 
 		vector<LUAData> data = spell->spell->GetScaledLUAData(spell->caster->GetLevel());
-		for (int32 i = 0; i < data.size(); i++) {
-			switch (data.at(i).type) {
+		for (const auto& datum : data) {
+			switch (datum.type) {
 				case 0: {
-							lua_interface->SetSInt32Value(spell->state, data.at(i).int_value);
+							lua_interface->SetSInt32Value(spell->state, datum.int_value);
 							break;
 						}
 
 				case 1: {
-							lua_interface->SetFloatValue(spell->state, data.at(i).float_value);
+							lua_interface->SetFloatValue(spell->state, datum.float_value);
 							break;
 						}
 
 				case 2: {
-							lua_interface->SetBooleanValue(spell->state, data.at(i).bool_value);
+							lua_interface->SetBooleanValue(spell->state, datum.bool_value);
 							break;
 						}
 
 				case 3: {
-							lua_interface->SetStringValue(spell->state, data.at(i).string_value.c_str());
+							lua_interface->SetStringValue(spell->state, datum.string_value.c_str());
 							break;
 						}
 
 				default: {
-							 LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in Entity::CastProc for Spell '%s'", (int)data.at(i).type, spell->spell->GetName());
+							 LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in Entity::CastProc for Spell '%s'", (int)datum.type, spell->spell->GetName());
 							 return false;
 						 }
 			}
 		}
 		ret = lua_interface->CallSpellProcess(spell, 2 + data.size());
 	}
+
 	return ret;
 }
 
 bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
-
-	LuaSpell* lua_spell = 0;
+	LuaSpell* lua_spell = nullptr;
 
 	if(lua_interface)
 		lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
 
-	if(!lua_spell)
-	{
+	if (!lua_spell) {
 		string lua_script = spell->GetSpellData()->lua_script;
 		lua_script.append(".lua");
-		lua_spell = 0;
+		lua_spell = nullptr;
 
-		if(lua_interface)
+		if (lua_interface)
 			lua_spell = lua_interface->GetSpell(lua_script.c_str());
 
-		if(!lua_spell) {
+		if (!lua_spell) {
 			LogWrite(SPELL__ERROR, 0, "Spell", "Failed to get a LuaSpell for %s (%u)", spell->GetName(), spell->GetSpellID());
 			return false;
-		}
-		else
+		} else {
 			spell->GetSpellData()->lua_script = lua_script;
+		}
 	}
 
 	lua_spell->caster = caster;
 	lua_spell->spell = spell;
 	lua_spell->initial_target = caster->GetID();
+
 	GetSpellTargets(lua_spell);
 
 	if (!remove)
 		return CastProcessedSpell(lua_spell, true);
 
-	//lua_interface->RemoveSpell(lua_spell, true, SpellScriptTimersHasSpell(lua_spell));
 	return true;
 }
 
@@ -1159,7 +1156,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 				return;
 			}
 
-			if (caster->IsPlayer() && zone)
+			if (caster->IsPlayer())
 				client = caster->GetZone()->GetClientBySpawn(caster);
 
 			if (lua_interface) {
@@ -1191,8 +1188,8 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			int16 cast_time = spell->GetModifiedCastTime(caster);
 
 			if (cast_time > 0) {
-				CastTimer* cast_timer = new CastTimer;
-				cast_timer->entity_command = 0;
+				auto cast_timer = new CastTimer;
+				cast_timer->entity_command = nullptr;
 				cast_timer->spell = lua_spell;
 				cast_timer->spell->caster = caster;
 				cast_timer->delete_timer = false;
@@ -1241,10 +1238,10 @@ void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_
 				client->QueuePacket(outapp);
 				safe_delete(packet);
 
-				CastTimer* cast_timer = new CastTimer;
+				auto cast_timer = new CastTimer;
 				cast_timer->caster = client;
 				cast_timer->entity_command = entity_command;
-				cast_timer->spell = 0;
+				cast_timer->spell = nullptr;
 				cast_timer->delete_timer = false;
 				cast_timer->timer = new Timer(entity_command->cast_time * 10);
 				cast_timer->zone = zone;
@@ -1268,7 +1265,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	if (!spell || !spell->caster || !spell->spell || spell->interrupted)
 		return false;
 
-	Client* client = 0;
+	Client* client = nullptr;
 	bool hit_target = false;
 	bool living_target = false;
 
@@ -1287,7 +1284,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 	if (spell->targets.size() > 0) {
 		ZoneServer* zone = spell->caster->GetZone();
-		Spawn* target = 0;
+		Spawn* target = nullptr;
 
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 		for (int32 i = 0; i < spell->targets.size(); i++) {
@@ -1499,7 +1496,7 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 			cancel)) 
 		{
 			Spawn* target = GetSpellTarget(caster);
-			InterruptStruct* interrupt = new InterruptStruct;
+			auto interrupt = new InterruptStruct;
 			interrupt->interrupted = caster;
 			interrupt->spell = spell;
 			interrupt->target = target;
@@ -1511,11 +1508,12 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 				interrupt_list.push_back(interrupt);
 			}
 
-			Client* client = 0;
-			if(interruptor && interruptor->IsPlayer())
-			{
-				client = interruptor->GetZone()->GetClientBySpawn(interruptor);
-				client->Message(CHANNEL_COLOR_SPELL_INTERRUPT, "You interrupt %s's ability to cast!", interruptor->GetName());
+			if (interruptor && interruptor->IsPlayer()) {
+				Client* client = interruptor->GetZone()->GetClientBySpawn(interruptor);
+
+				if (client) {
+					client->Message(CHANNEL_COLOR_SPELL_INTERRUPT, "You interrupt %s's ability to cast!", interruptor->GetName());
+				}
 			}
 			
 		}
@@ -1562,10 +1560,12 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 		}
 
 		MRecastTimers.writelock(__FUNCTION__, __LINE__);
-		if(recast_timers.size() > 0 && delete_recast){			
-			vector<RecastTimer*>::iterator itr = recast_timers.begin();
+		if (recast_timers.size() > 0 && delete_recast) {
+			auto itr = recast_timers.begin();
+
 			while (itr != recast_timers.end()) {
-				RecastTimer* recast_timer = *itr;
+				RecastTimer* recast_timer = (*itr);
+
 				if (recast_timer && recast_timer->caster == spawn) {
 					safe_delete(recast_timer->timer);
 					itr = recast_timers.erase(itr);
@@ -1832,9 +1832,8 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 
 						deque<GroupMemberInfo*>::iterator itr;
 						deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(((Player*)target)->GetGroupMemberInfo()->group_id);
-						Entity* group_member = 0;
 						for(itr = members->begin(); itr != members->end(); itr++) {
-							group_member = (*itr)->member;
+							Entity* group_member = (*itr)->member;
 							//Check if group member is in the same zone in range of the spell and dead
 							if(group_member->GetZone() == target->GetZone() && !group_member->Alive() && target->GetDistance(group_member) <= data->radius){
 								luaspell->targets.push_back(group_member->GetID());
@@ -2103,26 +2102,22 @@ bool SpellProcess::AddHO(int32 group_id, HeroicOP* ho) {
 void SpellProcess::KillHOBySpawnID(int32 spawn_id) {
 	// Check solo HO's
 	MSoloHO.writelock(__FUNCTION__, __LINE__);
-	map<Client*, HeroicOP*>::iterator itr = m_soloHO.begin();
-	map<Client*, HeroicOP*>::iterator delete_itr;
+	auto itr = m_soloHO.begin();
 	while (itr != m_soloHO.end()) {
 		if (itr->second->GetTarget() == spawn_id) {
 			itr->second->SetComplete(1);
 			ClientPacketFunctions::SendHeroicOPUpdate(itr->first, itr->second);
-			delete_itr = itr;
 			safe_delete(itr->second);
+			itr = m_soloHO.erase(itr);
+		} else {
 			itr++;
-			m_soloHO.erase(delete_itr);
 		}
-		else
-			itr++;
 	}
 	MSoloHO.releasewritelock(__FUNCTION__, __LINE__);
 
 	// Check Group HO's
 	MGroupHO.writelock(__FUNCTION__, __LINE__);
-	map<int32, HeroicOP*>::iterator itr2 = m_groupHO.begin();
-	map<int32, HeroicOP*>::iterator delete_itr2;
+	auto itr2 = m_groupHO.begin();
 	while (itr2 != m_groupHO.end()) {
 		if (itr2->second->GetTarget() == spawn_id) {
 			itr2->second->SetComplete(1);
@@ -2130,19 +2125,18 @@ void SpellProcess::KillHOBySpawnID(int32 spawn_id) {
 			world.GetGroupManager()->GroupLock(__FUNCTION__ , __LINE__);
 			deque<GroupMemberInfo*>::iterator itr3;
 			deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(itr2->first);
-			for (itr3 = members->begin(); itr3 != members->end(); itr3++) {
-				if ((*itr3)->client)
-					ClientPacketFunctions::SendHeroicOPUpdate((*itr3)->client, itr2->second);
+			for (auto member : *members) {
+				if (member->client) {
+					ClientPacketFunctions::SendHeroicOPUpdate(member->client, itr2->second);
+				}
 			}
 			world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 
-			delete_itr2 = itr2;
 			safe_delete(itr2->second);
+			itr2 = m_groupHO.erase(itr2);
+		} else {
 			itr2++;
-			m_groupHO.erase(delete_itr2);
 		}
-		else
-			itr2++;
 	}
 	MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
 }
