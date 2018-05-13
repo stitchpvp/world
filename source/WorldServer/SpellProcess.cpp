@@ -905,199 +905,221 @@ void SpellProcess::SetInitialTarget(LuaSpell* lua_spell, Spawn* target) {
 
 bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 	Entity* caster = lua_spell->caster;
-	Client* client = nullptr;
 	Spell* spell = lua_spell->spell;
-	ZoneServer* zone = lua_spell->caster->GetZone();
 
-	int8 target_type = spell->GetSpellData()->target_type;
+	if (caster && spell) {
+		Client* client = nullptr;
+		ZoneServer* zone = lua_spell->caster->GetZone();
 
-	if (caster->IsPlayer() && zone)
-		client = caster->GetZone()->GetClientBySpawn(caster);
-
-	if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
-		bool ret_val = DeleteCasterSpell(caster, spell);
-
-		if (ret_val) {
-			int8 actual_concentration = spell->GetSpellData()->req_concentration;
-
-			if (actual_concentration > 0) {
-				caster->GetInfoStruct()->cur_concentration -= actual_concentration;
-				if (caster->IsPlayer())
-					caster->GetZone()->TriggerCharSheetTimer();
+		if (zone) {
+			if (caster->IsPlayer()) {
+				client = caster->GetZone()->GetClientBySpawn(caster);
 			}
 
-			return false;
-		}
-	}
-	
-	if (client && spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_TRADESKILL) {
-		if (client->IsCrafting()) {
-			Tradeskill* tradeskill = nullptr;
+			if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE) {
+				bool ret_val = DeleteCasterSpell(caster, spell);
 
-			zone->GetTradeskillMgr()->ReadLock(__FUNCTION__, __LINE__);
+				if (ret_val) {
+					int8 actual_concentration = spell->GetSpellData()->req_concentration;
 
-			tradeskill = zone->GetTradeskillMgr()->GetTradeskill(client);
+					if (actual_concentration > 0) {
+						caster->GetInfoStruct()->cur_concentration -= actual_concentration;
+						if (caster->IsPlayer())
+							caster->GetZone()->TriggerCharSheetTimer();
+					}
 
-			if (spell->GetSpellData()->mastery_skill != tradeskill->recipe->GetTechnique()) {
-				zone->GetTradeskillMgr()->ReleaseReadLock(__FUNCTION__, __LINE__);
-
-				// send a message to the client, used chat_relationship to match other tradeskill messages, not sure if it is accurate though
-				client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You are not using %s on this recipe.", master_skill_list.GetSkill(spell->GetSpellData()->mastery_skill)->name.data.c_str());
-				return false;
-			}
-
-			zone->GetTradeskillMgr()->ReleaseReadLock(__FUNCTION__, __LINE__);
-		} else {
-			zone->SendSpellFailedPacket(client, SPELL_ERROR_ONLY_WHEN_CRAFTING);
-			return false;
-		}
-	}
-
-	if (!IsReady(spell, caster)) {
-		CheckSpellQueue(spell, caster);
-		return false;
-	}
-
-	if ((caster->IsMezzed() && !spell->CastWhileMezzed()) || (caster->IsStunned() && !spell->CastWhileStunned())) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STUNNED);
-		return false;
-	}
-
-	if (caster->IsStifled() && !spell->CastWhileStifled()) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STIFFLED);
-		return false;
-	}
-
-	if (caster->IsFeared() && !spell->CastWhileFeared()) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_FEARED);
-		return false;
-	}
-
-	if (!CheckPower(lua_spell)) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_POWER);
-		return false;
-	}
-
-	if (!CheckHP(lua_spell)) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_HEALTH);
-		return false;
-	}
-
-	if (!CheckSavagery(lua_spell)) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_SAVAGERY);
-		return false;
-	}
-
-	if (!CheckDissonance(lua_spell)) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_DISSONANCE);
-		return false;
-	}
-
-	if (!CheckConcentration(lua_spell)) {
-		zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_CONC);
-		return false;
-	}
-
-	if (spell->MustBeStealthed() && !caster->IsStealthed()) {
-		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be sneaking to use this ability.");
-		return false;
-	}
-
-	if (spell->GetSpellData()->max_aoe_targets == 0) {
-		Spawn* target = caster->GetZone()->GetSpawnByID(lua_spell->initial_target);
-
-		if (target_type != SPELL_TARGET_SELF && target_type != SPELL_TARGET_GROUP_AE && target_type != SPELL_TARGET_NONE) {
-			if (!target) {
-				zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
-				return false;
-			}
-
-			if (caster->GetDistance(target) > spell->GetSpellData()->range) {
-				zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_FAR_AWAY);
-				return false;
-			}
-
-			if (caster->GetDistance(target) < spell->GetSpellData()->min_range) {
-				zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_CLOSE);
-				return false;
-			}
-
-			if (target_type == SPELL_TARGET_OTHER) {
-				if (!target->IsEntity()) {
-					zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
 					return false;
 				}
+			}
 
-				if (spell->GetSpellData()->friendly_spell) {
-					if (caster->IsHostile(target)) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_A_FRIEND);
+			if (client && spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_TRADESKILL) {
+				if (client->IsCrafting()) {
+					Tradeskill* tradeskill = nullptr;
+
+					zone->GetTradeskillMgr()->ReadLock(__FUNCTION__, __LINE__);
+
+					tradeskill = zone->GetTradeskillMgr()->GetTradeskill(client);
+
+					if (spell->GetSpellData()->mastery_skill != tradeskill->recipe->GetTechnique()) {
+						zone->GetTradeskillMgr()->ReleaseReadLock(__FUNCTION__, __LINE__);
+
+						// send a message to the client, used chat_relationship to match other tradeskill messages, not sure if it is accurate though
+						client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You are not using %s on this recipe.", master_skill_list.GetSkill(spell->GetSpellData()->mastery_skill)->name.data.c_str());
 						return false;
 					}
+
+					zone->GetTradeskillMgr()->ReleaseReadLock(__FUNCTION__, __LINE__);
 				} else {
-					if (!caster->IsHostile(target)) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
+					zone->SendSpellFailedPacket(client, SPELL_ERROR_ONLY_WHEN_CRAFTING);
+					return false;
+				}
+			}
+
+			if (!IsReady(spell, caster)) {
+				CheckSpellQueue(spell, caster);
+				return false;
+			}
+
+			if ((caster->IsMezzed() && !spell->CastWhileMezzed()) || (caster->IsStunned() && !spell->CastWhileStunned())) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STUNNED);
+				return false;
+			}
+
+			if (caster->IsStifled() && !spell->CastWhileStifled()) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_STIFFLED);
+				return false;
+			}
+
+			if (caster->IsFeared() && !spell->CastWhileFeared()) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_CANNOT_CAST_FEARED);
+				return false;
+			}
+
+			if (!CheckPower(lua_spell)) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_POWER);
+				return false;
+			}
+
+			if (!CheckHP(lua_spell)) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_HEALTH);
+				return false;
+			}
+
+			if (!CheckSavagery(lua_spell)) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_SAVAGERY);
+				return false;
+			}
+
+			if (!CheckDissonance(lua_spell)) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_DISSONANCE);
+				return false;
+			}
+
+			if (!CheckConcentration(lua_spell)) {
+				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_CONC);
+				return false;
+			}
+
+			if (spell->MustBeStealthed() && !caster->IsStealthed()) {
+				if (client) {
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be sneaking to use this ability.");
+				}
+
+				return false;
+			}
+
+			if (spell->GetSpellData()->max_aoe_targets == 0) {
+				Spawn* target = caster->GetZone()->GetSpawnByID(lua_spell->initial_target);
+				int8 target_type = spell->GetSpellData()->target_type;
+
+				if (target_type != SPELL_TARGET_SELF && target_type != SPELL_TARGET_GROUP_AE && target_type != SPELL_TARGET_NONE) {
+					if (!target) {
+						zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
 						return false;
 					}
 
-					if (!target->Alive()) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ALIVE);
+					if (caster->GetDistance(target) > spell->GetSpellData()->range) {
+						zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_FAR_AWAY);
 						return false;
 					}
 
-					if (target->GetInvulnerable()) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_TARGET_INVULNERABLE);
+					if (caster->GetDistance(target) < spell->GetSpellData()->min_range) {
+						zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_CLOSE);
 						return false;
 					}
 
-					if (target->IsPlayer() && caster->IsPlayer() && !static_cast<Player*>(caster)->CanAttackTarget(static_cast<Player*>(target))) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
-						return false;
-					}
+					if (target_type == SPELL_TARGET_OTHER) {
+						if (!target->IsEntity()) {
+							zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
+							return false;
+						}
 
-					if (target->IsPet() && ((NPC*)target)->GetOwner() && ((NPC*)target)->GetOwner() == caster) {
-						zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
-						return false;
-					}
-
-					if (spell->MustBeFlanking() || spell->MustBeBehind()) {
-						bool is_flanking = caster->FlankingTarget(target);
-						bool is_behind = caster->BehindTarget(target);
-
-						if (spell->MustBeFlanking() && spell->MustBeBehind()) {
-							if (!is_flanking && !is_behind) {
-								client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind or flanking your target.");
+						if (spell->GetSpellData()->friendly_spell) {
+							if (caster->IsHostile(target)) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_A_FRIEND);
 								return false;
 							}
-						} else if (spell->MustBeFlanking() && spell->MustBeInFrontOf()) {
-							if (!is_flanking && is_behind) {
-								client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of or flanking your target.");
+						} else {
+							if (!caster->IsHostile(target)) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
 								return false;
 							}
-						} else if (spell->MustBeInFrontOf() && (is_flanking || is_behind)) {
-							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of your target.");
+
+							if (!target->Alive()) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ALIVE);
+								return false;
+							}
+
+							if (target->GetInvulnerable()) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_TARGET_INVULNERABLE);
+								return false;
+							}
+
+							if (target->IsPlayer() && caster->IsPlayer() && !static_cast<Player*>(caster)->CanAttackTarget(static_cast<Player*>(target))) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
+								return false;
+							}
+
+							if (target->IsPet() && ((NPC*)target)->GetOwner() && ((NPC*)target)->GetOwner() == caster) {
+								zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_AN_ENEMY);
+								return false;
+							}
+
+							if (spell->MustBeFlanking() || spell->MustBeBehind()) {
+								bool is_flanking = caster->FlankingTarget(target);
+								bool is_behind = caster->BehindTarget(target);
+
+								if (spell->MustBeFlanking() && spell->MustBeBehind()) {
+									if (!is_flanking && !is_behind) {
+										if (client) {
+											client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind or flanking your target.");
+										}
+
+										return false;
+									}
+								} else if (spell->MustBeFlanking() && spell->MustBeInFrontOf()) {
+									if (!is_flanking && is_behind) {
+										if (client) {
+											client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of or flanking your target.");
+										}
+										return false;
+									}
+								} else if (spell->MustBeInFrontOf() && (is_flanking || is_behind)) {
+									if (client) {
+										client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be in front of your target.");
+									}
+
+									return false;
+								} else if (spell->MustBeFlanking() && !is_flanking) {
+									if (client) {
+										client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be flanking your target.");
+									}
+
+									return false;
+								} else if (spell->MustBeBehind() && !is_behind) {
+									if (client) {
+										client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind your target.");
+									}
+
+									return false;
+								}
+							}
+						}
+					} else if (target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE) {
+						if (target->Alive()) {
+							zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_DEAD);
 							return false;
-						} else if (spell->MustBeFlanking() && !is_flanking) {
-							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be flanking your target.");
-							return false;
-						} else if (spell->MustBeBehind() && !is_behind) {
-							client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You must be behind your target.");
+						}
+						if (target->IsPlayer() && zone->GetClientBySpawn(target)->GetCurrentRez()->active) {
+							zone->SendSpellFailedPacket(client, SPELL_ERROR_ALREADY_CAST);
 							return false;
 						}
 					}
-				}
-			} else if (target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE) {
-				if (target->Alive()) {
-					zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_DEAD);
-					return false;
-				}
-				if (target->IsPlayer() && zone->GetClientBySpawn(target)->GetCurrentRez()->active) {
-					zone->SendSpellFailedPacket(client, SPELL_ERROR_ALREADY_CAST);
+				} else if (target_type == SPELL_TARGET_SELF && harvest_spell && (!target || !target->IsGroundSpawn())) {
+					zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
 					return false;
 				}
 			}
-		} else if (target_type == SPELL_TARGET_SELF && harvest_spell && (!target || !target->IsGroundSpawn())) {
-			zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
-			return false;
 		}
 	}
 
@@ -1108,8 +1130,6 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 	if (spell && caster) {
 		Client* client = nullptr;
 		LuaSpell* lua_spell = nullptr;
-
-		int8 target_type = spell->GetSpellData()->target_type;
 
 		if (lua_interface)
 			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
@@ -1432,199 +1452,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 	if (!passive)
 		SendFinishedCast(spell, client);
-
-
-	/*MutexList<LuaSpell*>::iterator itr = active_spells.begin();
-	bool processedSpell = false;
-	LuaSpell* replace_spell = 0;
-	// Check to see if we already casted this spell and it is in the active_spells list
-	/*while (itr.Next()) {
-		LuaSpell* luaspell = itr.value;
-		// Check to see if this is the same spell by comparing caster, spell id, and spell tier
-		if (luaspell->caster == spell->caster && luaspell->spell->GetSpellID() == spell->spell->GetSpellID() && luaspell->spell->GetSpellTier() == spell->spell->GetSpellTier() && luaspell->targets.size() == spell->targets.size()) {
-			vector<Spawn*>::iterator itr;
-			vector<Spawn*>::iterator itr2;
-			bool all_match = true;
-			// compare the target vector to make sure this is the same spell
-			for (itr = luaspell->targets.begin(); itr != luaspell->targets.end(); itr++) {
-				bool match = false;
-				for (itr2 = spell->targets.begin(); itr2 != spell->targets.end(); itr2++) {
-					if ((*itr) == (*itr2)) {
-						match = true;
-						break;
-					}
-				}
-				if (!match) {
-					all_match = false;
-					break;
-				}
-			}
-			if (all_match) {
-				// set a pointer to replace the spell in the active spell list so we don't have to run this loop again
-				replace_spell = luaspell;
-				// if friendly skip the calling of the lua function as they have already been called for the previous version of this spell
-				if (spell->spell->GetSpellData()->friendly_spell == 1)
-					processedSpell = true;
-
-				break;
-			}
-		}
-	}
-
-
-	if(processedSpell){
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			target = zone->GetSpawnByID(spell->targets[i]);
-			if (!target)
-				continue;
-			if(spell->spell->GetSpellData()->success_message.length() > 0){
-				if(client){
-					string success_message = spell->spell->GetSpellData()->success_message;
-					if(success_message.find("%t") != string::npos)
-						success_message.replace(success_message.find("%t"), 2, target->GetName());
-					client->Message(CHANNEL_COLOR_SPELL, success_message.c_str());
-				}
-			}
-			if(spell->spell->GetSpellData()->effect_message.length() > 0){
-				string effect_message = spell->spell->GetSpellData()->effect_message;
-				if(effect_message.find("%t") < 0xFFFFFFFF)
-					effect_message.replace(effect_message.find("%t"), 2, target->GetName());
-				if (effect_message.find("%c") != string::npos)
-					effect_message.replace(effect_message.find("%c"), 2, spell->caster->GetName());
-				spell->caster->GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_message.c_str(), target, 50);
-			}
-			target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_CASTED_ON, spell->caster, spell->spell->GetName());
-		}
-	}
-	else{
-		if (!passive)
-			SendFinishedCast(spell, client);
-		return false;
-	}
-	if(!spell->resisted && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel)) {
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			target = zone->GetSpawnByID(spell->targets.at(i));
-			if (i == 0 && !spell->spell->GetSpellData()->not_maintained)
-				spell->caster->AddMaintainedSpell(spell);
-			SpellEffects* effect = ((Entity*)target)->GetSpellEffect(spell->spell->GetSpellID());
-			if (effect && effect->tier > spell->spell->GetSpellTier()) {
-				if(client) {
-					spell->caster->GetZone()->SendSpellFailedPacket(client, SPELL_ERROR_TAKE_EFFECT_MOREPOWERFUL);
-					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "The spell did not take hold as the target already has a better spell of this type.");
-				}
-			}
-			else{
-				((Entity*)target)->AddSpellEffect(spell);
-				if(spell->spell->GetSpellData()->det_type > 0)
-					((Entity*)target)->AddDetrimentalSpell(spell);
-			}
-		}
-
-		if (replace_spell) {
-			active_spells.Remove(replace_spell);
-			active_spells.Add(spell);
-		}
-		else {
-			active_spells.Add(spell);
-		}
-
-		if (spell->num_triggers > 0)
-			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->num_triggers, 0);
-		if (spell->damage_remaining > 0)
-			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->damage_remaining, 1);
-
-		spell->caster->GetZone()->TriggerCharSheetTimer();
-	}
-	spell->num_calls = 1;
-	if(!spell->resisted && spell->spell->GetSpellData()->duration1 > 0){
-		spell->timer.Start();
-		if(spell->spell->GetSpellData()->call_frequency > 0)
-			spell->timer.SetTimer(spell->spell->GetSpellData()->call_frequency*100);
-		else
-			spell->timer.SetTimer(spell->spell->GetSpellData()->duration1*100);
-		if (active_spells.count(spell) > 0) {
-			active_spells.Add(spell);
-		}
-	}
-
-	// if the caster is a player and the spell is a tradeskill spell check for a tradeskill event
-	if (client && spell->spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_TRADESKILL)
-		client->GetCurrentZone()->GetTradeskillMgr()->CheckTradeskillEvent(client, spell->spell->GetSpellData()->icon);
-
-	if (spell->spell->GetSpellData()->friendly_spell && zone->GetSpawnByID(spell->initial_target))
-		spell->caster->CheckProcs(PROC_TYPE_BENEFICIAL, zone->GetSpawnByID(spell->initial_target));
-
-	/*
-	// Check HO's
-	if (client) {
-		MSoloHO.writelock(__FUNCTION__, __LINE__);
-		MGroupHO.writelock(__FUNCTION__, __LINE__);
-		if (m_soloHO.count(client) > 0) {
-			bool match = false;
-			LogWrite(SPELL__ERROR, 0, "HO", "target = %u", m_soloHO[client]->GetTarget());
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int8 i = 0; i < spell->targets.size(); i++) {
-				LogWrite(SPELL__ERROR, 0, "HO", "%u", spell->targets.at(i));
-				if (spell->targets.at(i) == m_soloHO[client]->GetTarget()) {
-					match = true;
-					LogWrite(SPELL__ERROR, 0, "HO", "match found");
-					break;
-				}
-			}
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-			if (match && m_soloHO[client]->UpdateHeroicOP(spell->spell->GetSpellIconHeroicOp())) {
-				ClientPacketFunctions::SendHeroicOPUpdate(client, m_soloHO[client]);
-				if (m_soloHO[client]->GetComplete() > 0) {
-					Spell* ho_spell = master_spell_list.GetSpell(m_soloHO[client]->GetWheel()->spell_id, 1);
-					if (ho_spell)
-						client->GetCurrentZone()->ProcessSpell(ho_spell, client->GetPlayer(), spell->caster->GetZone()->GetSpawnByID(m_soloHO[client]->GetTarget()));
-					else
-						LogWrite(SPELL__ERROR, 0, "HO", "Invalid spell for a HO, spell id = %u", m_soloHO[client]->GetWheel()->spell_id);
-
-					safe_delete(m_soloHO[client]);
-					m_soloHO.erase(client);
-				}
-			}
-		}
-		else if (client->GetPlayer()->GetGroupMemberInfo() && m_groupHO.count(client->GetPlayer()->GetGroupMemberInfo()->group_id)) {
-			int32 group_id = client->GetPlayer()->GetGroupMemberInfo()->group_id;
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			if (spell->targets.at(0) == m_groupHO[group_id]->GetTarget() && m_groupHO[group_id]->UpdateHeroicOP(spell->spell->GetSpellIconHeroicOp())) {
-				spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-
-				world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
-				deque<GroupMemberInfo*>::iterator itr;
-				deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(group_id);
-				for (itr = members->begin(); itr != members->end(); itr++) {
-					if ((*itr)->client)
-						ClientPacketFunctions::SendHeroicOPUpdate((*itr)->client, m_groupHO[group_id]);
-				}
-				world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
-
-				if (m_groupHO[group_id]->GetComplete() > 0) {
-					Spell* ho_spell = master_spell_list.GetSpell(m_groupHO[group_id]->GetWheel()->spell_id, 1);
-					if (ho_spell)
-						client->GetCurrentZone()->ProcessSpell(ho_spell, client->GetPlayer(), spell->caster->GetZone()->GetSpawnByID(spell->targets.at(0)));
-					else
-						LogWrite(SPELL__ERROR, 0, "HO", "Invalid spell for a HO, spell id = %u", m_groupHO[group_id]->GetWheel()->spell_id);
-
-					safe_delete(m_groupHO[group_id]);
-					m_groupHO.erase(group_id);
-				}
-			}
-			else
-				spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-		}
-		MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
-		MSoloHO.releasewritelock(__FUNCTION__, __LINE__);
-	}
-	
-
-	if (spell->spell->GetSpellData()->friendly_spell == 1 && spell->initial_target)
-		spell->caster->CheckProcs(PROC_TYPE_BENEFICIAL, spell->caster->GetZone()->GetSpawnByID(spell->initial_target));
-
-	if (!passive)
-		SendFinishedCast(spell, client);*/
 
 	return true;
 }
@@ -2070,8 +1897,10 @@ void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 		}
 		luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	if (luaspell->targets.size() > 20)
+
+	if (luaspell && luaspell->targets.size() > 20) {
 		LogWrite(SPELL__DEBUG, 0, "Spell", "Warning in  SpellProcess::GetSpellTargetsTrueAOE Size of targets array is %u", luaspell->targets.size());
+	}
 }
 
 void SpellProcess::AddSpellScriptTimer(SpellScriptTimer* timer) {

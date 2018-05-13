@@ -3146,39 +3146,6 @@ void ZoneServer::SendSpawn(Spawn* spawn, Client* client){
 
 	if(outapp)
 		client->QueuePacket(outapp);
-	/*
-	vis flags:
-	2 = show icon
-	4 = targetable
-	16 = show name
-	32 = show level/border
-	activity_status:
-	4 - linkdead
-	8 - camping
-	16 - LFG
-	32 - LFW
-	2048 - mentoring
-	4096 - displays shield
-	8192 - immunity gained
-	16384 - immunity remaining
-	attackable_status
-	1 - no_hp_bar
-	4 - not attackable
-	npc_con
-	-4 = scowls
-	-3 = threatening
-	-2 = dubiously
-	-1 = apprehensively
-	0 = indifferent
-	1 = amiably
-	2 = kindly
-	3 = warmly
-	4 = ally
-	quest_flag
-	1 = new quest
-	2 = update and new quest
-	3 = update
-	*/
 }
 
 Client*	ZoneServer::GetClientBySpawn(Spawn* spawn){
