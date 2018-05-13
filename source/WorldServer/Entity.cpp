@@ -1870,7 +1870,7 @@ void Entity::AddStealthSpell(LuaSpell* spell) {
 		control_effects[CONTROL_EFFECT_TYPE_STEALTH] = new MutexList<LuaSpell*>;
 
 	control_effects[CONTROL_EFFECT_TYPE_STEALTH]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_STEALTH]->size(true) == 1){
+	if (control_effects[CONTROL_EFFECT_TYPE_STEALTH]->size(true) > 0) {
 		info_changed = true;
 		changed = true;
 
@@ -1893,7 +1893,7 @@ void Entity::AddInvisSpell(LuaSpell* spell) {
 		control_effects[CONTROL_EFFECT_TYPE_INVIS] = new MutexList<LuaSpell*>;
 
 	control_effects[CONTROL_EFFECT_TYPE_INVIS]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_INVIS]->size(true) == 1){
+	if (control_effects[CONTROL_EFFECT_TYPE_INVIS]->size(true) > 0) {
 		info_changed = true;
 		changed = true;
 
