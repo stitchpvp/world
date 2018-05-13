@@ -1989,14 +1989,17 @@ void SpellProcess::RemoveTargetFromSpell(LuaSpell* spell, Spawn* target){
 }
 
 void SpellProcess::CheckRemoveTargetFromSpell() {
-	if (remove_target_list.size() > 0) {
-		MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
+	map<LuaSpell*, vector<Spawn*>> to_remove;
 
+	MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
+	if (remove_target_list.size() > 0) {
 		for (auto& kv : remove_target_list) {
 			auto spell = kv.first;
 			auto targets = kv.second;
-			auto should_delete = false;
-			vector<Spawn*> to_remove;
+			
+			if (to_remove.count(spell) == 0) {
+				to_remove[spell];
+			}
 
 			for (const auto& target : *targets) {
 				if (target) {
@@ -2007,42 +2010,13 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
 
 						if (target->GetID() == spell_target) {
 							spell->targets.erase(spell_itr);
-							to_remove.push_back(target);
+							to_remove[spell].push_back(target);
 
 							break;
 						}
 					}
 
-					if (spell->targets.size() == 0)
-						should_delete = true;
-
 					spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
-				}
-			}
-
-			for (const auto target : to_remove) {
-				lua_interface->RemoveSpell(spell, target, true, should_delete);
-
-				if (target->IsEntity()) {
-					static_cast<Entity*>(target)->RemoveSpellEffect(spell);
-					static_cast<Entity*>(target)->RemoveEffectsFromLuaSpell(spell);
-
-					if (spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel)) {
-						static_cast<Entity*>(target)->RemoveDetrimentalSpell(spell);
-					}
-
-					if (target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0) {
-						auto client = target->GetZone()->GetClientBySpawn(target);
-
-						if (client) {
-							auto fade_message = spell->spell->GetSpellData()->fade_message;
-
-							if (fade_message.find("%t") != string::npos)
-								fade_message.replace(fade_message.find("%t"), 2, target->GetName());
-
-							client->Message(CHANNEL_COLOR_SPELL_FADE, fade_message.c_str());
-						}
-					}
 				}
 			}
 
@@ -2053,9 +2027,44 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
 		}
 
 		remove_target_list.clear();
-
-		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
 	}
+	MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+
+	for (const auto& kv : to_remove) {
+		auto spell = kv.first;
+		auto targets = kv.second;
+
+		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+		bool should_delete = (spell->targets.size() == 0);
+		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+
+		for (auto target : targets) {
+			lua_interface->RemoveSpell(spell, target, true, should_delete);
+
+			if (target->IsEntity()) {
+				static_cast<Entity*>(target)->RemoveSpellEffect(spell);
+				static_cast<Entity*>(target)->RemoveEffectsFromLuaSpell(spell);
+
+				if (spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel)) {
+					static_cast<Entity*>(target)->RemoveDetrimentalSpell(spell);
+				}
+
+				if (target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0) {
+					auto client = target->GetZone()->GetClientBySpawn(target);
+
+					if (client) {
+						auto fade_message = spell->spell->GetSpellData()->fade_message;
+
+						if (fade_message.find("%t") != string::npos)
+							fade_message.replace(fade_message.find("%t"), 2, target->GetName());
+
+						client->Message(CHANNEL_COLOR_SPELL_FADE, fade_message.c_str());
+					}
+				}
+			}
+		}
+	}
+
 }
 
 bool SpellProcess::AddHO(Client* client, HeroicOP* ho) {
