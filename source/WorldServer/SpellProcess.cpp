@@ -123,7 +123,7 @@ void SpellProcess::Process(){
 	CheckSpellScriptTimers();
 
 	{
-		lock_guard<mutex> guard(active_spells_mutex);
+		unique_lock<mutex> guard(active_spells_mutex);
 
 		if (active_spells.size() > 0) {	
 			auto spell_itr = begin(active_spells);
@@ -146,10 +146,13 @@ void SpellProcess::Process(){
 							for (int32 i = 0; i < spell->targets.size(); i++) {
 								Spawn* target = zone->GetSpawnByID(spell->targets[i]);
 
+								guard.unlock();
 								if (!ProcessSpell(spell, target, false)) {
+									guard.lock();
 									spell_itr = active_spells.erase(spell_itr);
 									break;
 								}
+								guard.lock();
 							}
 						}
 						spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
