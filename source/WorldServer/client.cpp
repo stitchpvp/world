@@ -793,7 +793,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				// test the original location of Version for clients older than 1212
 				version = request->getType_int16_ByName("version");
 
-				if (EQOpcodeManager.count(GetOpcodeVersion(version)) == 0) {
+				if (version >= 1212 || EQOpcodeManager.count(GetOpcodeVersion(version)) == 0) {
 					// must be new client data version method, re-fetch the packet
 					safe_delete(request);
 					request = configReader.getStruct("LoginByNumRequest", 1212);
