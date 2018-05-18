@@ -386,6 +386,7 @@ public:
 	bool GetOnAutoMount() { return on_auto_mount; }
 
 	bool	client_zoning;
+	bool ready_for_updates;
 
 private:
 	void    SavePlayerImages();

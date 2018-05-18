@@ -1750,10 +1750,12 @@ void ZoneServer::SendSpawnChanges(int32 spawn_id, Client* client, bool override_
 }
 
 void ZoneServer::SendSpawnChanges(Spawn* spawn, Client* client, bool override_changes, bool override_vis_changes){
-	if(client && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && !client->GetPlayer()->WasSpawnRemoved(spawn) && client->GetPlayer()->GetDistance(spawn) <REMOVE_SPAWN_DISTANCE){
+	if (client && client->ready_for_updates && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && !client->GetPlayer()->WasSpawnRemoved(spawn) && client->GetPlayer()->GetDistance(spawn) <REMOVE_SPAWN_DISTANCE) {
 		EQ2Packet* outapp = spawn->spawn_update_packet(client->GetPlayer(), client->GetVersion(), override_changes, override_vis_changes);
-		if(outapp)
+
+		if(outapp) {
 			client->QueuePacket(outapp);
+		}
 	}
 }
 

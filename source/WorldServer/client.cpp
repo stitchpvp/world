@@ -158,6 +158,7 @@ Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug
 	combine_spawn = 0;
 	lua_debug = false;
 	ready_for_spawns = false;
+	ready_for_updates = false;
 	lua_debug_timer.Disable();
 	transport_spawn = 0;
 	MBuyBack.SetName("Client::MBuyBack");
@@ -895,6 +896,10 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				}
 			}
 			safe_delete(request);
+			break;
+		}
+		case OP_SysClient: {
+			ready_for_updates = true;
 			break;
 		}
 		case OP_MapRequest:{
