@@ -87,14 +87,14 @@ extern LoginServer loginserver;
 extern World world;
 extern RuleManager rule_manager;
 
-World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(3600000), player_stats_timer(60000), server_stats_timer(60000), /*remove_grouped_player(30000),*/ guilds_timer(60000), lotto_players_timer(500) {
+World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(3600000), player_stats_timer(60000), server_stats_timer(60000), guilds_timer(60000), players_timer(60000), lotto_players_timer(500) {
 	save_time_timer.Start();
 	time_tick_timer.Start();
 	vitality_timer.Start();
 	player_stats_timer.Start();
 	server_stats_timer.Start();
-	//remove_grouped_player.Start();
 	guilds_timer.Start();
+	players_timer.Start();
 	lotto_players_timer.Start();
 	xp_rate = -1;
 	ts_xp_rate = -1;
@@ -243,25 +243,35 @@ float World::GetTSXPRate()
 }
 
 void World::Process(){
-	if(last_checked_time > Timer::GetCurrentTime2())
+	if (last_checked_time > Timer::GetCurrentTime2())
 		return;
+
 	last_checked_time = Timer::GetCurrentTime2() + 1000;
-	if(save_time_timer.Check())
+
+	if (save_time_timer.Check())
 		database.SaveWorldTime(&world_time);
-	if(time_tick_timer.Check())
+
+	if (time_tick_timer.Check())
 		WorldTimeTick();
-	if(vitality_timer.Check())
+
+	if (vitality_timer.Check())
 		UpdateVitality();
+
 	if (player_stats_timer.Check())
 		WritePlayerStatistics();
+
 	if (server_stats_timer.Check())
 		WriteServerStatistics();
-	/*if(remove_grouped_player.Check())
-		CheckRemoveGroupedPlayer();*/
+
 	if (group_buff_updates.Check())
 		GetGroupManager()->UpdateGroupBuffs();
+
 	if (guilds_timer.Check())
 		SaveGuilds();
+
+	if (players_timer.Check())
+		SavePlayers();
+
 	if (lotto_players_timer.Check())
 		CheckLottoPlayers();
 }
@@ -326,6 +336,16 @@ void ZoneList::UpdateVitality(float amount)
 		tmp = *zone_iter;
 		if(tmp)
 			tmp->UpdateVitality(amount);
+	}
+
+	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
+void ZoneList::SavePlayers() {
+	MZoneList.readlock(__FUNCTION__, __LINE__);
+
+	for (auto zone : zlist) {
+		zone->SaveClients();
 	}
 
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
@@ -1700,6 +1720,11 @@ void World::SaveGuilds() {
 		if (guild->GetRecruitingSaveNeeded())
 			database.SaveGuildRecruiting(guild);
 	}
+}
+
+
+void World::SavePlayers() {
+	zone_list.SavePlayers();
 }
 
 void World::PickRandomLottoDigits(int32* digits) {

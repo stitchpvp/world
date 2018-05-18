@@ -600,6 +600,7 @@ public:
 	Entity* unknown_spawn;
 
 	void	SendSpawn(Spawn* spawn, Client* client);														// moved from private to public for bots
+	void	SaveClients();
 
 private:
 	/* Private Functions */
@@ -625,7 +626,6 @@ private:
 	Spawn*	ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);													// never used outside zone server
 	void	SendCharSheetChanges();																				// never used outside zone server
 	void	SendCharSheetChanges(Client* client);																// never used outside zone server
-	void	SaveClients();																						// never used outside zone server
 	void	CheckSendSpawnToClient();																			// never used outside zone server
 	void	CheckSendSpawnToClient(Client* client, bool initial_login = false);									// never used outside zone server
 	bool	SendRemoveSpawn(Client* client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);	// never used outside zone server
@@ -756,7 +756,6 @@ private:
 	/* Timers */
 	Timer	aggro_timer;
 	Timer	charsheet_changes;
-	Timer	client_save;
 	Timer	location_prox_timer;
 	Timer	location_grid_timer;
 	Timer	movement_timer;

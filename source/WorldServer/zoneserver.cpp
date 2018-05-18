@@ -225,7 +225,6 @@ void ZoneServer::Init()
 
 	/* Dynamic Timers */
 	regenTimer.Start(rule_manager.GetGlobalRule(R_Zone, RegenTimer)->GetInt32());
-	client_save.Start(rule_manager.GetGlobalRule(R_Zone, ClientSaveTimer)->GetInt32());
 	shutdownTimer.Disable();
 	spawn_range.Start(rule_manager.GetGlobalRule(R_Zone, CheckAttackPlayer)->GetInt32());
 	aggro_timer.Start(rule_manager.GetGlobalRule(R_Zone, CheckAttackNPC)->GetInt32());
@@ -1391,10 +1390,6 @@ bool ZoneServer::Process()
 		if (tradeskillMgr)
 			tradeskillMgr->Process();
 		
-		// Client loop
-		if(client_save.Check())
-			SaveClients();
-
 		// Possibility to do a client loop
 		if(weather_enabled && weatherTimer.Check())
 			ProcessWeather();
@@ -1708,11 +1703,11 @@ void ZoneServer::SaveClients(){
 			}));
 		}
 	}
-	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 
 	for_each(workers.begin(), workers.end(), [](thread &t) {
 		t.join();
 	});
+	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
 void ZoneServer::SendSpawnVisualState(Spawn* spawn, int16 type){

@@ -402,6 +402,7 @@ class ZoneList {
 	void ShutDownZones();
 	void ReloadMail();
 	void ReloadSpawns();
+	void SavePlayers();
 
 private:
 	Mutex				MClientList;
@@ -488,6 +489,7 @@ public:
 	void AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity* entity);
 	void CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
 	void SaveGuilds();
+	void SavePlayers();
 	void PickRandomLottoDigits(int32* digits);
 	void AddLottoPlayer(int32 character_id, int32 end_time);
 	void RemoveLottoPlayer(int32 character_id);
@@ -553,8 +555,8 @@ private:
 	Timer vitality_timer;
 	Timer player_stats_timer;
 	Timer server_stats_timer;
-	//Timer remove_grouped_player;
 	Timer guilds_timer;
+	Timer players_timer;
 	Timer lotto_players_timer;
 	Timer group_buff_updates;
 
