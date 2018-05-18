@@ -466,9 +466,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 			if (target) {
 				RemoveTargetFromSpell(spell, target);
 
-				if (target == spell->caster) {
-					ret = true;
-				}
+				ret = true;
 			}
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
@@ -1548,6 +1546,11 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 
 				if (spell->caster == spawn && spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
 					spell->caster = spell->caster->GetZone()->unknown_spawn;
+					continue;
+				}
+
+				if (spell->caster == spawn) {
+					DeleteCasterSpell(spell);
 					continue;
 				}
 

@@ -3924,16 +3924,10 @@ void Commands::Command_CancelMaintained(Client* client, Seperator* sep)
 	{
 		int32 spell_index = atoul(sep->arg[0]);
 		MaintainedEffects mEffects = client->GetPlayer()->GetInfoStruct()->maintained_effects[spell_index];
-		//Spell* spell = master_spell_list.GetSpell(mEffects.spell_id, mEffects.tier);
 
-	//	if (spell && spell->GetSpellData()->friendly_spell)  -- NOTE::You can cancel hostile maintained spells, 
-		                                                     // just not spelleffects/dets - Foof
-		//{
-			if (!client->GetPlayer()->GetZone()->GetSpellProcess()->DeleteCasterSpell(mEffects.spell))
-				client->Message(CHANNEL_COLOR_RED, "The maintained spell could not be cancelled.");
-	//	}
-		//else
-			//client->Message(CHANNEL_COLOR_RED, "You can only cancel friendly spells!");
+		if (!client->GetPlayer()->GetZone()->GetSpellProcess()->DeleteCasterSpell(mEffects.spell)) {
+			client->Message(CHANNEL_COLOR_RED, "The maintained spell could not be cancelled.");
+		}
 	}
 }
 
