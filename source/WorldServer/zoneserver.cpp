@@ -2915,28 +2915,21 @@ void ZoneServer::RemoveClient(Client* client)
 void ZoneServer::RemoveClientImmediately(Client* client) {
 	Guild *guild;
 
-	if(client) 
-	{
+	if (client) {
 		loginserver.SendImmediateEquipmentUpdatesForChar(client->GetPlayer()->GetCharacterID());
-		if(connected_clients.count(client) > 0)
-		{
+
+		if (connected_clients.count(client) > 0) {
 			if (!client->IsZoning() && (guild = client->GetPlayer()->GetGuild()))
 				guild->GuildMemberLogoff(client->GetPlayer());
 
-			MClientList.writelock(__FUNCTION__, __LINE__);
-			clients.erase(find(clients.begin(), clients.end(), client));
-			MClientList.releasewritelock(__FUNCTION__, __LINE__);
-			//clients.Remove(client);
-			LogWrite(ZONE__INFO, 0, "Zone", "Removing connection for client '%s'.", client->GetPlayer()->GetName());
 			connected_clients.Remove(client, true);
+
+			LogWrite(ZONE__INFO, 0, "Zone", "Removing connection for client '%s'.", client->GetPlayer()->GetName());
 		}
-		else
-		{
-			MClientList.writelock(__FUNCTION__, __LINE__);
-			clients.erase(find(clients.begin(), clients.end(), client));
-			MClientList.releasewritelock(__FUNCTION__, __LINE__);
-			//clients.Remove(client, true);
-		}
+
+		MClientList.writelock(__FUNCTION__, __LINE__);
+		clients.erase(remove(clients.begin(), clients.end(), client), clients.end());
+		MClientList.releasewritelock(__FUNCTION__, __LINE__);
 
 		LogWrite(MISC__TODO, 1, "TODO", "Put Player Online Status updates in a timer eventually\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 		database.ToggleCharacterOnline(client, 0);
