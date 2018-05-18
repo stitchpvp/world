@@ -76,6 +76,7 @@ extern int errno;
 #include "Tradeskills/Tradeskills.h"
 #include "RaceTypes/RaceTypes.h"
 #include <algorithm>
+#include <thread>
 #include "PVP.h"
 
 #include "Zone/SPGrid.h"
@@ -1697,17 +1698,21 @@ void ZoneServer::SaveClient(Client* client){
 }
 
 void ZoneServer::SaveClients(){
-	vector<Client*>::iterator itr;
-	Client* client = 0;
+	vector<thread> workers;
 
 	MClientList.readlock(__FUNCTION__, __LINE__);
-	for (itr = clients.begin(); itr != clients.end(); itr++) {
-		client = *itr;
+	for (auto client : clients) {
 		if(client->IsConnected()){
-			SaveClient(client);	
+			workers.push_back(thread([&]() {
+				SaveClient(client);
+			}));
 		}
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
+
+	for_each(workers.begin(), workers.end(), [](thread &t) {
+		t.join();
+	});
 }
 
 void ZoneServer::SendSpawnVisualState(Spawn* spawn, int16 type){
