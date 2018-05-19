@@ -7560,20 +7560,28 @@ void Client::SendTitleUpdate(){
 }
 
 void Client::SendUpdateTitles(sint16 prefix, sint16 suffix){
-	Title* suffix_title = 0;
-	Title* prefix_title = 0;
-	if (suffix != -1){
+	Title* suffix_title = nullptr;
+	Title* prefix_title = nullptr;
+
+	if (suffix != -1) {
 		suffix_title = player->GetPlayerTitles()->GetTitle(suffix);
-		strcpy(player->appearance.suffix_title, suffix_title->GetName());
-	}
-	else
+
+		if (suffix_title) {
+			strcpy(player->appearance.suffix_title, suffix_title->GetName());
+		}
+	} else {
 		memset(player->appearance.suffix_title, 0, strlen(player->appearance.suffix_title));
-	if (prefix != -1){
-		prefix_title = player->GetPlayerTitles()->GetTitle(prefix);
-		strcpy(player->appearance.prefix_title, prefix_title->GetName());
 	}
-	else
+
+	if (prefix != -1) {
+		prefix_title = player->GetPlayerTitles()->GetTitle(prefix);
+
+		if (prefix_title) {
+			strcpy(player->appearance.prefix_title, prefix_title->GetName());
+		}
+	} else {
 		memset(player->appearance.prefix_title, 0, strlen(player->appearance.prefix_title));
+	}
 
 	current_zone->SendUpdateTitles(this, suffix_title, prefix_title);
 }
