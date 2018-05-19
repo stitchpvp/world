@@ -2315,79 +2315,44 @@ void ZoneServer::ProcessSpawnLocations()
 
 void ZoneServer::AddLoot(NPC* npc){
 	vector<int32> loot_tables = GetSpawnLootList(npc->GetDatabaseID(), GetZoneID(), npc->GetLevel(), race_types_list.GetRaceType(npc->GetModelType()));
-	if(loot_tables.size() > 0){
-		vector<LootDrop*>* loot_drops = 0;
-		vector<LootDrop*>::iterator loot_drop_itr;
-		LootTable* table = 0;
-		vector<int32>::iterator loot_list_itr;
-		float chancecoin = 0;
-		float chancetable = 0;
-		float chancedrop = 0;
-		float chancetally = 0;
-		float droptally = 0;
-		// the following loop,loops through each table
-		for(loot_list_itr = loot_tables.begin(); loot_list_itr != loot_tables.end(); loot_list_itr++){
-			table = GetLootTable(*loot_list_itr);
-			if(table && table->maxcoin > 0){
-				chancecoin = rand()%100;
-				if(table->coin_probability >= chancecoin){
-					if(table->maxcoin > table->mincoin)
-						npc->AddLootCoins(table->mincoin + rand()%(table->maxcoin - table->mincoin));
+
+	for (auto table_id : loot_tables) {
+		auto table = GetLootTable(table_id);
+
+		if (table) {
+			if (table->maxcoin > 0) {
+				float roll = rand() % 100 + 1;
+
+				if (table->coin_probability >= roll) {
+					if (table->maxcoin > table->mincoin) {
+						npc->AddLootCoins(table->mincoin + rand() % (table->maxcoin - table->mincoin));
+					}
 				}
 			}
-			int numberchances = 1;
 
-			//if (table->lootdrop_probability == 100){			}
-		//else
-			//chancetally += table->lootdrop_probability;
-			int maxchance = 0;
-			if (table) {
-				maxchance = table->maxlootitems;
-				for (numberchances; numberchances <= maxchance; numberchances++) {
-				chancetable = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
-				//LogWrite(PLAYER__DEBUG, 0, "Player", "Table Chance: '%f'", chancetable);
-				float droppercenttotal = 0;
-			//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-					if (table->lootdrop_probability == 100 || table->lootdrop_probability >= chancetable) {
+			float roll = rand() % 100 + 1;
 
-					//LogWrite(PLAYER__DEBUG, 0, "Player", "Probability:%f  Table Chance: '%f'", table->lootdrop_probability, chancetable);
-				loot_drops = GetLootDrops(*loot_list_itr);
-						if (loot_drops) {
-					LootDrop* drop = 0;
-					int16 count = 0;
-					int16 IC = 0;
-							for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++) {
-						drop = *loot_drop_itr;
-						droppercenttotal += drop->probability;
-					}
-					int droplistsize = loot_drops->size();
-					float chancedroptally = 0;
-					chancedrop = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
-							for (loot_drop_itr = loot_drops->begin(); loot_drop_itr != loot_drops->end(); loot_drop_itr++) {
-						drop = *loot_drop_itr;
-						if (droppercenttotal >= 100)
-							droppercenttotal = 100;
-						chancedroptally += 100 / droppercenttotal * drop->probability;
-						//chancedrop = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 100));
-						//LogWrite(PLAYER__DEBUG, 0, "Player", "Loot drop: '%i'     Chance: %f    Prob tally:  %f  min: %f", drop, chancedrop, chancedroptally, chancedroptally - drop->probability);
-								if ((chancedroptally == 100) || ((chancedroptally >= chancedrop) && (chancedroptally - (100 / droppercenttotal * drop->probability)) <= chancedrop)) {
+			if (table->lootdrop_probability >= roll) {
+				auto drops = GetLootDrops(table_id);
+				auto max_items = table->maxlootitems;
+				auto current_items = 0;
 
-							//LogWrite(PLAYER__DEBUG, 0, "Player", "Loot drop: '%i'     Chance: %f    Prob:  %f  We have a loot drop winner", drop, chancedrop, chancedroptally);
-							count++;
+				if (drops) {
+					for (auto drop : *drops) {
+						float loot_roll = rand() % 100 + 1;
+
+						if (drop->probability >= loot_roll) {
 							npc->AddLootItem(drop->item_id, drop->item_charges);
-							//LogWrite(PLAYER__DEBUG, 0, "Player", "loot Count: '%i'",count);
-							//LogWrite(MISC__TODO, 1, "TODO", "Auto-Equip new looted items\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
-							//if(drop->equip_item) 
-
+							++current_items;
 						}
-						if (table->maxlootitems > 0 && count >= table->maxlootitems)
+
+						if (current_items >= max_items) {
 							break;
+						}
 					}
 				}
-			}
 			}
 		}
-	}
 	}
 }
 

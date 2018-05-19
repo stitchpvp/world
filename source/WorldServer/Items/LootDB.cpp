@@ -56,7 +56,7 @@ void WorldDatabase::LoadLoot(ZoneServer* zone)
 	}
 	
 	// Now, load Loot Drops for configured loot tables
-	if (database_new.Select(&result, "SELECT loot_table_id, item_id, item_charges, equip_item, probability FROM lootdrop")) {
+	if (database_new.Select(&result, "SELECT loot_table_id, item_id, item_charges, equip_item, probability FROM lootdrop ORDER BY probability DESC")) {
 		count = 0;
 		LogWrite(LOOT__DEBUG, 0, "Loot", "--Loading LootDrops...");
 		LootDrop* drop = 0;
