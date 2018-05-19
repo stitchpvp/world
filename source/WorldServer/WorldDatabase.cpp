@@ -1013,14 +1013,6 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 		npc->SetTotalPower(atoul(row[27]));
 		npc->SetHP(npc->GetTotalHP());
 		npc->SetPower(npc->GetTotalPower());
-		if(npc->GetTotalHP() == 0){
-			npc->SetTotalHP(15*npc->GetLevel() + 1);
-			npc->SetHP(15*npc->GetLevel() + 1);
-		}
-		if(npc->GetTotalPower() == 0){
-			npc->SetTotalPower(15*npc->GetLevel() + 1);
-			npc->SetPower(15*npc->GetLevel() + 1);
-		}
 		npc->size = atoi(row[28]);
 		npc->appearance.pos.collision_radius = atoi(row[29]);
 		npc->appearance.action_state = atoi(row[30]);
@@ -1064,6 +1056,26 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 		npc->SetAggroRadius(atof(row[59]));
 		npc->SetCastPercentage(atoi(row[60]));
 		npc->appearance.heroic_flag = atoi(row[63]);
+
+		float multiplier = 1;
+
+		if (npc->appearance.encounter_level > 6) {
+			multiplier = (npc->appearance.encounter_level - 6) * 2;
+		} else {
+			multiplier = (npc->appearance.encounter_level / 6.0);
+		}
+
+		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 4 : 1);
+
+		if (npc->GetTotalHP() == 0) {
+			npc->SetTotalHP(50 * npc->GetLevel() * multiplier);
+			npc->SetHP(50 * npc->GetLevel() * multiplier);
+		}
+
+		if (npc->GetTotalPower() == 0) {
+			npc->SetTotalPower(50 * npc->GetLevel() * multiplier);
+			npc->SetPower(50 * npc->GetLevel() * multiplier);
+		}
 
 		info->elemental_base = atoi(row[65]);
 		info->arcane_base = atoi(row[66]);
@@ -6176,18 +6188,12 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 		npc->appearance.display_hand_icon = result.GetInt8(25);
 		npc->appearance.hide_hood = result.GetInt8(70);
 		npc->appearance.randomize = result.GetInt32(61);
+
 		npc->SetTotalHP(result.GetInt32(26));
 		npc->SetTotalPower(result.GetInt32(27));
 		npc->SetHP(npc->GetTotalHP());
 		npc->SetPower(npc->GetTotalPower());
-		if(npc->GetTotalHP() == 0){
-			npc->SetTotalHP(15*npc->GetLevel() + 1);
-			npc->SetHP(15*npc->GetLevel() + 1);
-		}
-		if(npc->GetTotalPower() == 0){
-			npc->SetTotalPower(15*npc->GetLevel() + 1);
-			npc->SetPower(15*npc->GetLevel() + 1);
-		}
+
 		npc->size = result.GetInt16(28);
 		npc->appearance.pos.collision_radius = result.GetInt16(29);
 		npc->appearance.action_state = result.GetInt16(30);
@@ -6231,6 +6237,26 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 		npc->SetAggroRadius(result.GetFloat(59));
 		npc->SetCastPercentage(result.GetInt8(60));
 		npc->appearance.heroic_flag = result.GetInt8(63);
+
+		float multiplier = 1;
+
+		if (npc->appearance.encounter_level > 6) {
+			multiplier = (npc->appearance.encounter_level - 6) * 2;
+		} else {
+			multiplier = (npc->appearance.encounter_level / 6.0);
+		}
+
+		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 4 : 1);
+
+		if (npc->GetTotalHP() == 0) {
+			npc->SetTotalHP(50 * npc->GetLevel() * multiplier);
+			npc->SetHP(50 * npc->GetLevel() * multiplier);
+		}
+
+		if (npc->GetTotalPower() == 0) {
+			npc->SetTotalPower(50 * npc->GetLevel() * multiplier);
+			npc->SetPower(50 * npc->GetLevel() * multiplier);
+		}
 
 		info->elemental_base = result.GetInt16(65);
 		info->arcane_base = result.GetInt16(66);

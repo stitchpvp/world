@@ -314,7 +314,7 @@ void Entity::ChangePrimaryWeapon(){
 			if (IsPet()) {
 				reducer = 6.0;
 			} else {
-				reducer = 2.5;
+				reducer = 2.5 - (appearance.heroic_flag * 0.25);
 			}
 		}
 
@@ -325,7 +325,7 @@ void Entity::ChangePrimaryWeapon(){
 			melee_combat_data.primary_weapon_type = ((NPC*)this)->GetAttackType();
 
 			if (GetEncounterLevel() > 6) {
-				melee_combat_data.primary_weapon_damage_high *= (GetEncounterLevel() - 3) / 2.7;
+				melee_combat_data.primary_weapon_damage_high *= (GetEncounterLevel() - 4) / 1.8;
 			} else if (GetEncounterLevel() <= 6) {
 				melee_combat_data.primary_weapon_damage_high *= GetEncounterLevel() / 6.0;
 			}
@@ -359,7 +359,7 @@ void Entity::ChangeSecondaryWeapon(){
 			if (IsPet()) {
 				reducer = 6.0;
 			} else {
-				reducer = 2.5;
+				reducer = 2.5 - (appearance.heroic_flag * 0.25);
 			}
 		}
 
@@ -369,7 +369,7 @@ void Entity::ChangeSecondaryWeapon(){
 
 		if (IsNPC()) {
 			if (GetEncounterLevel() > 6) {
-				melee_combat_data.secondary_weapon_damage_high *= (GetEncounterLevel() - 3) / 2.7;
+				melee_combat_data.secondary_weapon_damage_high *= (GetEncounterLevel() - 4) / 2.3;
 			} else if (GetEncounterLevel() <= 6) {
 				melee_combat_data.secondary_weapon_damage_high *= GetEncounterLevel() / 6.0;
 			}
