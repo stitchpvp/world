@@ -6688,9 +6688,6 @@ int EQ2Emu_lua_SetSpeeedMultiplier(lua_State* state) {
 	Spawn* target = lua_interface->GetSpawn(state);
 	float val = lua_interface->GetFloatValue(state, 2);
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	// Added from Gangrenous post
-	if (spell && spell->resisted)
-		return 0;
 
 	if (spell && spell->spell && spell->targets.size() > 0) {
 		ZoneServer* zone = spell->caster->GetZone();

@@ -5112,20 +5112,23 @@ void ZoneServer::CheckLocationProximity() {
 										total_diff += diff;
 										if(total_diff <= max_variation) {
 											in_range = true;
-											if(lua_interface && prox->in_range_lua_function.length() > 0 && prox->clients_in_proximity.count(client) == 0) { //Check Total
-												prox->clients_in_proximity[client] = true;
+
+											if (lua_interface && prox->in_range_lua_function.length() > 0 && prox->clients_in_proximity.count(client) == 0) { //Check Total
 												lua_interface->RunZoneScript(zone_script, prox->in_range_lua_function.c_str(), this, client->GetPlayer());
 											}
+
+											prox->clients_in_proximity[client] = true;
 										}
 									}
 								}
 							}
 						}
 						if (!in_range) {
-							if(lua_interface && prox->leaving_range_lua_function.length() > 0 && prox->clients_in_proximity.count(client) > 0) {
+							if (lua_interface && prox->leaving_range_lua_function.length() > 0 && prox->clients_in_proximity.count(client) > 0) {
 								lua_interface->RunZoneScript(zone_script, prox->leaving_range_lua_function.c_str(), this, client->GetPlayer());
-								prox->clients_in_proximity.erase(client);
 							}
+
+							prox->clients_in_proximity.erase(client);
 						}
 					}
 				}
