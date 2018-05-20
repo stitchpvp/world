@@ -1056,6 +1056,9 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 		npc->SetAggroRadius(atof(row[59]));
 		npc->SetCastPercentage(atoi(row[60]));
 		npc->appearance.heroic_flag = atoi(row[63]);
+		info->elemental_base = atoi(row[65]);
+		info->arcane_base = atoi(row[66]);
+		info->noxious_base = atoi(row[67]);
 
 		float multiplier = 1;
 
@@ -1077,9 +1080,50 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 			npc->SetPower(50 * npc->GetLevel() * multiplier);
 		}
 
-		info->elemental_base = atoi(row[65]);
-		info->arcane_base = atoi(row[66]);
-		info->noxious_base = atoi(row[67]);
+		if (info->mitigation_base == 0) {
+			info->mitigation_base = npc->GetMitigationForPercentage(npc->GetLevel(), min(20 + (npc->appearance.heroic_flag * 5), 50));
+		}
+
+		if (info->heat_base == 0) {
+			info->heat_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->cold_base == 0) {
+			info->cold_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->magic_base == 0) {
+			info->magic_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->mental_base == 0) {
+			info->mental_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->divine_base == 0) {
+			info->divine_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->disease_base == 0) {
+			info->disease_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->poison_base == 0) {
+			info->poison_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->elemental_base == 0) {
+			info->elemental_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->arcane_base == 0) {
+			info->arcane_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->noxious_base == 0) {
+			info->noxious_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
 		npc->SetTotalSavagery(atoul(row[68]));
 		npc->SetTotalDissonance(atoul(row[69]));
 		npc->SetSavagery(npc->GetTotalSavagery());
@@ -6237,6 +6281,9 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 		npc->SetAggroRadius(result.GetFloat(59));
 		npc->SetCastPercentage(result.GetInt8(60));
 		npc->appearance.heroic_flag = result.GetInt8(63);
+		info->elemental_base = result.GetInt16(65);
+		info->arcane_base = result.GetInt16(66);
+		info->noxious_base = result.GetInt16(67);
 
 		float multiplier = 1;
 
@@ -6258,9 +6305,50 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 			npc->SetPower(50 * npc->GetLevel() * multiplier);
 		}
 
-		info->elemental_base = result.GetInt16(65);
-		info->arcane_base = result.GetInt16(66);
-		info->noxious_base = result.GetInt16(67);
+		if (info->mitigation_base == 0) {
+			info->mitigation_base = npc->GetMitigationForPercentage(npc->GetLevel(), min(20 + (npc->appearance.heroic_flag * 5), 50));
+		}
+
+		if (info->heat_base == 0) {
+			info->heat_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->cold_base == 0) {
+			info->cold_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->magic_base == 0) {
+			info->magic_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->mental_base == 0) {
+			info->mental_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->divine_base == 0) {
+			info->divine_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->disease_base == 0) {
+			info->disease_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->poison_base == 0) {
+			info->poison_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->elemental_base == 0) {
+			info->elemental_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->arcane_base == 0) {
+			info->arcane_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
+		if (info->noxious_base == 0) {
+			info->noxious_base = npc->GetLevel() * 16 * (1 + (0.5 * npc->appearance.heroic_flag));
+		}
+
 		npc->SetTotalSavagery(result.GetInt32(68));
 		npc->SetTotalDissonance(result.GetInt32(69));
 		npc->SetSavagery(npc->GetTotalSavagery());

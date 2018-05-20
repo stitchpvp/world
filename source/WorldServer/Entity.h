@@ -835,6 +835,7 @@ public:
 	set<int32> HatedBy;
 
 	float GetMitigationPercentage(int enemy_level) { return info_struct.cur_mitigation / ((40 * enemy_level) + info_struct.cur_mitigation + 200.0); }
+	int GetMitigationForPercentage(int enemy_level, int percentage) { return percentage * (200 + 40 * enemy_level) / (100 - percentage); }
 	float GetSpellMitigationPercentage(int enemy_level, int8 damage_type);
 
 protected:
