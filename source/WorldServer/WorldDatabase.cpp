@@ -1068,7 +1068,7 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 			multiplier = (npc->appearance.encounter_level / 6.0);
 		}
 
-		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 4 : 1);
+		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 2.25 : 1);
 
 		if (npc->GetTotalHP() == 0) {
 			npc->SetTotalHP(50 * npc->GetLevel() * multiplier);
@@ -6293,7 +6293,7 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 			multiplier = (npc->appearance.encounter_level / 6.0);
 		}
 
-		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 4 : 1);
+		multiplier *= (npc->appearance.heroic_flag > 0 ? npc->appearance.heroic_flag * 2.25 : 1);
 
 		if (npc->GetTotalHP() == 0) {
 			npc->SetTotalHP(50 * npc->GetLevel() * multiplier);
