@@ -56,9 +56,7 @@ void Brain::Think() {
 	Entity* target = GetMostHated();
 
 	// If mezzed, stunned or feared we can't do anything so skip
-	if (!m_body->IsMezzedOrStunned() || !m_body->IsFeared()) {
-		// Not mezzed or stunned
-
+	if (!m_body->IsMezzedOrStunned() && !m_body->IsFeared()) {
 		// Get the distance to the runback location
 		float run_back_distance = m_body->GetRunbackDistance();
 
@@ -98,22 +96,19 @@ void Brain::Think() {
 				ClearEncounter();
 				// Remove the spells from the spawn
 				m_body->GetZone()->RemoveSpellTimersFromSpawn(m_body, true, true);
-			}
-			else {
+			} else {
 				// Still within max chase distance lets to the combat stuff now
 				float distance = m_body->GetDistance(target);
 
 				if(!m_body->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 					LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", m_body->GetName(), target->GetName());
 
-					if (!m_body->IsMezzedOrStunned() || !m_body->IsFeared())
-						m_body->FaceTarget(target);
+					m_body->FaceTarget(target);
 
 					ProcessMelee(target, distance);
 				}
 			}
-		}
-		else {
+		} else {
 			// Nothing in the hate list
 
 			// Check to see if the NPC is still flagged as in combat for some reason
@@ -595,7 +590,7 @@ void DumbFirePetBrain::Think() {
 			if(!GetBody()->IsCasting() && (!HasRecovered() || !ProcessSpell(target, distance))) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s is attempting melee on %s.", GetBody()->GetName(), target->GetName());
 
-				if (!m_body->IsMezzedOrStunned() || !m_body->IsFeared())
+				if (!m_body->IsMezzedOrStunned() && !m_body->IsFeared())
 					GetBody()->FaceTarget(target);
 
 				ProcessMelee(target, distance);
