@@ -8203,18 +8203,11 @@ void Commands::Command_Player_Set(Client* client, Seperator* sep) {
 			if (sep->IsNumber(1)) {
 				value = atoi(sep->arg[1]);
 				player->SetAlignment(value);
+				player->info_changed = true;
+				player->vis_changed = true;
+				player->AddChangedZoneSpawn();
+				player->SetResendSpawns(true);
 
-				vector<Entity*> players = player->GetZone()->GetPlayers();
-				vector<Entity*>::iterator itr;
-				for (itr = players.begin(); itr != players.end(); ++itr) {
-					Player* update_player = static_cast<Player*>(*itr);
-
-					if (update_player == player) continue;
-					if (update_player->GetDistance(player) > SEND_SPAWN_DISTANCE) continue;
-
-					update_player->GetZone()->RepopSpawns(update_player->GetZone()->GetClientBySpawn(update_player), player);
-					player->GetZone()->RepopSpawns(player->GetZone()->GetClientBySpawn(player), update_player);
-				}
 				return;
 			}
 		} else if (strncasecmp(attribute, "fame", strlen(attribute)) == 0) {

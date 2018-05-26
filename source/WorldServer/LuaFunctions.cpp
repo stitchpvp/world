@@ -8455,3 +8455,24 @@ int EQ2Emu_lua_SendSkillUpdate(lua_State* state) {
 
 	return 1;
 }
+
+int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	sint8 alignment = static_cast<sint8>(lua_interface->GetInt8Value(state, 2));
+
+	if (!spawn) {
+		lua_interface->LogError("LUA SetPlayerAlignment command error: spawn is not valid");
+		return 0;
+	}
+
+	if (!spawn->IsPlayer()) {
+		lua_interface->LogError("LUA SetPlayerAlignment command error: spawn is not a valid player");
+		return 0;
+	}
+
+	static_cast<Player*>(spawn)->SetAlignment(alignment);
+	static_cast<Player*>(spawn)->SetResendSpawns(true);
+	spawn->info_changed = true;
+	spawn->vis_changed = true;
+	spawn->AddChangedZoneSpawn();
+}

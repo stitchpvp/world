@@ -989,6 +989,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "RemoveSpell", EQ2Emu_lua_RemoveSpell);
 	lua_register(state, "DropChest", EQ2Emu_lua_DropChest);
 	lua_register(state, "SendSkillUpdate", EQ2Emu_lua_SendSkillUpdate);
+	lua_register(state, "SetPlayerAlignment", EQ2Emu_lua_SetPlayerAlignment);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

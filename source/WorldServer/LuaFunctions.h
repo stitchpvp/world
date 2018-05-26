@@ -410,4 +410,5 @@ int EQ2Emu_lua_GetProcPercentageForWeapon(lua_State* state);
 int EQ2Emu_lua_RemoveSpell(lua_State* state);
 int EQ2Emu_lua_DropChest(lua_State* state);
 int EQ2Emu_lua_SendSkillUpdate(lua_State* state);
+int EQ2Emu_lua_SetPlayerAlignment(lua_State* state);
 #endif
