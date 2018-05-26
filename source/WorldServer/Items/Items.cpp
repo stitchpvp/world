@@ -2275,6 +2275,7 @@ const char* Item::GetItemScript(){
 }
 
 int32 Item::CalculateRepairCost() {
+	return 0;
 	if (generic_info.condition == 100)
 		return 0;
 	float repair_cost = (float)generic_info.adventure_default_level * (10.0 - ((float)generic_info.condition * 0.1));

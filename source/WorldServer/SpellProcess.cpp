@@ -1541,15 +1541,20 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			lock_guard<mutex> guard(active_spells_mutex);
 
 			for (auto spell : active_spells) {
-				if (spell->spell->GetSpellData()->persist_though_death && spell->caster->GetZone()->GetClientBySpawn(spell->caster)->IsConnected())
-					continue;
-
-				if (spell->caster == spawn && spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
-					spell->caster = spell->caster->GetZone()->unknown_spawn;
-					continue;
+				if (spell->spell->GetSpellData()->persist_though_death) {
+					auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
+					
+					if (client && client->IsConnected()) {
+						continue;
+					}
 				}
 
 				if (spell->caster == spawn) {
+					if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
+						spell->caster = spell->caster->GetZone()->unknown_spawn;
+						continue;
+					}
+
 					DeleteCasterSpell(spell);
 					continue;
 				}
