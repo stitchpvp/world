@@ -545,6 +545,12 @@ void Entity::DoRegenUpdate(){
 	}
 
 	if (GetPower() < GetTotalPower()) {
+		int16 temp = regen_power_rate;
+
+		if (!EngagedInCombat()) {
+			temp += stats[ITEM_STAT_MANAREGEN];
+		}
+
 		if ((power + regen_power_rate) > GetTotalPower()) {
 			SetPower(GetTotalPower());
 		} else {
