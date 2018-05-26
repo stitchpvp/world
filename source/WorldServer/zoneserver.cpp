@@ -1735,7 +1735,7 @@ void ZoneServer::ResendSpawns(Client* client) {
 
 		while (itr.Next()) {
 			spawn = GetSpawnByID(itr->first);
-			if (spawn && (client->GetPlayer()->GetFactions()->ShouldAttack(spawn->GetFactionID()) || (spawn->IsPlayer() && client->GetPlayer()->IsHostile(spawn)))) {
+			if (spawn && (client->GetPlayer()->GetFactions()->ShouldAttack(spawn->GetFactionID()) || (spawn->IsPlayer() && PVP::IsEnabled()))) {
 				SendSpawnChanges(spawn, client, false, true);
 				Sleep(5);
 			}
