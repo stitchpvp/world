@@ -517,39 +517,39 @@ int16 Entity::GetPowerRegen(){
 }
 
 void Entity::DoRegenUpdate(){
-	if(GetHP() == 0)//dead
+	if (!Alive()) {
 		return;
-	sint32 hp = GetHP();
-	sint32 power = GetPower();
-	int16 level = GetLevel();
+	}
 
 	// No regen for NPC's while in combat
 	// Temp solution for now
 	if (IsNPC() && EngagedInCombat())
 		return;
 
-	if(hp < GetTotalHP()){
-		if(regen_hp_rate == 0)
-			regen_hp_rate = (int)(level*.75)+(int)(level/10) + 1;
-		int16 temp = regen_hp_rate + stats[ITEM_STAT_HPREGEN];
-		if((hp + temp) > GetTotalHP())
+	sint32 hp = GetHP();
+	sint32 power = GetPower();
+	int16 level = GetLevel();
+
+	if (hp < GetTotalHP()) {
+		int16 temp = regen_hp_rate;
+		
+		if (!EngagedInCombat()) {
+			temp += stats[ITEM_STAT_HPREGEN];
+		}
+
+		if ((hp + temp) > GetTotalHP()) {
 			SetHP(GetTotalHP());
-		else
+		} else {
 			SetHP(hp + temp);
-
-		LogWrite(MISC__TODO, 1, "TODO", "Fix this later for mobs\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
-
+		}
 	}
-	if(GetPower() < GetTotalPower()){
-		if(regen_power_rate == 0)
-			regen_power_rate = level + (int)(level/10) + 1;
-		if((power + regen_power_rate) > GetTotalPower())
+
+	if (GetPower() < GetTotalPower()) {
+		if ((power + regen_power_rate) > GetTotalPower()) {
 			SetPower(GetTotalPower());
-		else
+		} else {
 			SetPower(power + regen_power_rate);
-
-		LogWrite(MISC__TODO, 1, "TODO", "Fix this later for mobs\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
-
+		}
 	}
 }
 
