@@ -2456,7 +2456,7 @@ bool Client::Process(bool zone_process) {
 		safe_delete(disconnect_timer);
 		ret = false;
 	}
-	m_resurrect.writelock(__FUNCTION__, __LINE__);
+	/*m_resurrect.writelock(__FUNCTION__, __LINE__);
 	if(current_rez.should_delete || (current_rez.expire_timer && current_rez.expire_timer->Check(false))){
 		if (GetCurrentZone() && GetCurrentZone()->GetSpellProcess() && current_rez.spell)
 			GetCurrentZone()->GetSpellProcess()->DeleteCasterSpell(current_rez.spell, false);
@@ -2479,7 +2479,7 @@ bool Client::Process(bool zone_process) {
 		current_rez.spell_visual = 0;
 		current_rez.subspell = 0;
 	}
-	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
+	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);*/
 
 	GetPlayer()->CheckActivityStatuses();
 
