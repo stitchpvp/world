@@ -172,7 +172,7 @@ Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug
 	pending_guild_invite.invited_by = 0;
 	m_recipeListSent = false;
 	m_resurrect.SetName("Client::m_resurrect");
-	current_rez.expire_timer = 0;
+	current_rez = {};
 	current_rez.should_delete = true;
 	pending_last_name = 0;
 	should_target = false;
@@ -2456,7 +2456,7 @@ bool Client::Process(bool zone_process) {
 		safe_delete(disconnect_timer);
 		ret = false;
 	}
-	/*m_resurrect.writelock(__FUNCTION__, __LINE__);
+	m_resurrect.writelock(__FUNCTION__, __LINE__);
 	if(current_rez.should_delete || (current_rez.expire_timer && current_rez.expire_timer->Check(false))){
 		if (GetCurrentZone() && GetCurrentZone()->GetSpellProcess() && current_rez.spell)
 			GetCurrentZone()->GetSpellProcess()->DeleteCasterSpell(current_rez.spell, false);
@@ -2479,7 +2479,7 @@ bool Client::Process(bool zone_process) {
 		current_rez.spell_visual = 0;
 		current_rez.subspell = 0;
 	}
-	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);*/
+	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
 
 	GetPlayer()->CheckActivityStatuses();
 
