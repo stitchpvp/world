@@ -1678,11 +1678,13 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	if (spawn && spawn->IsEntity()) {
 		if (type == CONTROL_EFFECT_TYPE_MEZ){
 			static_cast<Entity*>(spawn)->AddMezSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ))
 				luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STIFLE){
 			static_cast<Entity*>(spawn)->AddStifleSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE))
 				luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
 		}
@@ -1693,16 +1695,19 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STUN){
 			static_cast<Entity*>(spawn)->AddStunSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN))
 				luaspell->effect_bitmask += EFFECT_FLAG_STUN;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_ROOT){
 			static_cast<Entity*>(spawn)->AddRootSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT))
 				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
 		}
 		else if (type == CONTROL_EFFECT_TYPE_FEAR){
 			static_cast<Entity*>(spawn)->AddFearSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR))
 				luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
 		}
@@ -1745,43 +1750,48 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 }
 
 int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
-	if(!lua_interface)
+	if (!lua_interface)
 		return 0;
 
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int8 type = lua_interface->GetInt8Value(state, 2);
-
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 
 	if (spawn && spawn->IsEntity()) {
-
-		if (type == CONTROL_EFFECT_TYPE_MEZ)
+		if (type == CONTROL_EFFECT_TYPE_MEZ) {
 			static_cast<Entity*>(spawn)->RemoveMezSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_STIFLE)
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
 			static_cast<Entity*>(spawn)->RemoveStifleSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_DAZE)
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_DAZE) {
 			static_cast<Entity*>(spawn)->RemoveDazeSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_STUN)
+		} else if (type == CONTROL_EFFECT_TYPE_STUN) {
 			static_cast<Entity*>(spawn)->RemoveStunSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_ROOT)
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_ROOT) {
 			static_cast<Entity*>(spawn)->RemoveRootSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_FEAR)
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_FEAR) {
 			static_cast<Entity*>(spawn)->RemoveFearSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER)
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER) {
 			static_cast<Entity*>(spawn)->RemoveWaterwalkSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER)
+		} else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER) {
 			static_cast<Entity*>(spawn)->RemoveWaterjumpSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_SNARE)
+		} else if (type == CONTROL_EFFECT_TYPE_SNARE) {
 			static_cast<Entity*>(spawn)->RemoveSnareSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_FLIGHT)
+		} else if (type == CONTROL_EFFECT_TYPE_FLIGHT) {
 			static_cast<Entity*>(spawn)->RemoveFlightSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_GLIDE)
+		} else if (type == CONTROL_EFFECT_TYPE_GLIDE) {
 			static_cast<Entity*>(spawn)->RemoveGlideSpell(luaspell);
-		else if (type == CONTROL_EFFECT_TYPE_SAFEFALL)
+		} else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
 			static_cast<Entity*>(spawn)->RemoveSafefallSpell(luaspell);
-		else
+		} else {
 			lua_interface->LogError("Unhandled control effect type of %u.", type);
+		}
 	}
+
 	return 0;
 }
 

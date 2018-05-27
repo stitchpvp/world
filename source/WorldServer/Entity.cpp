@@ -1076,16 +1076,6 @@ void Entity::AddMezSpell(LuaSpell* spell) {
 		return;
 	}
 
-	if (IsPlayer() && !IsStunned() && mez_spells->size(true) == 0) {
-		((Player*)this)->SetPlayerControlFlag(1, 16, true);
-
-		if (!IsRooted())
-			((Player*)this)->SetPlayerControlFlag(1, 8, true);
-
-		if (!IsStifled() && !IsFeared())
-			GetZone()->LockAllSpells((Player*)this);
-	}
-
 	mez_spells->Add(spell);
 
 	if (spell->caster->IsPlayer() && IsPlayer()) {
@@ -1100,18 +1090,6 @@ void Entity::RemoveMezSpell(LuaSpell* spell) {
 		return;
 
 	mez_spells->Remove(spell);
-
-	if (mez_spells->size(true) == 0) {
-		if (IsPlayer() && !IsStunned()) {
-			if (!IsStifled() && !IsFeared())
-				GetZone()->UnlockAllSpells((Player*)this);
-
-			((Player*)this)->SetPlayerControlFlag(1, 16, false);
-
-			if (!IsRooted())
-				((Player*)this)->SetPlayerControlFlag(1, 8, false);
-		}
-	}
 }
 
 void Entity::RemoveAllMezSpells() {
@@ -1153,9 +1131,6 @@ void Entity::AddStifleSpell(LuaSpell* spell) {
 		return;
 	}
 
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STIFLE]->size(true) == 0 && !IsMezzedOrStunned())
-		GetZone()->LockAllSpells((Player*)this);
-
 	control_effects[CONTROL_EFFECT_TYPE_STIFLE]->Add(spell);
 
 	if (spell->caster->IsPlayer() && IsPlayer()) {
@@ -1169,9 +1144,6 @@ void Entity::RemoveStifleSpell(LuaSpell* spell) {
 		return;
 
 	stifle_list->Remove(spell);
-
-	if (IsPlayer() && stifle_list->size(true) == 0 && !IsMezzedOrStunned())
-		GetZone()->UnlockAllSpells((Player*)this);
 }
 
 void Entity::AddDazeSpell(LuaSpell* spell) {
@@ -1214,18 +1186,6 @@ void Entity::AddStunSpell(LuaSpell* spell) {
 		return;
 	}
 
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_STUN]->size(true) == 0) {
-		if (!IsMezzed()) {
-			((Player*)this)->SetPlayerControlFlag(1, 16, true);
-
-			if (!IsRooted())
-				((Player*)this)->SetPlayerControlFlag(1, 8, true);
-
-			if (!IsStifled() && !IsFeared())
-				GetZone()->LockAllSpells((Player*)this);
-		}
-	}
-
 	control_effects[CONTROL_EFFECT_TYPE_STUN]->Add(spell);
 
 	if (spell->caster->IsPlayer() && IsPlayer()) {
@@ -1240,16 +1200,45 @@ void Entity::RemoveStunSpell(LuaSpell* spell) {
 		return;
 
 	stun_list->Remove(spell);
+}
 
-	if (stun_list->size(true) == 0) {
-		if (IsPlayer() && !IsMezzed()) {
-			((Player*)this)->SetPlayerControlFlag(1, 16, false);
+void Entity::ApplyControlEffects() {
+	if (IsPlayer()) {
+		Player* player = static_cast<Player*>(this);
+		bool is_stunned = IsStunned();
+		bool is_stifled = IsStifled();
+		bool is_mezzed = IsMezzed();
+		bool is_feared = IsFeared();
+		bool is_rooted = IsRooted();
 
-			if (!IsRooted())
-				((Player*)this)->SetPlayerControlFlag(1, 8, false);
+		if (is_stunned || is_stifled || is_mezzed || is_feared) {
+			GetZone()->LockAllSpells(player);
+		} else {
+			GetZone()->UnlockAllSpells(player);
+		}
 
-			if (!IsStifled() && !IsFeared())
-				GetZone()->UnlockAllSpells((Player*)this);
+		if (is_stunned || is_rooted || is_mezzed) {
+			player->SetPlayerControlFlag(1, 8, true);
+		} else {
+			player->SetPlayerControlFlag(1, 8, false);
+		}
+
+		if (is_stunned || is_mezzed) {
+			player->SetPlayerControlFlag(1, 16, true);
+		} else {
+			player->SetPlayerControlFlag(1, 16, false);
+		}
+
+		if (is_feared) {
+			player->SetPlayerControlFlag(4, 4, true);
+		} else {
+			player->SetPlayerControlFlag(4, 4, false);
+		}
+	} else {
+		if (IsRooted()) {
+			SetSpeedMultiplier(0.0f);
+		} else {
+			SetSpeedMultiplier(1.0f);
 		}
 	}
 }
@@ -1965,15 +1954,6 @@ void Entity::AddRootSpell(LuaSpell* spell) {
 		return;
 	}
 
-	if (control_effects[CONTROL_EFFECT_TYPE_ROOT]->size(true) == 0) {
-		if (IsPlayer()) {
-			if (!IsMezzedOrStunned())
-				((Player*)this)->SetPlayerControlFlag(1, 8, true); // heading movement only
-		} else {
-			SetSpeedMultiplier(0.0f);
-		}
-	}
-
 	control_effects[CONTROL_EFFECT_TYPE_ROOT]->Add(spell);
 
 	if (spell->caster->IsPlayer() && IsPlayer()) {
@@ -1989,15 +1969,6 @@ void Entity::RemoveRootSpell(LuaSpell* spell) {
 		return;
 
 	root_list->Remove(spell);
-
-	if (root_list->size(true) == 0) {
-		if (IsPlayer()) {
-			if (!IsMezzedOrStunned())
-				((Player*)this)->SetPlayerControlFlag(1, 8, false); // heading movement only
-		} else {
-			SetSpeedMultiplier(1.0f);
-		}
-	}
 }
 
 void Entity::AddFearSpell(LuaSpell* spell){
@@ -2010,13 +1981,6 @@ void Entity::AddFearSpell(LuaSpell* spell){
 	if (IsFearImmune()) {
 		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
 		return;
-	}
-
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_FEAR]->size(true) == 0) {
-		((Player*)this)->SetPlayerControlFlag(4, 4, true); // feared
-
-		if (!IsMezzedOrStunned() && !IsStifled())
-			GetZone()->LockAllSpells((Player*)this);
 	}
 
 	control_effects[CONTROL_EFFECT_TYPE_FEAR]->Add(spell);
@@ -2033,13 +1997,6 @@ void Entity::RemoveFearSpell(LuaSpell* spell){
 		return;
 
 	fear_list->Remove(spell);
-
-	if (IsPlayer() && fear_list->size(true) == 0) {
-		((Player*)this)->SetPlayerControlFlag(4, 4, false); // feared disabled
-
-		if (!IsMezzedOrStunned() && !IsStifled())
-			GetZone()->LockAllSpells((Player*)this);
-	}
 }
 
 void Entity::AddSnareSpell(LuaSpell* spell) {
@@ -2202,12 +2159,6 @@ void Entity::AddStunImmunity(LuaSpell* spell){
 	if (!immunities[IMMUNITY_TYPE_STUN])
 		immunities[IMMUNITY_TYPE_STUN] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && IsStunned() && !IsMezzed()){
-		((Player*)this)->SetPlayerControlFlag(4, 64, false);
-		if (!IsFeared() && !IsStifled())
-			((Player*)this)->UnlockAllSpells();
-	}
-
 	immunities[IMMUNITY_TYPE_STUN]->Add(spell);
 }
 
@@ -2217,12 +2168,6 @@ void Entity::RemoveStunImmunity(LuaSpell* spell){
 		return;
 
 	stun_list->Remove(spell);
-
-	if (IsPlayer() && IsStunned() && !IsMezzed()){
-		((Player*)this)->SetPlayerControlFlag(4, 64, true);
-		if (!IsFeared() && !IsStifled())
-			((Player*)this)->UnlockAllSpells();
-	}
 }
 
 bool Entity::IsStunImmune(){
@@ -2236,11 +2181,6 @@ void Entity::AddStifleImmunity(LuaSpell* spell){
 	if (!immunities[IMMUNITY_TYPE_STIFLE])
 		immunities[IMMUNITY_TYPE_STIFLE] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && immunities[IMMUNITY_TYPE_STIFLE]->size(true) == 0){
-		if (IsStifled() && !IsMezzedOrStunned() && !IsFeared())
-			((Player*)this)->UnlockAllSpells();
-	}
-
 	immunities[IMMUNITY_TYPE_STIFLE]->Add(spell);
 }
 
@@ -2250,9 +2190,6 @@ void Entity::RemoveStifleImmunity(LuaSpell* spell){
 		return;
 
 	stifle_list->Remove(spell);
-
-	if (IsPlayer() && IsStifled() && !IsMezzedOrStunned() && !IsFeared())
-		((Player*)this)->UnlockAllSpells();
 }
 
 bool Entity::IsStifleImmune(){
@@ -2266,12 +2203,6 @@ void Entity::AddMezImmunity(LuaSpell* spell){
 	if (!immunities[IMMUNITY_TYPE_MEZ])
 		immunities[IMMUNITY_TYPE_MEZ] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && IsMezzed() && !IsStunned()){
-		((Player*)this)->SetPlayerControlFlag(4, 64, false);
-		if (!IsFeared() && !IsStifled())
-			((Player*)this)->UnlockAllSpells();
-	}
-
 	immunities[IMMUNITY_TYPE_MEZ]->Add(spell);
 }
 
@@ -2281,12 +2212,6 @@ void Entity::RemoveMezImmunity(LuaSpell* spell){
 		return;
 
 	mez_list->Remove(spell);
-
-	if (IsPlayer() && IsMezzed() && !IsStunned()){
-		((Player*)this)->SetPlayerControlFlag(4, 64, true);
-		if (!IsFeared() && !IsStifled())
-			((Player*)this)->LockAllSpells();
-	}
 }
 
 bool Entity::IsMezImmune(){
@@ -2300,9 +2225,6 @@ void Entity::AddRootImmunity(LuaSpell* spell){
 	if (!immunities[IMMUNITY_TYPE_ROOT])
 		immunities[IMMUNITY_TYPE_ROOT] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && IsRooted())
-		((Player*)this)->SetPlayerControlFlag(1, 8, false);
-
 	immunities[IMMUNITY_TYPE_ROOT]->Add(spell);
 }
 
@@ -2312,9 +2234,6 @@ void Entity::RemoveRootImmunity(LuaSpell* spell){
 		return;
 
 	root_list->Remove(spell);
-
-	if (IsPlayer() && IsRooted())
-		((Player*)this)->SetPlayerControlFlag(1, 8, true);
 }
 
 bool Entity::IsRootImmune(){
@@ -2328,12 +2247,6 @@ void Entity::AddFearImmunity(LuaSpell* spell) {
 	if (!immunities[IMMUNITY_TYPE_FEAR])
 		immunities[IMMUNITY_TYPE_FEAR] = new MutexList<LuaSpell*>;
 
-	if (IsPlayer() && IsFeared()){
-		if (!IsMezzedOrStunned() && !IsStifled())
-			((Player*)this)->UnlockAllSpells();
-		((Player*)this)->SetPlayerControlFlag(4, 4, false);
-	}
-
 	immunities[IMMUNITY_TYPE_FEAR]->Add(spell);
 }
 
@@ -2343,12 +2256,6 @@ void Entity::RemoveFearImmunity(LuaSpell* spell){
 		return;
 
 	fear_list->Remove(spell);
-
-	if (IsPlayer() && IsFeared()){
-		if (!IsMezzedOrStunned() && !IsStifled())
-			((Player*)this)->LockAllSpells();
-		((Player*)this)->SetPlayerControlFlag(4, 4, true);
-	}
 }
 
 bool Entity::IsFearImmune(){
@@ -2386,20 +2293,35 @@ void Entity::RemoveEffectsFromLuaSpell(LuaSpell* spell){
 	if (effect_bitmask == 0)
 		return;
 
-	if (effect_bitmask & EFFECT_FLAG_STUN)
+	if (effect_bitmask & EFFECT_FLAG_STUN) {
 		RemoveStunSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_ROOT)
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_ROOT) {
 		RemoveRootSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_MEZ)
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_MEZ) {
 		RemoveMezSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_STIFLE)
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_STIFLE) {
 		RemoveStifleSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_DAZE)
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_DAZE) {
 		RemoveDazeSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_FEAR)
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_FEAR) {
 		RemoveFearSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
-		RemoveSpellBonus(spell);
+		ApplyControlEffects();
+	}
+
 	if (effect_bitmask & EFFECT_FLAG_SKILLBONUS) {
 		RemoveSkillBonus(spell->spell->GetSpellID());
 
@@ -2413,6 +2335,8 @@ void Entity::RemoveEffectsFromLuaSpell(LuaSpell* spell){
 			}
 		}
 	}
+	if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
+		RemoveSpellBonus(spell);
 	if (effect_bitmask & EFFECT_FLAG_STEALTH)
 		RemoveStealthSpell(spell);
 	if (effect_bitmask & EFFECT_FLAG_INVIS)

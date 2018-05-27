@@ -688,6 +688,7 @@ public:
 	void SetSnareValue(LuaSpell* spell, float snare_val);
 	bool IsSnared();
 	float GetHighestSnare();
+	void ApplyControlEffects();
 
 
 	void SetCombatPet(Entity* pet) { this->pet = pet; }
