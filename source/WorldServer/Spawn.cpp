@@ -1365,7 +1365,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 	else if (IsSign() && ((Sign*)this)->GetIncludeLocation() == false)
 		include_location = false;
 
-	if (include_location){
+	if (include_location) {
 		if (IsWidget() && ((Widget*)this)->GetMultiFloorLift()) {
 			Widget* widget = (Widget*)this;
 			float x = appearance.pos.X - widget->GetWidgetX();
@@ -1375,28 +1375,39 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 			packet->setDataByName("pos_x", x);
 			packet->setDataByName("pos_y", y);
 			packet->setDataByName("pos_z", z);
-		}
-		else {
+		} else {
 			packet->setDataByName("pos_x", appearance.pos.X);
 			packet->setDataByName("pos_y", appearance.pos.Y);
 			packet->setDataByName("pos_z", appearance.pos.Z);
-
-			if (IsPlayer()) {
-				if (GetSpeedX() > 0)
-					packet->setDataByName("pos_next_x", appearance.pos.X + (GetSpeedX() * 2.5));
-
-				if (GetSpeedY() > 0)
-					packet->setDataByName("pos_next_y", appearance.pos.Y + (GetSpeedY() * 2.5));
-
-				if (GetSpeedZ() > 0)
-					packet->setDataByName("pos_next_z", appearance.pos.Z + (GetSpeedZ() * 2.5));
-			}
 		}
-		if (IsSign())
+
+		if (IsSign()) {
 			packet->setDataByName("pos_unknown6", 3, 2);
+		}
 	}
 
-	if (IsWidget() && ((Widget*)this)->GetMultiFloorLift()) {
+
+	if (IsPlayer()) {
+		Player* player = static_cast<Player*>(this);
+
+		if (player->IsRooted() || player->IsMezzedOrStunned()) {
+			packet->setDataByName("pos_next_x", appearance.pos.X);
+			packet->setDataByName("pos_next_y", appearance.pos.Y);
+			packet->setDataByName("pos_next_z", appearance.pos.Z);
+		} else {
+			if (GetSpeedX() > 0) {
+				packet->setDataByName("pos_next_x", appearance.pos.X + (GetSpeedX() * 2.5));
+			}
+
+			if (GetSpeedY() > 0) {
+				packet->setDataByName("pos_next_y", appearance.pos.Y + (GetSpeedY() * 2.5));
+			}
+
+			if (GetSpeedZ() > 0) {
+				packet->setDataByName("pos_next_z", appearance.pos.Z + (GetSpeedZ() * 2.5));
+			}
+		}
+	} else if (IsWidget() && ((Widget*)this)->GetMultiFloorLift()) {
 		Widget* widget = (Widget*)this;
 
 		float x;
@@ -1421,8 +1432,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 		packet->setDataByName("pos_x3", x);
 		packet->setDataByName("pos_y3", y);
 		packet->setDataByName("pos_z3", z);
-	}
-	else {
+	} else {
 		packet->setDataByName("pos_next_x", appearance.pos.X2);
 		packet->setDataByName("pos_next_y", appearance.pos.Y2);
 		packet->setDataByName("pos_next_z", appearance.pos.Z2);
@@ -1431,6 +1441,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 		packet->setDataByName("pos_y3", appearance.pos.Y3);
 		packet->setDataByName("pos_z3", appearance.pos.Z3);
 	}
+
 	packet->setDataByName("pos_unknown2", 4, 2);
 
 	int16 speed_multiplier = rule_manager.GetGlobalRule(R_Spawn, SpeedMultiplier)->GetInt16(); // was 1280, 600 and now 300... investigating why

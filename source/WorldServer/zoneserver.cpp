@@ -1899,7 +1899,7 @@ void ZoneServer::SendSpawnChanges(){
 }
 
 void ZoneServer::SendPlayerPositionChanges(Player* player){
-	if(player){
+	if (player) {
 		player->position_changed = false;
 		Client* client = 0;
 		vector<Client*>::iterator client_itr;

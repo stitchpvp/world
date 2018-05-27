@@ -2354,16 +2354,24 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 	else if(GetBoatSpawn() > 0)
 		SetBoatSpawn(0);
 
-	if(!IsResurrecting() && !GetBoatSpawn())
-	{
-		SetX(x);
-		SetY(y);
-		SetZ(z);
-		SetSpeedX(x_speed);
-		SetSpeedY(y_speed);
-		SetSpeedZ(z_speed);
+	if (!IsResurrecting() && !GetBoatSpawn()) {
+		if (!IsRooted() && !IsMezzedOrStunned()) {
+			SetX(x);
+			SetY(y);
+			SetZ(z);
 
-		pos_packet_speed = speed;
+			SetSpeedX(x_speed);
+			SetSpeedY(y_speed);
+			SetSpeedZ(z_speed);
+
+			pos_packet_speed = speed;
+		} else {
+			SetSpeedX(0);
+			SetSpeedY(0);
+			SetSpeedZ(0);
+
+			pos_packet_speed = 0;
+		}
 	}
 
 	if(appearance.pos.grid_id != grid_id)
