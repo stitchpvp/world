@@ -558,6 +558,10 @@ void Client::SendCharInfo(){
 	master_aa_list.DisplayAA(this);
 	ClientPacketFunctions::SendSkillBook(this);
 	ClientPacketFunctions::SendLoginCommandMessages(this);
+
+	SendNewSpells(player->GetAdventureClass());
+	SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
+	SendNewSpells(classes.GetSecondaryBaseClass(player->GetAdventureClass()));
 	
 	GetCurrentZone()->AddSpawn(player);
 
