@@ -335,6 +335,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 
 	if (player->packet_cache.count("WS_CharacterSheet") > 0) {
 		packet = player->packet_cache["WS_CharacterSheet"];
+		packet->ResetData();
 	} else {
 		packet = configReader.getStruct("WS_CharacterSheet", version);
 		player->packet_cache["WS_CharacterSheet"] = packet;
