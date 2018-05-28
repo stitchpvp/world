@@ -1676,76 +1676,124 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 	
 	if (spawn && spawn->IsEntity()) {
-		if (type == CONTROL_EFFECT_TYPE_MEZ){
-			static_cast<Entity*>(spawn)->AddMezSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ))
+		Entity* entity = static_cast<Entity*>(spawn);
+
+		if (type == CONTROL_EFFECT_TYPE_MEZ) {
+			entity->AddMezSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_STIFLE){
-			static_cast<Entity*>(spawn)->AddStifleSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE))
+			}
+
+			if (entity->IsCasting()) {
+				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
+
+				if (!entity_spell || !entity_spell->CastWhileMezzed()) {
+					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+				}
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
+			entity->AddStifleSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_DAZE){
-			static_cast<Entity*>(spawn)->AddDazeSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE))
+			}
+
+			if (entity->IsCasting()) {
+				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
+
+				if (!entity_spell || !entity_spell->CastWhileStifled()) {
+					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+				}
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_DAZE) {
+			entity->AddDazeSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_DAZE;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_STUN){
-			static_cast<Entity*>(spawn)->AddStunSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_STUN) {
+			entity->AddStunSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_STUN;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_ROOT){
-			static_cast<Entity*>(spawn)->AddRootSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT))
+			}
+
+			if (entity->IsCasting()) {
+				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
+
+				if (!entity_spell || !entity_spell->CastWhileStunned()) {
+					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+				}
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_ROOT){
+			entity->AddRootSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_FEAR){
-			static_cast<Entity*>(spawn)->AddFearSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_FEAR){
+			entity->AddFearSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
-			static_cast<Entity*>(spawn)->AddWaterwalkSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK))
+			}
+
+			if (entity->IsCasting()) {
+				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
+
+				if (!entity_spell || !entity_spell->CastWhileFeared()) {
+					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+				}
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
+			entity->AddWaterwalkSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_WATERWALK;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER){
-			static_cast<Entity*>(spawn)->AddWaterjumpSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER){
+			entity->AddWaterjumpSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_WATERJUMP;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_SNARE){
-			static_cast<Entity*>(spawn)->AddSnareSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_SNARE){
+			entity->AddSnareSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_SNARE;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_FLIGHT){
-			static_cast<Entity*>(spawn)->AddFlightSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_FLIGHT){
+			entity->AddFlightSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_FLIGHT;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_GLIDE){
-			static_cast<Entity*>(spawn)->AddGlideSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_GLIDE){
+			entity->AddGlideSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_GLIDE;
-		}
-		else if (type == CONTROL_EFFECT_TYPE_SAFEFALL){
-			static_cast<Entity*>(spawn)->AddSafefallSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL))
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
+			entity->AddSafefallSpell(luaspell);
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_SAFEFALL;
-		}
-		else
+			}
+		} else {
 			lua_interface->LogError("Unhandled control effect type of %u.", type);
-	}
-	else
+		}
+	} else {
 		lua_interface->LogError("Error applying control effect on non entity '%s'.", spawn->GetName());
+	}
+
 	return 0;
 }
 
