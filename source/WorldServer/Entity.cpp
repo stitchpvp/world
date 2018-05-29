@@ -1048,7 +1048,7 @@ void Entity::CalculateSpellBonuses(ItemStatsValues* stats){
 			for (tier_itr = sort_itr->second.begin(); tier_itr != sort_itr->second.end(); tier_itr++){
 				LuaSpell* current_spell = tier_itr->first;
 				sint8 current_tier;
-				if (current_spell && ((current_tier = current_spell->spell->GetSpellTier()) > highest_tier)) {
+				if (current_spell && current_spell->spell && ((current_tier = current_spell->spell->GetSpellTier()) > highest_tier)) {
 					highest_tier = current_tier;
 					key = current_spell;
 				}
