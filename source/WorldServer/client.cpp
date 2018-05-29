@@ -3530,16 +3530,15 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	GetPlayer()->GetInfoStruct()->wis_base = new_level*2+15;
 	GetPlayer()->GetInfoStruct()->str_base = new_level*2+15;
 	GetPlayer()->GetInfoStruct()->sta_base = new_level*2+15;
-	GetPlayer()->GetInfoStruct()->cold_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->heat_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->disease_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->mental_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->magic_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->divine_base = (int16)(new_level*1.5+10);
-	GetPlayer()->GetInfoStruct()->poison_base = (int16)(new_level*1.5+10);
+	GetPlayer()->GetInfoStruct()->cold_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->heat_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->disease_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->mental_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->magic_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->divine_base = (int16)(new_level * 4.6);
+	GetPlayer()->GetInfoStruct()->poison_base = (int16)(new_level * 4.6);
 	GetPlayer()->SetHPRegen((int)(new_level*.75)+(int)(new_level/10)+3);
 	GetPlayer()->SetPowerRegen(new_level+(int)(new_level/10)+4);
-	GetPlayer()->GetInfoStruct()->poison_base = (int16)(new_level*1.5+10);
 	UpdateTimeStampFlag ( LEVEL_UPDATE_FLAG );
 	GetPlayer()->SetCharSheetChanged(true);
 
