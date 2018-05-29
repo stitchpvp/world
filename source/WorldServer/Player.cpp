@@ -2275,13 +2275,6 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		z_speed = update->speed_z;
 
 		SetPitch(180 + update->pitch);
-
-		/*if (GetCharacterID() == 37) {
-			LogWrite(WORLD__INFO, 0, "Movement", "(%s) Speed: %.2f, Side Speed: %.2f, Unknown Speed: %.2f", GetName(), speed, side_speed, update->unk_speed);
-			LogWrite(WORLD__INFO, 0, "Movement", "U31: %.2f, U32: %.2f, U33: %.2f, U34: %.2f, U35: %i, U36: %.2f, U37: %.2f, U38: %.2f, U39: %.2f, U310: %.2f, U311: %.2f, U312: %.2f", update->unknown3[0], update->unknown3[1], update->unknown3[2], update->unknown3[3], update->unknown3[4], update->unknown3[5], update->unknown3[6], update->unknown3[7], update->unknown3[8], update->unknown3[9], update->unknown3[10], update->unknown3[11]);
-			LogWrite(WORLD__INFO, 0, "Movement", "U4: %.2f, U51: %.2f, U52: %.2f, U53: %.2f, U6: %i, U71: %.2f, U72: %.2f, U73: %.2f", update->unknown4, update->unknown5[0], update->unknown5[1], update->unknown5[2], update->unknown6, update->unknown7[0], update->unknown7[1], update->unknown7[2]);
-			LogWrite(WORLD__INFO, 0, "Movement", "U8: %i, U9: %.2f, U10: %.2f, SpX: %.2f, SpY: %.2f, SpZ: %.2f", update->unknown8, update->unknown9, update->unknown10, update->speed_x, update->speed_y, update->speed_z);
-		}*/
 	} else if (version >= 1096) {
 		Player_Update1096* update = (Player_Update1096*)movement_packet;
 		activity = update->activity;

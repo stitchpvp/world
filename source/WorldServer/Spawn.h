@@ -556,6 +556,9 @@ public:
 	float GetSpeedZ() {
 		return appearance.pos.SpeedZ;
 	}
+	float GetSideSpeed() {
+		return appearance.pos.SideSpeed;
+	}
 	float GetDestinationY(){
 		return appearance.pos.Y2;
 	}
