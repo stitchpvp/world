@@ -2250,6 +2250,7 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 	float direction1;	// = update->getType_float_ByName("direction1");
 	float direction2;	// = update->getType_float_ByName("direction2");;
 	float speed;		// = update->getType_float_ByName("speed");;
+	float side_speed;
 	float x;			// = update->getType_float_ByName("x");;
 	float y;			// = update->getType_float_ByName("y");;
 	float z;			// = update->getType_float_ByName("z");;
@@ -2265,46 +2266,59 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		direction1 = update->direction1;
 		direction2 = update->direction2;
 		speed = update->speed;
+		side_speed = update->side_speed;
 		x = update->x;
 		y = update->y;
 		z = update->z;
 		x_speed = update->speed_x;
 		y_speed = update->speed_y;
 		z_speed = update->speed_z;
-	}
-	else if (version >= 1096) {
+
+		SetPitch(180 + update->pitch);
+
+		/*if (GetCharacterID() == 37) {
+			LogWrite(WORLD__INFO, 0, "Movement", "(%s) Speed: %.2f, Side Speed: %.2f, Unknown Speed: %.2f", GetName(), speed, side_speed, update->unk_speed);
+			LogWrite(WORLD__INFO, 0, "Movement", "U31: %.2f, U32: %.2f, U33: %.2f, U34: %.2f, U35: %i, U36: %.2f, U37: %.2f, U38: %.2f, U39: %.2f, U310: %.2f, U311: %.2f, U312: %.2f", update->unknown3[0], update->unknown3[1], update->unknown3[2], update->unknown3[3], update->unknown3[4], update->unknown3[5], update->unknown3[6], update->unknown3[7], update->unknown3[8], update->unknown3[9], update->unknown3[10], update->unknown3[11]);
+			LogWrite(WORLD__INFO, 0, "Movement", "U4: %.2f, U51: %.2f, U52: %.2f, U53: %.2f, U6: %i, U71: %.2f, U72: %.2f, U73: %.2f", update->unknown4, update->unknown5[0], update->unknown5[1], update->unknown5[2], update->unknown6, update->unknown7[0], update->unknown7[1], update->unknown7[2]);
+			LogWrite(WORLD__INFO, 0, "Movement", "U8: %i, U9: %.2f, U10: %.2f, SpX: %.2f, SpY: %.2f, SpZ: %.2f", update->unknown8, update->unknown9, update->unknown10, update->speed_x, update->speed_y, update->speed_z);
+		}*/
+	} else if (version >= 1096) {
 		Player_Update1096* update = (Player_Update1096*)movement_packet;
 		activity = update->activity;
 		grid_id = update->grid_location;
 		direction1 = update->direction1;
 		direction2 = update->direction2;
 		speed = update->speed;
+		side_speed = update->side_speed;
 		x = update->x;
 		y = update->y;
 		z = update->z;
 		x_speed = update->speed_x;
 		y_speed = update->speed_y;
 		z_speed = update->speed_z;
-	}
-	else {
+
+		SetPitch(180 + update->pitch);
+	} else {
 		Player_Update* update = (Player_Update*)movement_packet;
 		activity = update->activity;
 		grid_id = update->grid_location;
 		direction1 = update->direction1;
 		direction2 = update->direction2;
 		speed = update->speed;
+		side_speed = update->side_speed;
 		x = update->x;
 		y = update->y;
 		z = update->z;
 		x_speed = update->speed_x;
 		y_speed = update->speed_y;
 		z_speed = update->speed_z;
+
+		SetPitch(180 + update->pitch);
 	}
+	
+	SetHeading((sint16)(direction1 * 64), (sint16)(direction2 * 64));
 
- 	SetHeading((sint16)(direction1 * 64), (sint16)(direction2 * 64), true);
-
-	if(activity != last_movement_activity)
-	{
+	if (activity != last_movement_activity) {
 		if(GetZone() && GetZone()->GetDrowningVictim(this) && (activity == UPDATE_ACTIVITY_RUNNING || activity == UPDATE_ACTIVITY_IN_WATER_ABOVE)) // not drowning anymore
 			GetZone()->RemoveDrowningVictim(this);
 
@@ -2312,9 +2326,9 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 			GetZone()->AddDrowningVictim(this);
 
 		if (activity == UPDATE_ACTIVITY_JUMPING || activity == UPDATE_ACTIVITY_FALLING) {
-			//SetInitialState(4);
-		} else if (GetInitialState() != 16512) {
-			//SetInitialState(16512);
+			SetInitialState(1024);
+		} else if (GetInitialState() == 1024) {
+			SetInitialState(16512);
 		}
 
 		last_movement_activity = activity;
@@ -2364,12 +2378,14 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 			SetSpeedX(x_speed);
 			SetSpeedY(y_speed);
 			SetSpeedZ(z_speed);
+			SetSideSpeed(side_speed);
 
 			pos_packet_speed = speed;
 		} else {
 			SetSpeedX(0);
 			SetSpeedY(0);
 			SetSpeedZ(0);
+			SetSideSpeed(0);
 
 			pos_packet_speed = 0;
 		}

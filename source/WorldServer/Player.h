@@ -415,12 +415,12 @@ public:
 		}*/
 	bool WasSentSpawn(int32 spawn_id);
 	bool NeedsSpawnResent(Spawn* spawn);
-	/*void SetSpeed(float in_speed){
-		speed = in_speed;
-		}
-		float GetSpeed(){
-		return speed;
-		}*/
+	void SetSideSpeed(float side_speed, bool updateFlags = true) {
+		SetPos(&appearance.pos.SideSpeed, side_speed, updateFlags);
+	}
+	float GetSideSpeed() {
+		return appearance.pos.SideSpeed;
+	}
 	void	AddMaintainedSpell(LuaSpell* spell);
 	void	AddSpellEffect(LuaSpell* spell);
 	void	RemoveMaintainedSpell(LuaSpell* spell);

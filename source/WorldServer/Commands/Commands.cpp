@@ -7697,6 +7697,10 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	//}
 	
 	if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
+		if (sep->IsSet(1) && sep->IsNumber(1)) {
+			client->GetPlayer()->GetTarget()->movement_unknown = atoi(sep->arg[1]);
+		}
+
 		client->GetPlayer()->GetTarget()->SetInitialState(atoi(sep->arg[0]));
 	}
 }

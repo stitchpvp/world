@@ -325,10 +325,10 @@ public:
 		SetPos(&appearance.pos.SpeedX, speed_x, updateFlags);
 	}
 	void SetSpeedY(float speed_y, bool updateFlags = true) {
-		SetPos(&appearance.pos.SpeedX, speed_y, updateFlags);
+		SetPos(&appearance.pos.SpeedY, speed_y, updateFlags);
 	}
 	void SetSpeedZ(float speed_z, bool updateFlags = true) {
-		SetPos(&appearance.pos.SpeedX, speed_z, updateFlags);
+		SetPos(&appearance.pos.SpeedZ, speed_z, updateFlags);
 	}
 	void SetX(float x, bool updateFlags = true){ 
 		SetPos(&appearance.pos.X, x, updateFlags); 

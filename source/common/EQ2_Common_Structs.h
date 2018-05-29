@@ -149,6 +149,7 @@ struct PositionData{
 	float			SpeedX;
 	float			SpeedY;
 	float			SpeedZ;
+	float			SideSpeed;
 	int16			collision_radius;
 	int16			state;
 };
@@ -216,7 +217,7 @@ struct Player_Update{
 /*0120*/	float	y;
 /*0124*/	float	z;
 /*0128*/	float	direction2;
-/*0132*/	float	unknown9;
+/*0132*/	float	pitch;
 /*0136*/	float	unknown10;
 /*0140*/	float	speed_x;
 /*0144*/	float	speed_y;
@@ -246,7 +247,7 @@ struct Player_Update1096{
 /*0124*/	float	y;
 /*0128*/	float	z;
 /*0132*/	float	direction2;
-/*0136*/	float	unknown9;
+/*0136*/	float	pitch;
 /*0140*/	float	unknown10;
 /*0144*/	float	speed_x;
 /*0148*/	float	speed_y;
@@ -277,7 +278,7 @@ struct Player_Update1144{
 /*0124*/    float    y;
 /*0128*/    float    z;
 /*0132*/    float    direction2;
-/*0136*/    float    unknown9;
+/*0136*/    float    pitch;
 /*0140*/    float    unknown10;
 /*0144*/    float    speed_x;
 /*0148*/    float    speed_y;
