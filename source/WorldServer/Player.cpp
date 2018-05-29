@@ -2282,6 +2282,9 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		x = update->x;
 		y = update->y;
 		z = update->z;
+		x_speed = update->speed_x;
+		y_speed = update->speed_y;
+		z_speed = update->speed_z;
 	}
 	else {
 		Player_Update* update = (Player_Update*)movement_packet;
@@ -2293,6 +2296,9 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		x = update->x;
 		y = update->y;
 		z = update->z;
+		x_speed = update->speed_x;
+		y_speed = update->speed_y;
+		z_speed = update->speed_z;
 	}
 
  	SetHeading((sint16)(direction1 * 64), (sint16)(direction2 * 64), true);
@@ -2305,16 +2311,10 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		if((activity == UPDATE_ACTIVITY_DROWNING || activity == UPDATE_ACTIVITY_DROWNING2) && GetZone() && !GetInvulnerable()) //drowning
 			GetZone()->AddDrowningVictim(this);
 
-		if (activity == UPDATE_ACTIVITY_JUMPING) {
-			if (x_speed != 0 || z_speed != 0) {
-				SetTempVisualState(11758);
-			} else {
-				SetTempVisualState(11757);
-			}
-		} else if (activity == UPDATE_ACTIVITY_FALLING) {
-			SetTempVisualState(290);
-		} else if (GetTempVisualState() != -1) {
-			SetTempVisualState(-1);
+		if (activity == UPDATE_ACTIVITY_JUMPING || activity == UPDATE_ACTIVITY_FALLING) {
+			//SetInitialState(4);
+		} else if (GetInitialState() != 16512) {
+			//SetInitialState(16512);
 		}
 
 		last_movement_activity = activity;

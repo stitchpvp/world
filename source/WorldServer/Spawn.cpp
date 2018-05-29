@@ -1395,17 +1395,9 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 			packet->setDataByName("pos_next_y", appearance.pos.Y);
 			packet->setDataByName("pos_next_z", appearance.pos.Z);
 		} else {
-			if (GetSpeedX() > 0) {
-				packet->setDataByName("pos_next_x", appearance.pos.X + (GetSpeedX() * 2.5));
-			}
-
-			if (GetSpeedY() > 0) {
-				packet->setDataByName("pos_next_y", appearance.pos.Y + (GetSpeedY() * 2.5));
-			}
-
-			if (GetSpeedZ() > 0) {
-				packet->setDataByName("pos_next_z", appearance.pos.Z + (GetSpeedZ() * 2.5));
-			}
+			packet->setDataByName("pos_unknown", GetSpeedX(), 0);
+			packet->setDataByName("pos_unknown", GetSpeedY(), 1);
+			packet->setDataByName("pos_unknown", GetSpeedZ(), 2);
 		}
 	} else if (IsWidget() && ((Widget*)this)->GetMultiFloorLift()) {
 		Widget* widget = (Widget*)this;

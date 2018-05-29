@@ -204,6 +204,7 @@ public:
 	virtual ~Spawn();
 
 	int temp_info_type = -1;
+	int movement_unknown = 0;
 
 	template <class Field, class Value> void Set(Field* field, Value value, bool setUpdateFlags = true){
 		if (setUpdateFlags) {

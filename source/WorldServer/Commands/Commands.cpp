@@ -7696,9 +7696,8 @@ void Commands::Command_Test(Client* client, Seperator* sep) {
 	//	client->GetPlayer()->AddActivityStatus(status);
 	//}
 	
-	if (sep->IsSet(0) && sep->IsNumber(0)) {
-		client->SimpleMessage(atoi(sep->arg[0]), "TESTING");
-		//client->GetCurrentZone()->SendDamagePacket(client->GetPlayer(), client->GetPlayer(), DAMAGE_PACKET_TYPE_SPELL_DAMAGE, atoi(sep->arg[0]), DAMAGE_PACKET_DAMAGE_TYPE_MENTAL, 0, "Test Spell");
+	if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
+		client->GetPlayer()->GetTarget()->SetInitialState(atoi(sep->arg[0]));
 	}
 }
 

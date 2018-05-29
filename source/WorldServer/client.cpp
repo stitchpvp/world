@@ -119,7 +119,7 @@ extern MasterAAList master_tree_nodes;
 
 using namespace std;
 
-Client::Client(EQStream* ieqs) : pos_update(1), quest_pos_timer(2000), lua_debug_timer(30000){
+Client::Client(EQStream* ieqs) : pos_update(100), quest_pos_timer(2000), lua_debug_timer(30000){
 	eqs = ieqs;
 	ip = eqs->GetrIP();
 	port = ntohs(eqs->GetrPort());
