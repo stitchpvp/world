@@ -6913,7 +6913,7 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 	}
 
 	Spawn* target = lua_interface->GetSpawn(state);
-	int8 cure_level = lua_interface->GetInt8Value(state, 2);
+	int8 cure_level = static_cast<int8>(lua_interface->GetFloatValue(state, 2));
 	int8 cure_type = lua_interface->GetInt8Value(state, 3);
 	string cure_name = lua_interface->GetStringValue(state, 4);
 
