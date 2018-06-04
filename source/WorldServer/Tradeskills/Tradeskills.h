@@ -72,27 +72,27 @@ public:
 	/// <summary>Starts the actual crafting process</summary>
 	/// <param name='client'>Client that is crafting</param>
 	/// <param name='components'>List of items the player is using to craft</param>
-	void BeginCrafting(Client* client, vector<int32> components);
+	void BeginCrafting(shared_ptr<Client> client, vector<int32> components);
 
 	/// <summary>Stops the crafting process</summary>
 	/// <param name='client'>Client that stopped crafting</param>
 	/// <param name='lock'>Does the list need a mutex lock? default = true</param>
-	void StopCrafting(Client* client, bool lock = true);
+	void StopCrafting(shared_ptr<Client> client, bool lock = true);
 
 	/// <summary>Checks to see if the given client is crafting</summary>
 	/// <param name='client'>The client to check</param>
 	/// <returns>True if the client is crafting</returns>
-	bool IsClientCrafting(Client* client);
+	bool IsClientCrafting(shared_ptr<Client> client);
 
 	/// <summary>Get the tradeskill struct for the given client</summary>
 	/// <param name='client'>The client to get the tradeskill struct for</param>
 	/// <returns>Pointer to the clients tradeskill struct, or 0 if they don't have one</returns>
-	Tradeskill* GetTradeskill(Client* client);
+	Tradeskill* GetTradeskill(shared_ptr<Client> client);
 
 	/// <summary>Check to see if we countered the tradeskill event</summary>
 	/// <param name='client'>The client to check for</param>
 	/// <param name='icon'>The icon of the spell we casted</param>
-	void CheckTradeskillEvent(Client* client, int16 icon);
+	void CheckTradeskillEvent(shared_ptr<Client> client, int16 icon);
 
 	/// <summary>Lock the tradeskill list for reading, should never need to write to the tradeskill list outside of the TradeskillMgr class</summary>
 	/// <param name='function'>Function name that called this lock</param>
@@ -107,8 +107,8 @@ private:
 	/// <summary>Sends the creation window</summary>
 	/// <param name='client'>Client to send the window to</param>
 	/// <param name='recipe'>The recipe being crafted</param>
-	void SendItemCreationUI(Client* client, Recipe* recipe);
-	map<Client*, Tradeskill*>	tradeskillList;
+	void SendItemCreationUI(shared_ptr<Client> client, Recipe* recipe);
+	map<shared_ptr<Client>, Tradeskill*>	tradeskillList;
 	Mutex m_tradeskills;
 
 	float m_critFail;

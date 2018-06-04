@@ -1054,7 +1054,7 @@ int32 WorldDatabase::LoadNextUniqueItemID()
 	return 0;
 }
 
-void WorldDatabase::SaveItems(Client* client) 
+void WorldDatabase::SaveItems(shared_ptr<Client> client) 
 {
 	LogWrite(ITEM__DEBUG, 3, "Items", "Save Items for Player %i", client->GetCharacterID());
 

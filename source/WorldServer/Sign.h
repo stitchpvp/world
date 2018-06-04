@@ -43,7 +43,7 @@ public:
 	void	SetSignIcon(int8 val);
 	Sign*	Copy();
 	EQ2Packet* serialize(Player *player, int16 version);
-	void	HandleUse(Client* client, string command);
+	void	HandleUse(shared_ptr<Client> client, string command);
 	int8	GetSignType();
 	void	SetSignType(int8 val);
 	float	GetSignZoneX();

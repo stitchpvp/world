@@ -5,7 +5,7 @@
 extern ConfigReader configReader;
 extern World world;
 
-void ClientPacketFunctions::SendHousePurchace(Client* client, HouseZone* hz, int32 spawnID) {
+void ClientPacketFunctions::SendHousePurchace(shared_ptr<Client> client, HouseZone* hz, int32 spawnID) {
 	PacketStruct* packet = configReader.getStruct("WS_PlayerHousePurchase", client->GetVersion());
 	if (packet) {
 		packet->setDataByName("house_name", hz->name.c_str());
@@ -64,7 +64,7 @@ void ClientPacketFunctions::SendHousePurchace(Client* client, HouseZone* hz, int
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::SendBaseHouseWindow(Client* client, HouseZone* hz, PlayerHouse* ph, int32 spawnID) {
+void ClientPacketFunctions::SendBaseHouseWindow(shared_ptr<Client> client, HouseZone* hz, PlayerHouse* ph, int32 spawnID) {
 	PacketStruct* packet = configReader.getStruct("WS_PlayerHouseBaseScreen", client->GetVersion());
 	if (packet) {
 		packet->setDataByName("house_id", ph->unique_id);
@@ -104,7 +104,7 @@ void ClientPacketFunctions::SendBaseHouseWindow(Client* client, HouseZone* hz, P
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::SendHouseVisitWindow(Client* client, vector<PlayerHouse*> houses) {
+void ClientPacketFunctions::SendHouseVisitWindow(shared_ptr<Client> client, vector<PlayerHouse*> houses) {
 	PacketStruct* packet = configReader.getStruct("WS_DisplayVisitScreen", client->GetVersion());
 	if (packet) {
 		vector<PlayerHouse*>::iterator itr;

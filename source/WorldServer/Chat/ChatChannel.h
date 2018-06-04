@@ -60,11 +60,11 @@ public:
 	bool CanJoinChannelByClass(int8 class_id) {return classes == 0 || (1 << class_id) & classes;}
 
 	bool IsInChannel(int32 character_id);
-	bool JoinChannel(Client *client);
-	bool LeaveChannel(Client *client);
-	bool TellChannel(Client *client, const char *message, const char* name2 = 0);
-	bool TellChannelClient(Client* to_client, const char* message, const char* name2 = 0);
-	bool SendChannelUserList(Client *client);
+	bool JoinChannel(shared_ptr<Client> client);
+	bool LeaveChannel(shared_ptr<Client> client);
+	bool TellChannel(shared_ptr<Client> client, const char *message, const char* name2 = 0);
+	bool TellChannelClient(shared_ptr<Client> to_client, const char* message, const char* name2 = 0);
+	bool SendChannelUserList(shared_ptr<Client> client);
 
 	void SetGlobalIRCChannel(bool val) { m_globalIRCChannel = val; }
 	bool IsGlobalIRCChannel() { return m_globalIRCChannel; }

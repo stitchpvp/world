@@ -104,7 +104,7 @@ vector<TreeNodeData*> MasterAANodeList::GetTreeNodes() {
 	return TreeNodeList;
 }
 
-EQ2Packet* MasterAAList::GetAAListPacket(Client* client)
+EQ2Packet* MasterAAList::GetAAListPacket(shared_ptr<Client> client)
 {
 
 	/*
@@ -236,7 +236,7 @@ EQ2Packet* MasterAAList::GetAAListPacket(Client* client)
 			return (new EQ2Packet(OP_AdventureList, blah, sizeof(blah)));
 }
 
-void MasterAAList::DisplayAA(Client* client) {
+void MasterAAList::DisplayAA(shared_ptr<Client> client) {
 	map <int8, vector<TreeNodeData*> >::iterator itr_tree2;
 	vector<TreeNodeData*>::iterator itr_tree3;
 	map <int8, vector<TreeNodeData*> > Nodes;

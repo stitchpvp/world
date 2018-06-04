@@ -54,7 +54,7 @@ public:
 	/// <summary>Sorts the traits for the given client and creats and sends the trait packet.</summary>
 	/// <param name='client'>The Client calling this function</param>
 	/// <returns>EQ2Packet*</returns>
-	EQ2Packet* GetTraitListPacket(Client* client);
+	EQ2Packet* GetTraitListPacket(shared_ptr<Client> client);
 
 	/// <summary>Add trait data to the global list.</summary>
 	/// <param name='data'>The trait data to add.</param>

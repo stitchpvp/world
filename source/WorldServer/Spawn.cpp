@@ -1398,8 +1398,6 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 	}
 
 	if (IsPlayer()) {
-		Player* player = static_cast<Player*>(this);
-
 		packet->setDataByName("pos_unknown2", movement_unknown, 2);
 
 		packet->setDataByName("pos_x_velocity", static_cast<sint16>(GetSpeedX() * 32));
@@ -1828,7 +1826,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		int16 backdrop = 0;
 		int16 spell_icon = 0;
 		int32 spell_id = 0;
-		LuaSpell* spell = 0;
 		((Entity*)this)->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
 		while(i < NUM_SPELL_EFFECTS){
 			//Change value of spell id for this packet if spell exists
@@ -1878,7 +1875,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 			}
 
 			packet->setSubstructDataByName("spell_effects", "spell_icon_backdrop", backdrop, i);
-			spell = info->spell_effects[i].spell;
+			shared_ptr<LuaSpell> spell = info->spell_effects[i].spell;
 			if (spell)
 				packet->setSubstructDataByName("spell_effects", "spell_triggercount", spell->num_triggers, i);
 			i++;

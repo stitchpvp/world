@@ -41,7 +41,7 @@ struct BonusValues{
 	int16	type;
 	sint32	value;
 	int64	class_req;
-	LuaSpell* luaspell;
+	shared_ptr<LuaSpell> luaspell;
 };
 
 struct MaintainedEffects{
@@ -56,7 +56,7 @@ struct MaintainedEffects{
 	int8	tier;
 	float	total_time;
 	int32	expire_timestamp;
-	LuaSpell* spell;
+	shared_ptr<LuaSpell> spell;
 };
 
 struct SpellEffects{
@@ -67,7 +67,7 @@ struct SpellEffects{
 	int16	icon;
 	int16	icon_backdrop;
 	int8	tier;
-	LuaSpell* spell;
+	shared_ptr<LuaSpell> spell;
 };
 
 struct DetrimentalEffects {
@@ -79,7 +79,7 @@ struct DetrimentalEffects {
 	int8	tier;
 	int8    det_type;
 	bool    incurable;
-	LuaSpell*  spell;
+	shared_ptr<LuaSpell>  spell;
 	int8    control_effect;
 	float   total_time;
 };
@@ -254,7 +254,7 @@ struct InfoStruct{
 };
 
 struct WardInfo {
-	LuaSpell*	Spell;
+	shared_ptr<LuaSpell>	Spell;
 	int32		BaseDamage;
 	int32		DamageLeft;
 	int8		WardType;
@@ -268,7 +268,7 @@ struct WardInfo {
 #define WARD_TYPE_MAGICAL 2
 
 struct StoneskinInfo {
-	LuaSpell*	Spell;
+	shared_ptr<LuaSpell>	Spell;
 	int32		BaseDamage;
 	int32		DamageLeft;
 	bool		keepStoneskin;
@@ -276,7 +276,7 @@ struct StoneskinInfo {
 };
 
 struct Proc {
-	LuaSpell*	spell;
+	shared_ptr<LuaSpell> spell;
 	Item*		item;
 	float		chance;
 };
@@ -304,7 +304,7 @@ struct Proc {
 struct ThreatTransfer {
 	int32		Target;
 	float		Amount;
-	LuaSpell*	Spell;
+	shared_ptr<LuaSpell> Spell;
 };
 
 #define DET_TYPE_ALL		 0
@@ -351,17 +351,17 @@ public:
 	virtual ~Entity();
 	virtual float GetShieldBlockChance();
 	virtual float GetDodgeChance();
-	virtual void AddMaintainedSpell(LuaSpell* spell);
-	virtual void AddSpellEffect(LuaSpell* spell);
-	virtual void RemoveMaintainedSpell(LuaSpell* spell);
-	virtual void RemoveSpellEffect(LuaSpell* spell);
+	virtual void AddMaintainedSpell(shared_ptr<LuaSpell> spell);
+	virtual void AddSpellEffect(shared_ptr<LuaSpell> spell);
+	virtual void RemoveMaintainedSpell(shared_ptr<LuaSpell> spell);
+	virtual void RemoveSpellEffect(shared_ptr<LuaSpell> spell);
 	virtual bool HasActiveMaintainedSpell(Spell* spell, Spawn* target);
 	virtual bool HasActiveSpellEffect(Spell* spell, Spawn* target);
 	virtual void AddSkillBonus(int32 spell_id, int32 skill_id, float value);
-	void AddDetrimentalSpell(LuaSpell* spell);
+	void AddDetrimentalSpell(shared_ptr<LuaSpell> spell);
 	DetrimentalEffects* GetDetrimentalEffect(int32 spell_id, Entity* caster);
 	virtual MaintainedEffects* GetMaintainedSpell(int32 spell_id);
-	void RemoveDetrimentalSpell(LuaSpell* spell);
+	void RemoveDetrimentalSpell(shared_ptr<LuaSpell> spell);
 	void	SetDeity(int8 new_deity){
 			deity = new_deity;
 	}
@@ -474,10 +474,10 @@ public:
 	bool			RangeWeaponReady();
 	void			MeleeAttack(Spawn* victim, float distance, bool primary, bool multi_attack = false);
 	void			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);
-	bool			SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false);
+	bool			SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false);
 	bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg);
 	bool			ProcHeal(Spawn* victim, string heal_type, int32 low_heal, int32 high_heal, string name);
-	bool            SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false);
+	bool            SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false);
 	int8			DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell);
 	float			GetDamageTypeResistPercentage(int8 damage_type);
 	Skill*			GetSkillByWeaponType(int8 type, bool update);
@@ -656,36 +656,36 @@ public:
 	EQ2_Equipment	equipment;
 	CharFeatures	features;	
 
-	void AddSpellBonus(LuaSpell* spell, int16 type, sint32 value, int64 class_req = 0);
+	void AddSpellBonus(shared_ptr<LuaSpell> spell, int16 type, sint32 value, int64 class_req = 0);
 	BonusValues* GetSpellBonus(int32 spell_id);
-	vector<BonusValues*>* GetAllSpellBonuses(LuaSpell* spell);
-	bool CheckSpellBonusRemoval(LuaSpell* spell, int16 type);
-	void RemoveSpellBonus(LuaSpell* spell);
+	vector<BonusValues*>* GetAllSpellBonuses(shared_ptr<LuaSpell> spell);
+	bool CheckSpellBonusRemoval(shared_ptr<LuaSpell> spell, int16 type);
+	void RemoveSpellBonus(shared_ptr<LuaSpell> spell);
 	void CalculateSpellBonuses(ItemStatsValues* stats);
-	void AddMezSpell(LuaSpell* spell);
-	void RemoveMezSpell(LuaSpell* spell);
+	void AddMezSpell(shared_ptr<LuaSpell> spell);
+	void RemoveMezSpell(shared_ptr<LuaSpell> spell);
 	void RemoveAllMezSpells();
 	bool IsMezzed();
-	void AddStifleSpell(LuaSpell* spell);
-	void RemoveStifleSpell(LuaSpell* spell);
+	void AddStifleSpell(shared_ptr<LuaSpell> spell);
+	void RemoveStifleSpell(shared_ptr<LuaSpell> spell);
 	bool IsStifled();
-	void AddDazeSpell(LuaSpell* spell);
-	void RemoveDazeSpell(LuaSpell* spell);
+	void AddDazeSpell(shared_ptr<LuaSpell> spell);
+	void RemoveDazeSpell(shared_ptr<LuaSpell> spell);
 	bool IsDazed();
-	void AddStunSpell(LuaSpell* spell);
-	void RemoveStunSpell(LuaSpell* spell);
+	void AddStunSpell(shared_ptr<LuaSpell> spell);
+	void RemoveStunSpell(shared_ptr<LuaSpell> spell);
 	bool IsStunned();
 	bool IsMezzedOrStunned() {return IsMezzed() || IsStunned();}
-	void AddRootSpell(LuaSpell* spell);
-	void RemoveRootSpell(LuaSpell* spell);
+	void AddRootSpell(shared_ptr<LuaSpell> spell);
+	void RemoveRootSpell(shared_ptr<LuaSpell> spell);
 	bool IsRooted();
-	void AddFearSpell(LuaSpell* spell);
-	void RemoveFearSpell(LuaSpell* spell);
+	void AddFearSpell(shared_ptr<LuaSpell> spell);
+	void RemoveFearSpell(shared_ptr<LuaSpell> spell);
 	bool IsFeared();
 	bool IsWarded();
-	void AddSnareSpell(LuaSpell* spell);
-	void RemoveSnareSpell(LuaSpell* spell);
-	void SetSnareValue(LuaSpell* spell, float snare_val);
+	void AddSnareSpell(shared_ptr<LuaSpell> spell);
+	void RemoveSnareSpell(shared_ptr<LuaSpell> spell);
+	void SetSnareValue(shared_ptr<LuaSpell> spell, float snare_val);
 	bool IsSnared();
 	float GetHighestSnare();
 	void ApplyControlEffects();
@@ -714,28 +714,28 @@ public:
 	/// <summary>Add a ward to the entities ward list</summary>
 	/// <param name='spellID'>Spell id of the ward to add</param>
 	/// <param name='ward'>WardInfo* of the ward we are adding</parma>
-	void AddWard(LuaSpell* luaspell, WardInfo* ward);
+	void AddWard(shared_ptr<LuaSpell> luaspell, WardInfo* ward);
 
 	/// <summary>Gets ward info for the given spell id</summary>
 	/// <param name='spellID'>The spell id of the ward we want to get</param>
 	/// <returns>WardInfo for the given spell id</returns>
-	WardInfo* GetWard(LuaSpell * luaspell);
+	WardInfo* GetWard(shared_ptr<LuaSpell> luaspell);
 
 	/// <summary>Removes the ward with the given spell id</summary>
 	/// <param name='spellID'>The spell id of the ward to remove</param>
-	void RemoveWard(LuaSpell* luaspell);
+	void RemoveWard(shared_ptr<LuaSpell> luaspell);
 
 	/// <summary>Subtracts the given damage from the wards</summary>
 	/// <param name='damage'>The damage to subtract from the wards</param>
 	/// <returns>The amount of damage left after wards</returns>
 	int32 CheckWards(int32 damage, int8 damage_type);
 
-	void AddStoneskin(LuaSpell* luaspell, StoneskinInfo* stoneskin);
-	void RemoveStoneskin(LuaSpell* luaspell);
+	void AddStoneskin(shared_ptr<LuaSpell> luaspell, StoneskinInfo* stoneskin);
+	void RemoveStoneskin(shared_ptr<LuaSpell> luaspell);
 	int32 CheckStoneskins(int32 damage, Entity* attacker);
 
-	void SetTriggerCount(LuaSpell* luaspell, int16 count);
-	int16 GetTriggerCount(LuaSpell* luaspell);
+	void SetTriggerCount(shared_ptr<LuaSpell> luaspell, int16 count);
+	int16 GetTriggerCount(shared_ptr<LuaSpell> luaspell);
 
 	map<int16, float> stats;
 
@@ -744,12 +744,12 @@ public:
 	/// <param name='chance'>The percent chance the proc has to go off</param>
 	/// <param name='item'>The item the proc is coming from if any</param>
 	/// <param name='spell'>The spell the proc is coming from if any</param>
-	void AddProc(int8 type, float chance, Item* item = 0, LuaSpell* spell = 0);
+	void AddProc(int8 type, float chance, Item* item = nullptr, shared_ptr<LuaSpell> spell = nullptr);
 
 	/// <summary>Removes a proc from the list of current procs</summary>
 	/// <param name='item'>Item the proc is from</param>
 	/// <param name='spell'>Spell the proc is from</param>
-	void RemoveProc(Item* item = 0, LuaSpell* spell = 0);
+	void RemoveProc(Item* item = nullptr, shared_ptr<LuaSpell> spell = nullptr);
 
 	/// <summary>Cycles through the proc list and executes them if they can go off</summary>
 	/// <param name='type'>The proc type to check</param>
@@ -782,48 +782,48 @@ public:
 	void CureDetrimentByType(int8 cure_level, int8 det_type, string cure_name, Entity* caster);
 	void CureDetrimentByControlEffect(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level = 0);
 	vector<DetrimentalEffects>* GetDetrimentalSpellEffects();
-	void RemoveEffectsFromLuaSpell(LuaSpell* spell);
+	void RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell);
 	virtual void RemoveSkillBonus(int32 spell_id);
-	void CancelAllStealth(LuaSpell* exclude_spell = nullptr);
+	void CancelAllStealth(shared_ptr<LuaSpell> exclude_spell = nullptr);
 	bool CanAttackTarget(Spawn* target);
 	bool IsHostile(Spawn* target);
 	bool IsStealthed();
 	bool IsInvis();
-	void AddInvisSpell(LuaSpell* spell);
-	void AddStealthSpell(LuaSpell* spell);
-	void RemoveStealthSpell(LuaSpell* spell);
-	void RemoveInvisSpell(LuaSpell* spell);
-	void AddWaterwalkSpell(LuaSpell* spell);
-	void AddWaterjumpSpell(LuaSpell* spell);
-	void RemoveWaterwalkSpell(LuaSpell* spell);
-	void RemoveWaterjumpSpell(LuaSpell* spell);
-	void AddAOEImmunity(LuaSpell* spell);
+	void AddInvisSpell(shared_ptr<LuaSpell> spell);
+	void AddStealthSpell(shared_ptr<LuaSpell> spell);
+	void RemoveStealthSpell(shared_ptr<LuaSpell> spell);
+	void RemoveInvisSpell(shared_ptr<LuaSpell> spell);
+	void AddWaterwalkSpell(shared_ptr<LuaSpell> spell);
+	void AddWaterjumpSpell(shared_ptr<LuaSpell> spell);
+	void RemoveWaterwalkSpell(shared_ptr<LuaSpell> spell);
+	void RemoveWaterjumpSpell(shared_ptr<LuaSpell> spell);
+	void AddAOEImmunity(shared_ptr<LuaSpell> spell);
 	bool IsAOEImmune();
-	void RemoveAOEImmunity(LuaSpell* spell);
-	void AddStunImmunity(LuaSpell* spell);
-	void RemoveStunImmunity(LuaSpell* spell);
+	void RemoveAOEImmunity(shared_ptr<LuaSpell> spell);
+	void AddStunImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveStunImmunity(shared_ptr<LuaSpell> spell);
 	bool IsStunImmune();
-	void AddStifleImmunity(LuaSpell* spell);
-	void RemoveStifleImmunity(LuaSpell* spell);
+	void AddStifleImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveStifleImmunity(shared_ptr<LuaSpell> spell);
 	bool IsStifleImmune();
-	void AddMezImmunity(LuaSpell* spell);
-	void RemoveMezImmunity(LuaSpell* spell);
+	void AddMezImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveMezImmunity(shared_ptr<LuaSpell> spell);
 	bool IsMezImmune();
-	void AddRootImmunity(LuaSpell* spell);
-	void RemoveRootImmunity(LuaSpell* spell);
+	void AddRootImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveRootImmunity(shared_ptr<LuaSpell> spell);
 	bool IsRootImmune();
-	void AddFearImmunity(LuaSpell* spell);
-	void RemoveFearImmunity(LuaSpell* spell);
+	void AddFearImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveFearImmunity(shared_ptr<LuaSpell> spell);
 	bool IsFearImmune();
-	void AddDazeImmunity(LuaSpell* spell);
-	void RemoveDazeImmunity(LuaSpell* spell);
+	void AddDazeImmunity(shared_ptr<LuaSpell> spell);
+	void RemoveDazeImmunity(shared_ptr<LuaSpell> spell);
 	bool IsDazeImmune();
-	void AddFlightSpell(LuaSpell* spell);
-	void RemoveFlightSpell(LuaSpell* spell);
-	void AddSafefallSpell(LuaSpell* spell);
-	void RemoveSafefallSpell(LuaSpell* spell);
-	void AddGlideSpell(LuaSpell* spell);
-	void RemoveGlideSpell(LuaSpell* spell);
+	void AddFlightSpell(shared_ptr<LuaSpell> spell);
+	void RemoveFlightSpell(shared_ptr<LuaSpell> spell);
+	void AddSafefallSpell(shared_ptr<LuaSpell> spell);
+	void RemoveSafefallSpell(shared_ptr<LuaSpell> spell);
+	void AddGlideSpell(shared_ptr<LuaSpell> spell);
+	void RemoveGlideSpell(shared_ptr<LuaSpell> spell);
 
 	GroupMemberInfo* GetGroupMemberInfo() { return group_member_info; }
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
@@ -844,8 +844,8 @@ protected:
 
 private:
 	MutexList<BonusValues*> bonus_list;
-	map<int8, MutexList<LuaSpell*>*> control_effects;
-	map<int8, MutexList<LuaSpell*>*> immunities;
+	map<int8, MutexList<shared_ptr<LuaSpell>>*> control_effects;
+	map<int8, MutexList<shared_ptr<LuaSpell>>*> immunities;
 	float	max_speed;
 	vector<Item*>	loot_items;
 	int32			loot_coins;
@@ -873,9 +873,9 @@ private:
 	Entity* deityPet;
 	Entity* cosmeticPet;
 
-	map<LuaSpell*, WardInfo*> m_wardList;
-	map<LuaSpell*, StoneskinInfo*> m_stoneskinList;
-	map<LuaSpell*, int16> m_triggerCounts;
+	map<shared_ptr<LuaSpell>, WardInfo*> m_wardList;
+	map<shared_ptr<LuaSpell>, StoneskinInfo*> m_stoneskinList;
+	map<shared_ptr<LuaSpell>, int16> m_triggerCounts;
 
 	// int8 = type, vector<Proc*> = list of pointers to proc info
 	map <int8, vector<Proc*> > m_procList;
@@ -890,7 +890,7 @@ private:
 	float speed;
 	float speed_multiplier;
 
-	map<LuaSpell*, float> snare_values;
+	map<shared_ptr<LuaSpell>, float> snare_values;
 
 	ThreatTransfer* m_threatTransfer;
 

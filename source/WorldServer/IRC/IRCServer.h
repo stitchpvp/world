@@ -61,7 +61,7 @@ private:
 	int sockfd;							//socket used to connect to the irc server
 	vector<IRCChannel *> channels;
 	bool connected;
-	void ProcessLine(Client *client, const char *line);
+	void ProcessLine(shared_ptr<Client> client, const char *line);
 	void Send(IRCMessage *message);
 	void HandlePing();
 	void Say(IRCChannel *channel, const char *message);

@@ -227,7 +227,7 @@ void WorldDatabase::LoadPlayerCollectionItems(Player *player, Collection *collec
 		LogWrite(COLLECTION__ERROR, 0, "Collect", "Error Loading Character Collection Items, Query: %s, Error: %s", query.GetQuery(), query.GetError());
 }
 
-void WorldDatabase::SavePlayerCollections(Client *client) 
+void WorldDatabase::SavePlayerCollections(shared_ptr<Client> client) 
 {
 	map<int32, Collection *> *collections;
 	map<int32, Collection *>::iterator itr;
@@ -248,7 +248,7 @@ void WorldDatabase::SavePlayerCollections(Client *client)
 	}
 }
 
-void WorldDatabase::SavePlayerCollection(Client *client, Collection *collection) 
+void WorldDatabase::SavePlayerCollection(shared_ptr<Client> client, Collection *collection) 
 {
 	Query query;
 
@@ -262,7 +262,7 @@ void WorldDatabase::SavePlayerCollection(Client *client, Collection *collection)
 								collection->GetCompleted() ? 1 : 0);
 }
 
-void WorldDatabase::SavePlayerCollectionItems(Client *client, Collection *collection) 
+void WorldDatabase::SavePlayerCollectionItems(shared_ptr<Client> client, Collection *collection) 
 {
 	vector<struct CollectionItem *> *collection_items;
 	vector<struct CollectionItem *>::iterator itr;
@@ -280,7 +280,7 @@ void WorldDatabase::SavePlayerCollectionItems(Client *client, Collection *collec
 	}
 }
 
-void WorldDatabase::SavePlayerCollectionItem(Client *client, Collection *collection, int32 item_id) 
+void WorldDatabase::SavePlayerCollectionItem(shared_ptr<Client> client, Collection *collection, int32 item_id) 
 {
 	Query query;
 

@@ -107,7 +107,7 @@ struct PendingGuildInvite {
 };
 
 struct PendingResurrection {
-	LuaSpell* spell;
+	shared_ptr<LuaSpell> spell;
 	Spawn* caster;
 	Timer* expire_timer;
 	string spell_name;
@@ -135,7 +135,7 @@ struct IncomingPaperdollImage {
 	int8 image_type;
 };
 
-class Client {
+class Client : public enable_shared_from_this<Client> {
 public:
 	Client(EQStream* ieqs);
     ~Client();
@@ -164,7 +164,7 @@ public:
 	void	SendLoginDeniedBadVersion();
 	void	SendCharPOVGhost();
 	void	SendPlayerDeathWindow();
-	float	DistanceFrom(Client* client);
+	float	DistanceFrom(shared_ptr<Client> client);
 	void	SendDefaultGroupOptions();
 	bool	HandleLootItem(Entity* entity, int32 item_id);
 	bool	HandleLootItem(Entity* entity, Item* item);
@@ -254,7 +254,7 @@ public:
 	void	SetPlayerQuest(Quest* quest, map<int32, int32>* progress);
 	void	AddPlayerQuest(Quest* quest, bool call_accepted = true, bool send_packets = true);
 	void	RemovePlayerQuest(int32 id, bool send_update = true, bool delete_quest = true);
-	void	SendQuestJournal(bool all_quests = false, Client* client = 0);
+	void	SendQuestJournal(bool all_quests = false, shared_ptr<Client> client = 0);
 	void	SendQuestUpdate(Quest* quest);
 	void	SendQuestFailure(Quest* quest);
 	void	SendQuestUpdateStep(Quest* quest, int32 step, bool display_quest_helper = true);
@@ -484,17 +484,14 @@ public:
 	ClientList();
 	~ClientList();
 	bool	ContainsStream(EQStream* eqs);
-	void	Add(Client* client);
-	Client*	Get(int32 ip, int16 port);
-	Client* FindByAccountID(int32 account_id);
-	Client* FindByName(char* charname);
-	void	Remove(Client* client, bool delete_data = false);
+	void	Add(shared_ptr<Client> client);
+	void	Remove(shared_ptr<Client> client);
 	void	RemoveConnection(EQStream* eqs);
 	void	Process();
 	int32	Count();
 	void	ReloadQuests();
 private:
 	Mutex	MClients;
-	list<Client*> client_list;
+	list<shared_ptr<Client>> client_list;
 };
 #endif

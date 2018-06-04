@@ -81,7 +81,7 @@ public:
 	int32	GetAppearanceID(){ return appearance_id; }
 	bool	IsNPC(){ return true; }
 	void	InCombat(bool val);
-	bool	HandleUse(Client* client, string type);
+	bool	HandleUse(shared_ptr<Client> client, string type);
 	void	SetRandomize(int32 value) {appearance.randomize = value;}
 	void	AddRandomize(sint32 value) {appearance.randomize += value;}
 	int32	GetRandomize() {return appearance.randomize;}

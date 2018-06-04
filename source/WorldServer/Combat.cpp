@@ -88,7 +88,7 @@ bool Entity::RangeWeaponReady() {
 
 bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	Entity* attacker = this;
-	Client* client = 0;
+	shared_ptr<Client> client = 0;
 	if(!target || IsMezzedOrStunned() || IsDazed()) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: no target, mezzed, stunned or dazed");
 		return false;
@@ -289,7 +289,7 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 				else
 					((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, true);
 
-				Client* client = GetZone()->GetClientBySpawn(this);
+				shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 				EQ2Packet* outapp = ((Player*)this)->GetEquipmentList()->serialize(client->GetVersion());
 				if(outapp)
 					client->QueuePacket(outapp);
@@ -354,7 +354,7 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 		SetAttackDelay(false, true);
 }
 
-bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod, bool no_calcs){
+bool Entity::SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod, bool no_calcs){
 	if(!victim || !luaspell || !luaspell->spell)
 		return false;
 
@@ -423,7 +423,7 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 		DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, name.c_str());
 
 		if (success_msg.length() > 0) {
-			Client* client = 0;
+			shared_ptr<Client> client = 0;
 			if(IsPlayer())
 				client = GetZone()->GetClientBySpawn(this);
 			if(client) {
@@ -468,7 +468,7 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 	return true;
 }
 
-bool Entity::SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs){
+bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs){
 	 if(!target || !luaspell || !luaspell->spell)
 		return false;
 
@@ -1087,7 +1087,7 @@ void Player::ProcessCombat() {
 			RangeAttack(combat_target, distance, weapon, ammo);
 		}
 		else {
-			Client* client = GetZone()->GetClientBySpawn(this);
+			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 			if (client) {
 				// Need to get messages from live, made these up so the player knows what is wrong in game if weapon or ammo are not valid
 				if (!ammo)
@@ -1149,7 +1149,7 @@ float Entity::CalculateAttackSpeedMod(){
 	return 1;
 }
 
-void Entity::AddProc(int8 type, float chance, Item* item, LuaSpell* spell) {
+void Entity::AddProc(int8 type, float chance, Item* item, shared_ptr<LuaSpell> spell) {
 	if (type == 0) {
 		LogWrite(COMBAT__ERROR, 0, "Proc", "Entity::AddProc called with an invalid type.");
 		return;
@@ -1169,7 +1169,7 @@ void Entity::AddProc(int8 type, float chance, Item* item, LuaSpell* spell) {
 	MProcList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void Entity::RemoveProc(Item* item, LuaSpell* spell) {
+void Entity::RemoveProc(Item* item, shared_ptr<LuaSpell> spell) {
 	if (!item && !spell) {
 		LogWrite(COMBAT__ERROR, 0, "Proc", "Entity::RemoveProc must have a valid item or spell.");
 		return;
@@ -1258,7 +1258,14 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	if (lua_pcall(state, num_args, 0, 0) != 0) {
 		LogWrite(COMBAT__ERROR, 0, "Proc", "Unable to call the proc function");
 		lua_pop(state, 1);
+		if (proc->spell) {
+			lua_interface->SetCurrentSpell(proc->spell->state, nullptr);
+		}
 		return false;
+	}
+
+	if (proc->spell) {
+		lua_interface->SetCurrentSpell(proc->spell->state, nullptr);
 	}
 
 	return true;

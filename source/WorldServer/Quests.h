@@ -295,7 +295,7 @@ public:
 	///<param name='step'>The step id to remove</param>
 	///<param name='client'>The client who has this quest</param>
 	///<returns>True if able to remove the quest</returns>
-	bool				RemoveQuestStep(int32 step, Client* client);
+	bool				RemoveQuestStep(int32 step, shared_ptr<Client> client);
 
 	int16				GetCompleteCount() { return m_completeCount; }
 	void				SetCompleteCount(int16 val) { m_completeCount = val; }

@@ -121,7 +121,7 @@ void PlayerGroup::Disband() {
 	m_members.clear();
 }
 
-void PlayerGroup::SendGroupUpdate(Client* exclude) {
+void PlayerGroup::SendGroupUpdate(shared_ptr<Client> exclude) {
 	deque<GroupMemberInfo*>::iterator itr;
 	for (itr = m_members.begin(); itr != m_members.end(); itr++) {
 		GroupMemberInfo* gmi = *itr;
@@ -204,7 +204,7 @@ bool PlayerGroupManager::AddGroupMember(int32 group_id, Entity* member) {
 bool PlayerGroupManager::RemoveGroupMember(int32 group_id, Entity* member) {
 	bool ret = false;
 	bool remove = false;
-	Client* client = 0;
+	shared_ptr<Client> client = 0;
 	MGroups.writelock(__FUNCTION__, __LINE__);
 
 	if (m_groups.count(group_id) > 0) {
@@ -338,7 +338,7 @@ int8 PlayerGroupManager::AcceptInvite(Entity* member) {
 
 	if (m_pendingInvites.count(member->GetName()) > 0) {
 		string leader = m_pendingInvites[member->GetName()];
-		Client* client_leader = zone_list.GetClientByCharName(leader);
+		shared_ptr<Client> client_leader = zone_list.GetClientByCharName(leader);
 
 		if (client_leader) {
 			if (m_pendingInvites.count(leader) > 0) {
@@ -386,7 +386,7 @@ bool PlayerGroupManager::IsGroupIDValid(int32 group_id) {
 	return ret;
 }
 
-void PlayerGroupManager::SendGroupUpdate(int32 group_id, Client* exclude) {
+void PlayerGroupManager::SendGroupUpdate(int32 group_id, shared_ptr<Client> exclude) {
 	MGroups.writelock(__FUNCTION__, __LINE__);
 
 	if (m_groups.count(group_id) > 0) {
@@ -412,9 +412,9 @@ void PlayerGroupManager::ClearPendingInvite(Entity* member) {
 	MPendingInvites.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
+void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, shared_ptr<Client> client) {
 	PlayerGroup* group = nullptr;
-	map<Player*, vector<LuaSpell*>> to_remove;
+	map<Player*, vector<shared_ptr<LuaSpell>>> to_remove;
 
 	MGroups.readlock(__FUNCTION__, __LINE__);
 	if (m_groups.count(group_id) > 0)
@@ -426,7 +426,7 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
 
 		for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
 			if (se[i].spell_id != 0xFFFFFFFF) {
-				LuaSpell* luaspell = se[i].spell;
+				shared_ptr<LuaSpell> luaspell = se[i].spell;
 				Spell* spell = luaspell->spell;
 
 				if (spell && spell->GetSpellData()->group_spell && spell->GetSpellData()->friendly_spell) {
@@ -450,7 +450,7 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, Client* client) {
 
 		for (const auto& remove : to_remove) {
 			Player* target = remove.first;
-			vector<LuaSpell*> effects = remove.second;
+			vector<shared_ptr<LuaSpell>> effects = remove.second;
 
 			for (const auto effect : effects) {
 				target->RemoveSpellEffect(effect);
@@ -496,7 +496,7 @@ int32 PlayerGroupManager::GetGroupSize(int32 group_id) {
 	return ret;
 }
 
-void PlayerGroupManager::SendGroupQuests(int32 group_id, Client* client) {
+void PlayerGroupManager::SendGroupQuests(int32 group_id, shared_ptr<Client> client) {
 	GroupMemberInfo* info = 0;
 	MGroups.readlock(__FUNCTION__, __LINE__);
 	if (m_groups.count(group_id) > 0) {
@@ -557,7 +557,6 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 	deque<GroupMemberInfo*>::iterator target_itr;
 	map<int32, SkillBonusValue*>::iterator itr_skills;
 	MaintainedEffects* me = 0;
-	LuaSpell* luaspell = 0;
 	Spell* spell = 0;
 	Entity* group_member = 0;
 	SkillBonus* sb;
@@ -566,7 +565,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 	PlayerGroup* group = 0;
 	Player* caster = 0;
 	vector<int32> new_target_list;
-	Client* client = 0;
+	shared_ptr<Client> client = 0;
 	bool has_effect = false;
 	vector<BonusValues*>* sb_list = 0;
 	BonusValues* bv = 0;
@@ -597,7 +596,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 				if (me[i].spell_id == 0xFFFFFFFF)
 					continue;
 
-				luaspell = me[i].spell;
+				shared_ptr<LuaSpell> luaspell = me[i].spell;
 
 				if (!luaspell)
 					continue;

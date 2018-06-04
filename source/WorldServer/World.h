@@ -154,7 +154,7 @@ struct GroupMemberInfo{
 	int16	level_max;
 	int8	race_id;
 	int8	class_id;
-	Client*	client;
+	shared_ptr<Client>	client;
 	PlayerGroup* group;
 };
 
@@ -327,50 +327,57 @@ class ZoneList {
 	/// <returns>ZoneServer* of an active zone with the given id</returns>
 	ZoneServer* GetByLowestPopulation(int32 zone_id);
 
-	void AddClientToMap(string name, Client* client){
+	void AddClientToMap(string name, shared_ptr<Client> client) {
 		name = ToLower(name);
 		MClientList.lock();
 		client_map[name] = client;
 		MClientList.unlock();
 	}
-	void CheckFriendList(Client* client);
-	void CheckFriendZoned(Client* client);
+	void CheckFriendList(shared_ptr<Client> client);
+	void CheckFriendZoned(shared_ptr<Client> client);
 
 	// move to Chat/Chat.h?
-	bool HandleGlobalChatMessage(Client* from, char* to, int16 channel, const char* message, const char* channel_name = 0);
+	bool HandleGlobalChatMessage(shared_ptr<Client> from, char* to, int16 channel, const char* message, const char* channel_name = 0);
 	void HandleGlobalBroadcast(const char* message);
 	void HandleGlobalAnnouncement(const char* message);
 	//
 
 	int32 Count();
-	Client*	GetClientByCharName(string name){ 
+
+	shared_ptr<Client> GetClientByCharName(string name) { 
 		name = ToLower(name);
-		Client* ret = 0;
+		shared_ptr<Client> ret = nullptr;
+
 		MClientList.lock();
-		if(client_map.count(name) > 0)
+		if (client_map.count(name) > 0) {
 			ret = client_map[name]; 
+		}
 		MClientList.unlock();
+
 		return ret;
 	}
-	Client* GetClientByCharID(int32 id) {
-		Client* ret = 0;
+
+	shared_ptr<Client> GetClientByCharID(int32 id) {
+		shared_ptr<Client> ret = nullptr;
+
 		MClientList.lock();
-		map<string, Client*>::iterator itr;
-		for (itr = client_map.begin(); itr != client_map.end(); itr++) {
+		for (auto itr = client_map.begin(); itr != client_map.end(); itr++) {
 			if (itr->second->GetCharacterID() == id) {
 				ret = itr->second;
 				break;
 			}
 		}
 		MClientList.unlock();
+
 		return ret;
 	}
-	Client* GetClientByEQStream(EQStream* eqs) {
-		Client* ret = 0;
+
+	shared_ptr<Client> GetClientByEQStream(EQStream* eqs) {
+		shared_ptr<Client> ret = nullptr;
+
 		if (eqs) {
 			MClientList.lock();
-			map<string, Client*>::iterator itr;
-			for (itr = client_map.begin(); itr != client_map.end(); itr++) {
+			for (auto itr = client_map.begin(); itr != client_map.end(); itr++) {
 				if (itr->second->getConnection() == eqs) {
 					ret = itr->second;
 					break;
@@ -378,14 +385,18 @@ class ZoneList {
 			}
 			MClientList.unlock();
 		}
+
 		return ret;
 	}
+
 	void UpdateVitality(float amount);
-	void RemoveClientFromMap(string name, Client* client){
+	void RemoveClientFromMap(string name) {
 		name = ToLower(name);
+
 		MClientList.lock();
-		if(client_map.count(name) > 0 && client_map[name] == client)
+		if (client_map.count(name) > 0) {
 			client_map.erase(name);
+		}
 		MClientList.unlock();
 	}
 	bool ClientConnected(int32 account_id);
@@ -395,9 +406,9 @@ class ZoneList {
 	void Repop();
 	void DeleteSpellProcess();
 	void LoadSpellProcess();
-	void ProcessWhoQuery(const char* query, Client* client);
+	void ProcessWhoQuery(const char* query, shared_ptr<Client> client);
 	void ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector<Entity*>* players, bool isGM);
-	void SendZoneList(Client* client);
+	void SendZoneList(shared_ptr<Client> client);
 	void WritePlayerStatistics();
 	void ShutDownZones();
 	void ReloadMail();
@@ -408,7 +419,7 @@ private:
 	Mutex				MClientList;
 	Mutex				MZoneList;
 	map<ZoneServer*, int32> removed_zoneservers;
-	map<string,Client*> client_map;
+	map<string, shared_ptr<Client>> client_map;
 	list<ZoneServer*> zlist;
 };
 class World {
@@ -467,13 +478,13 @@ public:
 	sint32 GetServerStatisticValue(int32 stat_id);
 	void RemoveServerStatistics();
 	
-	//PlayerGroup* AddGroup(Client* leader);
-	//void AddGroupMember(PlayerGroup* group, Client* member);
-	//void RemoveGroupMember(Client* member, bool immediate = false);
+	//PlayerGroup* AddGroup(shared_ptr<Client> leader);
+	//void AddGroupMember(PlayerGroup* group, shared_ptr<Client> member);
+	//void RemoveGroupMember(shared_ptr<Client> member, bool immediate = false);
 	//void DisbandGroup(PlayerGroup* group, bool lock = true);
-	void SendGroupQuests(PlayerGroup* group, Client* client);
+	void SendGroupQuests(PlayerGroup* group, shared_ptr<Client> client);
 	//void UpdateGroupBuffs();
-	//void RemoveGroupBuffs(PlayerGroup *group, Client *client);
+	//void RemoveGroupBuffs(PlayerGroup *group, shared_ptr<Client> client);
 	//void SetPendingGroup(char* name, char* leader);
 	//void GroupMessage(PlayerGroup* group, const char* message, ...);
 	//void SimpleGroupMessage(PlayerGroup* group, const char* message);
@@ -482,12 +493,12 @@ public:
 	//void GroupReadLock();
 	//void GroupReadUnLock();
 	//void CheckRemoveGroupedPlayer();
-	//void SendGroupUpdate(PlayerGroup* group, Client* exclude = 0);
-	void RejoinGroup(Client* client);
-	//bool MakeLeader(Client* leader, string new_leader);
+	//void SendGroupUpdate(PlayerGroup* group, shared_ptr<Client> exclude = 0);
+	void RejoinGroup(shared_ptr<Client> client);
+	//bool MakeLeader(shared_ptr<Client> leader, string new_leader);
 	
 	void AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity* entity);
-	void CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
+	void CreateGuild(const char* guild_name, shared_ptr<Client> leader = 0, int32 group_id = 0);
 	void SaveGuilds();
 	void SavePlayers();
 	void PickRandomLottoDigits(int32* digits);

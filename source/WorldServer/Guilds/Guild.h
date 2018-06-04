@@ -24,6 +24,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <memory>
 #include "../../common/Mutex.h"
 #include "../MutexMap.h"
 using namespace std;
@@ -305,7 +306,7 @@ public:
 	int32 GetNumRecruiters();
 	int32 GetNextRecruiterID();
 	int64 GetNextEventID();
-	GuildMember* GetGuildMemberOnline(Client* client);
+	GuildMember* GetGuildMemberOnline(shared_ptr<Client> client);
 	GuildMember* GetGuildMember(Player* player);
 	GuildMember* GetGuildMember(int32 character_id);
 	GuildMember* GetGuildMember(const char* player_name);
@@ -315,65 +316,65 @@ public:
 	const char* GetRankName(int8 rank);
 	bool SetRecruitingFlag(int8 flag, int8 value, bool send_packet = true);
 	int8 GetRecruitingFlag(int8 flag);
-	bool SetGuildRecruiter(Client* client, const char* name, bool value, bool send_packet = true);
-	bool SetGuildRecruiterDescription(Client* client, const char* description, bool send_packet = true);
-	bool ToggleGuildRecruiterAdventureClass(Client* client, bool send_packet = true);
+	bool SetGuildRecruiter(shared_ptr<Client> client, const char* name, bool value, bool send_packet = true);
+	bool SetGuildRecruiterDescription(shared_ptr<Client> client, const char* description, bool send_packet = true);
+	bool ToggleGuildRecruiterAdventureClass(shared_ptr<Client> client, bool send_packet = true);
 	bool SetGuildMemberNote(const char* name, const char* note, bool send_packet = true);
 	bool SetGuildOfficerNote(const char* name, const char* note, bool send_packet = true);
-	bool AddNewGuildMember(Client* client, const char* invited_by = 0, int8 rank = GUILD_RANK_RECRUIT);
+	bool AddNewGuildMember(shared_ptr<Client> client, const char* invited_by = 0, int8 rank = GUILD_RANK_RECRUIT);
 	bool AddGuildMember(GuildMember* guild_member);
 	void RemoveGuildMember(int32 character_id, bool send_packet = true);
 	void RemoveAllGuildMembers();
-	bool DemoteGuildMember(Client* client, const char* name, bool send_packet = true);
-	bool PromoteGuildMember(Client* client, const char* name, bool send_packet = true);
-	bool KickGuildMember(Client* client, const char* name, bool send_packet = true);
-	bool InvitePlayer(Client* client, const char* name, bool send_packet = true);
-	bool AddPointsToAll(Client* client, float points, const char* comment = 0, bool send_packet = true);
-	bool AddPointsToAllOnline(Client* client, float points, const char* comment = 0, bool send_packet = true);
-	bool AddPointsToGroup(Client* client, float points, const char* comment = 0, bool send_packet = true);
-	bool AddPointsToRaid(Client* client, float points, const char* comment = 0, bool send_packet = true);
-	bool AddPointsToGuildMember(Client* client, float points, const char* name, const char* comment = 0, bool send_packet = true);
+	bool DemoteGuildMember(shared_ptr<Client> client, const char* name, bool send_packet = true);
+	bool PromoteGuildMember(shared_ptr<Client> client, const char* name, bool send_packet = true);
+	bool KickGuildMember(shared_ptr<Client> client, const char* name, bool send_packet = true);
+	bool InvitePlayer(shared_ptr<Client> client, const char* name, bool send_packet = true);
+	bool AddPointsToAll(shared_ptr<Client> client, float points, const char* comment = 0, bool send_packet = true);
+	bool AddPointsToAllOnline(shared_ptr<Client> client, float points, const char* comment = 0, bool send_packet = true);
+	bool AddPointsToGroup(shared_ptr<Client> client, float points, const char* comment = 0, bool send_packet = true);
+	bool AddPointsToRaid(shared_ptr<Client> client, float points, const char* comment = 0, bool send_packet = true);
+	bool AddPointsToGuildMember(shared_ptr<Client> client, float points, const char* name, const char* comment = 0, bool send_packet = true);
 	bool AddPointHistory(GuildMember* guild_member, int32 date, const char* modified_by, float points, const char* comment = 0, bool new_point_history = true);
-	void ViewGuildMemberPoints(Client* client, const char* name);
-	bool ChangeMemberFlag(Client* client, int8 member_flag, int8 value, bool send_packet = true);
+	void ViewGuildMemberPoints(shared_ptr<Client> client, const char* name);
+	bool ChangeMemberFlag(shared_ptr<Client> client, int8 member_flag, int8 value, bool send_packet = true);
 	bool UpdateGuildMemberInfo(Player* player);
 	bool UpdateGuildStatus(Player *player, int32 Status);
 	void AddGuildEvent(int64 event_id, int32 type, const char* description, int32 date, int8 locked);
 	void AddNewGuildEvent(int32 type, const char* description, int32 date, bool send_packet = true, ...);
 	bool LockGuildEvent(int64 event_id, bool lock, bool send_packet = true);
 	bool DeleteGuildEvent(int64 event_id, bool send_packet = true);
-	void SendGuildMOTD(Client* client);
+	void SendGuildMOTD(shared_ptr<Client> client);
 	void SendGuildEventList();
-	void SendGuildEventList(Client* client);
+	void SendGuildEventList(shared_ptr<Client> client);
 	void SendGuildEventDetails();
-	void SendGuildEventDetails(Client* client);
+	void SendGuildEventDetails(shared_ptr<Client> client);
 	void SendAllGuildEvents();
-	void SendAllGuildEvents(Client* client);
-	void SendOldGuildEvent(Client* client, GuildEvent* guild_event);
+	void SendAllGuildEvents(shared_ptr<Client> client);
+	void SendOldGuildEvent(shared_ptr<Client> client, GuildEvent* guild_event);
 	void SendNewGuildEvent(GuildEvent* guild_event);
-	void SendNewGuildEvent(Client* client, GuildEvent* guild_event);
+	void SendNewGuildEvent(shared_ptr<Client> client, GuildEvent* guild_event);
 	void SendGuildEventAction(int8 action, GuildEvent* guild_event);
-	void SendGuildEventAction(Client* client, int8 action, GuildEvent* guild_event);
+	void SendGuildEventAction(shared_ptr<Client> client, int8 action, GuildEvent* guild_event);
 	void SendGuildBankEventList();
-	void SendGuildBankEventList(Client* client);
+	void SendGuildBankEventList(shared_ptr<Client> client);
 	void SendGuildUpdate();
-	void SendGuildUpdate(Client* client);
+	void SendGuildUpdate(shared_ptr<Client> client);
 	void SendGuildMemberList();
-	void SendGuildMemberList(Client* client);
+	void SendGuildMemberList(shared_ptr<Client> client);
 	void SendGuildMember(Player* player, bool include_zone = true);
 	void SendGuildMember(GuildMember* gm, bool include_zone = true);
-	void SendGuildMember(Client* client, GuildMember* gm, bool include_zone = true);
+	void SendGuildMember(shared_ptr<Client> client, GuildMember* gm, bool include_zone = true);
 	void SendGuildModification(float points, vector<int32>* character_ids);
-	void SendGuildModification(Client* client, float points, vector<int32>* character_ids);
-	void GuildMemberLogin(Client *client, bool first_login = false);
+	void SendGuildModification(shared_ptr<Client> client, float points, vector<int32>* character_ids);
+	void GuildMemberLogin(shared_ptr<Client> client, bool first_login = false);
 	void GuildMemberLogoff(Player *player);
 	void SendGuildMemberLeave(int32 character_id);
-	void SendGuildMemberLeave(Client* client, int32 character_id);
-	void SendGuildRecruitingDetails(Client* client);
-	void SendGuildRecruitingImages(Client* client);
-	void SendGuildRecruiterInfo(Client* client, Player* player);
-	void HandleGuildSay(Client* sender, const char* message);
-	void HandleOfficerSay(Client* sender, const char* message);
+	void SendGuildMemberLeave(shared_ptr<Client> client, int32 character_id);
+	void SendGuildRecruitingDetails(shared_ptr<Client> client);
+	void SendGuildRecruitingImages(shared_ptr<Client> client);
+	void SendGuildRecruiterInfo(shared_ptr<Client> client, Player* player);
+	void HandleGuildSay(shared_ptr<Client> sender, const char* message);
+	void HandleOfficerSay(shared_ptr<Client> sender, const char* message);
 	void SendMessageToGuild(int8 event_type, const char* message, ...);
 	void SetSaveNeeded(bool val) {save_needed = val;}
 	bool GetSaveNeeded() {return save_needed;}

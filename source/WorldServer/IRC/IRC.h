@@ -41,17 +41,17 @@ public:
 	void Start();
 	void Process();
 
-	void ConnectToServer(Client *client, const char *host, short port, const char *nick = NULL);
+	void ConnectToServer(shared_ptr<Client> client, const char *host, short port, const char *nick = NULL);
 	void ConnectToGlobalServer(const char *host, short port, const char *nick = NULL);
-	void DisconnectFromServer(Client *client);
+	void DisconnectFromServer(shared_ptr<Client> client);
 	void DisconnectFromGlobalServer();
-	void JoinChannel(Client *client, const char *channel_name);
-	void LeaveChannel(Client *client, const char *channel_name);
-	void ListChannels(Client *client);
-	void Say(Client *client, const char *channel_name, const char *message);
-	void Say(Client *client, int32 channel_index, const char *message);
+	void JoinChannel(shared_ptr<Client> client, const char *channel_name);
+	void LeaveChannel(shared_ptr<Client> client, const char *channel_name);
+	void ListChannels(shared_ptr<Client> client);
+	void Say(shared_ptr<Client> client, const char *channel_name, const char *message);
+	void Say(shared_ptr<Client> client, int32 channel_index, const char *message);
 
-	IRCServer* GetServer(Client* client);
+	IRCServer* GetServer(shared_ptr<Client> client);
 
 	IRCServer* GetGlobalServer() { return m_globalServer; }
 

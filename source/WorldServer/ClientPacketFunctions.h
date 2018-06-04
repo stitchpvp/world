@@ -27,63 +27,63 @@ struct HeroicOP;
 class ClientPacketFunctions
 {
 public:
-	static void SendFinishedEntitiesList ( Client* client );
+	static void SendFinishedEntitiesList ( shared_ptr<Client> client );
 
-	static void SendLoginDenied ( Client* client );
-	static void SendLoginAccepted ( Client* client );
+	static void SendLoginDenied ( shared_ptr<Client> client );
+	static void SendLoginAccepted ( shared_ptr<Client> client );
 
-	static void SendCommandList ( Client* client );
+	static void SendCommandList ( shared_ptr<Client> client );
 
-	static void SendGameWorldTime ( Client* client );
+	static void SendGameWorldTime ( shared_ptr<Client> client );
 
-	static void SendCharacterData ( Client* client );
-	static void SendCharacterSheet ( Client* client );
-	static void SendSkillBook ( Client* client );
-	static void SendTraitList ( Client* client );
-	static void SendAbilities ( Client* client );
-	static void SendClassAA ( Client* client );
+	static void SendCharacterData ( shared_ptr<Client> client );
+	static void SendCharacterSheet ( shared_ptr<Client> client );
+	static void SendSkillBook ( shared_ptr<Client> client );
+	static void SendTraitList ( shared_ptr<Client> client );
+	static void SendAbilities ( shared_ptr<Client> client );
+	static void SendClassAA ( shared_ptr<Client> client );
 
-	static void SendCommandNamePacket ( Client* client );
+	static void SendCommandNamePacket ( shared_ptr<Client> client );
 
-	static void SendQuickBarInit ( Client* client );
+	static void SendQuickBarInit ( shared_ptr<Client> client );
 
-	static void SendMOTD ( Client* client );
+	static void SendMOTD ( shared_ptr<Client> client );
 
-	static void SendCharacterMacros(Client* client);
+	static void SendCharacterMacros(shared_ptr<Client> client);
 
-	static void SendUpdateSpellBook ( Client* client );
+	static void SendUpdateSpellBook ( shared_ptr<Client> client );
 
-	static void SendLoginCommandMessages ( Client* client );
+	static void SendLoginCommandMessages ( shared_ptr<Client> client );
 
-	static void SendSkillSlotMappings(Client* client);
+	static void SendSkillSlotMappings(shared_ptr<Client> client);
 
-	static void SendRestartZoneMsg(Client* client);
+	static void SendRestartZoneMsg(shared_ptr<Client> client);
 
-	static void SendServerControlFlags(Client* client, int8 param, int8 param_val, int8 value);
+	static void SendServerControlFlags(shared_ptr<Client> client, int8 param, int8 param_val, int8 value);
 
-	static void SendInstanceList(Client* client);
+	static void SendInstanceList(shared_ptr<Client> client);
 
-	static void SendZoneChange(Client* client, char* zone_ip, int16 zone_port, int32 key);
+	static void SendZoneChange(shared_ptr<Client> client, char* zone_ip, int16 zone_port, int32 key);
 
-	static void SendStateCommand(Client* client, int32 spawn_id, int32 state);
+	static void SendStateCommand(shared_ptr<Client> client, int32 spawn_id, int32 state);
 
 	/* Tradeskills (/Tradeskills/TradeskillsPackets.cpp) */
-	static void SendCreateFromRecipe(Client* client, int32 recipeID);
-	static void SendItemCreationUI(Client* client, Recipe* recipe);
-	static void StopCrafting(Client* client);
-	static void CounterReaction(Client* client, bool countered);
+	static void SendCreateFromRecipe(shared_ptr<Client> client, int32 recipeID);
+	static void SendItemCreationUI(shared_ptr<Client> client, Recipe* recipe);
+	static void StopCrafting(shared_ptr<Client> client);
+	static void CounterReaction(shared_ptr<Client> client, bool countered);
 
-	static void SendAchievementList(Client* client);
+	static void SendAchievementList(shared_ptr<Client> client);
 
 	/* Housing (/Housing/HousingPackets.cpp) */
-	static void SendHousePurchace(Client* client, HouseZone* hz, int32 spawnID);
-	static void SendBaseHouseWindow(Client* client, HouseZone* hz, PlayerHouse* ph, int32 spawnID);
-	static void SendHouseVisitWindow(Client* client, vector<PlayerHouse*> houses);
+	static void SendHousePurchace(shared_ptr<Client> client, HouseZone* hz, int32 spawnID);
+	static void SendBaseHouseWindow(shared_ptr<Client> client, HouseZone* hz, PlayerHouse* ph, int32 spawnID);
+	static void SendHouseVisitWindow(shared_ptr<Client> client, vector<PlayerHouse*> houses);
 
 	/* Heroic OP's (/HeroicOp/HeroicOpPackets.cpp) */
-	static void SendHeroicOPUpdate(Client* client, HeroicOP* ho);
+	static void SendHeroicOPUpdate(shared_ptr<Client> client, HeroicOP* ho);
 
 	//UI updates for trigger count and damage remaining on maintained spells
-	static void SendMaintainedExamineUpdate(Client* client, int8 slot_pos, int32 update_value, int8 update_type);
+	static void SendMaintainedExamineUpdate(shared_ptr<Client> client, int8 slot_pos, int32 update_value, int8 update_type);
 };
 

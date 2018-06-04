@@ -1437,7 +1437,7 @@ int16 Item::GetOverrideLevel(int8 adventure_class, int8 tradeskill_class){
 
 void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16 packet_type, int8 subtype, bool loot_item){
 	int64 classes = 0;
-	Client *client;
+	shared_ptr<Client> client;
 	int8 tmp_subtype = 0;
 	if (!packet || !player)
 		return;

@@ -231,7 +231,7 @@ void NPC::InCombat(bool val){
 	MovementInterrupted(val);
 }
 
-bool NPC::HandleUse(Client* client, string type){
+bool NPC::HandleUse(shared_ptr<Client> client, string type){
 	if(!client || type.length() == 0 || appearance.show_command_icon == 0)
 		return false;
 	EntityCommand* entity_command = FindEntityCommand(type);

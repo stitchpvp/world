@@ -14,7 +14,7 @@ extern ConfigReader configReader;
 extern World world;
 extern MasterSpellList master_spell_list;
 
-void Commands::Command_Bot(Client* client, Seperator* sep) {
+void Commands::Command_Bot(shared_ptr<Client> client, Seperator* sep) {
 
 	if (sep && sep->IsSet(0)) {
 		if (strncasecmp("camp", sep->arg[0], 4) == 0) {
@@ -196,7 +196,7 @@ void Commands::Command_Bot(Client* client, Seperator* sep) {
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/bot help");
 }
 
-void Commands::Command_Bot_Create(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Create(shared_ptr<Client> client, Seperator* sep) {
 	int8 race = BARBARIAN;
 	int8 gender = 0;
 	int8 advClass = GUARDIAN;
@@ -407,7 +407,7 @@ void Commands::Command_Bot_Create(Client* client, Seperator* sep) {
 		client->SimpleMessage(CHANNEL_COLOR_RED, "Error finding the race string, please verify the race id.");
 }
 
-void Commands::Command_Bot_Customize(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Customize(shared_ptr<Client> client, Seperator* sep) {
 	Bot* bot = 0;
 	if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsBot())
 		bot = (Bot*)client->GetPlayer()->GetTarget();
@@ -438,7 +438,7 @@ void Commands::Command_Bot_Customize(Client* client, Seperator* sep) {
 	}
 }
 
-void Commands::Command_Bot_Spawn(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Spawn(shared_ptr<Client> client, Seperator* sep) {
 
 	if (sep && sep->IsSet(0) && sep->IsNumber(0)) {
 		int32 bot_id = atoi(sep->arg[0]);
@@ -521,14 +521,14 @@ void Commands::Command_Bot_Spawn(Client* client, Seperator* sep) {
 	}
 }
 
-void Commands::Command_Bot_List(Client* client, Seperator* sep) {
+void Commands::Command_Bot_List(shared_ptr<Client> client, Seperator* sep) {
 	string bot_list;
 	bot_list = database.GetBotList(client->GetCharacterID());
 	if (!bot_list.empty())
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, bot_list.c_str());
 }
 
-void Commands::Command_Bot_Inv(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Inv(shared_ptr<Client> client, Seperator* sep) {
 	if (sep && sep->IsSet(0)) {
 		if (strncasecmp("give", sep->arg[0], 4) == 0) {
 			if (client->GetPlayer()->trade) {
@@ -629,7 +629,7 @@ void Commands::Command_Bot_Inv(Client* client, Seperator* sep) {
 		Command_Bot(client, sep);
 }
 
-void Commands::Command_Bot_Settings(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Settings(shared_ptr<Client> client, Seperator* sep) {
 	if (sep && sep->IsSet(0) && sep->IsSet(1) && sep->IsNumber(1)) {
 		if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsBot()) {
 			Bot* bot = (Bot*)client->GetPlayer()->GetTarget();
@@ -665,7 +665,7 @@ void Commands::Command_Bot_Settings(Client* client, Seperator* sep) {
 		Command_Bot(client, sep);
 }
 
-void Commands::Command_Bot_Help(Client* client, Seperator* sep) {
+void Commands::Command_Bot_Help(shared_ptr<Client> client, Seperator* sep) {
 	if (sep && sep->IsSet(0)) {
 		if (strncasecmp("race", sep->arg[0], 4) == 0) {
 			PacketStruct* packet = configReader.getStruct("WS_EqShowBook", client->GetVersion());

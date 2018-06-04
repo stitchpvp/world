@@ -245,7 +245,7 @@ int32 MasterRecipeBookList::Size(){
 	return ret;
 }
 
-EQ2Packet* MasterRecipeList::GetRecipePacket(int32 recipe_id, Client* client, bool display, int8 packet_type){
+EQ2Packet* MasterRecipeList::GetRecipePacket(int32 recipe_id, shared_ptr<Client> client, bool display, int8 packet_type){
 	Recipe *recipe = GetRecipe(recipe_id);
 	if(recipe){
 		LogWrite(TRADESKILL__DEBUG, 5, "Recipes", "Recipe ID: %u Recipe Name: %s", recipe->GetID(), recipe->GetName());
@@ -291,7 +291,7 @@ void PlayerRecipeBookList::ClearRecipeBooks(){
 	recipeBooks.clear();
 }
 
-EQ2Packet * Recipe::SerializeRecipe(Client *client, Recipe *recipe, bool display, int8 packet_type, int8 subpacket_type, const char *struct_name){
+EQ2Packet * Recipe::SerializeRecipe(shared_ptr<Client> client, Recipe *recipe, bool display, int8 packet_type, int8 subpacket_type, const char *struct_name){
 	int16 version = 1;
 	if(client)
 		version = client->GetVersion();
