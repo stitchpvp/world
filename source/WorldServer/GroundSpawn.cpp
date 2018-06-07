@@ -81,7 +81,7 @@ const char* GroundSpawn::GetCollectionSkill(){
 	return collection_skill.c_str();
 }
 
-void GroundSpawn::ProcessHarvest(shared_ptr<Client> client) {
+void GroundSpawn::ProcessHarvest(const shared_ptr<Client>& client) {
 	LogWrite(GROUNDSPAWN__DEBUG, 3, "GSpawn", "Process harvesting for player '%s' (%u)", client->GetPlayer()->GetName(), client->GetPlayer()->GetID());
 
 	MHarvest.lock();
@@ -521,7 +521,7 @@ string GroundSpawn::GetHarvestSpellName() {
 	return ret;
 }
 
-void GroundSpawn::HandleUse(shared_ptr<Client> client, string type){
+void GroundSpawn::HandleUse(const shared_ptr<Client>& client, string type){
 	if(!client || type.length() == 0)
 		return;
 	//The following check disables the use of the groundspawn if spawn access is not granted

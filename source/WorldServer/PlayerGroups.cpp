@@ -55,10 +55,11 @@ bool PlayerGroup::AddMember(Entity* member) {
 	gmi->group_id = m_id;
 	gmi->member = member;
 	gmi->leader = false;
-	if (member->IsPlayer())
+	if (member->IsPlayer()) {
 		gmi->client = member->GetZone()->GetClientBySpawn(member);
-	else
+	} else {
 		gmi->client = 0;
+	}
 
 	member->SetGroupMemberInfo(gmi);
 	member->UpdateGroupMemberInfo();

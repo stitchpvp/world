@@ -37,7 +37,7 @@ bool ChatChannel::IsInChannel(int32 character_id) {
 	return false;
 }
 
-bool ChatChannel::JoinChannel(shared_ptr<Client> client) {
+bool ChatChannel::JoinChannel(const shared_ptr<Client>& client) {
 	PacketStruct *packet_struct;
 	vector<int32>::iterator itr;
 	shared_ptr<Client> to_client;
@@ -75,7 +75,7 @@ bool ChatChannel::JoinChannel(shared_ptr<Client> client) {
 	return true;
 }
 
-bool ChatChannel::LeaveChannel(shared_ptr<Client> client) {
+bool ChatChannel::LeaveChannel(const shared_ptr<Client>& client) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
 	shared_ptr<Client> to_client;
@@ -119,7 +119,7 @@ bool ChatChannel::LeaveChannel(shared_ptr<Client> client) {
 	return ret;
 }
 
-bool ChatChannel::TellChannel(shared_ptr<Client> client, const char *message, const char* name2) {
+bool ChatChannel::TellChannel(const shared_ptr<Client>& client, const char *message, const char* name2) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
 	shared_ptr<Client> to_client;
@@ -155,7 +155,7 @@ bool ChatChannel::TellChannel(shared_ptr<Client> client, const char *message, co
 	return true;
 }
 
-bool ChatChannel::TellChannelClient(shared_ptr<Client> to_client, const char* message, const char* name2) {
+bool ChatChannel::TellChannelClient(const shared_ptr<Client>& to_client, const char* message, const char* name2) {
 	PacketStruct *packet_struct;
 
 	if (string(name2).find('[') != string::npos)
@@ -183,7 +183,7 @@ bool ChatChannel::TellChannelClient(shared_ptr<Client> to_client, const char* me
 	return true;
 }
 
-bool ChatChannel::SendChannelUserList(shared_ptr<Client> client) {
+bool ChatChannel::SendChannelUserList(const shared_ptr<Client>& client) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
 	shared_ptr<Client> to_client;

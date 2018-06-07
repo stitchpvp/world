@@ -116,7 +116,7 @@ bool WorldDatabase::RemoveSpawnTemplate(int32 template_id)
 }
 
 
-int32 WorldDatabase::CreateSpawnFromTemplateByID(shared_ptr<Client> client, int32 template_id)
+int32 WorldDatabase::CreateSpawnFromTemplateByID(const shared_ptr<Client>& client, int32 template_id)
 {
 	Query query;
 	MYSQL_ROW row;
@@ -195,7 +195,7 @@ int32 WorldDatabase::CreateSpawnFromTemplateByID(shared_ptr<Client> client, int3
 }
 
 
-int32 WorldDatabase::CreateSpawnFromTemplateByName(shared_ptr<Client> client, const char* template_name)
+int32 WorldDatabase::CreateSpawnFromTemplateByName(const shared_ptr<Client>& client, const char* template_name)
 {
 	Query query;
 	MYSQL_ROW row;

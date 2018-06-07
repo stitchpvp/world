@@ -47,7 +47,7 @@ int MasterTraitList::Size(){
 	return TraitList.size();
 }
 
-EQ2Packet* MasterTraitList::GetTraitListPacket (shared_ptr<Client> client)
+EQ2Packet* MasterTraitList::GetTraitListPacket(const shared_ptr<Client>& client)
 {
 	if (!client) {
 		LogWrite(SPELL__ERROR, 0, "Traits", "GetTraitListPacket called with an invalid client");

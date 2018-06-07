@@ -79,6 +79,9 @@ void SpellProcess::RemoveAllSpells(){
 	}
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
+	for (auto recast_timer : recast_timers) {
+		safe_delete(recast_timer);
+	}
 	recast_timers.clear();
 	MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 
@@ -148,7 +151,6 @@ void SpellProcess::Process(){
 								guard.unlock();
 								if (!ProcessSpell(spell, target, false)) {
 									guard.lock();
-									spell_itr = active_spells.erase(spell_itr);
 									break;
 								}
 								guard.lock();
@@ -274,6 +276,7 @@ void SpellProcess::Process(){
 			if (recast_timer->timer->Check(false)) {
 				UnlockSpell(recast_timer->client, recast_timer->spell);
 				safe_delete(recast_timer->timer);
+				safe_delete(recast_timer);
 				itr = recast_timers.erase(itr);
 			} else {
 				++itr;
@@ -560,7 +563,7 @@ bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
 	return true;
 }
 
-void SpellProcess::SendStartCast(LuaSpell* spell, shared_ptr<Client> client){
+void SpellProcess::SendStartCast(LuaSpell* spell, const shared_ptr<Client>& client){
 	if(client) {
 		PacketStruct* packet = configReader.getStruct("WS_StartCastSpell", client->GetVersion());
 
@@ -574,7 +577,7 @@ void SpellProcess::SendStartCast(LuaSpell* spell, shared_ptr<Client> client){
 	}
 }
 
-void SpellProcess::SendFinishedCast(LuaSpell* spell, shared_ptr<Client> client){
+void SpellProcess::SendFinishedCast(LuaSpell* spell, const shared_ptr<Client>& client){
 	if (spell && spell->spell) {
 		float recast = spell->spell->GetModifiedRecast(spell->caster);
 
@@ -605,19 +608,19 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, shared_ptr<Client> client){
  	}
 }
 
-void SpellProcess::LockAllSpells(shared_ptr<Client> client){
+void SpellProcess::LockAllSpells(const shared_ptr<Client>& client){
 	if(client){
 		client->GetPlayer()->LockAllSpells();
 		SendSpellBookUpdate(client);
 	}
 }
 
-void SpellProcess::UnlockAllSpells(shared_ptr<Client> client){
+void SpellProcess::UnlockAllSpells(const shared_ptr<Client>& client){
 	if(client)
 		client->GetPlayer()->UnlockAllSpells();
 }
 
-void SpellProcess::UnlockSpell(shared_ptr<Client> client, Spell* spell){
+void SpellProcess::UnlockSpell(const shared_ptr<Client>& client, Spell* spell){
 	if(client && client->GetPlayer() && spell) {
 		if (!client->GetPlayer()->IsCasting()) {
 			client->GetPlayer()->UnlockSpell(spell);
@@ -830,7 +833,7 @@ void SpellProcess::CheckSpellQueue(Spell* spell, Entity* caster) {
 	}
 }
 
-void SpellProcess::SendSpellBookUpdate(shared_ptr<Client> client){
+void SpellProcess::SendSpellBookUpdate(const shared_ptr<Client>& client){
 	if(client){
 		EQ2Packet* app = client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion());
 		if(app)
@@ -1457,7 +1460,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 	return true;
 }
 
-bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, shared_ptr<Client> client) {
+bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, const shared_ptr<Client>& client) {
 	bool ret = false;
 	if (entity_command && client) {
 		UnlockAllSpells(client);
@@ -1582,6 +1585,7 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 
 				if (recast_timer && recast_timer->caster == spawn) {
 					safe_delete(recast_timer->timer);
+					safe_delete(recast_timer);
 					itr = recast_timers.erase(itr);
 				} else {
 					itr++;

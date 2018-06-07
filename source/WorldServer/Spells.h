@@ -301,9 +301,9 @@ public:
 	~Spell();
 	Spell();
 	Spell(SpellData* in_spell);
-	EQ2Packet* SerializeSpell(shared_ptr<Client> client, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0);
-	EQ2Packet* SerializeSpecialSpell(shared_ptr<Client> client, bool display, int8 packet_type = 0, int8 sub_packet_type = 0);
-	EQ2Packet* SerializeAASpell(shared_ptr<Client> client, AltAdvanceData* data, bool display, int16 packet_type = 0, int8 sub_packet_type = 0);
+	EQ2Packet* SerializeSpell(const shared_ptr<Client>& client, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0);
+	EQ2Packet* SerializeSpecialSpell(const shared_ptr<Client>& client, bool display, int8 packet_type = 0, int8 sub_packet_type = 0);
+	EQ2Packet* SerializeAASpell(const shared_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type = 0, int8 sub_packet_type = 0);
 	void AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level);
 	void AddSpellEffect(int8 percentage, int8 subbullet, string description);
 	void AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value, int flat_value = 0, bool is_scaling = false);
@@ -319,7 +319,7 @@ public:
 	int16 GetSpellIcon();
 	int16 GetSpellIconBackdrop();
 	int16 GetSpellIconHeroicOp();
-	int16 GetLevelRequired(shared_ptr<Client> client);
+	int16 GetLevelRequired(const shared_ptr<Client>& client);
 	int16 GetHPRequired(Spawn* spawn);
 	int16 GetPowerRequired(Spawn* spawn);
 	int16 GetSavageryRequired(Spawn* spawn);

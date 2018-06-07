@@ -28,6 +28,7 @@ using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm> 
+#include <atomic>
 
 #include <signal.h>
 
@@ -91,8 +92,8 @@ LuaInterface* lua_interface = new LuaInterface();
 #include "Patch/patch.h"
 
 volatile bool RunLoops = true;
-sint32 numclients = 0;
-sint32 numzones = 0;
+atomic<sint32> numclients(0);
+atomic<sint32> numzones(0);
 extern ClientList client_list;
 extern ZoneList zone_list;
 extern MasterFactionList master_faction_list;
@@ -790,7 +791,7 @@ void UpdateWindowTitle(char* iNewTitle) {
 		snprintf(tmp, sizeof(tmp), "World: %s", iNewTitle);
 	}
 	else {
-		snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients, numzones);
+		snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients.load(), numzones.load());
 	}
 	// Zero terminate ([max - 1] = 0) the string to prevent a warning 
 	tmp[499] = 0;

@@ -35,6 +35,7 @@
 #include "MutexList.h"
 
 #include "PlayerGroups.h"
+#include "../common/Log.h"
 
 using namespace std;
 struct MerchantInfo{
@@ -130,38 +131,6 @@ struct LocationTransportDestination{
 	float	trigger_radius;
 	int32	cost;
 };
-
-//ideally we wouldn't need to store this information as we could get it from the Client object, 
-//however since the client object disconnects from the server when zoning we can't count on it being available
-
-/*struct PlayerGroup;
-struct GroupOptions{
-	int8	loot_method;
-	int8	loot_items_rarity;
-	int8	auto_split;
-	int8	default_yell;
-	int8	group_autolock;
-	int8	solo_autolock;
-};
-struct GroupMemberInfo{
-	string	name;
-	string	zone;
-	sint32	hp_current;
-	sint32	hp_max;
-	sint32	power_current;
-	sint32	power_max;
-	int16	level_current;
-	int16	level_max;
-	int8	race_id;
-	int8	class_id;
-	shared_ptr<Client>	client;
-	PlayerGroup* group;
-};
-
-struct PlayerGroup{
-	deque<GroupMemberInfo*> members;
-	GroupOptions options;
-};*/
 
 struct LottoPlayer {
 	int32 end_time;
@@ -333,11 +302,11 @@ class ZoneList {
 		client_map[name] = client;
 		MClientList.unlock();
 	}
-	void CheckFriendList(shared_ptr<Client> client);
-	void CheckFriendZoned(shared_ptr<Client> client);
+	void CheckFriendList(const shared_ptr<Client>& client);
+	void CheckFriendZoned(const shared_ptr<Client>& client);
 
 	// move to Chat/Chat.h?
-	bool HandleGlobalChatMessage(shared_ptr<Client> from, char* to, int16 channel, const char* message, const char* channel_name = 0);
+	bool HandleGlobalChatMessage(const shared_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name = 0);
 	void HandleGlobalBroadcast(const char* message);
 	void HandleGlobalAnnouncement(const char* message);
 	//
@@ -406,9 +375,9 @@ class ZoneList {
 	void Repop();
 	void DeleteSpellProcess();
 	void LoadSpellProcess();
-	void ProcessWhoQuery(const char* query, shared_ptr<Client> client);
+	void ProcessWhoQuery(const char* query, const shared_ptr<Client>& client);
 	void ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector<Entity*>* players, bool isGM);
-	void SendZoneList(shared_ptr<Client> client);
+	void SendZoneList(const shared_ptr<Client>& client);
 	void WritePlayerStatistics();
 	void ShutDownZones();
 	void ReloadMail();
@@ -478,11 +447,11 @@ public:
 	sint32 GetServerStatisticValue(int32 stat_id);
 	void RemoveServerStatistics();
 	
-	//PlayerGroup* AddGroup(shared_ptr<Client> leader);
-	//void AddGroupMember(PlayerGroup* group, shared_ptr<Client> member);
-	//void RemoveGroupMember(shared_ptr<Client> member, bool immediate = false);
+	//PlayerGroup* AddGroup(const shared_ptr<Client>& leader);
+	//void AddGroupMember(PlayerGroup* group, const shared_ptr<Client>& member);
+	//void RemoveGroupMember(const shared_ptr<Client>& member, bool immediate = false);
 	//void DisbandGroup(PlayerGroup* group, bool lock = true);
-	void SendGroupQuests(PlayerGroup* group, shared_ptr<Client> client);
+	void SendGroupQuests(PlayerGroup* group, const shared_ptr<Client>& client);
 	//void UpdateGroupBuffs();
 	//void RemoveGroupBuffs(PlayerGroup *group, shared_ptr<Client> client);
 	//void SetPendingGroup(char* name, char* leader);
@@ -494,8 +463,8 @@ public:
 	//void GroupReadUnLock();
 	//void CheckRemoveGroupedPlayer();
 	//void SendGroupUpdate(PlayerGroup* group, shared_ptr<Client> exclude = 0);
-	void RejoinGroup(shared_ptr<Client> client);
-	//bool MakeLeader(shared_ptr<Client> leader, string new_leader);
+	void RejoinGroup(const shared_ptr<Client>& client);
+	//bool MakeLeader(const shared_ptr<Client>& leader, string new_leader);
 	
 	void AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity* entity);
 	void CreateGuild(const char* guild_name, shared_ptr<Client> leader = 0, int32 group_id = 0);

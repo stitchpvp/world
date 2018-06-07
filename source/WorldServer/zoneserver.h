@@ -227,7 +227,7 @@ public:
 	bool		SpawnProcess();
 	
 	void	LoadRevivePoints(vector<RevivePoint*>* revive_points);
-	vector<RevivePoint*>* GetRevivePoints(shared_ptr<Client> client);
+	vector<RevivePoint*>* GetRevivePoints(const shared_ptr<Client>& client);
 	RevivePoint* GetRevivePoint(int32 id);
 
 	void	AddClient(shared_ptr<Client> client);
@@ -235,13 +235,13 @@ public:
 	
 	void	SimpleMessage(int8 type, const char* message, Spawn* from, float distance);
 	void	HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
-	void	HandleChatMessage(shared_ptr<Client> client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
+	void	HandleChatMessage(const shared_ptr<Client>& client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
 	void	HandleBroadcast(const char* message);
 	void	HandleAnnouncement(const char* message);
 	
 	int16	SetSpawnTargetable(Spawn* spawn, float distance);
 	int16	SetSpawnTargetable(int32 spawn_id);
-	void	ApplySetSpawnCommand(shared_ptr<Client> client, Spawn* target, int8 type, char* value);
+	void	ApplySetSpawnCommand(const shared_ptr<Client>& client, Spawn* target, int8 type, char* value);
 	void	SetSpawnCommand(Spawn* spawn, int8 type, char* value, shared_ptr<Client> client = 0);
 	void	SetSpawnCommand(int32 spawn_id, int8 type, char* value, shared_ptr<Client> client = 0);
 	void	AddLoot(NPC* npc);
@@ -264,27 +264,27 @@ public:
 	void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true, bool respawn = true, bool lock = true);
 	void RemoveSpawnFromClient(Spawn* spawn, bool skip_if_client = true);
 	void	ProcessSpawnLocations();
-	void	SendQuestUpdates(shared_ptr<Client> client, Spawn* spawn = 0);
+	void	SendQuestUpdates(const shared_ptr<Client>& client, Spawn* spawn = 0);
 	
-	EQ2Packet* GetZoneInfoPacket(shared_ptr<Client> client);
+	EQ2Packet* GetZoneInfoPacket(const shared_ptr<Client>& client);
 	Spawn*	FindSpawn(Player* searcher, const char* name);
 	void	CallSpawnScript(Spawn* npc, int8 type, Spawn* spawn = 0, const char* message = 0);
 	void	SendSpawnVisualState(Spawn* spawn, int16 type);
-	void    ResendSpawns(shared_ptr<Client> client);
-	void	SendSpellFailedPacket(shared_ptr<Client> client, int16 error);
+	void    ResendSpawns(const shared_ptr<Client>& client);
+	void	SendSpellFailedPacket(const shared_ptr<Client>& client, int16 error);
 	void	SendInterruptPacket(Spawn* interrupted, LuaSpell* spell);
-	void	HandleEmote(shared_ptr<Client> originator, string name);
+	void	HandleEmote(const shared_ptr<Client>& originator, string name);
 	shared_ptr<Client> GetClientBySpawn(Spawn* spawn);
 	Spawn*	GetSpawnByDatabaseID(int32 id);
 	Spawn*	GetSpawnByID(int32 id);
 	
-	void	PlaySoundFile(shared_ptr<Client> client, const char* name, float origin_x, float origin_y, float origin_z);
-	void	SendZoneSpawns(shared_ptr<Client> client);
+	void	PlaySoundFile(const shared_ptr<Client>& client, const char* name, float origin_x, float origin_y, float origin_z);
+	void	SendZoneSpawns(const shared_ptr<Client>& client);
 	void	StartZoneInitialSpawnThread(shared_ptr<Client> client);
 	void	SendSpawnChanges();
 	void	SendSpawnChanges(Spawn* spawn);
-	void	SendSpawnChanges(Spawn* spawn, shared_ptr<Client> client, bool override_changes = false, bool override_vis_changes = false);
-	void	SendSpawnChanges(int32 spawn_id, shared_ptr<Client> client, bool override_changes = false, bool override_vis_changes = false);
+	void	SendSpawnChanges(Spawn* spawn, const shared_ptr<Client>& client, bool override_changes = false, bool override_vis_changes = false);
+	void	SendSpawnChanges(int32 spawn_id, const shared_ptr<Client>& client, bool override_changes = false, bool override_vis_changes = false);
 	void	SendPlayerPositionChanges(Player* player);
 	
 	void	UpdateVitality(float amount);
@@ -312,7 +312,7 @@ public:
 	
 	void	Despawn(Spawn* spawn, int32 timer);
 	
-	void	RepopSpawns(shared_ptr<Client> client, Spawn* spawn);
+	void	RepopSpawns(const shared_ptr<Client>& client, Spawn* spawn);
 	bool	AddCloseSpawnsToSpawnGroup(Spawn* spawn, float radius);
 	void	Depop(bool respawns = false, bool repop = false);
 
@@ -321,14 +321,14 @@ public:
 	void	AddEnemyList(NPC* npc);
 	
 	void	ReloadClientQuests();
-	void	SendAllSpawnsForLevelChange(shared_ptr<Client> client);
+	void	SendAllSpawnsForLevelChange(const shared_ptr<Client>& client);
 	
 	void	AddLocationGrid(LocationGrid* grid);
 	void	RemoveLocationGrids();
 
 	void	DeleteTransporters();
 	
-	void	CheckTransporters(shared_ptr<Client> client);
+	void	CheckTransporters(const shared_ptr<Client>& client);
 	
 	void	WritePlayerStatistics();
 	
@@ -356,7 +356,7 @@ public:
 	void	AddPlayerTracking(Player* player);
 	void	RemovePlayerTracking(Player* player, int8 mode);
 	
-	void	SendUpdateTitles(shared_ptr<Client> client, Title *suffix = 0, Title *prefix = 0);
+	void	SendUpdateTitles(const shared_ptr<Client>& client, Title *suffix = 0, Title *prefix = 0);
 	void	SendUpdateTitles(Spawn *spawn, Title *suffix = 0, Title *prefix = 0);
 	
 	void    RemoveTargetFromSpell(shared_ptr<LuaSpell> spell, Spawn* target);
@@ -383,7 +383,7 @@ public:
 	
 	Spawn*  GetClosestTransportSpawn(float x, float y, float z);
 	
-	void    ResurrectSpawn(Spawn* spawn, shared_ptr<Client> client);
+	void    ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client);
 
 	void	HidePrivateSpawn(Spawn* spawn);
 	shared_ptr<Client>	GetClientByName(char* name);
@@ -410,8 +410,8 @@ public:
 	int32			GetClosestLocation(Spawn* spawn);
 	Spawn*			GetClosestSpawn(Spawn* spawn, int32 spawn_id);
 	SpawnLocation*	GetSpawnLocation(int32 id);
-	void			PlayFlavor(shared_ptr<Client> client, Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
-	void			PlayVoice(shared_ptr<Client> client, Spawn* spawn, const char* mp3, int32 key1, int32 key2);
+	void			PlayFlavor(const shared_ptr<Client>& client, Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
+	void			PlayVoice(const shared_ptr<Client>& client, Spawn* spawn, const char* mp3, int32 key1, int32 key2);
 	void			PlayFlavor(Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
 	void			PlayVoice(Spawn* spawn, const char* mp3, int32 key1, int32 key2);
 	void			SendThreatPacket(Spawn* caster, Spawn* target, int32 threat_amt, const char* spell_name);
@@ -587,13 +587,13 @@ public:
 	void AddFlightPath(int32 id, FlightPathInfo* info);
 	void AddFlightPathLocation(int32 id, FlightPathLocation* location);
 	void DeleteFlightPaths();
-	void SendFlightPathsPackets(shared_ptr<Client> client);
+	void SendFlightPathsPackets(const shared_ptr<Client>& client);
 	int32 GetFlightPathIndex(int32 id);
 	float GetFlightPathSpeed(int32 id);
 
 	Entity* unknown_spawn;
 
-	void	SendSpawn(Spawn* spawn, shared_ptr<Client> client);														// moved from private to public for bots
+	void	SendSpawn(Spawn* spawn, const shared_ptr<Client>& client);
 	void	SaveClients();
 
 private:
@@ -620,16 +620,16 @@ private:
 	Spawn*	ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respawn = false);							// never used outside zone server
 	Spawn*	ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);													// never used outside zone server
 	void	SendCharSheetChanges();																				// never used outside zone server
-	void	SendCharSheetChanges(shared_ptr<Client> client);																// never used outside zone server
+	void	SendCharSheetChanges(const shared_ptr<Client>& client);																// never used outside zone server
 	void	CheckSendSpawnToClient();																			// never used outside zone server
-	void	CheckSendSpawnToClient(shared_ptr<Client> client, bool initial_login = false);									// never used outside zone server
-	bool	SendRemoveSpawn(shared_ptr<Client> client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);	// never used outside zone server
+	void	CheckSendSpawnToClient(const shared_ptr<Client>& client, bool initial_login = false);									// never used outside zone server
+	bool	SendRemoveSpawn(const shared_ptr<Client>& client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);	// never used outside zone server
 	void	CheckRemoveSpawnFromClient(Spawn* spawn);															// never used outside zone server
-	void	SaveClient(shared_ptr<Client> client);																			// never used outside zone server
-	void	ProcessFaction(Spawn* spawn, shared_ptr<Client> client);														// never used outside zone server
+	void	SaveClient(const shared_ptr<Client>& client);																			// never used outside zone server
+	void	ProcessFaction(Spawn* spawn, const shared_ptr<Client>& client);														// never used outside zone server
 	void	RegenUpdate();																						// never used outside zone server
 	void	SendCalculatedXP(Player* player, Spawn* victim);													// never used outside zone server, might not be used at all any more
-	void	SendTimeUpdate(shared_ptr<Client> client);																		// never used outside zone server
+	void	SendTimeUpdate(const shared_ptr<Client>& client);																		// never used outside zone server
 	void	CheckWidgetTimers();																				// never used outside zone server
 	void	CheckRespawns();																					// never used outside zone server
 	void	CheckSpawnExpireTimers();																			// never used outside zone server
@@ -661,7 +661,7 @@ private:
 	void	ProcessDrowning();																					// never used outside zone server
 	void	RemoveDamagedSpawn(Spawn* spawn);																	// never used outside zone server
 	void	ProcessTracking();																					// never used outside zone server
-	void	ProcessTracking(shared_ptr<Client> client);																	// never used outside zone server
+	void	ProcessTracking(const shared_ptr<Client>& client);																	// never used outside zone server
 	void	SendEpicMobDeathToGuild(Player* killer, Spawn* victim);												// never used outside zone server
 	void	ProcessAggroChecks(Spawn* spawn);																	// never used outside zone server
 	/// <summary>Checks to see if it is time to remove a spawn and removes it</summary>
@@ -672,7 +672,7 @@ private:
 	///<summary>Dismiss all pets in the zone, useful when the spell process needs to be reloaded</summary>
 	void DismissAllPets();																						// never used outside zone server
 
-	void SetSpawnStructs(shared_ptr<Client> client);
+	void SetSpawnStructs(const shared_ptr<Client>& client);
 
 	/* Mutex Lists */
 	MutexList<int32> changed_spawns;										// int32 = spawn id

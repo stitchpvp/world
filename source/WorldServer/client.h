@@ -164,7 +164,7 @@ public:
 	void	SendLoginDeniedBadVersion();
 	void	SendCharPOVGhost();
 	void	SendPlayerDeathWindow();
-	float	DistanceFrom(shared_ptr<Client> client);
+	float	DistanceFrom(const shared_ptr<Client>& client);
 	void	SendDefaultGroupOptions();
 	bool	HandleLootItem(Entity* entity, int32 item_id);
 	bool	HandleLootItem(Entity* entity, Item* item);

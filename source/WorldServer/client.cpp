@@ -40,6 +40,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRC/IRC.h"
 #include "Chat/Chat.h"
 #include "PVP.h"
+#include <atomic>
 
 //#include "Quests.h"
 
@@ -88,7 +89,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 extern WorldDatabase database;
 extern const char* ZONE_NAME;
 extern LoginServer loginserver;
-extern sint32 numclients;
+extern atomic<sint32> numclients;
 extern NetConnection net;
 extern Commands commands;
 extern ClientList client_list;
@@ -149,7 +150,7 @@ Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_deb
 	player_pos_changed = false;
 	++numclients;
 	if (world.GetServerStatisticValue(STAT_SERVER_MOST_CONNECTIONS) < numclients)
-		world.UpdateServerStatistic(STAT_SERVER_MOST_CONNECTIONS, numclients, true);
+		world.UpdateServerStatistic(STAT_SERVER_MOST_CONNECTIONS, numclients.load(), true);
 	remove_from_list = false;
 	new_client_login = false;
 	UpdateWindowTitle(0);
@@ -779,22 +780,26 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 						}
 						MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);*/
 
-						if (client && !client->getConnection()) {
-							GroupMemberInfo* info = nullptr ;
+						if (client) {
+							if (client->IsZoning()) {
+								GroupMemberInfo* info = nullptr ;
 
-							if (info = client->GetPlayer()->GetGroupMemberInfo()) {
-								info->client = shared_from_this();
-								info->member = GetPlayer();
+								if (info = client->GetPlayer()->GetGroupMemberInfo()) {
+									info->client = shared_from_this();
+									info->member = GetPlayer();
 
-								client->GetPlayer()->SetGroupMemberInfo(0);
+									client->GetPlayer()->SetGroupMemberInfo(nullptr);
 
-								GetPlayer()->SetGroupMemberInfo(info);
-								GetPlayer()->UpdateGroupMemberInfo();
+									GetPlayer()->SetGroupMemberInfo(info);
+									GetPlayer()->UpdateGroupMemberInfo();
 
-								world.GetGroupManager()->SendGroupUpdate(GetPlayer()->GetGroupMemberInfo()->group_id, shared_from_this());
+									world.GetGroupManager()->SendGroupUpdate(GetPlayer()->GetGroupMemberInfo()->group_id, shared_from_this());
+								}
 							}
 
 							client->GetPlayer()->SetResurrecting(true);
+
+							zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
 						}
 
 						if (client && client->getConnection()) {
@@ -3119,7 +3124,7 @@ void Client::TeleportWithinZone(float x, float y, float z, float heading) {
 		client_zoning = true;
 }
 
-float Client::DistanceFrom(shared_ptr<Client> client){
+float Client::DistanceFrom(const shared_ptr<Client>& client) {
 	float ret = 0;
 
 	if (client && client != shared_from_this()) {

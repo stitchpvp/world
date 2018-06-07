@@ -926,7 +926,7 @@ EQ2Packet* PlayerInfo::serializePet(int16 version) {
 	return 0;
 }
 
-bool Player::DamageEquippedItems(int8 amount, shared_ptr<Client> client) {
+bool Player::DamageEquippedItems(const shared_ptr<Client>& client, int8 amount) {
 	bool ret = false;
 	int8 item_type;
 	Item* item = 0;
@@ -4991,7 +4991,7 @@ void PlayerControlFlags::SetPlayerControlFlag(int8 param, int8 param_value, bool
 	MControlFlags.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void PlayerControlFlags::SendControlFlagUpdates(shared_ptr<Client> client){
+void PlayerControlFlags::SendControlFlagUpdates(const shared_ptr<Client>& client){
 	if (!client)
 		return;
 
@@ -5019,7 +5019,7 @@ void Player::SetPlayerControlFlag(int8 param, int8 param_value, bool is_active){
 	control_flags.SetPlayerControlFlag(param, param_value, is_active);
 }
 
-void Player::SendControlFlagUpdates(shared_ptr<Client> client){
+void Player::SendControlFlagUpdates(const shared_ptr<Client>& client){
 	control_flags.SendControlFlagUpdates(client);
 }
 

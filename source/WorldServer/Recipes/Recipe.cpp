@@ -291,7 +291,7 @@ void PlayerRecipeBookList::ClearRecipeBooks(){
 	recipeBooks.clear();
 }
 
-EQ2Packet * Recipe::SerializeRecipe(shared_ptr<Client> client, Recipe *recipe, bool display, int8 packet_type, int8 subpacket_type, const char *struct_name){
+EQ2Packet * Recipe::SerializeRecipe(const shared_ptr<Client>& client, Recipe *recipe, bool display, int8 packet_type, int8 subpacket_type, const char *struct_name){
 	int16 version = 1;
 	if(client)
 		version = client->GetVersion();

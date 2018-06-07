@@ -35,20 +35,20 @@ extern MasterTraitList master_trait_list;
 extern Variables variables;
 extern World world;
 
-void ClientPacketFunctions::SendFinishedEntitiesList ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendFinishedEntitiesList(const shared_ptr<Client>& client) {
 
 	EQ2Packet* finishedEntitiesApp = new EQ2Packet(OP_DoneSendingInitialEntitiesMsg, 0, 0);
 	client->QueuePacket(finishedEntitiesApp);
 
 }
 
-void ClientPacketFunctions::SendSkillSlotMappings(shared_ptr<Client> client){
+void ClientPacketFunctions::SendSkillSlotMappings(const shared_ptr<Client>& client) {
 	EQ2Packet* app = client->GetPlayer()->GetSpellSlotMappingPacket(client->GetVersion());
 	if(app)
 		client->QueuePacket(app);
 }
 
-void ClientPacketFunctions::SendLoginDenied ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendLoginDenied(const shared_ptr<Client>& client) {
 	PacketStruct* packet = configReader.getStruct("LS_LoginResponse", 1);
 	if(packet){
 		packet->setDataByName("reply_code", 1);
@@ -60,7 +60,7 @@ void ClientPacketFunctions::SendLoginDenied ( shared_ptr<Client> client ){
 	}
 }
 
-void ClientPacketFunctions::SendLoginAccepted ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendLoginAccepted(const shared_ptr<Client>& client) {
 	LogWrite(PACKET__DEBUG, 0, "Packet", "Sending Login Accepted packet (LS_LoginResponse, %i)", client->GetVersion());
 	PacketStruct* response_packet = configReader.getStruct("LS_LoginResponse", client->GetVersion());
 	if(response_packet){
@@ -76,12 +76,12 @@ void ClientPacketFunctions::SendLoginAccepted ( shared_ptr<Client> client ){
 	}
 }
 
-void ClientPacketFunctions::SendCommandList ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendCommandList(const shared_ptr<Client>& client) {
 	EQ2Packet* app = commands.GetRemoteCommands()->serialize();
 	client->QueuePacket(app);
 }
 
-void ClientPacketFunctions::SendGameWorldTime ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendGameWorldTime(const shared_ptr<Client>& client) {
 	PacketStruct* packet = world.GetWorldTime(client->GetVersion());
 	if(packet){
 		client->QueuePacket(packet->serialize());
@@ -90,7 +90,7 @@ void ClientPacketFunctions::SendGameWorldTime ( shared_ptr<Client> client ){
 	//opcode 501 was the selection display opcode
 }
 
-void ClientPacketFunctions::SendCharacterData ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendCharacterData(const shared_ptr<Client>& client) {
 	client->GetPlayer()->SetCharacterID(client->GetCharacterID());
 	EQ2Packet* outapp = client->GetPlayer()->serialize(client->GetPlayer(), client->GetVersion());
 	//DumpPacket(outapp);
@@ -98,7 +98,7 @@ void ClientPacketFunctions::SendCharacterData ( shared_ptr<Client> client ){
 	//client->GetPlayer()->ClearRemovedSpawn(client->GetPlayer());
 }
 
-void ClientPacketFunctions::SendCharacterSheet ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendCharacterSheet(const shared_ptr<Client>& client) {
 	EQ2Packet* app = client->GetPlayer()->GetPlayerInfo()->serialize(client->GetVersion());
 	client->QueuePacket(app);
 
@@ -109,14 +109,14 @@ void ClientPacketFunctions::SendCharacterSheet ( shared_ptr<Client> client ){
 	}
 }
 
-void ClientPacketFunctions::SendSkillBook ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendSkillBook(const shared_ptr<Client>& client) {
 	EQ2Packet* app = client->GetPlayer()->skill_list.GetSkillPacket(client->GetVersion());
 	if(app)
 		client->QueuePacket(app);
 }
 
 // Jabantiz: Attempt to get the char trait list working
-void ClientPacketFunctions::SendTraitList ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendTraitList(const shared_ptr<Client>& client) {
 	EQ2Packet* traitApp = master_trait_list.GetTraitListPacket(client);
 	//DumpPacket(traitApp);
 	if (traitApp){
@@ -125,7 +125,7 @@ void ClientPacketFunctions::SendTraitList ( shared_ptr<Client> client ){
 
 }
 
-void ClientPacketFunctions::SendClassAA( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendClassAA(const shared_ptr<Client>& client) {
 	int16 version = 1;
 	if(client)
 		version = client->GetVersion();
@@ -144,7 +144,7 @@ void ClientPacketFunctions::SendClassAA( shared_ptr<Client> client ){
 	client->QueuePacket(app);
 }
 
-void ClientPacketFunctions::SendAbilities ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendAbilities(const shared_ptr<Client>& client) {
 	LogWrite(MISC__TODO, 1, "TODO", " Add SendAbilities functionality\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 	// this is the featherfall ability data
 	// later this would loop through and send all abilities
@@ -154,7 +154,7 @@ void ClientPacketFunctions::SendAbilities ( shared_ptr<Client> client ){
 	client->QueuePacket(abilityApp);*/
 }
 
-void ClientPacketFunctions::SendCommandNamePacket ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendCommandNamePacket(const shared_ptr<Client>& client) {
 	LogWrite(MISC__TODO, 1, "TODO", " fix, this is actually quest/collection information\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 	/*
 	PacketStruct* command_packet = configReader.getStruct("WS_CommandName", client->GetVersion());
@@ -170,7 +170,7 @@ void ClientPacketFunctions::SendCommandNamePacket ( shared_ptr<Client> client ){
 	*/
 }
 
-void ClientPacketFunctions::SendQuickBarInit ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendQuickBarInit(const shared_ptr<Client>& client) {
 	int32 count = database.LoadPlayerSkillbar(client);
 	if(count == 0) {
 		LogWrite(PACKET__DEBUG, 0, "Packet", "No character quickbar found!");
@@ -182,7 +182,7 @@ void ClientPacketFunctions::SendQuickBarInit ( shared_ptr<Client> client ){
 		client->QueuePacket(quickbarApp);
 }
 
-void ClientPacketFunctions::SendCharacterMacros(shared_ptr<Client> client) {
+void ClientPacketFunctions::SendCharacterMacros(const shared_ptr<Client>& client) {
 	LogWrite(PACKET__DEBUG, 0, "Packet", "Sending Character Macro packet (WS_MacroInit, %i)", client->GetVersion());
 	map<int8, vector<MacroData*> >* macros = database.LoadCharacterMacros(client->GetCharacterID());
 	if(macros) {
@@ -219,7 +219,7 @@ void ClientPacketFunctions::SendCharacterMacros(shared_ptr<Client> client) {
 	}
 }
 
-void ClientPacketFunctions::SendMOTD ( shared_ptr<Client> client ){	
+void ClientPacketFunctions::SendMOTD(const shared_ptr<Client>& client) {	
 
 	const char* motd = 0;
 
@@ -238,18 +238,18 @@ void ClientPacketFunctions::SendMOTD ( shared_ptr<Client> client ){
 		
 }
 
-void ClientPacketFunctions::SendUpdateSpellBook ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendUpdateSpellBook(const shared_ptr<Client>& client) {
 	EQ2Packet* app = client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion());
 	if(app)
 		client->QueuePacket(app);
 	client->GetPlayer()->UnlockAllSpells();
 }
 
-void ClientPacketFunctions::SendLoginCommandMessages ( shared_ptr<Client> client ){
+void ClientPacketFunctions::SendLoginCommandMessages(const shared_ptr<Client>& client) {
 	LogWrite(MISC__TODO, 1, "TODO", "Why is this function empty? Func: %s", __FUNCTION__);
 }
 
-void ClientPacketFunctions::SendServerControlFlags(shared_ptr<Client> client, int8 param, int8 param_val, int8 value) {
+void ClientPacketFunctions::SendServerControlFlags(const shared_ptr<Client>& client, int8 param, int8 param_val, int8 value) {
 	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", client->GetVersion());
 	if(packet) {
 		if (param == 1)
@@ -312,7 +312,7 @@ void ClientPacketFunctions::SendServerControlFlags(shared_ptr<Client> client, in
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::SendInstanceList(shared_ptr<Client> client) {
+void ClientPacketFunctions::SendInstanceList(const shared_ptr<Client>& client) {
 	if (client->GetPlayer()->GetCharacterInstances()->GetInstanceCount() > 0) {
 		PacketStruct* packet = configReader.getStruct("WS_InstanceCreated", client->GetVersion());
 		if (packet) {
@@ -359,7 +359,7 @@ void ClientPacketFunctions::SendInstanceList(shared_ptr<Client> client) {
 	}
 }
 
-void ClientPacketFunctions::SendMaintainedExamineUpdate(shared_ptr<Client> client, int8 slot_pos, int32 update_value, int8 update_type){
+void ClientPacketFunctions::SendMaintainedExamineUpdate(const shared_ptr<Client>& client, int8 slot_pos, int32 update_value, int8 update_type){
 	if (!client)
 		return;
 
@@ -378,7 +378,7 @@ void ClientPacketFunctions::SendMaintainedExamineUpdate(shared_ptr<Client> clien
 	}
 }
 
-void ClientPacketFunctions::SendZoneChange(shared_ptr<Client> client, char* zone_ip, int16 zone_port, int32 key) {
+void ClientPacketFunctions::SendZoneChange(const shared_ptr<Client>& client, char* zone_ip, int16 zone_port, int32 key) {
 	if (!client)
 		return;
 
@@ -393,7 +393,7 @@ void ClientPacketFunctions::SendZoneChange(shared_ptr<Client> client, char* zone
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::SendStateCommand(shared_ptr<Client> client, int32 spawn_id, int32 state) {
+void ClientPacketFunctions::SendStateCommand(const shared_ptr<Client>& client, int32 spawn_id, int32 state) {
 	if (!client) {
 		return;
 	}

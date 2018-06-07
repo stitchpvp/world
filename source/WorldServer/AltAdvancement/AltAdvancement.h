@@ -70,7 +70,7 @@ public:
 	/// <summary>Sorts the Alternate Advancements for the given client, creates and sends the OP_AdventureList packet.</summary>
 	/// <param name='client'>The Client calling this function</param>
 	/// <returns>EQ2Packet*</returns>
-	EQ2Packet* GetAAListPacket(shared_ptr<Client> client);
+	EQ2Packet* GetAAListPacket(const shared_ptr<Client>& client);
 
 	/// <summary>Add Alternate Advancement data to the global list.</summary>
 	/// <param name='data'>The Alternate Advancement data to add.</param>
@@ -85,7 +85,7 @@ public:
 
 	/// <summary>empties the master Alternate Advancement list</summary>
 	void DestroyAltAdvancements();
-	void DisplayAA(shared_ptr<Client> client);
+	void DisplayAA(const shared_ptr<Client>& client);
 private:
 	vector <AltAdvanceData*> AAList;
 	Mutex MMasterAAList;

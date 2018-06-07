@@ -218,7 +218,7 @@ float Sign::GetSignDistance(){
 void Sign::SetSignDistance(float val){
 	sign_distance = val;
 }
-void Sign::HandleUse(shared_ptr<Client> client, string command)
+void Sign::HandleUse(const shared_ptr<Client>& client, string command)
 {
 	vector<TransportDestination*>* destinations = 0;
 

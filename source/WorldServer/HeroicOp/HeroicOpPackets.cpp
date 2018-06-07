@@ -26,7 +26,7 @@
 extern ConfigReader configReader;
 extern MasterSpellList master_spell_list;
 
-void ClientPacketFunctions::SendHeroicOPUpdate(shared_ptr<Client> client, HeroicOP* ho) {
+void ClientPacketFunctions::SendHeroicOPUpdate(const shared_ptr<Client>& client, HeroicOP* ho) {
 	if (!client) {
 		LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid client");
 		return;

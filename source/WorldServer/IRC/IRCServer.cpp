@@ -353,7 +353,7 @@ bool IRCServer::Process() {
 	return true;
 }
 
-void IRCServer::ProcessLine(shared_ptr<Client> client, const char *line) {
+void IRCServer::ProcessLine(const shared_ptr<Client>& client, const char *line) {
 	char *ptr, *ptr2, *ptr3, *ptr4, *findme;
 	size_t len;
 	char *copy;

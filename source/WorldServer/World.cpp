@@ -388,7 +388,7 @@ ZoneList::~ZoneList() {
 	}
 }
 
-void ZoneList::CheckFriendList(shared_ptr<Client> client) {
+void ZoneList::CheckFriendList(const shared_ptr<Client>& client) {
 	LogWrite(WORLD__DEBUG, 0, "World", "Sending FriendList...");
 	MClientList.lock();
 	map<string,shared_ptr<Client>>::iterator itr;
@@ -403,7 +403,7 @@ void ZoneList::CheckFriendList(shared_ptr<Client> client) {
 	MClientList.unlock();
 }
 
-void ZoneList::CheckFriendZoned(shared_ptr<Client> client){
+void ZoneList::CheckFriendZoned(const shared_ptr<Client>& client) {
 	MClientList.lock();
 	map<string,shared_ptr<Client>>::iterator itr;
 	for(itr = client_map.begin(); itr != client_map.end(); itr++){
@@ -416,7 +416,7 @@ void ZoneList::CheckFriendZoned(shared_ptr<Client> client){
 	MClientList.unlock();
 }
 
-bool ZoneList::HandleGlobalChatMessage(shared_ptr<Client> from, char* to, int16 channel, const char* message, const char* channel_name){
+bool ZoneList::HandleGlobalChatMessage(const shared_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name){
 	if (!from) {
 		LogWrite(WORLD__ERROR, 0, "World", "HandleGlobalChatMessage() called with an invalid client");
 		return false;
@@ -614,7 +614,7 @@ ZoneServer* ZoneList::Get(int32 id, bool loadZone) {
 }
 
 
-void ZoneList::SendZoneList(shared_ptr<Client> client) {
+void ZoneList::SendZoneList(const shared_ptr<Client>& client) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	MZoneList.readlock(__FUNCTION__, __LINE__);
@@ -819,7 +819,7 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
 	}
 }
 
-void ZoneList::ProcessWhoQuery(const char* query, shared_ptr<Client> client){
+void ZoneList::ProcessWhoQuery(const char* query, const shared_ptr<Client>& client){
 	list<ZoneServer*>::iterator zone_iter;
 	vector<Entity*> players;
 	vector<Entity*>::iterator spawn_iter;
@@ -1421,7 +1421,7 @@ void World::RemoveServerStatistics() {
 	server_statistics.clear();
 }
 
-void World::SendGroupQuests(PlayerGroup* group, shared_ptr<Client> client){
+void World::SendGroupQuests(PlayerGroup* group, const shared_ptr<Client>& client){
 	return;
 	/*if(!group)
 		return;
@@ -1461,7 +1461,7 @@ void World::SendGroupQuests(PlayerGroup* group, shared_ptr<Client> client){
 	}
 }*/
 
-void World::RejoinGroup(shared_ptr<Client> client){
+void World::RejoinGroup(const shared_ptr<Client>& client){
 	/*map<GroupMemberInfo*, int32>::iterator itr;
 	GroupMemberInfo* found = 0;
 	string name = string(client->GetPlayer()->GetName());

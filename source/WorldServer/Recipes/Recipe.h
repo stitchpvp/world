@@ -40,7 +40,7 @@ public:
 	Recipe(Recipe *in);
 	virtual ~Recipe();
 
-	EQ2Packet *SerializeRecipe(shared_ptr<Client> client, Recipe *recipe, bool display, int8 packet_type = 0, int8 sub_packet_type = 0, const char *struct_name = 0);
+	EQ2Packet *SerializeRecipe(const shared_ptr<Client>& client, Recipe *recipe, bool display, int8 packet_type = 0, int8 sub_packet_type = 0, const char *struct_name = 0);
 	void SetID(int32 id) {this->id = id;}
 	void SetBookID(int32 book_id) {this->book_id = book_id;}
 	void SetName(const char *name) {strncpy(this->name, name, sizeof(this->name));}

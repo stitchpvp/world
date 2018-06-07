@@ -87,19 +87,19 @@ public:
 	void AddChannel(ChatChannel *channel);
 	unsigned int GetNumChannels();
 
-	EQ2Packet * GetWorldChannelList(shared_ptr<Client> client);
+	EQ2Packet * GetWorldChannelList(const shared_ptr<Client>& client);
 
 	bool ChannelExists(const char *channel_name);
 	bool HasPassword(const char *channel_name);
 	bool PasswordMatches(const char *channel_name, const char *password);
 	bool CreateChannel(const char *channel_name);
 	bool CreateChannel(const char *channel_name, const char *password);
-	bool IsInChannel(shared_ptr<Client> client, const char *channel_name);
-	bool JoinChannel(shared_ptr<Client> client, const char *channel_name);
-	bool LeaveChannel(shared_ptr<Client> client, const char *channel_name);
-	bool LeaveAllChannels(shared_ptr<Client> client);
-	bool TellChannel(shared_ptr<Client> client, const char *channel_name, const char *message, const char* name = 0);
-	bool SendChannelUserList(shared_ptr<Client> client, const char *channel_name);
+	bool IsInChannel(const shared_ptr<Client>& client, const char *channel_name);
+	bool JoinChannel(const shared_ptr<Client>& client, const char *channel_name);
+	bool LeaveChannel(const shared_ptr<Client>& client, const char *channel_name);
+	bool LeaveAllChannels(const shared_ptr<Client>& client);
+	bool TellChannel(const shared_ptr<Client>& client, const char *channel_name, const char *message, const char* name = 0);
+	bool SendChannelUserList(const shared_ptr<Client>& client, const char *channel_name);
 	ChatChannel* GetChannel(const char* channel_name);
 
 private:

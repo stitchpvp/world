@@ -134,7 +134,7 @@ void Spell::AddSpellLuaDataString(string value) {
 	MSpellInfo.unlock();
 }
 
-int16 Spell::GetLevelRequired(shared_ptr<Client> client){
+int16 Spell::GetLevelRequired(const shared_ptr<Client>& client){
 	int16 ret = 0xFFFF;
 	if(!client)
 		return ret;
@@ -265,11 +265,11 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> c
 	packet->setSubstructDataByName(name, "description",&(spell->description));
 }
 
-EQ2Packet* Spell::SerializeSpecialSpell(shared_ptr<Client> client, bool display, int8 packet_type, int8 sub_packet_type){
+EQ2Packet* Spell::SerializeSpecialSpell(const shared_ptr<Client>& client, bool display, int8 packet_type, int8 sub_packet_type){
 	return SerializeSpell(client, display, false, packet_type, sub_packet_type, "WS_ExamineSpecialSpellInfo");
 }
 
-EQ2Packet* Spell::SerializeAASpell(shared_ptr<Client> client, AltAdvanceData* data, bool display, int16 packet_type, int8 sub_packet_type){
+EQ2Packet* Spell::SerializeAASpell(const shared_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type, int8 sub_packet_type){
 	if (!client)
 		return 0;
 
@@ -369,7 +369,7 @@ EQ2Packet* Spell::SerializeAASpell(shared_ptr<Client> client, AltAdvanceData* da
 	return app;
 }
 
-EQ2Packet* Spell::SerializeSpell(shared_ptr<Client> client, bool display, bool trait_display, int8 packet_type, int8 sub_packet_type, const char* struct_name){
+EQ2Packet* Spell::SerializeSpell(const shared_ptr<Client>& client, bool display, bool trait_display, int8 packet_type, int8 sub_packet_type, const char* struct_name){
 	int16 version = 1;
 	if(client)
 		version = client->GetVersion();
