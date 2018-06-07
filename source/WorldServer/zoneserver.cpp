@@ -2781,19 +2781,16 @@ void ZoneServer::AddIncomingClient(shared_ptr<Client> client) {
 	incoming_clients.push_back(client);
 }
 
-void ZoneServer::RemoveClient(shared_ptr<Client> client)
-{
+void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 	Guild *guild;
 
-	if(client)
-	{
+	if (client) {
 		client->Disconnect();
 		
 		LogWrite(ZONE__DEBUG, 0, "Zone", "Sending login equipment appearance updates...");
 		loginserver.SendImmediateEquipmentUpdatesForChar(client->GetPlayer()->GetCharacterID());
 
-		if (!client->IsZoning()) 
-		{
+		if (!client->IsZoning()) {
 			if ((guild = client->GetPlayer()->GetGuild()) != NULL)
 				guild->GuildMemberLogoff(client->GetPlayer());
 
@@ -2803,11 +2800,12 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client)
 		int32 LD_Timer = rule_manager.GetGlobalRule(R_World, LinkDeadTimer)->GetInt32();
 		int32 DisconnectClientTimer = rule_manager.GetGlobalRule(R_World, RemoveDisconnectedClientsTimer)->GetInt32();
 
-		if(!zoneShuttingDown && !client->IsZoning())
-		{
+		if (!zoneShuttingDown && !client->IsZoning()) {
 			GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+
 			if (gmi) {
 				int32 size = world.GetGroupManager()->GetGroupSize(gmi->group_id);
+
 				if (size > 1) {
 					bool send_left_message = size > 2;
 					world.GetGroupManager()->RemoveGroupMember(gmi->group_id, client->GetPlayer());
@@ -2823,9 +2821,10 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client)
 			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCharmedPet());
 			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetDeityPet());
 			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCosmeticPet());
-
-			RemoveSpawn(client->GetPlayer(), false);
 		}
+
+		RemoveSpawn(client->GetPlayer(), false);
+		RemoveFromRangeMap(client);
 
 		map<int32, int32>::iterator itr;
 		for (itr = client->GetPlayer()->SpawnedBots.begin(); itr != client->GetPlayer()->SpawnedBots.end(); itr++) {
@@ -2835,7 +2834,8 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client)
 		}
 
 		client_spawn_map.Put(client->GetPlayer(), nullptr);
-		clients.erase(find(clients.begin(), clients.end(), client));
+		clients.erase(remove(clients.begin(), clients.end(), client), clients.end());
+		zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
 
 		LogWrite(ZONE__INFO, 0, "Zone", "Scheduling client '%s' for removal.", client->GetPlayer()->GetName());
 
@@ -3552,11 +3552,9 @@ void ZoneServer::AddSpawnScriptTimer(SpawnScriptTimer* timer){
 	MSpawnScriptTimers.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-/*
-void ZoneServer::RemoveFromRangeMap(shared_ptr<Client> client){
+void ZoneServer::RemoveFromRangeMap(shared_ptr<Client> client) {
 	spawn_range_map.erase(client);
 }
-*/
 
 void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool lock) 
 {

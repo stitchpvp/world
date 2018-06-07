@@ -193,35 +193,32 @@ Client::~Client() {
 	/*if(lua_interface)
 		lua_interface->RemoveDebugClients(shared_from_this());*/
 
-	if (player)
-		zone_list.RemoveClientFromMap(player->GetName());
-
 	//let the stream factory know were done with this stream
-	if(eqs){
+	if (eqs) {
 		eqs->Close();
-		try{
-			eqs->ReleaseFromUse();
-		}
-		catch(...){}
-	}
-	eqs = NULL;
 
-	//safe_delete(autobootup_timeout);
+		try {
+			eqs->ReleaseFromUse();
+		} catch(...) {}
+	}
+	eqs = nullptr;
 
 	safe_delete(disconnect_timer);
 	safe_delete(camp_timer);
 	safe_delete(CLE_keepalive_timer);
 	safe_delete(connect);
+
 	--numclients;
 
 	MDeletePlayer.writelock(__FUNCTION__, __LINE__);
-	if (player && !player->GetPendingDeletion())
+	if (player && !player->GetPendingDeletion()) {
 		safe_delete(player);
+	}
 	MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);
 
 	safe_delete(search_items);
-		safe_delete(current_rez.expire_timer);
-		safe_delete(pending_last_name);
+	safe_delete(current_rez.expire_timer);
+	safe_delete(pending_last_name);
 	safe_delete_array(incoming_paperdoll.image_bytes);
 
 	UpdateWindowTitle(0);

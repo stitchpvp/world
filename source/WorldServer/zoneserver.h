@@ -543,6 +543,7 @@ public:
 	void	SetWeatherLastChangedTime(int32 val) { weather_last_changed_time = val; }
 
 	void	RemoveClientImmediately(shared_ptr<Client> client);
+	void	RemoveFromRangeMap(shared_ptr<Client> client);
 
 	void	ClearHate(Entity* entity);
 
@@ -552,7 +553,6 @@ public:
 	Following functions are pending deletion, left in for
 	now just to make sure one won't be of future use.
 	****************************************************/
-	//void	RemoveFromRangeMap(shared_ptr<Client> client);																	// never used?
 	//void	AddSpawnAssociatedGroup(vector<int32>* ret, int32 group_id);										// never used, not even any code for it
 	//inline const char*	GetCAddress()	{ return clientaddress; }		// never used?
 	//inline int16		GetCPort()		{ return clientport; }			// never used?
