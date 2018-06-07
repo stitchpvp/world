@@ -1734,7 +1734,7 @@ void ZoneServer::ResendSpawns(const shared_ptr<Client>& client) {
 			spawn = GetSpawnByID(itr->first);
 			if (spawn && (client->GetPlayer()->GetFactions()->ShouldAttack(spawn->GetFactionID()) || (spawn->IsPlayer() && PVP::IsEnabled()))) {
 				SendSpawnChanges(spawn, client, false, true);
-				Sleep(5);
+				Sleep(50);
 			}
 		}
 	}
