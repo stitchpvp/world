@@ -171,6 +171,7 @@ ZoneServer::~ZoneServer() {
 	LogWrite(ZONE__INFO, 0, "Zone", "Initiating zone shutdown of '%s'", zone_name);
 	changed_spawns.clear();
 	transport_spawns.clear();
+	client_timeouts.clear();
 	safe_delete(spellProcess);
 	safe_delete(tradeskillMgr);
 	MMasterZoneLock->lock();
@@ -1358,10 +1359,19 @@ bool ZoneServer::Process()
 		// Client loop
 		ClientProcess();
 
+		for (auto client_iter = client_timeouts.begin(); client_iter != client_timeouts.end();) {
+			if (client_iter->second <= Timer::GetUnixTimeStamp()) {
+				client_iter = client_timeouts.erase(client_iter);
+			} else {
+				++client_iter;
+			}
+		}
+
 		HidePrivateSpawns();
 
 		if(spellProcess)
 			spellProcess->Process();
+
 		if (tradeskillMgr)
 			tradeskillMgr->Process();
 		
@@ -2825,7 +2835,6 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 		}
 
 		if (!client->IsZoning()) {
-			LogWrite(ZONE__INFO, 0, "Zone", "Removing from client map");
 			zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
 		}
 
@@ -2841,6 +2850,7 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 
 		client_spawn_map.Put(client->GetPlayer(), nullptr);
 		clients.erase(remove(clients.begin(), clients.end(), client), clients.end());
+		client_timeouts.insert(make_pair<shared_ptr<Client>&, int32>(client, Timer::GetUnixTimeStamp() + 10000));
 
 		LogWrite(ZONE__INFO, 0, "Zone", "Scheduling client '%s' for removal.", client->GetPlayer()->GetName());
 

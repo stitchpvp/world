@@ -678,6 +678,7 @@ private:
 	MutexList<int32> changed_spawns;										// int32 = spawn id
 	vector<shared_ptr<Client>> clients;
 	vector<shared_ptr<Client>> incoming_clients;
+	map<shared_ptr<Client>, int32> client_timeouts;
 	MutexList<int32> damaged_spawns;										// int32 = spawn id
 	MutexList<LocationProximity*> location_proximities;
 	MutexList<LocationGrid*> location_grids;
