@@ -2239,10 +2239,8 @@ bool Spawn::CalculateChange(){
 			CalculateChange();
 		}
 		else if(data){
-			// Speed is per second so we need a time_step (amount of time since the last update) to modify movement by
-			float time_step = ((float)(Timer::GetCurrentTime2() - last_movement_update))/1000;
+			float time_step = ((float)(Timer::GetCurrentTime2() - last_movement_update)) / 1000;
 
-			// Code taken from EQEmu and modified to work for us
 			float nx = GetX();
 			float ny = GetY();
 			float nz = GetZ();
@@ -2251,34 +2249,28 @@ bool Spawn::CalculateChange(){
 			float tar_vy = data->y - ny;
 			float tar_vz = data->z - nz;
 
-			//float test_vector=sqrtf (data->x*data->x + data->y*data->y + data->z*data->z);
-			// Goto http://www.eq2emulator.net/phpBB3/viewtopic.php?f=13&t=3180#p24256
-			// for detailed info on how I got the speed equation (1.1043506061 * GetSpeed() + 0.1832966667)
-			float tar_vector = (1.1043506061 * (GetSpeed() < 0 ? (100 - GetSpeed()) / 100.0 : GetSpeed()) + 0.1832966667) / sqrtf (tar_vx*tar_vx + tar_vy*tar_vy + tar_vz*tar_vz);
+			float speed = GetSpeed() * time_step;
+			float len = sqrtf (tar_vx * tar_vx + tar_vy * tar_vy + tar_vz * tar_vz);
+			tar_vx = (tar_vx / len) * speed;
+			tar_vy = (tar_vy / len) * speed;
+			tar_vz = (tar_vz / len) * speed;
 
-			// Distance less then 0.5 just set the npc to the target location
-			if (GetDistance(data->x, data->y, data->z, IsWidget() ? false : true) <= 0.5f) {
-				SetX(data->x, false);
-				SetY(data->y, false);
-				SetZ(data->z, false);
-			}
-			else {
-				SetX(GetX() + ((tar_vx*tar_vector)*time_step), false);
-				SetY(GetY() + ((tar_vy*tar_vector)*time_step), false);
-				SetZ(GetZ() + ((tar_vz*tar_vector)*time_step), false);
-			}
+			SetX(nx + tar_vx, false);
+			SetY(ny + tar_vy, false);
+			SetZ(nz + tar_vz, false);
 
 			if (GetZone()->Grid != nullptr) {
 				Cell* newCell = GetZone()->Grid->GetCell(GetX(), GetZ());
 				if (newCell != Cell_Info.CurrentCell) {
 					GetZone()->Grid->RemoveSpawnFromCell(this);
 					GetZone()->Grid->AddSpawn(this, newCell);
-		}
+				}
 
 				int32 newGrid = GetZone()->Grid->GetGridID(this);
-				if (newGrid != appearance.pos.grid_id)
+				if (newGrid != appearance.pos.grid_id) {
 					SetPos(&(appearance.pos.grid_id), newGrid);
-	}
+				}
+			}
 		}
 	}
 	return remove_needed;

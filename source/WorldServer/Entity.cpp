@@ -38,7 +38,7 @@ extern MasterSpellList master_spell_list;
 extern Classes classes;
 
 Entity::Entity(){
-	max_speed = 6;
+	max_speed = 6.0;
 	last_x = -1;
 	last_y = -1;
 	last_z = -1;
