@@ -4016,14 +4016,15 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 
 	}
 
-	if (dead->IsPet())
-		((NPC*)dead)->GetOwner()->DismissPet((NPC*)dead, true);
-	else if (dead->IsEntity()) {
-		// remove all pets for this entity
-		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetPet());
-		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetCharmedPet());
-		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetDeityPet());
-		((Entity*)dead)->DismissPet((NPC*)((Entity*)dead)->GetCosmeticPet());
+	if (dead->IsPet()) {
+		static_cast<NPC*>(dead)->GetOwner()->DismissPet(static_cast<NPC*>(dead), true);
+	} else if (dead->IsEntity()) {
+		Entity* dead_entity = static_cast<Entity*>(dead);
+		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetPet()));
+		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCharmedPet()));
+		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetDeityPet()));
+		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCosmeticPet()));
+		dead_entity->DismissDumbfirePets();
 	}
 
 	dead->SetActionState(0);

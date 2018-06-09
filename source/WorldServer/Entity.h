@@ -695,6 +695,9 @@ public:
 	void SetCharmedPet(Entity* pet) { charmedPet = pet; }
 	void SetDeityPet(Entity* pet) { deityPet = pet; }
 	void SetCosmeticPet(Entity* pet) { cosmeticPet = pet; }
+	void AddDumbfirePet(Entity* pet) { dumbfire_pets.push_back(pet); }
+	void RemoveDumbfirePet(Entity* pet);
+	void DismissDumbfirePets();
 	Entity* GetPet() { return pet; }
 	Entity* GetCharmedPet() { return charmedPet; }
 	Entity* GetDeityPet() { return deityPet; }
@@ -872,6 +875,7 @@ private:
 	Entity* charmedPet;
 	Entity* deityPet;
 	Entity* cosmeticPet;
+	vector<Entity*> dumbfire_pets;
 
 	map<shared_ptr<LuaSpell>, WardInfo*> m_wardList;
 	map<shared_ptr<LuaSpell>, StoneskinInfo*> m_stoneskinList;

@@ -1267,46 +1267,64 @@ void Entity::HideCosmeticPet(bool val) {
 		cosmeticPet->MakeSpawnPublic();
 }
 
-void Entity::DismissPet(NPC* pet, bool from_death) {
-	if (!pet)
-		return;
+void Entity::RemoveDumbfirePet(Entity* pet) {
+	dumbfire_pets.erase(remove(dumbfire_pets.begin(), dumbfire_pets.end(), pet), dumbfire_pets.end());
+}
 
-	Entity* PetOwner = pet->GetOwner();
+void Entity::DismissDumbfirePets() {
+	for (auto dumbfire : dumbfire_pets) {
+		DismissPet(static_cast<NPC*>(dumbfire));
+	}
+
+	dumbfire_pets.clear();
+}
+
+void Entity::DismissPet(NPC* pet, bool from_death) {
+	if (!pet) {
+		return;
+	}
+
+	Entity* owner = pet->GetOwner();
 
 	pet->SetDismissing(true);
 
-	// Remove the spell maintained spell
-	Spell* spell = master_spell_list.GetSpell(pet->GetPetSpellID(), pet->GetPetSpellTier());
-	if (spell)
-		GetZone()->GetSpellProcess()->DeleteCasterSpell(this, spell);
+	if (pet->GetPetType() != PET_TYPE_DUMBFIRE) {
+		Spell* spell = master_spell_list.GetSpell(pet->GetPetSpellID(), pet->GetPetSpellTier());
+
+		if (spell) {
+			GetZone()->GetSpellProcess()->DeleteCasterSpell(this, spell);
+		}
+	}
 
 	if (pet->GetPetType() == PET_TYPE_CHARMED) {
-		PetOwner->SetCharmedPet(0);
+		owner->SetCharmedPet(nullptr);
 
 		if (!from_death) {
 			// set the pet flag to false, owner to 0, and give the mob its old brain back
 			pet->SetPet(false);
-			pet->SetOwner(0);
+			pet->SetOwner(nullptr);
 			pet->SetBrain(new Brain(pet));
 			pet->SetDismissing(false);
 		}
+	} else if (pet->GetPetType() == PET_TYPE_COMBAT) {
+		owner->SetCombatPet(nullptr);
+	} else if (pet->GetPetType() == PET_TYPE_DEITY) {
+		owner->SetDeityPet(nullptr);
+	} else if (pet->GetPetType() == PET_TYPE_COSMETIC) {
+		owner->SetCosmeticPet(nullptr);
 	}
-	else if (pet->GetPetType() == PET_TYPE_COMBAT)
-		PetOwner->SetCombatPet(0);
-	else if (pet->GetPetType() == PET_TYPE_DEITY)
-		PetOwner->SetDeityPet(0);
-	else if (pet->GetPetType() == PET_TYPE_COSMETIC)
-		PetOwner->SetCosmeticPet(0);
 
 	// if owner is player and no combat pets left reset the pet info
-	if (PetOwner->IsPlayer()) {
-		if (!PetOwner->GetPet() && !PetOwner->GetCharmedPet())
-			((Player*)PetOwner)->ResetPetInfo();
+	if (owner->IsPlayer()) {
+		if (!owner->GetPet() && !owner->GetCharmedPet()) {
+			static_cast<Player*>(owner)->ResetPetInfo();
+		}
 	}
 
 	// remove the spawn from the world
-	if (!from_death && pet->GetPetType() != PET_TYPE_CHARMED)
+	if (!from_death && pet->GetPetType() != PET_TYPE_CHARMED) {
 		GetZone()->RemoveSpawn(pet);
+	}
 }
 
 float Entity::CalculateBonusMod() {

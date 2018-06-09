@@ -5917,6 +5917,7 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 	pet->SetPet(true);
 	// Give a pointer of the owner to the pet
 	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
+	static_cast<Entity*>(spawn)->AddDumbfirePet(static_cast<Entity*>(pet));
 	
 	// Set the pet type
 	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DUMBFIRE);
