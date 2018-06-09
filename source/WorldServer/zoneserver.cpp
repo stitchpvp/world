@@ -2850,7 +2850,7 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 
 		client_spawn_map.Put(client->GetPlayer(), nullptr);
 		clients.erase(remove(clients.begin(), clients.end(), client), clients.end());
-		client_timeouts.insert(make_pair<shared_ptr<Client>&, int32>(client, Timer::GetUnixTimeStamp() + 10000));
+		client_timeouts.insert(make_pair<shared_ptr<Client>&, int32>(client, Timer::GetUnixTimeStamp() + 10));
 
 		LogWrite(ZONE__INFO, 0, "Zone", "Scheduling client '%s' for removal.", client->GetPlayer()->GetName());
 

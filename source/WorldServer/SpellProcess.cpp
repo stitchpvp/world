@@ -73,6 +73,7 @@ void SpellProcess::RemoveAllSpells(){
 
 		for (auto cast_timer : cast_timers) {
 			safe_delete(cast_timer->timer);
+			safe_delete(cast_timer);
 		}
 
 		cast_timers.clear();
@@ -80,6 +81,7 @@ void SpellProcess::RemoveAllSpells(){
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
 	for (auto recast_timer : recast_timers) {
+		safe_delete(recast_timer->timer);
 		safe_delete(recast_timer);
 	}
 	recast_timers.clear();
@@ -235,7 +237,7 @@ void SpellProcess::Process(){
 		}
 	}
 
-	for (const auto cast_timer : finished_casts) {
+	for (auto cast_timer : finished_casts) {
 		if (!cast_timer->delete_timer) {
 			if (cast_timer->spell) {
 				shared_ptr<Client> client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
@@ -262,8 +264,10 @@ void SpellProcess::Process(){
 			}
 		}
 
-		safe_delete(cast_timer->timer);
 		cast_timers.erase(remove(cast_timers.begin(), cast_timers.end(), cast_timer), cast_timers.end());
+
+		safe_delete(cast_timer->timer);
+		safe_delete(cast_timer);
 	}
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
@@ -275,9 +279,11 @@ void SpellProcess::Process(){
 
 			if (recast_timer->timer->Check(false)) {
 				UnlockSpell(recast_timer->client, recast_timer->spell);
+
+				itr = recast_timers.erase(itr);
+
 				safe_delete(recast_timer->timer);
 				safe_delete(recast_timer);
-				itr = recast_timers.erase(itr);
 			} else {
 				++itr;
 			}
