@@ -2255,9 +2255,15 @@ bool Spawn::CalculateChange(){
 			tar_vy = (tar_vy / len) * speed;
 			tar_vz = (tar_vz / len) * speed;
 
-			SetX(nx + tar_vx, false);
-			SetY(ny + tar_vy, false);
-			SetZ(nz + tar_vz, false);
+			if (GetDistance(data->x, data->y, data->z, IsWidget() ? false : true) <= 0.5f) {
+				SetX(data->x, false);
+				SetY(data->y, false);
+				SetZ(data->z, false);
+			} else {
+				SetX(nx + tar_vx, false);
+				SetY(ny + tar_vy, false);
+				SetZ(nz + tar_vz, false);
+			}
 
 			if (GetZone()->Grid != nullptr) {
 				Cell* newCell = GetZone()->Grid->GetCell(GetX(), GetZ());
