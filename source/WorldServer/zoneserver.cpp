@@ -3952,282 +3952,235 @@ void ZoneServer::Despawn(Spawn* spawn, int32 timer){
 void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 damage_type, int16 kill_blow_type)
 {
 	MDeadSpawns.readlock(__FUNCTION__, __LINE__);
-	if(!dead || this->dead_spawns.count(dead->GetID()) > 0) {
+	if (!dead || dead_spawns.count(dead->GetID()) > 0) {
 		MDeadSpawns.releasereadlock(__FUNCTION__, __LINE__);
 		return;
 	}
 	MDeadSpawns.releasereadlock(__FUNCTION__, __LINE__);
 
-	PacketStruct* packet = 0;
-	vector<int32>* encounter = 0;
-	bool killer_in_encounter = false;
+	if (dead->IsEntity()) {
+		Entity* dead_entity = static_cast<Entity*>(dead);
 
-	if(dead->IsEntity())
-	{
-		// Check kill and death procs
-		if (killer && dead != killer){
-			if (dead->IsEntity())
-				((Entity*)dead)->CheckProcs(PROC_TYPE_DEATH, killer);
-			if (killer->IsEntity())
-				((Entity*)killer)->CheckProcs(PROC_TYPE_KILL, dead);
+		if (killer && dead != killer) {
+			dead_entity->CheckProcs(PROC_TYPE_DEATH, killer);
 
-			//Check if caster is alive after death proc called, incase of deathsave
-			if (dead->Alive())
-				return;
-		}
-
-		if (killer && killer->IsPlayer())
-			if (dead->IsPlayer() && PVP::IsEnabled())
-				PVP::HandleFameChange(static_cast<Player*>(killer), static_cast<Player*>(dead));
-
-		if (dead->IsPlayer()) {
-			((Player*)dead)->InCombat(false);
-			((Player*)dead)->SetRangeAttack(false);
-			((Player*)dead)->SetMeleeAttack(false);
-		} else {
-			((Entity*)dead)->InCombat(false);
-		}
-
-		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
-		dead->SetHP(0);
-		dead->SetSpawnType(3);
-		dead->appearance.attackable = 0;
-
-		// Remove hate towards dead from all npc's in the zone
-		ClearHate((Entity*)dead);
-
-		if(dead->IsPlayer()) 
-		{
-			((Player*)dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
-			shared_ptr<Client> client = GetClientBySpawn(dead);
-
-			if(client) {
-				if(client->GetPlayer()->DamageEquippedItems(client, 10))
-					client->QueuePacket(client->GetPlayer()->GetEquipmentList()->serialize(client->GetVersion()));
-
-				client->DisplayDeadWindow();
+			if (killer->IsEntity()) {
+				static_cast<Entity*>(killer)->CheckProcs(PROC_TYPE_KILL, dead);
 			}
 
+			if (dead->Alive()) {
+				return;
+			}
+		}
+
+		dead_entity->InCombat(false);
+		dead_entity->IsCasting(false);
+		dead->SetAttackable(0, false);
+		dead->SetHP(0);
+		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
+		dead->SetSpawnType(3);
+
+		ClearHate(dead_entity);
+
+		if (dead->IsPlayer()) {
+			static_cast<Player*>(dead)->SetRangeAttack(false);
+			static_cast<Player*>(dead)->SetMeleeAttack(false);
 			static_cast<Player*>(dead)->ClearEncounterList();
-		}
-		else if (dead->IsNPC()) {
-			encounter = ((NPC*)dead)->Brain()->GetEncounter();
+
+			static_cast<Player*>(dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
+
+			shared_ptr<Client> client = GetClientBySpawn(dead);
+
+			if (client) {
+				if (client->GetPlayer()->DamageEquippedItems(client, 10)) {
+					client->QueuePacket(client->GetPlayer()->GetEquipmentList()->serialize(client->GetVersion()));
+				}
+
+				client->DisplayDeadWindow();
+
+				database.DeleteCharacterActiveSpells(client, true);
+			}
+
+			if (PVP::IsEnabled()) {
+				if (killer && killer->IsPlayer()) {
+					PVP::HandleFameChange(static_cast<Player*>(killer), static_cast<Player*>(dead));
+				}
+			}
+
+			spellProcess->RemoveSpellFromQueue(static_cast<Player*>(dead), true);
 		}
 
-	}
+		if (dead->IsPet()) {
+			static_cast<NPC*>(dead)->GetOwner()->DismissPet(static_cast<NPC*>(dead), true);
+		} else {
+			dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetPet()));
+			dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCharmedPet()));
+			dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetDeityPet()));
+			dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCosmeticPet()));
+			dead_entity->DismissDumbfirePets();
+		}
 
-	if (dead->IsPet()) {
-		static_cast<NPC*>(dead)->GetOwner()->DismissPet(static_cast<NPC*>(dead), true);
-	} else if (dead->IsEntity()) {
-		Entity* dead_entity = static_cast<Entity*>(dead);
-		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetPet()));
-		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCharmedPet()));
-		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetDeityPet()));
-		dead_entity->DismissPet(static_cast<NPC*>(dead_entity->GetCosmeticPet()));
-		dead_entity->DismissDumbfirePets();
+		if (dead->IsNPC() && !dead->IsPet() && !dead->IsBot()) {
+			NPC* dead_npc = static_cast<NPC*>(dead_npc);
+			NPC* chest = nullptr;
+
+			vector<int32>* encounter = dead_npc->Brain()->GetEncounter();
+			int8 size = encounter->size();
+
+			if (!dead_npc->Brain()->PlayerInEncounter()) {
+				dead_npc->SetLootCoins(0);
+				dead_npc->GetLootItems()->clear();
+			}
+
+			if (dead_npc->HasLoot()) {
+				chest = dead_npc->DropChest();
+			}
+
+			for (const auto id : *encounter) {
+				Spawn* spawn = GetSpawnByID(id);
+
+				if (spawn) {
+					if (!killer_in_encounter && spawn == killer) {
+						killer_in_encounter = true;
+					}
+
+					if (spawn->IsPlayer()) {
+						Player* player = static_cast<Player*>(spawn);
+						shared_ptr<Client> client = GetClientBySpawn(spawn);
+
+						player->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_NPC_KILLS, 1);
+
+						if (dead->GetEncounterLevel() >= 10) {
+							SendEpicMobDeathToGuild(player, dead);
+						}
+
+						spellProcess->RemoveSpellFromQueue(player, true);
+
+						client->CheckPlayerQuestsKillUpdate(dead);
+
+						if (!dead->IsPlayer() && dead->GetFactionID() > 10) {
+							ProcessFaction(dead, client);
+						}
+
+						if (player != dead && player->GetArrowColor(dead->GetLevel()) >= ARROW_COLOR_GREEN) {
+							float xp = player->CalculateXP(dead) / size;
+
+							if (xp > 0) {
+								int16 level = player->GetLevel();
+
+								if (player->AddXP(static_cast<int32>(xp))) {
+									client->Message(CHANNEL_COLOR_EXP, "You gain %u XP!", static_cast<int32>(xp));
+
+									if (player->GetLevel() != level) {
+										client->ChangeLevel(level, player->GetLevel());
+									}
+
+									player->SetCharSheetChanged(true);
+								}
+							}
+						}
+					}
+
+					if (chest) {
+						chest->Brain()->AddToEncounter(static_cast<Entity*>(spawn));
+					}
+				}
+			}
+
+			if (chest) {
+				AddSpawn(chest);
+				AddDeadSpawn(chest, 0xFFFFFFFF);
+			}
+
+			if (!killer_in_encounter) {
+				if (killer && killer->IsPlayer()) {
+					if (!dead->IsPlayer() && dead->GetFactionID() > 10) {
+						shared_ptr<Client> client = GetClientBySpawn(killer);
+
+						if (client) {
+							ProcessFaction(dead, client);
+						}
+					}
+
+					spellProcess->RemoveSpellFromQueue(static_cast<Player*>(killer), true);
+				}
+			}
+
+			safe_delete(encounter);
+		}
 	}
 
 	dead->SetActionState(0);
 	dead->SetTempActionState(0);
 
-	// If dead is an npc get the encounter and loop through it giving out the rewards, no rewards for pets
-	if (dead->IsNPC() && !dead->IsPet() && !dead->IsBot()) {
-		Spawn* spawn = 0;
-		int8 size = encounter->size();
-		// Needs npc to have access to the encounter list for who is allowed to loot
-		NPC* chest = 0;
-
-		if (!((NPC*)dead)->Brain()->PlayerInEncounter()) {
-			((NPC*)dead)->SetLootCoins(0);
-			((NPC*)dead)->GetLootItems()->clear();
-		}
-
-		// If dead has loot attempt to drop a chest
-		if (((NPC*)dead)->HasLoot()) {
-			chest = ((NPC*)dead)->DropChest();
-		}
-
-
-		for (int8 i = 0; i < encounter->size(); i++) {
-			spawn = GetSpawnByID(encounter->at(i));
-			// set a flag to let us know if the killer is in the encounter
-			if (!killer_in_encounter && spawn == killer)
-				killer_in_encounter = true;
-
-			if (spawn && spawn->IsPlayer()) {
-				// Update players total kill count
-				((Player*)spawn)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_NPC_KILLS, 1);
-
-				// If this was an epic mob kill send the announcement for this player
-				if (dead->GetEncounterLevel() >= 10)
-					SendEpicMobDeathToGuild((Player*)spawn, dead);
-
-				// Clear hostile spells from the players spell queue
-				spellProcess->RemoveSpellFromQueue((Player*)spawn, true);
-
-				// Get the client of the player
-				shared_ptr<Client> client = GetClientBySpawn(spawn);
-				// valid client?
-				if(client) {
-					// Check for quest kill updates
-					client->CheckPlayerQuestsKillUpdate(dead);
-					// If the dead mob is not a player and if it had a faction with an ID greater or equal to 10 the send faction changes
-					if(!dead->IsPlayer() && dead->GetFactionID() > 10)
-						ProcessFaction(dead, client);
-
-					// Send xp...this is currently wrong fix it
-					if (spawn != dead && ((Player*)spawn)->GetArrowColor(dead->GetLevel()) >= ARROW_COLOR_GREEN) {
-						//SendCalculatedXP((Player*)spawn, dead);
-
-						float xp = ((Player*)spawn)->CalculateXP(dead) / size;
-						if (xp > 0) {
-							int16 level = spawn->GetLevel();
-							if (((Player*)spawn)->AddXP((int32)xp)) {
-								client->Message(CHANNEL_COLOR_EXP, "You gain %u XP!", (int32)xp);
-								LogWrite(PLAYER__DEBUG, 0, "Player", "Player: %s earned %u experience.", spawn->GetName(), (int32)xp);
-								if(spawn->GetLevel() != level)
-									client->ChangeLevel(level, spawn->GetLevel());
-								((Player*)spawn)->SetCharSheetChanged(true);
-							}
-						}
-					}
-				}
-			}
-
-			// If a chest is being dropped add this spawn to the chest's encounter so they can loot it
-			if (chest)
-				chest->Brain()->AddToEncounter((Entity*)spawn);
-		}
-
-		// If a chest is being dropped add it to the world and set the timer to remove it.
-		if (chest) {
-			AddSpawn(chest);
-			AddDeadSpawn(chest, 0xFFFFFFFF);
-			LogWrite(LOOT__DEBUG, 0, "Loot", "Adding a chest to the world...");
-		}
-	}
-
-	// Killer was not in the encounter, give them the faction hit but no xp
-	if (!killer_in_encounter) {
-		// make sure the killer is a player and the dead spawn had a faction and wasn't a player
-		if (killer && killer->IsPlayer()) {
-			if (!dead->IsPlayer() && dead->GetFactionID() > 10) {
-				shared_ptr<Client> client = GetClientBySpawn(killer);
-
-				if (client) {
-					ProcessFaction(dead, client);
-				}
-			}
-
-			// Clear hostile spells from the killers spell queue
-			spellProcess->RemoveSpellFromQueue((Player*)killer, true);
-		}
-	}
-
-
 	vector<Spawn*>* group = dead->GetSpawnGroup();
-	if (group && group->size() == 1)
+	if (group && group->size() == 1) {
 		CallSpawnScript(dead, SPAWN_SCRIPT_GROUP_DEAD, killer);
+	}
 	safe_delete(group);
 
 
-	// Remove the support functions for the dead spawn
 	RemoveSpawnSupportFunctions(dead);
 
-	// Erase the expire timer if it has one
-	if (spawn_expire_timers.count(dead->GetID()) > 0)
+	if (spawn_expire_timers.count(dead->GetID()) > 0) {
 		spawn_expire_timers.erase(dead->GetID());
+	}
 
 	// If dead is an npc or object call the spawn scrip and handle instance stuff
-	if(dead->IsNPC() || dead->IsObject())
-	{
-		// handle instance spawn db info
-		// we don't care if a NPC or a client kills the spawn, we could have events that cause NPCs to kill NPCs.
-		if(dead->GetZone()->GetInstanceID() > 0 && dead->GetSpawnLocationID() > 0)
-		{
-			// use respawn time to either insert/update entry (likely insert in this situation)
-			if(dead->IsNPC())
-				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
-			else if ( dead->IsObject ( ) )
-				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
+	if (dead->IsNPC() || dead->IsObject()) {
+		if (dead->GetZone()->GetInstanceID() > 0 && dead->GetSpawnLocationID() > 0) {
+			if (dead->IsNPC()) {
+				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(), SPAWN_ENTRY_TYPE_NPC, dead->GetRespawnTime(), dead->GetZone()->GetInstanceID());
+			} else if (dead->IsObject()) {
+				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(), SPAWN_ENTRY_TYPE_OBJECT, dead->GetRespawnTime(), dead->GetZone()->GetInstanceID());
+			}
 		}
 
-		// Call the spawn scripts death() function
 		CallSpawnScript(dead, SPAWN_SCRIPT_DEATH, killer);
 	}
 	
 	int32 victim_id = dead->GetID();
 	int32 attacker_id = 0xFFFFFFFF;
 
-	if(killer)
+	if (killer) {
 		attacker_id = killer->GetID();
+	}
 
-	if(send_packet)
-	{
-		vector<shared_ptr<Client>>::iterator client_itr;
-		for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
-			shared_ptr<Client> client = *client_itr;
-			if(!client->GetPlayer()->WasSentSpawn(victim_id) || (attacker_id != 0xFFFFFFFF && !client->GetPlayer()->WasSentSpawn(attacker_id)) )
+	if (send_packet) {
+		for (const auto& client : clients) {
+			if (!client->GetPlayer()->WasSentSpawn(victim_id) || (attacker_id != 0xFFFFFFFF && !client->GetPlayer()->WasSentSpawn(attacker_id))) {
 				continue;
-			else if(client->GetPlayer()->WasSpawnRemoved(dead) || (attacker_id != 0xFFFFFFFF && client->GetPlayer()->WasSpawnRemoved(killer)))
+			} else if (client->GetPlayer()->WasSpawnRemoved(dead) || (attacker_id != 0xFFFFFFFF && client->GetPlayer()->WasSpawnRemoved(killer))) {
 				continue;
-			else if(killer && killer->GetDistance(client->GetPlayer()) > HEAR_SPAWN_DISTANCE)
+			} else if (killer && killer->GetDistance(client->GetPlayer()) > HEAR_SPAWN_DISTANCE) {
 				continue;
+			}
 
-			packet = configReader.getStruct("WS_HearDeath", client->GetVersion());
-			if(packet)
-			{
-				if(killer)
+			PacketStruct* packet = configReader.getStruct("WS_HearDeath", client->GetVersion());
+			if (packet) {
+				if (killer) {
 					packet->setDataByName("attacker", client->GetPlayer()->GetIDWithPlayerSpawn(killer));
-				else
+				} else {
 					packet->setDataByName("attacker", 0xFFFFFFFF);
+				}
 
 				packet->setDataByName("defender", client->GetPlayer()->GetIDWithPlayerSpawn(dead));
 				packet->setDataByName("damage_type", damage_type);
 				packet->setDataByName("blow_type", kill_blow_type);
-
 				client->QueuePacket(packet->serialize());
-				LogWrite(COMBAT__DEBUG, 0, "Combat", "Zone Killing '%s'", dead->GetName());
 				safe_delete(packet);
 			}
 		}
 	}
 
 
-	int32 pop_timer = 0xFFFFFFFF;
-	if(killer && killer->IsNPC())
-	{
-		// Call the spawn scripts killed() function
+	if (killer && killer->IsNPC()) {
 		CallSpawnScript(killer, SPAWN_SCRIPT_KILLED, dead);		
-
-		if(!dead->IsPlayer())
-		{
-			LogWrite(MISC__TODO, 1, "TODO", "Whenever pets are added, check for pet kills\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
-			// Set the time for the corpse to linger to 5 sec
-			//pop_timer = 5000;
-			// commented out the timer so in the event the killer is not a player (pet, guard, something else i haven't thought of)
-			// the corpse doesn't vanish sooner then it should if it had loot for the players.  AddDeadSpawn() will set timers based on if
-			// the corpse has loot or not if the timer value (pop_timer) is 0xFFFFFFFF
-		}
 	}
 	
-	// If the dead spawns was not a player add it to the dead spawn list
-	if (!dead->IsPlayer() && !dead->IsBot())
-		AddDeadSpawn(dead, pop_timer);
-
-	// if dead was a player clear hostile spells from its spell queue
-	if (dead->IsPlayer()) {
-		spellProcess->RemoveSpellFromQueue(static_cast<Player*>(dead), true);
-		database.DeleteCharacterActiveSpells(GetClientBySpawn(dead), true);
+	if (!dead->IsPlayer() && !dead->IsBot()) {
+		AddDeadSpawn(dead, 0xFFFFFFFF);
 	}
-
-	// ResetPetInfo() is called in DismissPet(), might not need to be here
-
-	// Players pet is killed, clear the pet info from char sheet
-	/*if (dead->IsNPC() && ((NPC*)dead)->IsPet() && ((NPC*)dead)->GetOwner()->IsPlayer())
-		((Player*)((NPC*)dead)->GetOwner())->ResetPetInfo();*/
-
-	safe_delete(encounter);
 }
 
 void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, int8 type2, int8 damage_type, int16 damage, const char* spell_name){

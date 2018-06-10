@@ -3438,35 +3438,19 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		}
 		case COMMAND_KICK:
 			{
-				if( sep == 0 || sep->arg[0] == 0)
-				{
+				if (sep == 0 || sep->arg[0] == 0) {
 					client->SimpleMessage(CHANNEL_COLOR_RED, "/kick [name]");
-				}
-				else
-				{
+				} else {
 					shared_ptr<Client> kickClient = zone_list.GetClientByCharName(string(sep->arg[0]));
 
-					if ( kickClient == client )
-					{
+					if (kickClient == client) {
 						client->Message(CHANNEL_COLOR_RED, "You can't kick yourself!");
 						break;
-					}
-					else if(kickClient != NULL)
-					{
-						sint16 maxStatus = database.GetHighestCharacterAdminStatus(kickClient->GetAccountID());
-
-						if ( maxStatus >= client->GetAdminStatus( ) || kickClient->GetAdminStatus() >= client->GetAdminStatus() )
-						{
-							client->Message(CHANNEL_COLOR_RED,"Don't even think about it...");
-							break;
-						}
-
+					} else if (kickClient != NULL) {
 						client->Message(CHANNEL_COLOR_RED, "Kicking %s...",sep->arg[0]);
 
 						kickClient->Disconnect();
-					}
-					else
-					{
+					} else {
 						client->Message(CHANNEL_COLOR_RED, "Could not find %s.",sep->arg[0]);
 					}
 				}
