@@ -612,13 +612,13 @@ EQ2Packet* Spawn::player_position_update_packet(Player* player, int16 version){
 }
 
 EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool override_changes, bool override_vis_changes){
-	if(!player || player->IsPlayer() == false){
+	if (!player || !player->IsPlayer()) {
 		LogWrite(SPAWN__ERROR, 0, "Spawn", "Error: Called spawn_update_packet without player!");
 		return 0;
-	}
-	else if((IsPlayer() && info_changed == false && vis_changed == false) || (info_changed == false && vis_changed == false && position_changed == false)){
-		if(!override_changes && !override_vis_changes)
+	} else if (!info_changed && !vis_changed && !position_changed) {
+		if (!override_changes && !override_vis_changes) {
 			return 0;
+		}
 	}
 
 	static const uchar null_byte = 0;
@@ -641,7 +641,7 @@ EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool overri
 
 	if (info_changed || override_changes)
 		info_changes = spawn_info_changes(player, version);
-	if ((position_changed || override_changes) && IsPlayer() == false)
+	if ((position_changed || override_changes))
 		pos_changes = spawn_pos_changes(player, version);
 	if (vis_changed || override_changes || override_vis_changes)
 		vis_changes = spawn_vis_changes(player, version);
@@ -663,8 +663,7 @@ EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool overri
 	ptr += sizeof(int8);
 	memcpy(ptr, &opcode_val, sizeof(int16));
 	ptr += sizeof(int16);
-	if (IsPlayer() == false){ //this isnt sent for player updates, it is sent on position update
-		//int32 time = Timer::GetCurrentTime2();
+	if (!IsPlayer()) {
 		packet_num = Timer::GetCurrentTime2();
 		memcpy(ptr, &packet_num, sizeof(int32));
 	}

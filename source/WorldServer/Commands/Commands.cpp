@@ -1572,11 +1572,6 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		case COMMAND_SIZE: {
 			if (sep && sep->arg[0] && sep->IsNumber(0)) {
 				client->GetPlayer()->SetSize(atoi(sep->arg[0]));
-				client->GetCurrentZone()->SendPlayerPositionChanges(client->GetPlayer());
-
-				EQ2Packet* outapp = client->GetPlayer()->player_position_update_packet(client->GetPlayer(), client->GetVersion());
-				if (outapp)
-					client->QueuePacket(outapp);
 			} else {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /size {size}");
 			}

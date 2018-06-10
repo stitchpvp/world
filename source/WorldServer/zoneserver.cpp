@@ -252,12 +252,10 @@ void ZoneServer::Init()
 	sscanf (rule_manager.GetGlobalRule(R_World, DawnTime)->GetString(), "%d:%d", &dawn_hour, &dawn_minute);
 
 	spawn_update.Start(rule_manager.GetGlobalRule(R_Zone, SpawnUpdateTimer)->GetInt16());
-	LogWrite(ZONE__DEBUG, 0, "Zone", "SpawnUpdateTimer: %ims", rule_manager.GetGlobalRule(R_Zone, SpawnUpdateTimer)->GetInt16());
+	spawn_pos_update.Start(200);
 
 	spawn_delete_timer = rule_manager.GetGlobalRule(R_Zone, SpawnDeleteTimer)->GetInt32();
-	LogWrite(ZONE__DEBUG, 0, "Zone", "SpawnDeleteTimer: %ums", spawn_delete_timer);
 
-	LogWrite(ZONE__DEBUG, 0, "Zone", "Loading zone flight paths");
 	database.LoadZoneFlightPaths(this);
 
 	world.UpdateServerStatistic(STAT_SERVER_NUM_ACTIVE_ZONES, 1);
@@ -1479,8 +1477,8 @@ bool ZoneServer::Process()
 	return (zoneShuttingDown == false);
 }
 
-bool ZoneServer::SpawnProcess(){
-	if(depop_zone) {
+bool ZoneServer::SpawnProcess() {
+	if (depop_zone) {
 		depop_zone = false;
 		ProcessDepop(respawns_allowed, repop_zone);
 		finished_depop = true;
@@ -1488,9 +1486,12 @@ bool ZoneServer::SpawnProcess(){
 
 	MMasterSpawnLock.writelock(__FUNCTION__, __LINE__);
 	// If the zone is loading data or shutting down don't do anything
-	if(!LoadingData && !zoneShuttingDown && !reloading_spellprocess) {
-		// send spawn changes, changed_spawns loop
-		if(spawn_update.Check() && !zoneShuttingDown) { //check for changed spawns every {Rule:SpawnUpdateTimer} milliseconds (default: 200ms)
+	if (!LoadingData && !zoneShuttingDown && !reloading_spellprocess) {
+		if (spawn_pos_update.Check()) {
+			SendSpawnChanges(true);
+		}
+
+		if (spawn_update.Check()) {
 			SendSpawnChanges();
 		}
 
@@ -1769,27 +1770,23 @@ void ZoneServer::SendSpawnChanges(Spawn* spawn, const shared_ptr<Client>& client
 
 void ZoneServer::SendSpawnChanges(Spawn* spawn){
 	if (spawn && spawn->changed) {
-		if (!spawn->IsPlayer() || (spawn->IsPlayer() && (spawn->info_changed || spawn->vis_changed))) {
-			shared_lock<shared_timed_mutex> guard(clients_mutex);
+		shared_lock<shared_timed_mutex> guard(clients_mutex);
 
-			for (const auto& client : clients) {
-				if (spawn->IsPlayer() && client->GetPlayer()->IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH] && client->GetPlayer()->GetDistance(spawn) > 30) {
-					PacketStruct* packet = configReader.getStruct("WS_DestroyGhostCmd", client->GetVersion());
+		for (const auto& client : clients) {
+			if (spawn->IsPlayer() && client->GetPlayer()->IsHostile(static_cast<Player*>(spawn)) && static_cast<Player*>(spawn)->IsStealthed() && !client->GetPlayer()->stats[ITEM_STAT_SEESTEALTH] && client->GetPlayer()->GetDistance(spawn) > 30) {
+				PacketStruct* packet = configReader.getStruct("WS_DestroyGhostCmd", client->GetVersion());
 
-					SendRemoveSpawn(client, static_cast<Player*>(spawn), packet);
+				SendRemoveSpawn(client, static_cast<Player*>(spawn), packet);
 
-					safe_delete(packet);
-				} else {
-					SendSpawnChanges(spawn, client);
-				}
+				safe_delete(packet);
+			} else {
+				SendSpawnChanges(spawn, client);
 			}
 		}
 
 		spawn->changed = false;
 		spawn->info_changed = false;
-		if (spawn->IsPlayer() == false) {
-			spawn->position_changed = false;
-		}
+		spawn->position_changed = false;
 		spawn->vis_changed = false;
 	}
 }
@@ -1886,38 +1883,24 @@ void ZoneServer::ProcessDrowning(){
 	}
 }
 
-void ZoneServer::SendSpawnChanges(){	
-	Spawn* spawn = 0;
-	MutexList<int32>::iterator spawn_iter = changed_spawns.begin();
-	while(spawn_iter.Next()){		
-		spawn = GetSpawnByID(spawn_iter->value);
-		if(spawn && spawn->changed){
-			if(!spawn->IsPlayer() || (spawn->IsPlayer() && (spawn->info_changed || spawn->vis_changed))) {
+void ZoneServer::SendSpawnChanges(bool only_pos_changes) {
+	auto spawn_iter = changed_spawns.begin();
+
+	while (spawn_iter.Next()) {
+		Spawn* spawn = GetSpawnByID(spawn_iter->value);
+
+		if (spawn && spawn->changed) {
+			if (!only_pos_changes || (!spawn->IsPlayer() && spawn->position_changed)) {
 				SendSpawnChanges(spawn);
 			}
 		}
-		if (!spawn)
+
+		if (!spawn) {
 			changed_spawns.Remove(spawn_iter->value);
-	}
-	changed_spawns.clear();
-}
-
-void ZoneServer::SendPlayerPositionChanges(Player* player){
-	if (player) {
-		player->position_changed = false;
-
-		shared_lock<shared_timed_mutex> guard(clients_mutex);
-
-		for (const auto& client : clients) {
-			if (player != client->GetPlayer() && client->GetPlayer()->WasSentSpawn(player->GetID()) && client->GetPlayer()->WasSpawnRemoved(player) == false) {
-				EQ2Packet* outapp = player->player_position_update_packet(client->GetPlayer(), client->GetVersion());
-
-				if (outapp) {
-					client->QueuePacket(outapp);
-				}
-			}
 		}
 	}
+
+	changed_spawns.clear();
 }
 
 void ZoneServer::SendCharSheetChanges(){

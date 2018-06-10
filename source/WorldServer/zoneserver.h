@@ -282,11 +282,10 @@ public:
 	void	PlaySoundFile(const shared_ptr<Client>& client, const char* name, float origin_x, float origin_y, float origin_z);
 	void	SendZoneSpawns(const shared_ptr<Client>& client);
 	void	StartZoneInitialSpawnThread(shared_ptr<Client> client);
-	void	SendSpawnChanges();
+	void	SendSpawnChanges(bool only_pos_changes = false);
 	void	SendSpawnChanges(Spawn* spawn);
 	void	SendSpawnChanges(Spawn* spawn, const shared_ptr<Client>& client, bool override_changes = false, bool override_vis_changes = false);
 	void	SendSpawnChanges(int32 spawn_id, const shared_ptr<Client>& client, bool override_changes = false, bool override_vis_changes = false);
-	void	SendPlayerPositionChanges(Player* player);
 	
 	void	UpdateVitality(float amount);
 	
@@ -776,6 +775,7 @@ private:
 	Timer	spawn_expire_timer;
 	Timer	spawn_range;
 	Timer	spawn_update;
+	Timer	spawn_pos_update;
 	Timer	sync_game_time_timer;
 	Timer	tracking_timer;
 	Timer	weatherTimer;

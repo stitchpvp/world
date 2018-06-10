@@ -147,7 +147,6 @@ Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_deb
 	camp_timer = 0;
 	disconnect_timer = 0;
 	client_zoning = false;
-	player_pos_changed = false;
 	++numclients;
 	if (world.GetServerStatisticValue(STAT_SERVER_MOST_CONNECTIONS) < numclients)
 		world.UpdateServerStatistic(STAT_SERVER_MOST_CONNECTIONS, numclients.load(), true);
@@ -1426,24 +1425,30 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 		case OP_UpdatePositionMsg:{
 			LogWrite(OPCODE__DEBUG, 7, "Opcode", "Opcode 0x%X (%i): OP_UpdatePositionMsg", opcode, opcode); 
 			int8 offset = 13;
-			if(app->pBuffer[0]==0xFF)
+
+			if (app->pBuffer[0]==0xFF) {
 				offset +=2;
+			}
+
 			if (app->size>offset) {
-				if(player->IsCasting()){
-					float distance = 0;
+				if (player->IsCasting()) {
 					float x = player->GetX();
 					float y = player->GetY();
 					float z = player->GetZ();
+
 					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
-					distance = player->GetDistance(x, y, z, false);
-					if(distance > .5)
+
+					float distance = player->GetDistance(x, y, z, false);
+
+					if (distance > .5) {
 						current_zone->Interrupted(player, 0, SPELL_ERROR_INTERRUPTED, false, true);
-				}
-				else
+					}
+				} else {
 					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
-				player_pos_changed = true;
-				LogWrite(CCLIENT__PACKET, 0, "Client", "Dump/Print Packet in func: %s, line: %i", __FUNCTION__, __LINE__);
-				//DumpPacket(app);
+				}
+
+				GetPlayer()->position_changed = true;
+				GetPlayer()->changed = true;
 			}
 			break;
 								  }
@@ -2360,12 +2365,12 @@ bool Client::Process(bool zone_process) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, CheckQuestQueue", __FUNCTION__, __LINE__);
 		CheckQuestQueue();
 	}
-	if(pos_update.Check() && player_pos_changed){
-		//GetPlayer()->CalculateLocation();
-		GetCurrentZone()->SendPlayerPositionChanges(GetPlayer());
-		player_pos_changed = false;
+
+	if (pos_update.Check() && GetPlayer()->position_changed) {
+		GetCurrentZone()->SendSpawnChanges(GetPlayer());
 		GetCurrentZone()->CheckTransporters(shared_from_this());
 	}
+
 	if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
 		GetCurrentZone()->StartZoneSpawnsForAggroThread(shared_from_this());
 		GetPlayer()->SetResendSpawns(false);
