@@ -684,8 +684,11 @@ private:
 	set<SpawnScriptTimer*> spawn_script_timers;
 	set<SpawnScriptTimer*> remove_spawn_script_timers_list;
 
+	set<int32> changed_spawns;
+
+	mutex changed_spawns_mutex;
+
 	/* Mutex Lists */
-	MutexList<int32> changed_spawns;										// int32 = spawn id
 	MutexList<int32> damaged_spawns;										// int32 = spawn id
 	MutexList<LocationProximity*> location_proximities;
 	MutexList<LocationGrid*> location_grids;

@@ -2093,40 +2093,51 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 		charsheet_changed = true;
 	}
 }
-void Player::AddSpellEffect(shared_ptr<LuaSpell> luaspell){
-	if(!luaspell || !luaspell->caster)
+void Player::AddSpellEffect(shared_ptr<LuaSpell> luaspell) {
+	if (!luaspell || !luaspell->caster) {
 		return;
+	}
 
 	Spell* spell = luaspell->spell;
 	SpellEffects* old_effect = GetSpellEffect(spell->GetSpellID(), luaspell->caster);
-	SpellEffects* effect = 0;
-	if (old_effect){
+
+	if (old_effect) {
 		GetZone()->RemoveTargetFromSpell(old_effect->spell, this);
 		RemoveSpellEffect(old_effect->spell);
 	}
-	effect = GetFreeSpellEffectSlot();
 
-	if(effect){
+	SpellEffects* effect = GetFreeSpellEffectSlot();
+
+	if (effect) {
 		GetSpellEffectMutex()->writelock(__FUNCTION__, __LINE__);
 		effect->spell = luaspell;
 		effect->spell_id = spell->GetSpellData()->id;
 		effect->caster = luaspell->caster;
 		effect->total_time = spell->GetSpellDuration()/10;
-		if (spell->GetSpellData()->duration_until_cancel)
+
+		if (spell->GetSpellData()->duration_until_cancel) {
 			effect->expire_timestamp = 0xFFFFFFFF;
-		else
+		} else {
 			effect->expire_timestamp = Timer::GetCurrentTime2() + (spell->GetSpellDuration()*100);
+		}
+
 		effect->icon = spell->GetSpellData()->icon;
 		effect->icon_backdrop = spell->GetSpellData()->icon_backdrop;
 		effect->tier = spell->GetSpellTier();
+
 		GetSpellEffectMutex()->releasewritelock(__FUNCTION__, __LINE__);
+
+		changed = true;
+		info_changed = true;
 		charsheet_changed = true;
+		AddChangedZoneSpawn();
 	}	
 }
 
 void Player::RemoveMaintainedSpell(shared_ptr<LuaSpell> luaspell){
-	if(!luaspell)
+	if (!luaspell) {
 		return;
+	}
 
 	bool found = false;
 	shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
@@ -2184,8 +2195,8 @@ void Player::RemoveSpellEffect(shared_ptr<LuaSpell> spell){
 		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1].spell_id = 0xFFFFFFFF;
 		changed = true;
 		info_changed = true;
-		AddChangedZoneSpawn();
 		charsheet_changed = true;
+		AddChangedZoneSpawn();
 	}
 	GetSpellEffectMutex()->releasewritelock(__FUNCTION__, __LINE__);
 }

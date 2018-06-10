@@ -169,7 +169,12 @@ ZoneServer::~ZoneServer() {
 		Sleep(10);
 	}
 	LogWrite(ZONE__INFO, 0, "Zone", "Initiating zone shutdown of '%s'", zone_name);
-	changed_spawns.clear();
+
+	{
+		lock_guard<mutex> guard(changed_spawns_mutex);
+		changed_spawns.clear();
+	}
+
 	transport_spawns.clear();
 	client_timeouts.clear();
 	safe_delete(spellProcess);
@@ -1821,15 +1826,22 @@ Spawn* ZoneServer::FindSpawn(Player* searcher, const char* name){
 }
 
 void ZoneServer::AddChangedSpawn(Spawn* spawn){
-	if(!spawn || (spawn->IsPlayer() && !spawn->info_changed && !spawn->vis_changed))
+	if (!spawn || (spawn->IsPlayer() && !spawn->info_changed && !spawn->vis_changed)) {
 		return;
-	if (changed_spawns.count(spawn->GetID()) == 0)
-		changed_spawns.Add(spawn->GetID());
+	}
+
+	lock_guard<mutex> guard(changed_spawns_mutex);
+
+	if (changed_spawns.count(spawn->GetID()) == 0) {
+		changed_spawns.insert(spawn->GetID());
+	}
 }
 
 void ZoneServer::RemoveChangedSpawn(Spawn* spawn){
-	if (spawn)
-		changed_spawns.Remove(spawn->GetID());
+	if (spawn) {
+		lock_guard<mutex> guard(changed_spawns_mutex);
+		changed_spawns.erase(spawn->GetID());
+	}
 }
 
 void ZoneServer::AddDrowningVictim(Player* player){
@@ -1884,23 +1896,24 @@ void ZoneServer::ProcessDrowning(){
 }
 
 void ZoneServer::SendSpawnChanges(bool only_pos_changes) {
+	lock_guard<mutex> guard(changed_spawns_mutex);
+
 	auto spawn_iter = changed_spawns.begin();
 
-	while (spawn_iter.Next()) {
-		Spawn* spawn = GetSpawnByID(spawn_iter->value);
+	while (spawn_iter != changed_spawns.end()) {
+		Spawn* spawn = GetSpawnByID(*spawn_iter);
 
-		if (spawn && spawn->changed) {
-			if (!only_pos_changes || (!spawn->IsPlayer() && spawn->position_changed)) {
+		if (spawn) {
+			if (spawn->changed && (!only_pos_changes || (!spawn->IsPlayer() && spawn->position_changed))) {
 				SendSpawnChanges(spawn);
+				spawn_iter = changed_spawns.erase(spawn_iter);
+			} else {
+				++spawn_iter;
 			}
-		}
-
-		if (!spawn) {
-			changed_spawns.Remove(spawn_iter->value);
+		} else {
+			spawn_iter = changed_spawns.erase(spawn_iter);
 		}
 	}
-
-	changed_spawns.clear();
 }
 
 void ZoneServer::SendCharSheetChanges(){
