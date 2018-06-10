@@ -35,6 +35,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <shared_mutex>
 #include "MutexList.h"
 #include "MutexMap.h"
 #include "MutexVector.h"
@@ -501,7 +502,7 @@ public:
 	string			GetZoneMOTD() { return zone_motd; }
 	bool			isZoneShuttingDown ( ) { return zoneShuttingDown; }
 	void			Shutdown(){ zoneShuttingDown = true; }
-	int32			GetClientCount(){ return clients.size(); }
+	int32			GetClientCount() { return clients.size(); }
 	int32			GetDefaultLockoutTime() { return def_lockout_time; }
 	int32			GetDefaultReenterTime() { return def_reenter_time; }
 	int32			GetDefaultResetTime() { return def_reset_time; }
@@ -674,20 +675,24 @@ private:
 
 	void SetSpawnStructs(const shared_ptr<Client>& client);
 
-	/* Mutex Lists */
-	MutexList<int32> changed_spawns;										// int32 = spawn id
+	map<shared_ptr<Client>, int32> client_timeouts;
 	vector<shared_ptr<Client>> clients;
 	vector<shared_ptr<Client>> incoming_clients;
-	map<shared_ptr<Client>, int32> client_timeouts;
+
+	shared_timed_mutex clients_mutex;
+
+	list<LocationTransportDestination*> transporter_locations;
+	set<SpawnScriptTimer*> spawn_script_timers;
+	set<SpawnScriptTimer*> remove_spawn_script_timers_list;
+
+	/* Mutex Lists */
+	MutexList<int32> changed_spawns;										// int32 = spawn id
 	MutexList<int32> damaged_spawns;										// int32 = spawn id
 	MutexList<LocationProximity*> location_proximities;
 	MutexList<LocationGrid*> location_grids;
 	MutexList<int32> remove_movement_spawns;								// int32 = spawn id
-	set<SpawnScriptTimer*> spawn_script_timers;
 	Mutex MSpawnScriptTimers;
-	set<SpawnScriptTimer*> remove_spawn_script_timers_list;
 	Mutex MRemoveSpawnScriptTimersList;
-	list<LocationTransportDestination*> transporter_locations;
 	
 	/* Mutex Maps */
 	MutexMap<Spawn*, shared_ptr<Client>> client_spawn_map;
