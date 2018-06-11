@@ -1307,8 +1307,13 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 
 			target = zone->GetSpawnByID(spell->targets[i]);
 
-			if (!target)
+			if (!target) {
 				continue;
+			}
+
+			if (!target->Alive() && (spell->spell->GetSpellData()->target_type != SPELL_TARGET_OTHER_CORPSE && spell->spell->GetSpellData()->target_type != SPELL_TARGET_GROUP_CORPSE)) {
+				continue;
+			}
 
 			if (!spell->spell->GetSpellData()->friendly_spell) {
 				if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_COMBAT_ART) {
@@ -1548,14 +1553,14 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 		}
 	}
 
-	if(remove_all) {
+	if (remove_all) {
 		{
 			lock_guard<mutex> guard(active_spells_mutex);
 
 			for (auto spell : active_spells) {
+				auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
+
 				if (spell->spell->GetSpellData()->persist_though_death) {
-					auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
-					
 					if (client && client->IsConnected()) {
 						continue;
 					}
@@ -1563,8 +1568,10 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 
 				if (spell->caster == spawn) {
 					if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
-						spell->caster = spell->caster->GetZone()->unknown_spawn;
-						continue;
+						if (!client || client->IsZoning()) {
+							spell->caster = spell->caster->GetZone()->unknown_spawn;
+							continue;
+						}
 					}
 
 					DeleteCasterSpell(spell);
