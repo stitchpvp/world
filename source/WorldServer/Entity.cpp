@@ -1513,15 +1513,20 @@ float Entity::CalculateCastingSpeedMod() {
 float Entity::GetSpeed() {
 	float ret = speed;
 
-	if (IsStealthed() || IsInvis())
+	if (IsStealthed() || IsInvis()) {
 		ret += stats[ITEM_STAT_STEALTHINVISSPEEDMOD];
-	else if (EngagedInCombat())
+	} else if (EngagedInCombat()) {
 		ret += stats[ITEM_STAT_OFFENSIVESPEED];
-	else
+	} else {
 		ret += max(stats[ITEM_STAT_SPEED], stats[ITEM_STAT_MOUNTSPEED]);
+	}
 
 	ret *= speed_multiplier;
-	ret -= GetHighestSnare();
+
+	if (IsPlayer()) {
+		ret -= GetHighestSnare();
+	}
+
 	return ret;
 }
 
