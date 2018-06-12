@@ -2182,23 +2182,32 @@ void Player::RemoveMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 
 void Player::RemoveSpellEffect(shared_ptr<LuaSpell> spell){
 	bool found = false;
+
 	GetSpellEffectMutex()->writelock(__FUNCTION__, __LINE__);
-	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
+
+	for (int i=0;i<NUM_SPELL_EFFECTS;i++) {
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
-		if(GetInfoStruct()->spell_effects[i].spell == spell)
+
+		if (GetInfoStruct()->spell_effects[i].spell == spell) {
 			found = true;
+		}
 	}
+
 	if (found) {
 		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1], 0, sizeof(SpellEffects));
 		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1].spell_id = 0xFFFFFFFF;
+	}
+
+	GetSpellEffectMutex()->releasewritelock(__FUNCTION__, __LINE__);
+
+	if (found) {
 		changed = true;
 		info_changed = true;
 		charsheet_changed = true;
 		AddChangedZoneSpawn();
 	}
-	GetSpellEffectMutex()->releasewritelock(__FUNCTION__, __LINE__);
 }
 
 bool Player::HasActiveMaintainedSpell(Spell* spell, Spawn* target){

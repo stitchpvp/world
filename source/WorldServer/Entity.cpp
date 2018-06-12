@@ -645,22 +645,31 @@ void Entity::RemoveMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 
 void Entity::RemoveSpellEffect(shared_ptr<LuaSpell> spell) {
 	bool found = false;
+
 	MSpellEffects.writelock(__FUNCTION__, __LINE__);
-	for(int i=0;i<NUM_SPELL_EFFECTS;i++) {
+
+	for (int i=0;i<NUM_SPELL_EFFECTS;i++) {
 		if (found) {
 			GetInfoStruct()->spell_effects[i-1] = GetInfoStruct()->spell_effects[i];
 		}
-		if (GetInfoStruct()->spell_effects[i].spell == spell)
+
+		if (GetInfoStruct()->spell_effects[i].spell == spell) {
 			found = true;
+		}
 	}
+
 	if (found) {
 		memset(&GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1], 0, sizeof(SpellEffects));
 		GetInfoStruct()->spell_effects[NUM_SPELL_EFFECTS-1].spell_id = 0xFFFFFFFF;
+	}
+
+	MSpellEffects.releasewritelock(__FUNCTION__, __LINE__);
+
+	if (found) {
 		changed = true;
 		info_changed = true;
 		AddChangedZoneSpawn();
 	}
-	MSpellEffects.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 bool Entity::HasActiveMaintainedSpell(Spell* spell, Spawn* target){
