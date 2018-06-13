@@ -358,7 +358,25 @@ class ZoneList {
 		return ret;
 	}
 
+	shared_ptr<Client> GetInactiveClientByCharID(int32 id) {
+		lock_guard<mutex> guard(client_timeouts_mutex);
+
+		for (auto kv : client_timeouts) {
+			shared_ptr<Client> client = kv.first;
+
+			if (client->GetCharacterID() == id) {
+				return client;
+			}
+		}
+		
+		return nullptr;
+	}
+
 	void UpdateVitality(float amount);
+	void AddClientTimeout(shared_ptr<Client> client, int timeout) {
+		lock_guard<mutex> guard(client_timeouts_mutex);
+		client_timeouts.insert(make_pair<shared_ptr<Client>&, int32>(client, Timer::GetUnixTimeStamp() + timeout));
+	}
 	void RemoveClientFromMap(string name) {
 		name = ToLower(name);
 
@@ -383,12 +401,16 @@ class ZoneList {
 	void ReloadMail();
 	void ReloadSpawns();
 	void SavePlayers();
+	void CheckClientTimeouts();
 
 private:
 	Mutex				MClientList;
 	Mutex				MZoneList;
+	mutex client_timeouts_mutex;
+
 	map<ZoneServer*, int32> removed_zoneservers;
 	map<string, shared_ptr<Client>> client_map;
+	map<shared_ptr<Client>, int32> client_timeouts;
 	list<ZoneServer*> zlist;
 };
 class World {

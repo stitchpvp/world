@@ -176,7 +176,6 @@ ZoneServer::~ZoneServer() {
 	}
 
 	transport_spawns.clear();
-	client_timeouts.clear();
 	safe_delete(spellProcess);
 	safe_delete(tradeskillMgr);
 	MMasterZoneLock->lock();
@@ -1367,14 +1366,6 @@ bool ZoneServer::Process()
 
 		// Client loop
 		ClientProcess();
-
-		for (auto client_iter = client_timeouts.begin(); client_iter != client_timeouts.end();) {
-			if (client_iter->second <= Timer::GetUnixTimeStamp()) {
-				client_iter = client_timeouts.erase(client_iter);
-			} else {
-				++client_iter;
-			}
-		}
 
 		HidePrivateSpawns();
 
@@ -2842,10 +2833,6 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 			client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCosmeticPet());
 		}
 
-		if (!client->IsZoning()) {
-			zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
-		}
-
 		RemoveSpawn(client->GetPlayer(), false);
 		RemoveFromRangeMap(client);
 
@@ -2863,7 +2850,8 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 			clients.erase(remove(clients.begin(), clients.end(), client), clients.end());
 		}
 
-		client_timeouts.insert(make_pair<shared_ptr<Client>&, int32>(client, Timer::GetUnixTimeStamp() + 10));
+		zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
+		zone_list.AddClientTimeout(client, 10);
 
 		LogWrite(ZONE__INFO, 0, "Zone", "Scheduling client '%s' for removal.", client->GetPlayer()->GetName());
 

@@ -274,6 +274,8 @@ void World::Process(){
 
 	if (lotto_players_timer.Check())
 		CheckLottoPlayers();
+
+	zone_list.CheckClientTimeouts();
 }
 
 vector<Variable*>* World::GetClientVariables(){
@@ -351,6 +353,17 @@ void ZoneList::SavePlayers() {
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
+void ZoneList::CheckClientTimeouts() {
+	lock_guard<mutex> guard(client_timeouts_mutex);
+
+	for (auto client_iter = client_timeouts.begin(); client_iter != client_timeouts.end();) {
+		if (client_iter->second <= Timer::GetUnixTimeStamp()) {
+			client_iter = client_timeouts.erase(client_iter);
+		} else {
+			++client_iter;
+		}
+	}
+}
 
 void World::WorldTimeTick(){
 	world_time.minute++;
@@ -379,13 +392,14 @@ ZoneList::ZoneList() {
 }
 
 ZoneList::~ZoneList() {
-	list<ZoneServer*>::iterator zone_iter;
-	ZoneServer* zs = 0;
-	for(zone_iter=zlist.begin(); zone_iter!=zlist.end();){
-		zs = *zone_iter;
+	for (auto zone_iter = zlist.begin(); zone_iter != zlist.end();) {
+		ZoneServer* zs = *zone_iter;
 		zone_iter = zlist.erase(zone_iter);
 		safe_delete(zs);
 	}
+
+	lock_guard<mutex> guard(client_timeouts_mutex);
+	client_timeouts.clear();
 }
 
 void ZoneList::CheckFriendList(const shared_ptr<Client>& client) {

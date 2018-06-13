@@ -750,7 +750,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 					if (database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), shared_from_this())) {
 						version = request->getType_int16_ByName("version");
-						shared_ptr<Client> client = zone_list.GetClientByCharName(player->GetName());
+						shared_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
 
 						// TODO: Revisit LD code
 						/*MDeletePlayer.writelock(__FUNCTION__, __LINE__);
@@ -797,8 +797,6 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 							}
 
 							client->GetPlayer()->SetResurrecting(true);
-
-							zone_list.RemoveClientFromMap(client->GetPlayer()->GetName());
 						}
 
 						if (client && client->getConnection()) {

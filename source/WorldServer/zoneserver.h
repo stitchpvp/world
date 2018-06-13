@@ -674,7 +674,6 @@ private:
 
 	void SetSpawnStructs(const shared_ptr<Client>& client);
 
-	map<shared_ptr<Client>, int32> client_timeouts;
 	vector<shared_ptr<Client>> clients;
 	vector<shared_ptr<Client>> incoming_clients;
 
