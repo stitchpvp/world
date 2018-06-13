@@ -469,6 +469,8 @@ void Client::HandlePlayerRevive(int32 point_id)
 
 	Save();
 
+	ready_for_updates = false;
+
 	SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
 
 	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
