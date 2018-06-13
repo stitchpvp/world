@@ -1321,6 +1321,8 @@ void Entity::DismissPet(NPC* pet, bool from_death) {
 		owner->SetDeityPet(nullptr);
 	} else if (pet->GetPetType() == PET_TYPE_COSMETIC) {
 		owner->SetCosmeticPet(nullptr);
+	} else if (pet->GetPetType() == PET_TYPE_DUMBFIRE && from_death) {
+		owner->RemoveDumbfirePet(pet);
 	}
 
 	// if owner is player and no combat pets left reset the pet info
