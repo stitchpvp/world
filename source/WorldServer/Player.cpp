@@ -3679,7 +3679,7 @@ bool Player::ShouldSendSpawn(Spawn* spawn){
 }
 
 struct SortSpellAlphabetically {
-	bool operator()(const SpellBookEntry* lhs, const SpellBookEntry* rhs) {
+	bool operator() (const SpellBookEntry* lhs, const SpellBookEntry* rhs) {
 		Spell* ls = master_spell_list.GetSpell(lhs->spell_id, lhs->tier);
 		Spell* rs = master_spell_list.GetSpell(rhs->spell_id, rhs->tier);
 
@@ -3688,11 +3688,23 @@ struct SortSpellAlphabetically {
 };
 
 void Player::SortSpellBook() {
+	map<int8, map<int32, sint32>> slots;
+	vector<SpellBookEntry*> spells_copy;
+
 	MSpellsBook.writelock();
-	sort(spells.begin(), spells.end(), SortSpellAlphabetically());
-	for (int i = 0; i < spells.size(); i++) {
-		spells[i]->slot = i;
+
+	spells_copy = spells;
+
+	sort(spells_copy.begin(), spells_copy.end(), SortSpellAlphabetically());
+
+	for (int i = 0; i < spells_copy.size(); i++) {
+		slots[spells_copy[i]->type][spells_copy[i]->spell_id] = slots[spells_copy[i]->type].size();
 	}
+
+	for (int i = 0; i < spells.size(); i++) {
+		spells[i]->slot = slots[spells[i]->type][spells[i]->spell_id];
+	}
+
 	MSpellsBook.releasewritelock();
 }
 
