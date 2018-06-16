@@ -333,7 +333,7 @@ to zero and treated like placeholders." />
 <Data ElementName="soga_body_size" Type="float" Size="1" />
 <Data ElementName="soga_body_age" Type="float" Size="1" />
 </Struct>
-<Struct Name="CreateCharacter" ClientVersion="64659" OpcodeName="OP_CreateCharacterRequestMsg" >
+<Struct Name="CreateCharacter" ClientVersion="64647" OpcodeName="OP_CreateCharacterRequestMsg" >
 	<Data ElementName="unknown0" Type="int8" />
 	<Data ElementName="unknown1" Type="int32" />
 	<Data ElementName="account_id" Type="int32" />
