@@ -1560,19 +1560,19 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 			for (auto spell : active_spells) {
 				auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
 
-				if (spell->spell->GetSpellData()->persist_though_death) {
+				/*if (spell->spell->GetSpellData()->persist_though_death) {
 					if (client && client->IsConnected()) {
 						continue;
 					}
-				}
+				}*/
 
 				if (spell->caster == spawn) {
-					if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
+					/*if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
 						if (!client || client->IsZoning()) {
 							spell->caster = spell->caster->GetZone()->unknown_spawn;
 							continue;
 						}
-					}
+					}*/
 
 					DeleteCasterSpell(spell);
 					continue;
