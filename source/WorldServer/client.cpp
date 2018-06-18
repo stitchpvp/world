@@ -41,6 +41,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Chat/Chat.h"
 #include "PVP.h"
 #include <atomic>
+#include <thread>
 
 //#include "Quests.h"
 
@@ -471,7 +472,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 	thread t([client]() {
 		client->Save();
 	});
-	t.deatch();
+	t.detach();
 
 	ready_for_updates = false;
 
@@ -2467,7 +2468,7 @@ bool Client::Process(bool zone_process) {
 		thread t([client]() {
 			client->Save();
 		});
-		t.deatch();
+		t.detach();
 	}
 
 	return ret;
@@ -2651,7 +2652,7 @@ void Client::Disconnect(bool send_disconnect)
 	thread t([client]() {
 		client->Save();
 	});
-	t.deatch();
+	t.detach();
 
 	GetPlayer()->WritePlayerStatistics();
 
@@ -3086,7 +3087,7 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords){
 	thread t([client]() {
 		client->Save();
 	});
-	t.deatch();
+	t.detach();
 
 	char* new_zone_ip = 0;
 	struct in_addr in;

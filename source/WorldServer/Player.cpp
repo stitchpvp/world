@@ -1389,7 +1389,7 @@ void Player::AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int1
 void Player::RemoveQuickbarItem(int32 bar, int32 slot, bool update){
 	lock_guard<mutex> guard(quickbar_mutex);
 
-	for (const auto qbi : *quickbar_items) {
+	for (const auto qbi : quickbar_items) {
 		if (qbi && !qbi->deleted && qbi->hotbar == bar && qbi->slot == slot) {
 			qbi->deleted = true;
 			break;
