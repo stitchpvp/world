@@ -467,7 +467,11 @@ void Client::HandlePlayerRevive(int32 point_id)
 
 	player->SetResurrecting(true);
 
-	Save();
+	shared_ptr<Client> client = shared_from_this();
+	thread t([client]() {
+		client->Save();
+	});
+	t.deatch();
 
 	ready_for_updates = false;
 
@@ -2458,8 +2462,13 @@ bool Client::Process(bool zone_process) {
 	if (!eqs || !eqs->CheckActive())
 		ret = false;
 
-	if(!ret)
-		Save();
+	if (!ret) {
+		shared_ptr<Client> client = shared_from_this();
+		thread t([client]() {
+			client->Save();
+		});
+		t.deatch();
+	}
 
 	return ret;
 }
@@ -2637,7 +2646,13 @@ void Client::Disconnect(bool send_disconnect)
 	if(send_disconnect && getConnection())
 		getConnection()->SendDisconnect(true);
 
-	Save();
+
+	shared_ptr<Client> client = shared_from_this();
+	thread t([client]() {
+		client->Save();
+	});
+	t.deatch();
+
 	GetPlayer()->WritePlayerStatistics();
 
 	eqs = 0;
@@ -3066,7 +3081,12 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords){
 	}
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Saving Player info...", __FUNCTION__);
-	Save();
+
+	shared_ptr<Client> client = shared_from_this();
+	thread t([client]() {
+		client->Save();
+	});
+	t.deatch();
 
 	char* new_zone_ip = 0;
 	struct in_addr in;
