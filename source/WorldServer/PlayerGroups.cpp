@@ -477,9 +477,16 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, shared_ptr<Client> cli
 				}
 			}
 
-			EQ2Packet* packet = target->GetSkills()->GetSkillPacket(client->GetVersion());
-			if (packet)
-				target->GetZone()->GetClientBySpawn(target)->QueuePacket(packet);
+			shared_ptr<Client> target_client = target->GetZone()->GetClientBySpawn(target);
+
+			if (target_client) {
+				EQ2Packet* packet = target->GetSkills()->GetSkillPacket(target_client->GetVersion());
+
+				if (packet) {
+					target_client->QueuePacket(packet);
+					safe_delete(packet);
+				}
+			}
 		}
 	}
 	MGroups.releasereadlock(__FUNCTION__, __LINE__);

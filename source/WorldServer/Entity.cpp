@@ -1843,7 +1843,7 @@ bool Entity::CanAttackTarget(Spawn* target) {
 	if (target == this)
 		return false;
 
-	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && static_cast<NPC*>(target)->GetOwner()->IsPlayer()))) {
+	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && static_cast<NPC*>(target)->GetOwner() && static_cast<NPC*>(target)->GetOwner()->IsPlayer()))) {
 		return PVP::CanAttack(static_cast<Player*>(this), target);
 	} else {
 		if (target->IsPlayer()) {
@@ -1860,7 +1860,7 @@ bool Entity::IsHostile(Spawn* target) {
 	if (target == this)
 		return false;
 
-	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && ((NPC*)target)->GetOwner()->IsPlayer()))) {
+	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && static_cast<NPC*>(target)->GetOwner() && static_cast<NPC*>(target)->GetOwner()->IsPlayer()))) {
 		return PVP::IsHostile(static_cast<Player*>(this), target);
 	} else if (target->IsPlayer()) {
 		return true;

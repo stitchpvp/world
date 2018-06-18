@@ -256,9 +256,7 @@ void SpellProcess::Process(){
 					cast_timer->spell->caster->IsCasting(false);
 				}
 
-				if (!cast_timer->delete_timer) {
-					CastProcessedSpell(cast_timer->spell);
-				}
+				CastProcessedSpell(cast_timer->spell);
 			} else if (cast_timer->entity_command && !cast_timer->delete_timer) {
 				CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
 			}
@@ -1275,8 +1273,9 @@ void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_
 }
 
 bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) {
-	if (!spell || !spell->caster || !spell->spell || spell->interrupted)
+	if (!spell || !spell->caster || !spell->caster->Alive() || !spell->spell || spell->interrupted) {
 		return false;
+	}
 
 	shared_ptr<Client> client = nullptr;
 	bool hit_target = false;
