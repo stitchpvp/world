@@ -3209,17 +3209,21 @@ void Client::DetermineCharacterUpdates ( ) {
 
 }
 
-void Client::Save(){
-	if(current_zone){
+void Client::Save() {
+	if (current_zone) {
 		DetermineCharacterUpdates();
 
 		UpdateCharacterInstances();
 
 		database.Save(shared_from_this());
-		if(GetPlayer()->UpdateQuickbarNeeded()){
+
+		if (GetPlayer()->UpdateQuickbarNeeded()) {
+			lock_guard<mutex> guard(GetPlayer()->quickbar_mutex);
+
 			database.SaveQuickBar(GetCharacterID(), GetPlayer()->GetQuickbar());
 			GetPlayer()->ResetQuickbarNeeded();
 		}
+
 		database.SaveItems(shared_from_this());
 		database.SaveBuyBacks(shared_from_this());
 

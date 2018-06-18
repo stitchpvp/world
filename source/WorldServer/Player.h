@@ -852,6 +852,8 @@ public:
 	map<int32, HostileEntity*> encounter_list;
 	vector<shared_ptr<ActivityStatus>> activity_statuses;
 
+	mutex quickbar_mutex;
+
 	map<string, PacketStruct*> packet_cache;
 
 	int8 temp_status = 0;

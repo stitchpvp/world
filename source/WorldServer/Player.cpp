@@ -1351,8 +1351,11 @@ void Player::ResetQuickbarNeeded(){
 	quickbar_updated = false;
 }
 
-void Player::AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int16 icon_type, int32 id, int8 tier, int32 unique_id, const char* text, bool update){
+void Player::AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int16 icon_type, int32 id, int8 tier, int32 unique_id, const char* text, bool update) {
 	RemoveQuickbarItem(bar, slot, false);
+
+	lock_guard<mutex> guard(quickbar_mutex);
+
 	QuickBarItem* ability = new QuickBarItem;
 	ability->deleted = false;
 	ability->hotbar = bar;
@@ -1362,35 +1365,45 @@ void Player::AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int1
 	ability->tier = tier;
 	ability->icon_type = icon_type;
 	ability->id = id;
-	if(unique_id == 0)
+
+	if (unique_id == 0) {
 		unique_id = database.NextUniqueHotbarID();
+	}
+
 	ability->unique_id = unique_id;
-	if(type == QUICKBAR_TEXT_CMD && text){
+
+	if (type == QUICKBAR_TEXT_CMD && text) {
 		ability->text.data = string(text);
 		ability->text.size = ability->text.data.length();
-	}
-	else
+	} else {
 		ability->text.size = 0;
+	}
+
 	quickbar_items.push_back(ability);
-	if(update)
+
+	if (update) {
 		quickbar_updated = true;
+	}
 }
 
 void Player::RemoveQuickbarItem(int32 bar, int32 slot, bool update){
-	vector<QuickBarItem*>::iterator itr;
-	QuickBarItem* qbi = 0;
-	for(itr=quickbar_items.begin();itr!=quickbar_items.end();itr++){
-		qbi = *itr;
-		if(qbi && qbi->deleted == false && qbi->hotbar == bar && qbi->slot == slot){
+	lock_guard<mutex> guard(quickbar_mutex);
+
+	for (const auto qbi : *quickbar_items) {
+		if (qbi && !qbi->deleted && qbi->hotbar == bar && qbi->slot == slot) {
 			qbi->deleted = true;
 			break;
 		}
 	}
-	if(update)
+
+	if (update) {
 		quickbar_updated = true;
+	}
 }
 
 void Player::ClearQuickbarItems(){
+	lock_guard<mutex> guard(quickbar_mutex);
+
 	quickbar_items.clear();
 }
 
