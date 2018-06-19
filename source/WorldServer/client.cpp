@@ -142,7 +142,9 @@ Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_deb
 	account_name[0] = 0;
 	account_id = 0;
 	pwaitingforbootup = 0;
-	current_zone = 0;
+	current_zone = nullptr;
+	next_zone = nullptr;
+	waiting_to_zone = false;
 	connected_to_zone = false;
 	connected = false;
 	camp_timer = 0;
@@ -418,17 +420,16 @@ void Client::DisplayDeadWindow()
 
 }
 
-void Client::HandlePlayerRevive(int32 point_id)
-{
-	float x, y, z, heading;
-	const char* location_name = "Unknown";
-	RevivePoint* revive_point = 0;
-	bool use_safe_spot = false;
+void Client::HandlePlayerRevive(int32 point_id) {
+	RevivePoint* revive_point = nullptr;
 	string* zone_name = nullptr;
 	string zone_desc = "Unknown";
+	const char* location_name = "Unknown";
+	bool use_safe_spot = false;
 
-	if (point_id != 0xFFFFFFFF)
+	if (point_id != 0xFFFFFFFF) {
 		revive_point = GetCurrentZone()->GetRevivePoint(point_id);
+	}
 
 	if (revive_point && revive_point->zone_id != 0) {
 		zone_name = database.GetZoneName(revive_point->zone_id);
@@ -436,10 +437,10 @@ void Client::HandlePlayerRevive(int32 point_id)
 		if (!zone_name || zone_name->length() == 0) {
 			use_safe_spot = true;
 		} else {
-			x = revive_point->x;
-			y = revive_point->y;
-			z = revive_point->z;
-			heading = revive_point->heading;
+			player->SetX(revive_point->x, false);
+			player->SetY(revive_point->y, false);
+			player->SetZ(revive_point->z, false);
+			player->SetHeading(revive_point->heading, false);
 			location_name = revive_point->location_name.c_str();
 			zone_desc = database.GetZoneDescription(revive_point->zone_id);
 		}
@@ -448,31 +449,11 @@ void Client::HandlePlayerRevive(int32 point_id)
 	}
 
 	if (use_safe_spot) {
-		x = GetCurrentZone()->GetSafeX();
-		y = GetCurrentZone()->GetSafeY();
-		z = GetCurrentZone()->GetSafeZ();
-		heading = GetCurrentZone()->GetSafeHeading();
 		location_name = "Zone Safe Point";
 		zone_desc = GetCurrentZone()->GetZoneDescription();
 	}
 
-	player->SetX(x);
-	player->SetY(y);
-	player->SetZ(z);
-	player->SetHeading(heading);
-
-	player->SetHP(player->GetTotalHP());
-	player->SetPower(player->GetTotalPower());
-
-	//GetCurrentZone()->RemoveDeadSpawn(player, true);
-
 	player->SetResurrecting(true);
-
-	shared_ptr<Client> client = shared_from_this();
-	thread t([client]() {
-		client->Save();
-	});
-	t.detach();
 
 	ready_for_updates = false;
 
@@ -496,19 +477,16 @@ void Client::HandlePlayerRevive(int32 point_id)
 	zone_desc = GetCurrentZone()->GetZoneDescription();
 	Message(CHANNEL_COLOR_REVIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
 
-	if (use_safe_spot) {
-		Zone(GetCurrentZone()->GetZoneName(), false);
-	} else {
-		Zone(zone_name->c_str(), false);
-	}
+	Zone(GetCurrentZone()->GetZoneName(), use_safe_spot);
 
 	safe_delete(zone_name);
 
 	//TeleportWithinZone(x, y, z, heading);
 	
 	m_resurrect.writelock(__FUNCTION__, __LINE__);
-	if (current_rez.active)
+	if (current_rez.active) {
 		current_rez.should_delete = true;
+	}
 	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
 }
 
@@ -2354,6 +2332,53 @@ bool Client::Process(bool zone_process) {
 		safe_delete(app);
 	}
 
+	if (!waiting_to_zone && next_zone) {
+		client_zoning = true;
+
+		player->DismissPet((NPC*)player->GetPet());
+		player->DismissPet((NPC*)player->GetCharmedPet());
+		player->DismissPet((NPC*)player->GetDeityPet());
+		player->DismissPet((NPC*)player->GetCosmeticPet());
+
+		GetCurrentZone()->RemoveSpawn(player, false);
+
+		SetCurrentZone(next_zone);
+
+		// Do smoething with group to show that the person is ozning
+
+		UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
+
+		if (set_next_zone_coords) {
+			player->SetX(GetCurrentZone()->GetSafeX());
+			player->SetY(GetCurrentZone()->GetSafeY());
+			player->SetZ(GetCurrentZone()->GetSafeZ());
+			player->SetHeading(GetCurrentZone()->GetSafeHeading());
+		}
+
+		if (GetPlayer()->IsResurrecting()) {
+			player->SetHP(player->GetTotalHP());
+			player->SetPower(player->GetTotalPower());
+		}
+
+
+		char* new_zone_ip = 0;
+		struct in_addr in;
+		in.s_addr = GetIP();
+
+		if (strncmp(inet_ntoa(in), "192.168", 7) == 0 && strlen(net.GetInternalWorldAddress()) > 0) {
+			new_zone_ip = net.GetInternalWorldAddress();
+		} else {
+			new_zone_ip = net.GetWorldAddress();
+		}
+
+		int32 key = Timer::GetUnixTimeStamp();
+
+		ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
+		zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
+
+		return true;
+	}
+
 	if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
 		player->ApplyPassiveSpells();
 		database.LoadCharacterActiveSpells(player);
@@ -3034,77 +3059,25 @@ void Client::Zone(int32 instanceid, bool set_coords, bool byInstanceID) {
 
 }
 
-void Client::Zone(ZoneServer* new_zone, bool set_coords){
-	if(!new_zone) {
+void Client::Zone(ZoneServer* new_zone, bool set_coords) {
+	if (!new_zone) {
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request Denied! No 'new_zone' value");
 		return;
 	}
 
-	client_zoning = true;
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting player Resurrecting to 'true'", __FUNCTION__);
-	player->SetResurrecting(true);
+	waiting_to_zone = true;
+	next_zone = new_zone;
 
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from fighting...", __FUNCTION__);
-	//GetCurrentZone()->GetCombat()->RemoveHate(player);
-	
-	database.SavePlayerActiveSpells(shared_from_this());
-
-	// Remove players pet from zone if there is one
-	player->DismissPet((NPC*)player->GetPet());
-	player->DismissPet((NPC*)player->GetCharmedPet());
-	player->DismissPet((NPC*)player->GetDeityPet());
-	player->DismissPet((NPC*)player->GetCosmeticPet());
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from current zone...", __FUNCTION__);
-	GetCurrentZone()->RemoveSpawn(player, false);
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->GetZoneName());
-	SetCurrentZone(new_zone);
-
-	// Do smoething with group to show that the person is ozning
-
-	UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
-
-	if(set_coords)
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Zoning player to coordinates x: %2f, y: %2f, z: %2f, heading: %2f in zone '%s'...", 
-			__FUNCTION__, 
-			GetCurrentZone()->GetSafeX(),
-			GetCurrentZone()->GetSafeY(),
-			GetCurrentZone()->GetSafeZ(),
-			GetCurrentZone()->GetSafeHeading(), 
-			new_zone->GetZoneName()
-			);
-		player->SetX(GetCurrentZone()->GetSafeX());
-		player->SetY(GetCurrentZone()->GetSafeY());
-		player->SetZ(GetCurrentZone()->GetSafeZ());
-		player->SetHeading(GetCurrentZone()->GetSafeHeading());
-	}
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Saving Player info...", __FUNCTION__);
+	set_next_zone_coords = set_coords;
 
 	shared_ptr<Client> client = shared_from_this();
-	thread t([client]() {
+	thread t([this, client]() {
+		database.SavePlayerActiveSpells(shared_from_this());
 		client->Save();
+
+		waiting_to_zone = false;
 	});
 	t.detach();
-
-	char* new_zone_ip = 0;
-	struct in_addr in;
-	in.s_addr = GetIP();
-	if(strncmp(inet_ntoa(in), "192.168",7)==0 && strlen(net.GetInternalWorldAddress()) > 0)
-		new_zone_ip = net.GetInternalWorldAddress();
-	else
-		new_zone_ip = net.GetWorldAddress();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: New Zone IP '%s'...", __FUNCTION__, new_zone_ip);
-
-	int32 key = Timer::GetUnixTimeStamp();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending ZoneChangeMsg...", __FUNCTION__);
-	ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending to zone_auth.AddAuth...", __FUNCTION__);
-	zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
-
 }
 
 void Client::Zone(const char* new_zone, bool set_coords)

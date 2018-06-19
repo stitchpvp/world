@@ -21,11 +21,12 @@
 #define CLIENT_H
 
 #include "../common/EQStream.h"
-#include <list>
 #include "../common/timer.h"
 #include "zoneserver.h"
 #include "Player.h"
 #include "Quests.h"
+#include <atomic>
+#include <list>
 
 using namespace std;
 #define CLIENT_TIMEOUT 60000
@@ -388,6 +389,8 @@ public:
 	bool	client_zoning;
 	bool ready_for_updates;
 
+	atomic<bool> waiting_to_zone;
+
 private:
 	void    SavePlayerImages();
 	void	SkillChanged(Skill* skill, int16 previous_value, int16 new_value);
@@ -458,6 +461,8 @@ private:
 	EQStream* eqs;
 	bool quickbar_changed;
 	ZoneServer* current_zone;
+	ZoneServer* next_zone;
+	bool set_next_zone_coords = false;
 	int32	name_crc;
 	MailWindow	mail_window;
 	PendingGuildInvite	pending_guild_invite;
