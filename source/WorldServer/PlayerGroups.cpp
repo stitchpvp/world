@@ -484,7 +484,6 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, shared_ptr<Client> cli
 
 				if (packet) {
 					target_client->QueuePacket(packet);
-					safe_delete(packet);
 				}
 			}
 		}
