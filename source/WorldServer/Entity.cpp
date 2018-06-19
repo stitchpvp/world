@@ -554,7 +554,7 @@ void Entity::DoRegenUpdate(){
 		if ((power + regen_power_rate) > GetTotalPower()) {
 			SetPower(GetTotalPower());
 		} else {
-			SetPower(power + regen_power_rate);
+			SetPower(power + temp);
 		}
 	}
 }
