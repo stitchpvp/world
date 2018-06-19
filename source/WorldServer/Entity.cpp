@@ -312,7 +312,11 @@ void Entity::ChangePrimaryWeapon(){
 
 		if (IsNPC()) {
 			if (IsPet()) {
-				reducer = 6.0;
+				reducer = 7.2;
+
+				if (static_cast<NPC*>(this)->GetPetType() == PET_TYPE_DUMBFIRE) {
+					reducer = 12.0;
+				}
 			} else {
 				reducer = 2.5 - (appearance.heroic_flag * 0.25);
 			}
@@ -357,7 +361,11 @@ void Entity::ChangeSecondaryWeapon(){
 
 		if (IsNPC()) {
 			if (IsPet()) {
-				reducer = 6.0;
+				reducer = 7.2;
+
+				if (static_cast<NPC*>(this)->GetPetType() == PET_TYPE_DUMBFIRE) {
+					reducer = 12.0;
+				}
 			} else {
 				reducer = 2.5 - (appearance.heroic_flag * 0.25);
 			}
