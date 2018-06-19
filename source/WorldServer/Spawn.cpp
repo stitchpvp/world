@@ -2151,7 +2151,7 @@ void Spawn::AddRunningLocation(float x, float y, float z, float speed, float dis
 	if(speed == 0)
 		return;
 	MovementLocation* current_location = 0;
-	float distance = GetDistance(x, y, z, distance_away != 0);
+	float distance = GetDistance(x, y, z);
 	if(distance_away != 0){
 		distance -= distance_away;
 		x = x - (GetX() - x)*distance_away/distance;
@@ -2248,11 +2248,12 @@ bool Spawn::CalculateChange(){
 			float tar_vy = data->y - ny;
 			float tar_vz = data->z - nz;
 
-			float speed = GetSpeed() *  time_step;
+			float speed = GetSpeed() * time_step;
 
 			if (IsEntity()) {
 				speed *= (1 - (static_cast<Entity*>(this)->GetHighestSnare() / 100.0));
 			}
+
 			float len = sqrtf (tar_vx * tar_vx + tar_vy * tar_vy + tar_vz * tar_vz);
 			tar_vx = (tar_vx / len) * speed;
 			tar_vy = (tar_vy / len) * speed;

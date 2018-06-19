@@ -1095,7 +1095,7 @@ void Entity::AddMezSpell(shared_ptr<LuaSpell> spell) {
 
 	mez_spells->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(198606554, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 }
@@ -1150,7 +1150,7 @@ void Entity::AddStifleSpell(shared_ptr<LuaSpell> spell) {
 
 	control_effects[CONTROL_EFFECT_TYPE_STIFLE]->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(115537460, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 }
@@ -1177,7 +1177,7 @@ void Entity::AddDazeSpell(shared_ptr<LuaSpell> spell) {
 
 	control_effects[CONTROL_EFFECT_TYPE_DAZE]->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(84058492, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 }
@@ -1205,7 +1205,7 @@ void Entity::AddStunSpell(shared_ptr<LuaSpell> spell) {
 
 	control_effects[CONTROL_EFFECT_TYPE_STUN]->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(72388327, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 }
@@ -1998,7 +1998,7 @@ void Entity::AddRootSpell(shared_ptr<LuaSpell> spell) {
 
 	control_effects[CONTROL_EFFECT_TYPE_ROOT]->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(56998827, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 
@@ -2027,7 +2027,7 @@ void Entity::AddFearSpell(shared_ptr<LuaSpell> spell){
 
 	control_effects[CONTROL_EFFECT_TYPE_FEAR]->Add(spell);
 
-	if (spell->caster->IsPlayer() && IsPlayer()) {
+	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
 		GetZone()->GetSpellProcess()->CastSpell(154756066, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
 	}
 }
