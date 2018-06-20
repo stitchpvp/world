@@ -1552,7 +1552,7 @@ bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, const shared_
 			client->GetPlayer()->SetTotalDissonanceBase(client->GetPlayer()->GetTotalDissonance());
 
 			if (client->GetPlayer()->GetHP() == 0)
-				client->GetPlayer()->SetSpawnType(3);
+				client->GetPlayer()->SetSpawnType(1);
 		}
 
 		return true;

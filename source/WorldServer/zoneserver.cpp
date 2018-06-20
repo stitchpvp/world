@@ -3985,7 +3985,7 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		dead->SetAttackable(0, false);
 		dead->SetHP(0);
 		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
-		dead->SetSpawnType(3);
+		dead->SetSpawnType(1);
 
 		ClearHate(dead_entity);
 
