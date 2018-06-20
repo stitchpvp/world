@@ -4205,10 +4205,11 @@ Skill* Player::GetSkillByName(const char* name, bool check_update){
 void Player::SetRangeAttack(bool val){
 	range_attack = val;
 
-	if (val)
+	if (val) {
 		set_character_flag(CF_RANGED_AUTO_ATTACK);
-	else
+	} else {
 		reset_character_flag(CF_RANGED_AUTO_ATTACK);
+	}
 }
 
 bool Player::GetRangeAttack() {
@@ -4218,10 +4219,11 @@ bool Player::GetRangeAttack() {
 void Player::SetMeleeAttack(bool val) {
 	melee_attack = val;
 
-	if (val)
+	if (val) {
 		set_character_flag(CF_AUTO_ATTACK);
-	else
+	} else {
 		reset_character_flag(CF_AUTO_ATTACK);
+	}
 }
 
 bool Player::GetMeleeAttack() {

@@ -461,6 +461,7 @@ public:
 	int16   GetPrimaryWeaponDelay() {return melee_combat_data.primary_weapon_delay;}
 	int16   GetSecondaryWeaponDelay() {return melee_combat_data.secondary_weapon_delay;}
 	bool	IsDualWield();
+	bool	FacingTarget(Spawn* target);
 	bool	BehindTarget(Spawn* target);
 	bool	FlankingTarget(Spawn* target);
 	double SpawnAngle(Spawn* target);

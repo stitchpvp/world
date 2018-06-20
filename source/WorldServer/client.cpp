@@ -1355,15 +1355,23 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 								 }
 		case OP_UpdateTargetMsg:{
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_UpdateTargetMsg", opcode, opcode);
+
 			int16 index = 0;
+
 			memcpy(&index, app->pBuffer, sizeof(int16));
-			if (index == 0xFFFF)
+
+			if (index == 0xFFFF) {
 				GetPlayer()->SetTarget(0);
-			else
+				GetPlayer()->SetRangeAttack(false);
+				GetPlayer()->SetMeleeAttack(false);
+			} else {
 				GetPlayer()->SetTarget(GetPlayer()->GetSpawnByIndex(index));
-			if(GetPlayer()->GetTarget())
+			}
+
+			if (GetPlayer()->GetTarget()) {
 				GetCurrentZone()->CallSpawnScript(GetPlayer()->GetTarget(), SPAWN_SCRIPT_TARGETED, GetPlayer());
-			//player->SetTarget((int16*)app->pBuffer);
+			}
+
 			break;
 								}
 		case OP_ExamineInfoRequestMsg:{

@@ -88,20 +88,25 @@ bool Entity::RangeWeaponReady() {
 
 bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	Entity* attacker = this;
-	shared_ptr<Client> client = 0;
-	if(!target || IsMezzedOrStunned() || IsDazed()) {
+	shared_ptr<Client> client = nullptr;
+
+	if (!target || IsMezzedOrStunned() || IsDazed()) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: no target, mezzed, stunned or dazed");
 		return false;
 	}
 
-	if (IsPlayer())
+	if (IsPlayer()) {
 		client = GetZone()->GetClientBySpawn(this);
+	}
 
-	if (IsPet())
+	if (IsPet()) {
 		attacker = ((NPC*)this)->GetOwner();
-	if (target->IsNPC() && ((NPC*)target)->IsPet()){
-		if (((NPC*)target)->GetOwner())
+	}
+
+	if (target->IsNPC() && ((NPC*)target)->IsPet()) {
+		if (((NPC*)target)->GetOwner()) {
 			target = ((NPC*)target)->GetOwner();
+		}
 	}
 
 	if (attacker == target) {
@@ -119,12 +124,16 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		return false;
 	}
 
-	if (target->GetHP() <= 0) {
+	if (!target->Alive()) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: target is dead");
 		return false;
 	}
 
-	if(range_attack && distance != 0) {
+	if (!FacingTarget(target)) {
+		return false;
+	}
+
+	if (range_attack && distance != 0) {
 		Item* weapon = 0;
 		Item* ammo = 0;
 		if(attacker->IsPlayer()) {
@@ -1063,13 +1072,10 @@ void Player::ProcessCombat() {
 	}
 	
 	// If combat_target wasn't set in the above if set it to the original target
-	if (!combat_target)
+	if (!combat_target) {
 		combat_target = Target;
+	}
 	
-	// this if may not be required as at the min combat_target will be Target, which we already check at the begining
-	if(!combat_target)
-		return;
-
 	float distance = GetDistance(combat_target);
 
 	// Check to see if we are doing ranged auto attacks if not check to see if we are in melee range

@@ -468,24 +468,24 @@ double Entity::SpawnAngle(Spawn* target) {
 	return GetDotProduct(dir_x, dir_z, diff_x, diff_z) * -1;
 }
 
+bool Entity::FacingTarget(Spawn* target) {
+	if (!target->IsEntity()) {
+		return true;
+	}
+
+	return (static_cast<Entity*>(target)->SpawnAngle(this) >= 0.9);
+}
+
 bool Entity::BehindTarget(Spawn* target) {
 	double product = SpawnAngle(target);
 
-	if (product < -0.75) {
-		return true;
-	} else {
-		return false;
-	}
+	return (product < -0.75);
 }
 
 bool Entity::FlankingTarget(Spawn* target) {
 	double product = SpawnAngle(target);
 
-	if (product <= 0.45 && product > -0.75) {
-		return true;
-	} else {
-		return false;
-	}
+	return (product <= 0.45 && product > -0.75);
 }
 
 float Entity::GetShieldBlockChance(){

@@ -2510,22 +2510,25 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 			int8 type = 1;
 			Player* player = client->GetPlayer();
 
-			if(!player)
-				break;
-
-			if (client->GetPlayer()->GetHP() == 0) {
-				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot do that right now.");
+			if (!player) {
 				break;
 			}
 
 			bool in_combat = player->EngagedInCombat();
-			if(sep && sep->arg[0] && sep->IsNumber(0))
+
+			if (!in_combat && (!client->GetPlayer()->GetTarget() || !client->GetPlayer()->Alive())) {
+				break;
+			}
+
+			if (sep && sep->arg[0] && sep->IsNumber(0)) {
 				type = atoi(sep->arg[0]);
+			}
 
 			switch (type) {
 			case 0:
-				if (in_combat)
+				if (in_combat) {
 					client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You stop fighting.");
+				}
 
 				player->InCombat(false);
 				player->SetRangeAttack(false);
@@ -2534,8 +2537,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 				break;
 
 			case 1:
-				if (!in_combat)
+				if (!in_combat) {
 					client->SimpleMessage(CHANNEL_COLOR_COMBAT, "You start fighting.");
+				}
+
 				player->InCombat(true);
 				player->SetMeleeAttack(true);
 				player->SetRangeAttack(false);
