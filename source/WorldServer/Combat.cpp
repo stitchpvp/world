@@ -790,7 +790,7 @@ Skill* Entity::GetSkillByWeaponType(int8 type, bool update) {
 }
 
 bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs) {
-	if(!victim || victim->GetHP() == 0)
+	if (!victim || !victim->Alive())
 		return false;
 
 	int8 hit_result = 0;
@@ -798,10 +798,9 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	sint32 damage = 0;
 	bool crit = false;
 
-	if (low_damage > high_damage)
+	if (low_damage > high_damage) {
 		high_damage = low_damage;
-
-	if (low_damage == high_damage) {
+	} else if (low_damage == high_damage) {
 		damage = low_damage;
 	} else {
 		 damage = MakeRandomInt(low_damage, high_damage);
@@ -826,12 +825,12 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		} else {
 			float chance = max((float)0, (info_struct.crit_chance - victim->stats[ITEM_STAT_CRITAVOIDANCE]));
 
-			if (MakeRandomFloat(0, 100) <= chance)
+			if (MakeRandomFloat(0, 100) <= chance) {
 				crit = true;
+			}
 		}
 
 		if (crit) {
-			//Apply total crit multiplier with crit bonus
 			if (info_struct.crit_bonus > 0) {
 				damage *= (1.3 + (info_struct.crit_bonus / 100));
 			} else {
@@ -859,25 +858,30 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		damage *= 1 - victim->GetSpellMitigationPercentage(GetLevel(), damage_type);
 	}
 
-	if(damage <= 0){
+	if (damage <= 0) {
 		hit_result = DAMAGE_PACKET_RESULT_NO_DAMAGE;
 		damage = 0;
-	}
-	else{
+	} else {
 		hit_result = DAMAGE_PACKET_RESULT_SUCCESSFUL;
-		GetZone()->CallSpawnScript(victim, SPAWN_SCRIPT_HEALTHCHANGED, this);
+
 		damage = victim->CheckWards(damage, damage_type);
+
 		victim->TakeDamage(damage);
 		victim->CheckProcs(PROC_TYPE_DAMAGED, this);
+
+		GetZone()->CallSpawnScript(victim, SPAWN_SCRIPT_HEALTHCHANGED, this);
 
 		if (IsPlayer()) {
 			switch (damage_type) {
 			case DAMAGE_PACKET_DAMAGE_TYPE_SLASH:
 			case DAMAGE_PACKET_DAMAGE_TYPE_CRUSH:
 			case DAMAGE_PACKET_DAMAGE_TYPE_PIERCE:
-				if (((Player*)this)->GetPlayerStatisticValue(STAT_PLAYER_HIGHEST_MELEE_HIT) < damage)
+				if (((Player*)this)->GetPlayerStatisticValue(STAT_PLAYER_HIGHEST_MELEE_HIT) < damage) {
 					((Player*)this)->UpdatePlayerStatistic(STAT_PLAYER_HIGHEST_MELEE_HIT, damage, true);
+				}
+
 				victim->CheckProcs(PROC_TYPE_DAMAGED_MELEE, this);
+
 				break;
 			case DAMAGE_PACKET_DAMAGE_TYPE_HEAT:
 			case DAMAGE_PACKET_DAMAGE_TYPE_COLD:
@@ -886,33 +890,41 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			case DAMAGE_PACKET_DAMAGE_TYPE_DIVINE:
 			case DAMAGE_PACKET_DAMAGE_TYPE_DISEASE:
 			case DAMAGE_PACKET_DAMAGE_TYPE_POISON:
-				if (((Player*)this)->GetPlayerStatisticValue(STAT_PLAYER_HIGHEST_MAGIC_HIT) < damage)
+				if (((Player*)this)->GetPlayerStatisticValue(STAT_PLAYER_HIGHEST_MAGIC_HIT) < damage) {
 					((Player*)this)->UpdatePlayerStatistic(STAT_PLAYER_HIGHEST_MAGIC_HIT, damage, true);
+				}
+
 				victim->CheckProcs(PROC_TYPE_DAMAGED_MAGIC, this);
+
 				break;
 			}
 		}
 	}
-	if(victim->IsNPC() && victim->GetHP() > 0)
+
+	if (victim->IsNPC() && victim->Alive()) {
 		((Entity*)victim)->AddHate(this, damage);
+	}
 
 	GetZone()->SendDamagePacket(this, victim, type, hit_result, damage_type, damage, spell_name);	
 
-	if(victim->IsEntity())
+	if (victim->IsEntity()) {
 		((Entity*)victim)->CheckInterruptSpell(this);
+	}
 
-	if (victim->IsStealthed() || victim->IsInvis())
+	if ((!is_tick && victim->IsStealthed()) || victim->IsInvis()) {
 		victim->CancelAllStealth();
+	}
 
-	if (victim->GetHP() <= 0) {
+	if (!victim->Alive()) {
 		KillSpawn(victim, damage_type, blow_type);
 	} else if (victim->EngagedInCombat()) {
 		victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
 
-		if (spell_name)
+		if (spell_name) {
 			victim->CheckProcs(PROC_TYPE_MAGICAL_DEFENSIVE, this);
-		else
+		} else {
 			victim->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
+		}
 	}
 
 	return crit;

@@ -2548,9 +2548,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 				break;
 
 			case 2:
-				player->InCombat(true);
-				player->SetMeleeAttack(false);
-				player->SetRangeAttack(true);
+				if (in_combat) {
+					player->InCombat(false);
+					player->SetMeleeAttack(false);
+					player->SetRangeAttack(false);
+				} else {
+					player->InCombat(true);
+					player->SetMeleeAttack(false);
+					player->SetRangeAttack(true);
+				}
 
 				break;
 			}
