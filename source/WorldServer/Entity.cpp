@@ -1865,7 +1865,7 @@ bool Entity::CanAttackTarget(Spawn* target) {
 }
 
 bool Entity::IsHostile(Spawn* target) {
-	if (target == this)
+	if (!target || target == this)
 		return false;
 
 	if (IsPlayer() && (target->IsPlayer() || (target->IsPet() && static_cast<NPC*>(target)->GetOwner() && static_cast<NPC*>(target)->GetOwner()->IsPlayer()))) {
