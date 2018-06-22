@@ -790,8 +790,9 @@ Skill* Entity::GetSkillByWeaponType(int8 type, bool update) {
 }
 
 bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs) {
-	if (!victim || !victim->Alive())
+	if (!victim || !victim->Alive()) {
 		return false;
+	}
 
 	int8 hit_result = 0;
 	int16 blow_type = 0;
@@ -800,10 +801,12 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 
 	if (low_damage > high_damage) {
 		high_damage = low_damage;
-	} else if (low_damage == high_damage) {
+	}
+
+	if (low_damage == high_damage) {
 		damage = low_damage;
 	} else {
-		 damage = MakeRandomInt(low_damage, high_damage);
+		damage = MakeRandomInt(low_damage, high_damage);
 	}
 
 	if (!no_calcs) {
