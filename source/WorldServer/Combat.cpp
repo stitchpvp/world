@@ -915,6 +915,8 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 
 		victim->TakeDamage(damage);
 
+		GetZone()->SendDamagePacket(this, victim, type, hit_result, damage_type, damage, spell_name);	
+
 		if (victim->Alive()) {
 			victim->CheckProcs(PROC_TYPE_DAMAGED, this);
 		}
@@ -958,8 +960,6 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	if (victim->IsNPC() && victim->Alive()) {
 		((Entity*)victim)->AddHate(this, damage);
 	}
-
-	GetZone()->SendDamagePacket(this, victim, type, hit_result, damage_type, damage, spell_name);	
 
 	if (victim->IsEntity()) {
 		((Entity*)victim)->CheckInterruptSpell(this);

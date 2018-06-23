@@ -7224,6 +7224,33 @@ int EQ2Emu_lua_SetPlayerTriggerCount(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_GetPlayerTriggerCount(lua_State* state){
+	if (!lua_interface)
+		return 0;
+
+	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
+	Spawn* target = lua_interface->GetSpawn(state, 1);
+
+	if (!spell){
+		lua_interface->LogError("LUA GetSpellTriggerCount command error: you must use this function in a spellscript!");
+		return 0;
+	}
+
+	if (!target) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target is not a valid spawn");
+		return 0;
+	}
+
+	if (!target->IsEntity()) {
+		lua_interface->LogError("LUA SetPlayerTriggerCount command error: target (%s) is not an entity", target->GetName());
+		return 0;
+	}
+
+	lua_interface->SetInt32Value(state, static_cast<Entity*>(target)->GetTriggerCount(spell));
+
+	return 1;
+}
+
 int EQ2Emu_lua_RemoveTriggerFromPlayer(lua_State* state) {
 	if (!lua_interface)
 		return 0;

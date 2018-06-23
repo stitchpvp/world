@@ -878,6 +878,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "AddStoneskin", EQ2Emu_lua_AddStoneskin);
 	lua_register(state, "RemoveStoneskin", EQ2Emu_lua_RemoveStoneskin);
 	lua_register(state, "SetPlayerTriggerCount", EQ2Emu_lua_SetPlayerTriggerCount);
+	lua_register(state, "GetPlayerTriggerCount", EQ2Emu_lua_GetPlayerTriggerCount);
 	lua_register(state, "RemoveTriggerFromPlayer", EQ2Emu_lua_RemoveTriggerFromPlayer);
 
 	lua_register(state, "SetTarget", EQ2Emu_lua_SetTarget);
