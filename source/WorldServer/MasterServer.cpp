@@ -1,9 +1,12 @@
 #include "MasterServer.h"
 #include "net.h"
 #include "WorldDatabase.h"
+#include "World.h"
 
+extern volatile bool RunLoops;
 extern WorldDatabase database;
 extern ZoneAuth zone_auth;
+extern ZoneList zone_list;
 
 MasterServer::MasterServer() {
 	tcpc = new TCPConnection(false);
@@ -17,7 +20,7 @@ bool MasterServer::Connect() {
 	char errbuf[TCPConnection_ErrorBufferSize];
 	memset(errbuf, 0, TCPConnection_ErrorBufferSize);
 
-	if (tcpc->Connect("165.227.50.17", 9000, errbuf)) {
+	if (tcpc->Connect("localhost", 9000, errbuf)) {
 		return true;
 	} else {
 		return false;
@@ -25,12 +28,11 @@ bool MasterServer::Connect() {
 }
 
 bool MasterServer::Process() {
-	/************ Get all packets from packet manager out queue and process them ************/
-	ServerPacket *pack = 0;
+	ServerPacket *pack = nullptr;
+
 	while ((pack = tcpc->PopPacket())) {
 		switch (pack->opcode) {
-			case ServerOP_MSAuthPlayer:
-			{
+			case ServerOP_MSAuthPlayer: {
 				ServerMSAuthPlayer_Struct* utwr = (ServerMSAuthPlayer_Struct*)pack->pBuffer;
 				int32 access_key = 1337;
 				char* character_name = database.GetCharacterName(utwr->char_id);
@@ -41,6 +43,24 @@ bool MasterServer::Process() {
 					zone_auth.AddAuth(zar);
 					safe_delete_array(character_name);
 				}
+
+				break;
+			}
+
+			case ServerOP_MSKickPlayer: {
+				ServerMSKickPlayer_Struct* data = reinterpret_cast<ServerMSKickPlayer_Struct*>(pack->pBuffer);
+
+				shared_ptr<Client> client = zone_list.GetClientByCharID(data->char_id);
+
+				if (client && client->getConnection()) {
+					client->getConnection()->SendDisconnect();
+				}
+
+				break;
+			}
+
+			case ServerOP_MSShutdown: {
+				RunLoops = false;
 				break;
 			}
 
