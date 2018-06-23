@@ -1465,9 +1465,10 @@ void Entity::RemoveStoneskin(shared_ptr<LuaSpell> luaspell) {
 }
 
 int32 Entity::CheckStoneskins(int32 damage, Entity* attacker) {
+	vector<shared_ptr<LuaSpell>> to_delete;
 	int total_absorbed = 0;
 
-	for (auto& kv : m_stoneskinList) {
+	for (const auto& kv : m_stoneskinList) {
 		shared_ptr<LuaSpell> spell = kv.first;
 		StoneskinInfo* stoneskin = kv.second;
 
@@ -1477,17 +1478,22 @@ int32 Entity::CheckStoneskins(int32 damage, Entity* attacker) {
 			stoneskin->DamageLeft = 0;
 
 			if (!stoneskin->keepStoneskin) {
-				RemoveStoneskin(spell);
-				GetZone()->GetSpellProcess()->DeleteCasterSpell(spell);
+				to_delete.push_back(spell);
 			}
 		} else {
-			if (!stoneskin->infinite)
+			if (!stoneskin->infinite) {
 				stoneskin->DamageLeft -= damage;
+			}
 
 			total_absorbed = damage;
 			damage = 0;
 			break;
 		}
+	}
+
+	for (const auto& spell : to_delete) {
+		RemoveStoneskin(spell);
+		GetZone()->GetSpellProcess()->DeleteCasterSpell(spell);
 	}
 
 	if (total_absorbed > 0) {
