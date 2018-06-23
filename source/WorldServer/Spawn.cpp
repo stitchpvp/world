@@ -612,13 +612,13 @@ EQ2Packet* Spawn::player_position_update_packet(Player* player, int16 version){
 }
 
 EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool override_changes, bool override_vis_changes){
-	if(!player || player->IsPlayer() == false){
+	if (!player || !player->IsPlayer()) {
 		LogWrite(SPAWN__ERROR, 0, "Spawn", "Error: Called spawn_update_packet without player!");
 		return 0;
-	}
-	else if((IsPlayer() && info_changed == false && vis_changed == false) || (info_changed == false && vis_changed == false && position_changed == false)){
-		if(!override_changes && !override_vis_changes)
+	} else if (!info_changed && !vis_changed && !position_changed) {
+		if (!override_changes && !override_vis_changes) {
 			return 0;
+		}
 	}
 
 	static const uchar null_byte = 0;
@@ -641,7 +641,7 @@ EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool overri
 
 	if (info_changed || override_changes)
 		info_changes = spawn_info_changes(player, version);
-	if ((position_changed || override_changes) && IsPlayer() == false)
+	if ((position_changed || override_changes))
 		pos_changes = spawn_pos_changes(player, version);
 	if (vis_changed || override_changes || override_vis_changes)
 		vis_changes = spawn_vis_changes(player, version);
@@ -663,8 +663,7 @@ EQ2Packet* Spawn::spawn_update_packet(Player* player, int16 version, bool overri
 	ptr += sizeof(int8);
 	memcpy(ptr, &opcode_val, sizeof(int16));
 	ptr += sizeof(int16);
-	if (IsPlayer() == false){ //this isnt sent for player updates, it is sent on position update
-		//int32 time = Timer::GetCurrentTime2();
+	if (!IsPlayer()) {
 		packet_num = Timer::GetCurrentTime2();
 		memcpy(ptr, &packet_num, sizeof(int32));
 	}
@@ -1398,8 +1397,6 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 	}
 
 	if (IsPlayer()) {
-		Player* player = static_cast<Player*>(this);
-
 		packet->setDataByName("pos_unknown2", movement_unknown, 2);
 
 		packet->setDataByName("pos_x_velocity", static_cast<sint16>(GetSpeedX() * 32));
@@ -1828,7 +1825,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 		int16 backdrop = 0;
 		int16 spell_icon = 0;
 		int32 spell_id = 0;
-		LuaSpell* spell = 0;
 		((Entity*)this)->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
 		while(i < NUM_SPELL_EFFECTS){
 			//Change value of spell id for this packet if spell exists
@@ -1878,7 +1874,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet){
 			}
 
 			packet->setSubstructDataByName("spell_effects", "spell_icon_backdrop", backdrop, i);
-			spell = info->spell_effects[i].spell;
+			shared_ptr<LuaSpell> spell = info->spell_effects[i].spell;
 			if (spell)
 				packet->setSubstructDataByName("spell_effects", "spell_triggercount", spell->num_triggers, i);
 			i++;
@@ -2155,7 +2151,7 @@ void Spawn::AddRunningLocation(float x, float y, float z, float speed, float dis
 	if(speed == 0)
 		return;
 	MovementLocation* current_location = 0;
-	float distance = GetDistance(x, y, z, distance_away != 0);
+	float distance = GetDistance(x, y, z);
 	if(distance_away != 0){
 		distance -= distance_away;
 		x = x - (GetX() - x)*distance_away/distance;
@@ -2242,10 +2238,8 @@ bool Spawn::CalculateChange(){
 			CalculateChange();
 		}
 		else if(data){
-			// Speed is per second so we need a time_step (amount of time since the last update) to modify movement by
-			float time_step = ((float)(Timer::GetCurrentTime2() - last_movement_update))/1000;
+			float time_step = ((float)(Timer::GetCurrentTime2() - last_movement_update)) / 1000;
 
-			// Code taken from EQEmu and modified to work for us
 			float nx = GetX();
 			float ny = GetY();
 			float nz = GetZ();
@@ -2254,21 +2248,25 @@ bool Spawn::CalculateChange(){
 			float tar_vy = data->y - ny;
 			float tar_vz = data->z - nz;
 
-			//float test_vector=sqrtf (data->x*data->x + data->y*data->y + data->z*data->z);
-			// Goto http://www.eq2emulator.net/phpBB3/viewtopic.php?f=13&t=3180#p24256
-			// for detailed info on how I got the speed equation (1.1043506061 * GetSpeed() + 0.1832966667)
-			float tar_vector = (1.1043506061 * (GetSpeed() < 0 ? (100 - GetSpeed()) / 100.0 : GetSpeed()) + 0.1832966667) / sqrtf (tar_vx*tar_vx + tar_vy*tar_vy + tar_vz*tar_vz);
+			float speed = GetSpeed() * time_step;
 
-			// Distance less then 0.5 just set the npc to the target location
+			if (IsEntity()) {
+				speed *= (1 - (static_cast<Entity*>(this)->GetHighestSnare() / 100.0));
+			}
+
+			float len = sqrtf (tar_vx * tar_vx + tar_vy * tar_vy + tar_vz * tar_vz);
+			tar_vx = (tar_vx / len) * speed;
+			tar_vy = (tar_vy / len) * speed;
+			tar_vz = (tar_vz / len) * speed;
+
 			if (GetDistance(data->x, data->y, data->z, IsWidget() ? false : true) <= 0.5f) {
 				SetX(data->x, false);
 				SetY(data->y, false);
 				SetZ(data->z, false);
-			}
-			else {
-				SetX(GetX() + ((tar_vx*tar_vector)*time_step), false);
-				SetY(GetY() + ((tar_vy*tar_vector)*time_step), false);
-				SetZ(GetZ() + ((tar_vz*tar_vector)*time_step), false);
+			} else {
+				SetX(nx + tar_vx, false);
+				SetY(ny + tar_vy, false);
+				SetZ(nz + tar_vz, false);
 			}
 
 			if (GetZone()->Grid != nullptr) {
@@ -2276,12 +2274,13 @@ bool Spawn::CalculateChange(){
 				if (newCell != Cell_Info.CurrentCell) {
 					GetZone()->Grid->RemoveSpawnFromCell(this);
 					GetZone()->Grid->AddSpawn(this, newCell);
-		}
+				}
 
 				int32 newGrid = GetZone()->Grid->GetGridID(this);
-				if (newGrid != appearance.pos.grid_id)
+				if (newGrid != appearance.pos.grid_id) {
 					SetPos(&(appearance.pos.grid_id), newGrid);
-	}
+				}
+			}
 		}
 	}
 	return remove_needed;

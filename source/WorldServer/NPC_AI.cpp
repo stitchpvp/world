@@ -81,7 +81,7 @@ void Brain::Think() {
 			if (run_back_distance > MAX_CHASE_DISTANCE) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "Run back distance is greater then max chase distance, run_back_distance = %f", run_back_distance);
 				// Over the max chase distance, Check to see if the target is is a client
-				Client* client = target->GetZone()->GetClientBySpawn(target);
+				shared_ptr<Client> client = target->GetZone()->GetClientBySpawn(target);
 				if (client)
 				{
 					// Target is a client so send encounter break messages
@@ -288,31 +288,43 @@ void Brain::MoveCloser(Entity* target) {
 }
 
 bool Brain::ProcessSpell(Entity* target, float distance) {
-	if(rand()%100 > m_body->GetCastPercentage() || m_body->IsStifled() || m_body->IsFeared())
+	if (rand() % 100 > m_body->GetCastPercentage() || m_body->IsStifled() || m_body->IsFeared()) {
 		return false;
+	}
+
 	Spell* spell = m_body->GetNextSpell(distance);
-	if(spell){
-		Spawn* spell_target = 0;
-		if(spell->GetSpellData()->friendly_spell == 1){
+
+	if (spell) {
+		Spawn* spell_target = nullptr;
+
+		if (spell->GetSpellData()->friendly_spell) {
 			vector<Spawn*>* group = m_body->GetSpawnGroup();
-			if(group && group->size() > 0){
-				vector<Spawn*>::iterator itr;
-				for(itr = group->begin(); itr != group->end(); itr++){
-					if((!spell_target && (*itr)->GetHP() > 0 && (*itr)->GetHP() < (*itr)->GetTotalHP()) || (spell_target && (*itr)->GetHP() > 0 && spell_target->GetHP() > (*itr)->GetHP()))
-						spell_target = *itr;
+
+			if (group && group->size() > 0){
+				for (const auto spawn : *group) {
+					if ((!spell_target && spawn->GetHP() > 0 && spawn->GetHP() < spawn->GetTotalHP()) || (spell_target && spawn->GetHP() > 0 && spell_target->GetHP() > spawn->GetHP())) {
+						spell_target = spawn;
+					}
 				}
 			}
-			if(!spell_target)
+
+			if (!spell_target) {
 				spell_target = m_body;
+			}
 
 			safe_delete(group);
-		}
-		else
+		} else {
 			spell_target = target;
+		}
+
+		m_body->ClearRunningLocations();
+		m_body->CalculateRunningLocation(true);
 		m_body->GetZone()->ProcessSpell(spell, m_body, spell_target);
-		m_spellRecovery = (int32)(Timer::GetCurrentTime2() + (spell->GetModifiedCastTime(m_body) * 10) + (spell->GetSpellData()->recovery * 10) + 2000);
+		m_spellRecovery = (int32)(Timer::GetCurrentTime2() + (spell->GetSpellData()->recovery * 10) + 2000);
+
 		return true;
 	}
+
 	return false;
 }
 

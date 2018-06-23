@@ -37,10 +37,10 @@ bool ChatChannel::IsInChannel(int32 character_id) {
 	return false;
 }
 
-bool ChatChannel::JoinChannel(Client *client) {
+bool ChatChannel::JoinChannel(const shared_ptr<Client>& client) {
 	PacketStruct *packet_struct;
 	vector<int32>::iterator itr;
-	Client *to_client;
+	shared_ptr<Client> to_client;
 
 	//send the player join packet to the joining client
 	if ((packet_struct = configReader.getStruct("WS_ChatChannelUpdate", client->GetVersion())) == NULL) {
@@ -75,10 +75,10 @@ bool ChatChannel::JoinChannel(Client *client) {
 	return true;
 }
 
-bool ChatChannel::LeaveChannel(Client *client) {
+bool ChatChannel::LeaveChannel(const shared_ptr<Client>& client) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
-	Client *to_client;
+	shared_ptr<Client> to_client;
 	bool ret = false;
 
 	for (itr = clients.begin(); itr != clients.end(); itr++) {
@@ -119,10 +119,10 @@ bool ChatChannel::LeaveChannel(Client *client) {
 	return ret;
 }
 
-bool ChatChannel::TellChannel(Client *client, const char *message, const char* name2) {
+bool ChatChannel::TellChannel(const shared_ptr<Client>& client, const char *message, const char* name2) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
-	Client *to_client;
+	shared_ptr<Client> to_client;
 
 	for (itr = clients.begin(); itr != clients.end(); itr++) {
 		if ((to_client = zone_list.GetClientByCharID(*itr)) == NULL)
@@ -155,7 +155,7 @@ bool ChatChannel::TellChannel(Client *client, const char *message, const char* n
 	return true;
 }
 
-bool ChatChannel::TellChannelClient(Client* to_client, const char* message, const char* name2) {
+bool ChatChannel::TellChannelClient(const shared_ptr<Client>& to_client, const char* message, const char* name2) {
 	PacketStruct *packet_struct;
 
 	if (string(name2).find('[') != string::npos)
@@ -183,10 +183,10 @@ bool ChatChannel::TellChannelClient(Client* to_client, const char* message, cons
 	return true;
 }
 
-bool ChatChannel::SendChannelUserList(Client *client) {
+bool ChatChannel::SendChannelUserList(const shared_ptr<Client>& client) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
-	Client *to_client;
+	shared_ptr<Client> to_client;
 	int8 i = 0;
 
 	if ((packet_struct = configReader.getStruct("WS_WhoChannelQueryReply", client->GetVersion())) == NULL)

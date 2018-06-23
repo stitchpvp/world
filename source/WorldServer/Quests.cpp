@@ -1309,7 +1309,7 @@ bool Quest::AddQuestStep(QuestStep* step){
 	return ret;
 }
 
-bool Quest::RemoveQuestStep(int32 step, Client* client) {
+bool Quest::RemoveQuestStep(int32 step, const shared_ptr<Client>& client) {
 	bool ret = true;
 	MQuestSteps.writelock(__FUNCTION__, __LINE__);
 	if (quest_step_map.count(step) > 0) {

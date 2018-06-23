@@ -50,8 +50,8 @@ void SpellProcess::RemoveAllSpells(){
 	{
 		lock_guard<mutex> guard(active_spells_mutex);
 
-		for (auto luaspell : active_spells) {
-			DeleteCasterSpell(luaspell);
+		for (const auto lua_spell : active_spells) {
+			DeleteCasterSpell(lua_spell);
 		}
 
 		active_spells.clear();
@@ -73,13 +73,17 @@ void SpellProcess::RemoveAllSpells(){
 
 		for (auto cast_timer : cast_timers) {
 			safe_delete(cast_timer->timer);
-			safe_delete(cast_timer->spell);
+			safe_delete(cast_timer);
 		}
 
 		cast_timers.clear();
 	}
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
+	for (auto recast_timer : recast_timers) {
+		safe_delete(recast_timer->timer);
+		safe_delete(recast_timer);
+	}
 	recast_timers.clear();
 	MRecastTimers.releasewritelock(__FUNCTION__, __LINE__);
 
@@ -87,7 +91,7 @@ void SpellProcess::RemoveAllSpells(){
 	remove_target_list.clear();
 	MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
 
-	map<Client*, HeroicOP*>::iterator solo_ho_itr;
+	map<shared_ptr<Client>, HeroicOP*>::iterator solo_ho_itr;
 	MSoloHO.writelock(__FUNCTION__, __LINE__);
 	for (solo_ho_itr = m_soloHO.begin(); solo_ho_itr != m_soloHO.end(); solo_ho_itr++)
 		safe_delete(solo_ho_itr->second);
@@ -149,7 +153,6 @@ void SpellProcess::Process(){
 								guard.unlock();
 								if (!ProcessSpell(spell, target, false)) {
 									guard.lock();
-									spell_itr = active_spells.erase(spell_itr);
 									break;
 								}
 								guard.lock();
@@ -234,10 +237,10 @@ void SpellProcess::Process(){
 		}
 	}
 
-	for (const auto cast_timer : finished_casts) {
+	for (auto cast_timer : finished_casts) {
 		if (!cast_timer->delete_timer) {
 			if (cast_timer->spell) {
-				Client* client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
+				shared_ptr<Client> client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
 
 				if (client) {
 					PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
@@ -253,16 +256,16 @@ void SpellProcess::Process(){
 					cast_timer->spell->caster->IsCasting(false);
 				}
 
-				if (!cast_timer->delete_timer) {
-					CastProcessedSpell(cast_timer->spell);
-				}
+				CastProcessedSpell(cast_timer->spell);
 			} else if (cast_timer->entity_command && !cast_timer->delete_timer) {
 				CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster);
 			}
 		}
 
-		safe_delete(cast_timer->timer);
 		cast_timers.erase(remove(cast_timers.begin(), cast_timers.end(), cast_timer), cast_timers.end());
+
+		safe_delete(cast_timer->timer);
+		safe_delete(cast_timer);
 	}
 
 	MRecastTimers.writelock(__FUNCTION__, __LINE__);
@@ -274,8 +277,11 @@ void SpellProcess::Process(){
 
 			if (recast_timer->timer->Check(false)) {
 				UnlockSpell(recast_timer->client, recast_timer->spell);
-				safe_delete(recast_timer->timer);
+
 				itr = recast_timers.erase(itr);
+
+				safe_delete(recast_timer->timer);
+				safe_delete(recast_timer);
 			} else {
 				++itr;
 			}
@@ -423,14 +429,22 @@ void SpellProcess::CheckInterrupt(InterruptStruct* interrupt){
 		return;
 
 	auto entity = static_cast<Entity*>(interrupt->interrupted);
-	Client* client = entity->GetZone()->GetClientBySpawn(entity);
-	if(client)
-		SendFinishedCast(GetLuaSpell(entity), client);
+	shared_ptr<Client> client = entity->GetZone()->GetClientBySpawn(entity);
+
+	if (client) {
+		auto lua_spell = GetLuaSpell(entity);
+		if (lua_spell) {
+			SendFinishedCast(lua_spell.get(), client);
+		}
+	}
+
 	RemoveSpellTimersFromSpawn(entity, false);
 	entity->IsCasting(false);
-	entity->GetZone()->SendInterruptPacket(entity, interrupt->spell);
-	if(interrupt->error_code > 0)
+	entity->GetZone()->SendInterruptPacket(entity, interrupt->spell.get());
+
+	if (interrupt->error_code > 0) {
 		entity->GetZone()->SendSpellFailedPacket(client, interrupt->error_code);
+	}
 }
 
 bool SpellProcess::DeleteCasterSpell(Spawn* caster, Spell* spell){
@@ -453,7 +467,7 @@ bool SpellProcess::DeleteCasterSpell(Spawn* caster, Spell* spell){
 	return ret;
 }
 
-bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function) {
+bool SpellProcess::DeleteCasterSpell(shared_ptr<LuaSpell> spell, bool call_remove_function) {
 	auto ret = false;
 
 	if (spell) {
@@ -475,11 +489,11 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, bool call_remove_function)
 	return ret;
 }
 
-bool SpellProcess::ProcessSpell(LuaSpell* spell, Spawn* target, bool first_cast, const char* function, SpellScriptTimer* timer) {
+bool SpellProcess::ProcessSpell(shared_ptr<LuaSpell> spell, Spawn* target, bool first_cast, const char* function, SpellScriptTimer* timer) {
 	bool ret = false;
 
 	if (lua_interface && !spell->interrupted) {
-		lua_interface->AddSpawnPointers(spell, first_cast, false, function, timer);
+		lua_interface->AddSpawnPointers(spell.get(), first_cast, false, function, timer);
 		
 		if (target)
 			lua_interface->SetSpawnValue(spell->state, target);
@@ -520,7 +534,7 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, Spawn* target, bool first_cast,
 }
 
 bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
-	LuaSpell* lua_spell = nullptr;
+	shared_ptr<LuaSpell> lua_spell = nullptr;
 
 	if(lua_interface)
 		lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
@@ -545,7 +559,7 @@ bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
 	lua_spell->spell = spell;
 	lua_spell->initial_target = caster->GetID();
 
-	GetSpellTargets(lua_spell);
+	GetSpellTargets(lua_spell.get());
 
 	if (!remove)
 		return CastProcessedSpell(lua_spell, true);
@@ -553,7 +567,7 @@ bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
 	return true;
 }
 
-void SpellProcess::SendStartCast(LuaSpell* spell, Client* client){
+void SpellProcess::SendStartCast(LuaSpell* spell, const shared_ptr<Client>& client){
 	if(client) {
 		PacketStruct* packet = configReader.getStruct("WS_StartCastSpell", client->GetVersion());
 
@@ -567,7 +581,7 @@ void SpellProcess::SendStartCast(LuaSpell* spell, Client* client){
 	}
 }
 
-void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
+void SpellProcess::SendFinishedCast(LuaSpell* spell, const shared_ptr<Client>& client){
 	if (spell && spell->spell) {
 		float recast = spell->spell->GetModifiedRecast(spell->caster);
 
@@ -598,19 +612,19 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
  	}
 }
 
-void SpellProcess::LockAllSpells(Client* client){
+void SpellProcess::LockAllSpells(const shared_ptr<Client>& client){
 	if(client){
 		client->GetPlayer()->LockAllSpells();
 		SendSpellBookUpdate(client);
 	}
 }
 
-void SpellProcess::UnlockAllSpells(Client* client){
+void SpellProcess::UnlockAllSpells(const shared_ptr<Client>& client){
 	if(client)
 		client->GetPlayer()->UnlockAllSpells();
 }
 
-void SpellProcess::UnlockSpell(Client* client, Spell* spell){
+void SpellProcess::UnlockSpell(const shared_ptr<Client>& client, Spell* spell){
 	if(client && client->GetPlayer() && spell) {
 		if (!client->GetPlayer()->IsCasting()) {
 			client->GetPlayer()->UnlockSpell(spell);
@@ -747,7 +761,7 @@ void SpellProcess::AddSpellToQueue(Spell* spell, Entity* caster){
 
 		static_cast<Player*>(caster)->QueueSpell(spell);
 
-		Client* client = caster->GetZone()->GetClientBySpawn(caster);
+		shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
 		if (client) {
 			SendSpellBookUpdate(client);
 		}
@@ -763,7 +777,7 @@ void SpellProcess::RemoveSpellFromQueue(Spell* spell, Entity* caster){
 
 		static_cast<Player*>(caster)->UnQueueSpell(spell);
 
-		Client* client = caster->GetZone()->GetClientBySpawn(caster);
+		shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
 		if (client) {
 			SendSpellBookUpdate(client);
 		}
@@ -788,7 +802,7 @@ void SpellProcess::RemoveSpellFromQueue(Entity* caster, bool hostile_only) {
 
 				static_cast<Player*>(caster)->UnQueueSpell(spell);
 
-				Client* client = caster->GetZone()->GetClientBySpawn(caster);
+				shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
 				if (client) {
 					SendSpellBookUpdate(client);
 				}
@@ -823,7 +837,7 @@ void SpellProcess::CheckSpellQueue(Spell* spell, Entity* caster) {
 	}
 }
 
-void SpellProcess::SendSpellBookUpdate(Client* client){
+void SpellProcess::SendSpellBookUpdate(const shared_ptr<Client>& client){
 	if(client){
 		EQ2Packet* app = client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion());
 		if(app)
@@ -831,7 +845,7 @@ void SpellProcess::SendSpellBookUpdate(Client* client){
 	}
 }
 
-LuaSpell* SpellProcess::GetLuaSpell(Entity* caster) {
+shared_ptr<LuaSpell> SpellProcess::GetLuaSpell(Entity* caster) {
 	lock_guard<mutex> guard(cast_timers_mutex);
 
 	if (caster && cast_timers.size() > 0) {		
@@ -901,12 +915,12 @@ void SpellProcess::SetInitialTarget(LuaSpell* lua_spell, Spawn* target) {
 	}
 }
 
-bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
+bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = false) {
 	Entity* caster = lua_spell->caster;
 	Spell* spell = lua_spell->spell;
 
 	if (caster && spell) {
-		Client* client = nullptr;
+		shared_ptr<Client> client = nullptr;
 		ZoneServer* zone = lua_spell->caster->GetZone();
 
 		if (zone) {
@@ -973,27 +987,27 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 				return false;
 			}
 
-			if (!CheckPower(lua_spell)) {
+			if (!CheckPower(lua_spell.get())) {
 				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_POWER);
 				return false;
 			}
 
-			if (!CheckHP(lua_spell)) {
+			if (!CheckHP(lua_spell.get())) {
 				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_HEALTH);
 				return false;
 			}
 
-			if (!CheckSavagery(lua_spell)) {
+			if (!CheckSavagery(lua_spell.get())) {
 				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_SAVAGERY);
 				return false;
 			}
 
-			if (!CheckDissonance(lua_spell)) {
+			if (!CheckDissonance(lua_spell.get())) {
 				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_DISSONANCE);
 				return false;
 			}
 
-			if (!CheckConcentration(lua_spell)) {
+			if (!CheckConcentration(lua_spell.get())) {
 				zone->SendSpellFailedPacket(client, SPELL_ERROR_NOT_ENOUGH_CONC);
 				return false;
 			}
@@ -1126,8 +1140,8 @@ bool SpellProcess::CanCast(LuaSpell* lua_spell, bool harvest_spell = false) {
 
 void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target, bool harvest_spell, bool force_cast) {
 	if (spell && caster) {
-		Client* client = nullptr;
-		LuaSpell* lua_spell = nullptr;
+		shared_ptr<Client> client = nullptr;
+		shared_ptr<LuaSpell> lua_spell = nullptr;
 
 		if (lua_interface)
 			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
@@ -1141,19 +1155,18 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 		lua_spell->caster = caster;
 		lua_spell->spell = spell;
 
-		SetInitialTarget(lua_spell, target);
+		SetInitialTarget(lua_spell.get(), target);
 
 		if ((force_cast && !OnCooldown(spell, caster)) || CanCast(lua_spell, harvest_spell)) {
 			if (!harvest_spell) {
-				GetSpellTargets(lua_spell);
+				GetSpellTargets(lua_spell.get());
 			} else {
 				lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
 				lua_spell->targets.push_back(lua_spell->initial_target);
 				lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 			}
 
-			if (lua_spell->targets.size() == 0 && spell->GetSpellData()->max_aoe_targets == 0) {
-				safe_delete(lua_spell);
+			if (!lua_spell->targets.size() && !spell->GetSpellData()->max_aoe_targets) {
 				return;
 			}
 
@@ -1163,7 +1176,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			if (lua_interface) {
 				bool result = false;
 
-				lua_interface->AddSpawnPointers(lua_spell, false, true);
+				lua_interface->AddSpawnPointers(lua_spell.get(), false, true);
 
 				if (lua_pcall(lua_spell->state, 2, 2, 0) == 0) {
 					result = lua_interface->GetBooleanValue(lua_spell->state, 1);
@@ -1172,7 +1185,6 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 					if (!result) {
 						zone->SendSpellFailedPacket(client, error);
-						safe_delete(lua_spell);
 						return;
 					}
 				} else {
@@ -1181,8 +1193,8 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			}
 
 			LockAllSpells(client);
-			SendStartCast(lua_spell, client);
-				
+			SendStartCast(lua_spell.get(), client);
+
 			if (spell->GetSpellData()->type == SPELL_TYPE_SPELL && spell->ShouldCancelStealth() && (caster->IsInvis() || caster->IsStealthed()))
 				caster->CancelAllStealth();
 
@@ -1207,16 +1219,14 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 				}
 			} else {
 				if (!CastProcessedSpell(lua_spell)) {
-					safe_delete(lua_spell);
 					return;
 				}
 			}
 
 			if (caster) {
-				caster->GetZone()->SendCastSpellPacket(lua_spell, caster, cast_time);
+				caster->GetZone()->SendCastSpellPacket(lua_spell.get(), caster, cast_time);
 			}
 		} else {
-			safe_delete(lua_spell);
 			return;
 		}
 	}
@@ -1224,7 +1234,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_command, Entity* caster, Spawn* target, bool lock) {
 	if (zone && entity_command && caster && target && !target->IsPlayer()) {
-		Client* client = zone->GetClientBySpawn(caster);
+		shared_ptr<Client> client = zone->GetClientBySpawn(caster);
 		if (caster->GetDistance(target) > entity_command->distance) {
 			zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_FAR_AWAY);
 			return;
@@ -1262,11 +1272,12 @@ void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_
 	}
 }
 
-bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
-	if (!spell || !spell->caster || !spell->spell || spell->interrupted)
+bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) {
+	if (!spell || !spell->caster || !spell->caster->Alive() || !spell->spell || spell->interrupted) {
 		return false;
+	}
 
-	Client* client = nullptr;
+	shared_ptr<Client> client = nullptr;
 	bool hit_target = false;
 	bool living_target = false;
 
@@ -1274,7 +1285,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
 
 	if (spell->spell->GetSpellData()->max_aoe_targets > 0 && spell->targets.size() == 0) {
-		GetSpellTargetsTrueAOE(spell);
+		GetSpellTargetsTrueAOE(spell.get());
 
 		if (spell->targets.size() == 0) {
 			spell->caster->GetZone()->SendSpellFailedPacket(client, SPELL_ERROR_NO_TARGETS_IN_RANGE);
@@ -1295,8 +1306,13 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 
 			target = zone->GetSpawnByID(spell->targets[i]);
 
-			if (!target)
+			if (!target) {
 				continue;
+			}
+
+			if (!target->Alive() && (spell->spell->GetSpellData()->target_type != SPELL_TARGET_OTHER_CORPSE && spell->spell->GetSpellData()->target_type != SPELL_TARGET_GROUP_CORPSE)) {
+				continue;
+			}
 
 			if (!spell->spell->GetSpellData()->friendly_spell) {
 				if (spell->spell->GetSpellData()->type == SPELL_BOOK_TYPE_COMBAT_ART) {
@@ -1436,12 +1452,14 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 		if (spell->caster->IsPlayer()) {
 			static_cast<Player*>(spell->caster)->InCombat(true);
 
-			if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
-				static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
-				static_cast<Player*>(spell->caster)->SetRangeAttack(false);
-			} else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
-				static_cast<Player*>(spell->caster)->SetRangeAttack(true);
-				static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+			if (static_cast<Player*>(spell->caster)->GetTarget()) {
+				if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
+					static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
+					static_cast<Player*>(spell->caster)->SetRangeAttack(false);
+				} else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+					static_cast<Player*>(spell->caster)->SetRangeAttack(true);
+					static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+				}
 			}
 		} else {
 			spell->caster->InCombat(true);
@@ -1449,12 +1467,12 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive) {
 	}
 
 	if (!passive)
-		SendFinishedCast(spell, client);
+		SendFinishedCast(spell.get(), client);
 
 	return true;
 }
 
-bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, Client* client) {
+bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, const shared_ptr<Client>& client) {
 	bool ret = false;
 	if (entity_command && client) {
 		UnlockAllSpells(client);
@@ -1491,7 +1509,7 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 	if(caster)
 	{
 		LogWrite(SPELL__DEBUG, 0, "Spell", "'%s' is Interrupting spell of '%s'...", interruptor ? interruptor->GetName() : "unknown", caster->GetName());
-		LuaSpell* spell = GetLuaSpell(caster);
+		shared_ptr<LuaSpell> spell = GetLuaSpell(caster);
 
 		if (spell && ((from_movement && !spell->spell->GetSpellData()->cast_while_moving) || (!from_movement && spell->spell->GetSpellData()->interruptable) ||
 			cancel)) 
@@ -1510,7 +1528,7 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
 			}
 
 			if (interruptor && interruptor->IsPlayer()) {
-				Client* client = interruptor->GetZone()->GetClientBySpawn(interruptor);
+				shared_ptr<Client> client = interruptor->GetZone()->GetClientBySpawn(interruptor);
 
 				if (client) {
 					client->Message(CHANNEL_COLOR_SPELL_INTERRUPT, "You interrupt %s's ability to cast!", interruptor->GetName());
@@ -1536,24 +1554,26 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 		}
 	}
 
-	if(remove_all) {
+	if (remove_all) {
 		{
 			lock_guard<mutex> guard(active_spells_mutex);
 
 			for (auto spell : active_spells) {
-				if (spell->spell->GetSpellData()->persist_though_death) {
-					auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
-					
+				auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
+
+				/*if (spell->spell->GetSpellData()->persist_though_death) {
 					if (client && client->IsConnected()) {
 						continue;
 					}
-				}
+				}*/
 
 				if (spell->caster == spawn) {
-					if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
-						spell->caster = spell->caster->GetZone()->unknown_spawn;
-						continue;
-					}
+					/*if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
+						if (!client || client->IsZoning()) {
+							spell->caster = spell->caster->GetZone()->unknown_spawn;
+							continue;
+						}
+					}*/
 
 					DeleteCasterSpell(spell);
 					continue;
@@ -1579,6 +1599,7 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 
 				if (recast_timer && recast_timer->caster == spawn) {
 					safe_delete(recast_timer->timer);
+					safe_delete(recast_timer);
 					itr = recast_timers.erase(itr);
 				} else {
 					itr++;
@@ -1648,7 +1669,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 
 							// if the group member is in the casters zone, and is alive
 							if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive() && caster->GetDistance(group_member) <= luaspell->spell->GetSpellData()->radius) {
-								Client* client = caster->GetZone()->GetClientBySpawn(group_member);
+								shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(group_member);
 
 								if (((Player*)group_member)->IsResurrecting() || !client || client->IsZoning())
 									continue;
@@ -1924,9 +1945,6 @@ void SpellProcess::RemoveSpellScriptTimer(SpellScriptTimer* timer) {
 	MSpellScriptTimers.writelock(__FUNCTION__, __LINE__);
 	for (itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
 		if ((*itr) == timer) {
-			if ((*itr) && (*itr)->deleteWhenDone && lua_interface) {
-				lua_interface->AddPendingSpellDelete(timer->spell);
-			}
 			m_spellScriptList.erase(itr);
 			break;
 		}
@@ -1942,7 +1960,6 @@ void SpellProcess::CheckSpellScriptTimers() {
 	for (itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
 		if (Timer::GetCurrentTime2() >= (*itr)->time) {
 			temp_list.push_back((*itr));
-			//ProcessSpell((*itr)->spell, , false, (*itr)->customFunction.c_str(), (*itr));
 		}
 	}
 	MSpellScriptTimers.releasereadlock(__FUNCTION__, __LINE__);
@@ -1953,31 +1970,11 @@ void SpellProcess::CheckSpellScriptTimers() {
 	}
 }
 
-bool SpellProcess::SpellScriptTimersHasSpell(LuaSpell* spell) {
-	bool ret = false;
-	vector<SpellScriptTimer*>::iterator itr;
-
-	MSpellScriptTimers.readlock(__FUNCTION__, __LINE__);
-	for (itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
-		SpellScriptTimer* timer = *itr;
-		if (timer && timer->spell == spell) {
-			ret = true;
-			break;
-		}
-	}
-	MSpellScriptTimers.releasereadlock(__FUNCTION__, __LINE__);
-
-	return ret;
-}
-
 void SpellProcess::ClearSpellScriptTimerList() {
 	vector<SpellScriptTimer*>::iterator itr;
 	MSpellScriptTimers.writelock(__FUNCTION__, __LINE__);
 
 	for(itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
-		if ((*itr) && (*itr)->deleteWhenDone && lua_interface)
-			lua_interface->AddPendingSpellDelete((*itr)->spell);
-
 		safe_delete((*itr));
 	}
 
@@ -1985,7 +1982,7 @@ void SpellProcess::ClearSpellScriptTimerList() {
 	MSpellScriptTimers.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void SpellProcess::RemoveTargetFromSpell(LuaSpell* spell, Spawn* target){
+void SpellProcess::RemoveTargetFromSpell(shared_ptr<LuaSpell> spell, Spawn* target){
 	if (!spell || !target)
 		return;
 
@@ -1997,7 +1994,7 @@ void SpellProcess::RemoveTargetFromSpell(LuaSpell* spell, Spawn* target){
 }
 
 void SpellProcess::CheckRemoveTargetFromSpell() {
-	map<LuaSpell*, vector<Spawn*>> to_remove;
+	map<shared_ptr<LuaSpell>, vector<Spawn*>> to_remove;
 
 	MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
 	if (remove_target_list.size() > 0) {
@@ -2042,12 +2039,8 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
 		auto spell = kv.first;
 		auto targets = kv.second;
 
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		bool should_delete = (spell->targets.size() == 0);
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-
 		for (auto target : targets) {
-			lua_interface->RemoveSpell(spell, target, true, should_delete);
+			lua_interface->RemoveSpell(spell, target, true);
 
 			if (target->IsEntity()) {
 				static_cast<Entity*>(target)->RemoveSpellEffect(spell);
@@ -2075,7 +2068,7 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
 
 }
 
-bool SpellProcess::AddHO(Client* client, HeroicOP* ho) {
+bool SpellProcess::AddHO(shared_ptr<Client> client, HeroicOP* ho) {
 	bool ret = true;
 
 	if (client && ho) {
@@ -2161,7 +2154,7 @@ void SpellProcess::KillHOBySpawnID(int32 spawn_id) {
 	MGroupHO.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void SpellProcess::AddSpellCancel(LuaSpell* spell){
+void SpellProcess::AddSpellCancel(shared_ptr<LuaSpell> spell){
 	MSpellCancelList.writelock(__FUNCTION__, __LINE__);
 	SpellCancelList.push_back(spell);
 	MSpellCancelList.releasewritelock(__FUNCTION__, __LINE__);
@@ -2176,7 +2169,7 @@ void SpellProcess::CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 in
 			spell->GetSpellData()->duration2 = duration;
 		}
 
-		LuaSpell* lua_spell = nullptr;
+		shared_ptr<LuaSpell> lua_spell = nullptr;
 
 		if (lua_interface) {
 			lua_spell = lua_interface->GetSpell(spell->GetSpellData()->lua_script.c_str());
@@ -2187,13 +2180,13 @@ void SpellProcess::CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 in
 			lua_spell->initial_target = initial_target;
 			lua_spell->spell = spell;
 
-			GetSpellTargets(lua_spell);
+			GetSpellTargets(lua_spell.get());
 			CastProcessedSpell(lua_spell, true);
 		}
 	}
 }
 
-bool SpellProcess::HasActiveSpell(LuaSpell* spell, bool lock_required) {
+bool SpellProcess::HasActiveSpell(shared_ptr<LuaSpell> spell, bool lock_required) {
 	mutex dummy_mutex;
 	lock_guard<mutex> guard(lock_required ? active_spells_mutex : dummy_mutex);
 
