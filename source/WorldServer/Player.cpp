@@ -3727,11 +3727,11 @@ void Player::SortSpellBook() {
 
 	sort(spells_copy.begin(), spells_copy.end(), SortSpellAlphabetically());
 
-	for (int i = 0; i < spells_copy.size(); i++) {
-		slots[spells_copy[i]->type][spells_copy[i]->spell_id] = slots[spells_copy[i]->type].size();
+	for (int i = 0; i < spells_copy.size(); ++i) {
+		slots[spells_copy[i]->type][spells_copy[i]->spell_id] = static_cast<sint32>(slots[spells_copy[i]->type].size());
 	}
 
-	for (int i = 0; i < spells.size(); i++) {
+	for (int i = 0; i < spells.size(); ++i) {
 		spells[i]->slot = slots[spells[i]->type][spells[i]->spell_id];
 	}
 
