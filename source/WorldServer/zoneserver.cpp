@@ -5844,11 +5844,15 @@ vector<Spawn*> ZoneServer::GetAttackableSpawnsByDistance(Spawn* caster, float di
 }
 
 void ZoneServer::ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client) {
-	if(!client || !spawn)
+	if (!client || !spawn) {
 		return;
+	}
+
 	PendingResurrection* rez = client->GetCurrentRez();
-	if(!rez || !rez->caster)
+
+	if (!rez || !rez->caster) {
 		return;
+	}
 
 	PacketStruct* packet = nullptr;
 	float power_perc = rez->mp_perc;
@@ -5865,36 +5869,35 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client) 
 	int16 heal_packet_type = 0;
 	int16 power_packet_type = 0;
 
-	//Calculations for how much to heal the spawn
-	if(health_perc > 0)
+	if (health_perc > 0) {
 		heal_amt = (spawn->GetTotalHP() * (health_perc / 100));
-	if(power_perc > 0)
-		power_amt = (spawn->GetTotalPower() * (power_perc / 100));
+	}
 
-	if(caster_spawn->IsEntity()){
-		caster = ((Entity*)caster_spawn);
+	if (power_perc > 0) {
+		power_amt = (spawn->GetTotalPower() * (power_perc / 100));
+	}
+
+	if (caster_spawn->IsEntity()) {
+		caster = static_cast<Entity*>(caster_spawn);
 		info = caster->GetInfoStruct();
 	}
 
-	if(!no_calcs && caster){
-		//Potency Mod
-		heal_amt *=  ((caster->stats[ITEM_STAT_POTENCY] / 100) + 1);
-		power_amt *= ((caster->stats[ITEM_STAT_POTENCY] / 100) + 1);
+	if (!no_calcs && caster) {
+		heal_amt = caster->ApplyPotency(heal_amt);
+		power_amt = caster->ApplyPotency(power_amt);
 
-		//Ability Mod
-		heal_amt += (int32)min((int32)info->ability_modifier, (int32)(heal_amt / 2));
-		power_amt += (int32)min((int32)info->ability_modifier, (int32)(power_amt / 2));
+		heal_amt = caster->ApplyAbilityMod(heal_amt);
+		power_amt = caster->ApplyAbilityMod(power_amt);
 
-		if(!crit_mod || crit_mod == 1){
-			if(crit_mod == 1) 
+		if (!crit_mod || crit_mod == 1) {
+			if (crit_mod == 1) {
 				crit = true;
-			else {
-				// Crit Roll
+			} else {
 				float chance = (float)max((float)0, (float)info->crit_chance);
 				crit = (MakeRandomFloat(0, 100) <= chance); 
 			}
-			if(crit){
-				//Apply total crit multiplier with crit bonus
+
+			if (crit) {
 				heal_amt *= ((info->crit_bonus / 100) + 1.3);
 				power_amt *= ((info->crit_bonus / 100) + 1.3);
 			}
@@ -5905,40 +5908,49 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client) 
 	rez->crit = true;
 
 	//Set Heal amt to 1 if 0 now so the player has health
-	if(heal_amt == 0)
+	if (heal_amt == 0) {
 		heal_amt = 1;
+	}
 
-	if(heal_amt > spawn->GetTotalHP())
+	if (heal_amt > spawn->GetTotalHP()) {
 		heal_amt = spawn->GetTotalHP();
-	if(power_amt > spawn->GetTotalPower())
+	}
+
+	if (power_amt > spawn->GetTotalPower()) {
 		power_amt = spawn->GetTotalPower();
+	}
 
 	spawn->SetHP(heal_amt);
-	if(power_amt > 0)
-		spawn->SetPower(power_amt);
 
-	if(client && caster){
-		EQ2Packet* move = ((Player*)spawn)->Move(caster->GetX(), caster->GetY(), caster->GetZ(), client->GetVersion());
-		if(move)
-			client->QueuePacket(move);
+	if (power_amt > 0) {
+		spawn->SetPower(power_amt);
 	}
 
-	if(crit){
+	if (client && caster) {
+		EQ2Packet* move = ((Player*)spawn)->Move(caster->GetX(), caster->GetY(), caster->GetZ(), client->GetVersion());
+
+		if (move) {
+			client->QueuePacket(move);
+		}
+	}
+
+	if (crit) {
 		power_packet_type = HEAL_PACKET_TYPE_CRIT_MANA;
 		heal_packet_type = HEAL_PACKET_TYPE_CRIT_HEAL;
-	}
-	else {
+	} else {
 		power_packet_type = HEAL_PACKET_TYPE_SIMPLE_MANA;
 		heal_packet_type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
 	}
 
 	SendHealPacket(caster, spawn, heal_packet_type, heal_amt, heal_spell.c_str());
-	if(power_amt > 0)
-		SendHealPacket(caster, spawn, power_packet_type, power_amt, heal_spell.c_str());
 
-	//The following code sets the spawn as alive
-	if(dead_spawns.count(spawn->GetID()) > 0)
+	if (power_amt > 0) {
+		SendHealPacket(caster, spawn, power_packet_type, power_amt, heal_spell.c_str());
+	}
+
+	if (dead_spawns.count(spawn->GetID()) > 0) {
 		dead_spawns.erase(spawn->GetID());
+	}
 
 	if (spawn->IsPlayer()) {
 		spawn->SetSpawnType(4);

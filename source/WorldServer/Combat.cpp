@@ -521,9 +521,10 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 	return true;
 }
 
-bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs){
-	 if(!target || !luaspell || !luaspell->spell)
+bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs) {
+	 if (!target || !luaspell || !luaspell->spell) {
 		return false;
+	 }
 
 	 bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
@@ -535,29 +536,28 @@ bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luasp
 	 int32 heal_amt = 0;
 	 bool crit = false;
 
-	 if(high_heal < low_heal)
+	 if (high_heal < low_heal) {
 		 high_heal = low_heal;
-	 if(high_heal == low_heal)
-		 heal_amt = high_heal;
-	 else
-		 heal_amt = MakeRandomInt(low_heal, high_heal);
+	 }
 
-	 if(!no_calcs){
-		//if is a tick and the spell has crit, force crit, else disable
-		if(is_tick){
-			if(luaspell->crit)
+	 if (high_heal == low_heal) {
+		 heal_amt = high_heal;
+	 } else {
+		 heal_amt = MakeRandomInt(low_heal, high_heal);
+	 }
+
+	 if (!no_calcs) {
+		if (is_tick) {
+			if (luaspell->crit) {
 				crit_mod = 1;
-			else
+			} else {
 				crit_mod = 2;
+			}
 		}
 		
-		if (heal_amt > 0){
-			//int32 base_roll = heal_amt;
-			//potency mod
-			heal_amt *= (stats[ITEM_STAT_POTENCY] / 100 + 1);
-		
-			//Ability Modifier can only be up to half of base roll + potency and primary stat bonus
-			heal_amount += ApplyAbilityMod(heal_amt);
+		if (heal_amt > 0) {
+			heal_amt = ApplyPotency(heal_amt);
+			heal_amt = ApplyAbilityMod(heal_amt);
 		}
 
 		if(!crit_mod || crit_mod == 1){
@@ -855,11 +855,8 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			//DPS mod is only applied to auto attacks
 			damage *= (info_struct.dps_multiplier);
 		} else {
-			// Potency and ability mod is only applied to spells/CAs
-			damage *= ((stats[ITEM_STAT_POTENCY] / 100) + 1);
-
-			// Ability mod can only give up to half of damage after potency
-			damage += ApplyAbilityMod(damage);
+			damage = ApplyPotency(damage);
+			damage = ApplyAbilityMod(damage);
 		}
 
 

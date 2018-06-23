@@ -4586,7 +4586,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 			static_cast<Entity*>(target)->RemoveWard(spell);
 		}
 
-		damage += static_cast<Entity*>(target)->ApplyAbilityMod(damage);
+		damage = static_cast<Entity*>(target)->ApplyPotency(damage);
+		damage = static_cast<Entity*>(target)->ApplyAbilityMod(damage);
 
 		// Create new ward info
 		WardInfo* ward = new WardInfo;
@@ -4624,7 +4625,7 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 		WardInfo* ward = static_cast<Entity*>(target)->GetWard(spell);
 
 		if (ward && ward->DamageLeft != ward->BaseDamage) {
-			ward->DamageLeft += static_cast<Entity*>(target)->ApplyAbilityMod(amount);
+			ward->DamageLeft = static_cast<Entity*>(target)->ApplyAbilityMod(amount);
 
 			if (ward->DamageLeft > ward->BaseDamage) {
 				ward->DamageLeft = ward->BaseDamage;
