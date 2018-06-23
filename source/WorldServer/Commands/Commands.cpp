@@ -1425,10 +1425,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		}
 		case COMMAND_WHO:{
 			const char* who = 0;
-			if(sep && sep->arg[0]){
-				//cout << "Who query: \n";
+			if (sep && sep->arg[0]) {
 				who = sep->argplus[0];
-				//cout << who << endl;
 			}
 			zone_list.ProcessWhoQuery(who, client);
 			break;

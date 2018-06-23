@@ -18147,7 +18147,10 @@ to zero and treated like placeholders." />
 <Data ElementName="icon_type" Type="int16" />
 <Data ElementName="icon2" Type="int16" Size="1" />
 <Data ElementName="charges" Type="int8" Size="1" />
-<Data ElementName="unknown3" Type="int8" Size="20" />
+<Data ElementName="unknown3" Type="int8" Size="12" />
+<Data ElementName="unknown_thing" Type="int8" Size="1" />
+<Data ElementName="unknown3a" Type="int8" Size="5" />
+<Data ElementName="min_range" Type="int16" Size="1" />
 <Data ElementName="distance" Type="int16" Size="1" />
 <Data ElementName="unknown4" Type="int16" Size="1" />
 <Data ElementName="status" Type="int8" Size="1" />

@@ -254,7 +254,8 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> c
 		packet->setSubstructDataByName(name, "display_spell_tier", 0);
 	}
 
-	packet->setSubstructDataByName(name, "range",spell->range);
+	packet->setSubstructDataByName(name, "range", spell->range);
+	packet->setSubstructDataByName(name, "minimum_range", spell->min_range);
 	packet->setSubstructDataByName(name, "duration1",spell->duration1);
 	packet->setSubstructDataByName(name, "duration2",spell->duration2);
 	packet->setSubstructDataByName(name, "can_effect_raid",spell->can_effect_raid);

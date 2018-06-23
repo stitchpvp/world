@@ -370,8 +370,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("current_power", player->GetPower());
 		packet->setDataByName("unknown6", 4294967261, 0);
 		packet->setDataByName("unknown6", 625, 1);
-		packet->setDataByName("unknown7", -1, 0);
-		packet->setDataByName("unknown7", -1, 1);
+		packet->setDataByName("unknown7", 2, 0);
+		packet->setDataByName("unknown7", 25, 1);
 		packet->setDataByName("max_power", player->GetTotalPower());
 		packet->setDataByName("base_power", player->GetTotalPowerBase());
 		packet->setDataByName("bonus_power", floor( (float)(player->GetPrimaryStat() * player->CalculateBonusMod())));
@@ -388,8 +388,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("exp_blue", info_struct->xp_blue);
 		packet->setDataByName("tradeskill_exp_yellow", info_struct->tradeskill_exp_yellow);
 		packet->setDataByName("tradeskill_exp_blue", info_struct->tradeskill_exp_blue);
-		packet->setDataByName("flags", info_struct->flags);
-		packet->setDataByName("flags2", info_struct->flags2);
+		packet->setDataByName("flags", 1006501965);//info_struct->flags);
+		packet->setDataByName("flags2", 6295600);//info_struct->flags2);
 		packet->setDataByName("str", info_struct->str);
 		packet->setDataByName("sta", info_struct->sta);
 		packet->setDataByName("agi", info_struct->agi);
@@ -1855,16 +1855,33 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version){
 					packet->setSubstructArrayDataByName("spells", "target_type", spell->GetSpellData()->target_type, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_available", spell_entry->recast_available, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "recast_time", spell_entry->recast, 0, ptr);
-					packet->setSubstructArrayDataByName("spells", "status", spell_entry->status, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "status", temp_status /* spell_entry->status */, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "icon", (spell->GetSpellIcon()*-1)-1, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "icon_type", spell->GetSpellIconBackdrop(), 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "icon2", spell->GetSpellIconHeroicOp(), 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "unique_id", (spell_entry->tier+1)*-1, 0, ptr);
 					packet->setSubstructArrayDataByName("spells", "charges", 255, 0, ptr);
-					packet->setSubstructArrayDataByName("spells", "distance", 32 * spell->GetSpellData()->range, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 96, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 24, 1, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 49, 4, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 49, 6, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 95, 8, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown3", 204, 9, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown_thing", 2, 0, ptr);
+
+					if (spell->GetSpellData()->min_range) {
+						packet->setSubstructArrayDataByName("spells", "min_range", 32 * (spell->GetSpellData()->min_range - 2), 0, ptr);
+					}
+
+					if (spell->GetSpellData()->range) {
+						packet->setSubstructArrayDataByName("spells", "distance", 32 * (spell->GetSpellData()->range - 2), 0, ptr);
+					}
+
 					packet->setSubstructArrayDataByName("spells", "unknown4", 1600, 0, ptr);
 
-					packet->setSubstructArrayDataByName("spells", "unknown2", 2, 0, ptr);
+					packet->setSubstructArrayDataByName("spells", "unknown2", 6, 0, ptr);
+
+					packet->setSubstructArrayDataByName("spells", "unknown6", 2, 1, ptr);
 
 					// unknown 3 = spell research stuff?
 					/*packet->setSubstructArrayDataByName("spells", "unknown3", 224, 0, ptr);
