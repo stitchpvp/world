@@ -437,10 +437,6 @@ void Client::HandlePlayerRevive(int32 point_id) {
 		if (!zone_name || zone_name->length() == 0) {
 			use_safe_spot = true;
 		} else {
-			player->SetX(revive_point->x, false);
-			player->SetY(revive_point->y, false);
-			player->SetZ(revive_point->z, false);
-			player->SetHeading(revive_point->heading, false);
 			location_name = revive_point->location_name.c_str();
 			zone_desc = database.GetZoneDescription(revive_point->zone_id);
 		}
@@ -457,6 +453,9 @@ void Client::HandlePlayerRevive(int32 point_id) {
 
 	ready_for_updates = false;
 
+	zone_desc = GetCurrentZone()->GetZoneDescription();
+	Message(CHANNEL_COLOR_REVIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
+
 	SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
 
 	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
@@ -469,19 +468,24 @@ void Client::HandlePlayerRevive(int32 point_id) {
 	}
 
 	packet = configReader.getStruct("WS_Resurrected", GetVersion());
+
 	if (packet) {
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
 
-	zone_desc = GetCurrentZone()->GetZoneDescription();
-	Message(CHANNEL_COLOR_REVIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
+	if (revive_point->zone_id != GetCurrentZone()->GetZoneID()) {
+		player->SetX(revive_point->x, false);
+		player->SetY(revive_point->y, false);
+		player->SetZ(revive_point->z, false);
+		player->SetHeading(revive_point->heading, false);
 
-	Zone(GetCurrentZone()->GetZoneName(), use_safe_spot);
+		Zone(GetCurrentZone()->GetZoneName(), use_safe_spot);
+	} else {
+		TeleportWithinZone(revive_point->x, revive_point->y, revive_point->z, revive_point->heading);
+	}
 
 	safe_delete(zone_name);
-
-	//TeleportWithinZone(x, y, z, heading);
 	
 	m_resurrect.writelock(__FUNCTION__, __LINE__);
 	if (current_rez.active) {
@@ -3127,8 +3131,9 @@ void Client::TeleportWithinZone(float x, float y, float z, float heading) {
 
 	GetCurrentZone()->RemoveSpawnFromClient(GetPlayer(), false);
 
-	if (!GetPlayer()->IsResurrecting())
+	if (!GetPlayer()->IsResurrecting()) {
 		client_zoning = true;
+	}
 }
 
 float Client::DistanceFrom(const shared_ptr<Client>& client) {
