@@ -421,10 +421,10 @@ public:
 	float GetSideSpeed() {
 		return appearance.pos.SideSpeed;
 	}
-	void	AddMaintainedSpell(LuaSpell* spell);
-	void	AddSpellEffect(LuaSpell* spell);
-	void	RemoveMaintainedSpell(LuaSpell* spell);
-	void	RemoveSpellEffect(LuaSpell* spell);
+	void	AddMaintainedSpell(shared_ptr<LuaSpell> spell);
+	void	AddSpellEffect(shared_ptr<LuaSpell> spell);
+	void	RemoveMaintainedSpell(shared_ptr<LuaSpell> spell);
+	void	RemoveSpellEffect(shared_ptr<LuaSpell> spell);
 	bool	HasActiveMaintainedSpell(Spell* spell, Spawn* target);
 	bool	HasActiveSpellEffect(Spell* spell, Spawn* target);
 	void	AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int16 icon_type, int32 id, int8 tier, int32 unique_id, const char* text, bool update = true);
