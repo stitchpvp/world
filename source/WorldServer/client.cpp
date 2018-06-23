@@ -2985,6 +2985,8 @@ void Client::Target(const char* search_name) {
 		if (target && GetPlayer()->WasSentSpawn(target->GetID()) && !GetPlayer()->WasSpawnRemoved(target)) {
 			TargetSpawn(target);
 		}
+	} else {
+		TargetSpawn(GetPlayer());
 	}
 }
 
