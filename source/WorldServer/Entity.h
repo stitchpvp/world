@@ -373,6 +373,9 @@ public:
 	float CalculateBonusMod();
 	float CalculateDPSMultiplier();
 	float CalculateCastingSpeedMod();
+	int32 ApplyAbilityMod(int32 amount, float cap = 2.0f) {
+		return static_cast<int32>(min(info_struct.ability_modifier, amount / cap));
+	}
 
 	InfoStruct* GetInfoStruct();
 

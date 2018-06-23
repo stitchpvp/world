@@ -4582,8 +4582,11 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 	if (target->IsEntity()) {
 		// If the ward is already active remove it
-		if (static_cast<Entity*>(target)->GetWard(spell))
+		if (static_cast<Entity*>(target)->GetWard(spell)) {
 			static_cast<Entity*>(target)->RemoveWard(spell);
+		}
+
+		damage += static_cast<Entity*>(target)->ApplyAbilityMod(damage);
 
 		// Create new ward info
 		WardInfo* ward = new WardInfo;
@@ -4604,24 +4607,28 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 }
 
 int EQ2Emu_lua_AddToWard(lua_State* state) {
-	if (!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
 
 	Spawn* target = lua_interface->GetSpawn(state);
 	int32 amount = lua_interface->GetInt32Value(state, 2);
 	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 	ZoneServer* zone = spell->caster->GetZone();
 
-	if (!target)
+	if (!target) {
 		return 1;
+	}
 
 	if (target->IsEntity()) {
 		WardInfo* ward = static_cast<Entity*>(target)->GetWard(spell);
 
 		if (ward && ward->DamageLeft != ward->BaseDamage) {
-			ward->DamageLeft += amount;
-			if (ward->DamageLeft > ward->BaseDamage)
+			ward->DamageLeft += static_cast<Entity*>(target)->ApplyAbilityMod(amount);
+
+			if (ward->DamageLeft > ward->BaseDamage) {
 				ward->DamageLeft = ward->BaseDamage;
+			}
 
 			zone->SendHealPacket(ward->Spell->caster, static_cast<Entity*>(target), HEAL_PACKET_TYPE_REGEN_ABSORB, amount, ward->Spell->spell->GetName());
 
@@ -7231,7 +7238,7 @@ int EQ2Emu_lua_GetPlayerTriggerCount(lua_State* state){
 	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 	Spawn* target = lua_interface->GetSpawn(state, 1);
 
-	if (!spell){
+	if (!spell) {
 		lua_interface->LogError("LUA GetSpellTriggerCount command error: you must use this function in a spellscript!");
 		return 0;
 	}

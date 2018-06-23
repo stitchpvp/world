@@ -1372,7 +1372,7 @@ float Entity::CalculateDPSMultiplier(){
 			return (((dps - 900) * .01 + 165) / 100 + 1);
 	}
 	return 1;
-}	
+}
 
 void Entity::AddWard(shared_ptr<LuaSpell> luaspell, WardInfo* ward) {
 	if (m_wardList.count(luaspell) == 0) {

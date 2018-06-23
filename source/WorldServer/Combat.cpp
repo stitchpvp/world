@@ -555,12 +555,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luasp
 			//int32 base_roll = heal_amt;
 			//potency mod
 			heal_amt *= (stats[ITEM_STAT_POTENCY] / 100 + 1);
-
-			//primary stat mod, insert forula here when done
-			//heal_amt += base_roll * (GetPrimaryStat()
 		
 			//Ability Modifier can only be up to half of base roll + potency and primary stat bonus
-			heal_amt += (int32)min(info_struct.ability_modifier, (float)(heal_amt / 2));
+			heal_amount += ApplyAbilityMod(heal_amt);
 		}
 
 		if(!crit_mod || crit_mod == 1){
@@ -862,8 +859,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 			damage *= ((stats[ITEM_STAT_POTENCY] / 100) + 1);
 
 			// Ability mod can only give up to half of damage after potency
-			int32 mod = static_cast<int32>(min(info_struct.ability_modifier, high_damage / 2.0f));
-			damage += mod;
+			damage += ApplyAbilityMod(damage);
 		}
 
 
