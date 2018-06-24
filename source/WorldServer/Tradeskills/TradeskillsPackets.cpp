@@ -32,7 +32,7 @@ extern ConfigReader configReader;
 extern MasterRecipeList master_recipe_list;
 extern MasterSpellList master_spell_list;
 
-void ClientPacketFunctions::SendCreateFromRecipe(Client* client, int32 recipeID) {
+void ClientPacketFunctions::SendCreateFromRecipe(const shared_ptr<Client>& client, int32 recipeID) {
 
 	// if recipeID is 0 we are repeating the last recipe, if not set the players current recipe to the new one
 	if (recipeID == 0)
@@ -244,7 +244,7 @@ void ClientPacketFunctions::SendCreateFromRecipe(Client* client, int32 recipeID)
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::SendItemCreationUI(Client* client, Recipe* recipe) {
+void ClientPacketFunctions::SendItemCreationUI(const shared_ptr<Client>& client, Recipe* recipe) {
 	// Check for valid recipe
 	if (!recipe) {
 		LogWrite(TRADESKILL__ERROR, 0, "Recipes", "Recipe = null in ClientPacketFunctions::SendItemCreationUI()");
@@ -400,11 +400,11 @@ void ClientPacketFunctions::SendItemCreationUI(Client* client, Recipe* recipe) {
 	safe_delete(packet);
 }
 
-void ClientPacketFunctions::StopCrafting(Client* client) {
+void ClientPacketFunctions::StopCrafting(const shared_ptr<Client>& client) {
 	client->QueuePacket(new EQ2Packet(OP_StopItemCreationMsg, 0, 0));
 }
 
-void ClientPacketFunctions::CounterReaction(Client* client, bool countered) {
+void ClientPacketFunctions::CounterReaction(const shared_ptr<Client>& client, bool countered) {
 	PacketStruct* packet = configReader.getStruct("WS_TSEventReaction", client->GetVersion());
 	if (packet) {
 		packet->setDataByName("counter_reaction", countered ? 1 : 0);

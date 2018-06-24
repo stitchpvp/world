@@ -48,8 +48,6 @@ LuaInterface::LuaInterface() {
 	MItemScripts.SetName("LuaInterface::MItemScripts");
 	user_data_timer = new Timer(20000);
 	user_data_timer->Start();
-	spell_delete_timer = new Timer(5000);
-	spell_delete_timer->Start();
 }
 #ifdef WIN32
 vector<string>* LuaInterface::GetDirectoryListing(const char* directory) {
@@ -115,9 +113,7 @@ LuaInterface::~LuaInterface() {
 	DestroyItemScripts();
 	DestroyZoneScripts();
 	DeleteUserDataPtrs(true);
-	DeletePendingSpells(true);
 	safe_delete(user_data_timer);
-	safe_delete(spell_delete_timer);
 }
 
 void LuaInterface::Process() {
@@ -126,17 +122,13 @@ void LuaInterface::Process() {
 	MLUAMain.lock();
 	if(user_data_timer && user_data_timer->Check())
 		DeleteUserDataPtrs(false);
-	if(spell_delete_timer && spell_delete_timer->Check())
-		DeletePendingSpells(false);
 	MLUAMain.unlock();
 }
 
 void LuaInterface::DestroySpells() {
-	map<string, LuaSpell*>::iterator itr;
 	MSpells.lock();
-	for(itr = spells.begin(); itr != spells.end(); itr++){
-		lua_close(itr->second->state);
-		safe_delete(itr->second);
+	for (const auto& kv : spells) {
+		lua_close(kv.second->state);
 	}
 	spells.clear();
 	MSpells.unlock();
@@ -221,13 +213,16 @@ void LuaInterface::ReloadSpells() {
 }
 
 bool LuaInterface::LoadLuaSpell(const char* name) {
-	LuaSpell* spell = 0;
 	string lua_script = string(name);
-	if (lua_script.find(".lua") == string::npos)
+
+	if (lua_script.find(".lua") == string::npos) {
 		lua_script.append(".lua");
+	}
+
 	lua_State* state = LoadLuaFile(lua_script.c_str());
-	if(state){
-		spell = new LuaSpell;
+
+	if (state) {
+		unique_ptr<LuaSpell> spell = make_unique<LuaSpell>();
 		spell->file_name = lua_script;
 		spell->state = state;
 		spell->spell = 0;
@@ -249,13 +244,13 @@ bool LuaInterface::LoadLuaSpell(const char* name) {
 		MSpells.lock();
 		if (spells.count(lua_script) > 0) {
 			lua_close(spells[lua_script]->state);
-			safe_delete(spells[lua_script]);
 		}
-		spells[lua_script] = spell;
+		spells[lua_script] = move(spell);
 		MSpells.unlock();
 
 		return true;
 	}
+
 	return false;
 }
 
@@ -311,8 +306,8 @@ bool LuaInterface::LoadZoneScript(const char* name)  {
 
 void LuaInterface::ProcessErrorMessage(const char* message) {
 	MDebugClients.lock();
-	vector<Client*> delete_clients;
-	map<Client*, int32>::iterator itr;
+	vector<shared_ptr<Client>> delete_clients;
+	map<shared_ptr<Client>, int32>::iterator itr;
 	for(itr = debug_clients.begin(); itr != debug_clients.end(); itr++){
 		if((Timer::GetCurrentTime2() - itr->second) > 60000)
 			delete_clients.push_back(itr->first);
@@ -324,13 +319,13 @@ void LuaInterface::ProcessErrorMessage(const char* message) {
 	MDebugClients.unlock();
 }
 
-void LuaInterface::RemoveDebugClients(Client* client) {
+void LuaInterface::RemoveDebugClients(shared_ptr<Client> client) {
 	MDebugClients.lock();
 	debug_clients.erase(client);
 	MDebugClients.unlock();
 }
 
-void LuaInterface::UpdateDebugClients(Client* client) {
+void LuaInterface::UpdateDebugClients(shared_ptr<Client> client) {
 	MDebugClients.lock();
 	debug_clients[client] = Timer::GetCurrentTime2();
 	MDebugClients.unlock();
@@ -464,26 +459,38 @@ void LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, bool preca
 	}(*/
 }
 
-LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state) {
-	if(current_spells.count(state) > 0)
+shared_ptr<LuaSpell> LuaInterface::GetCurrentSpell(lua_State* state) {
+	if (current_spells.count(state) > 0) {
 		return current_spells[state];
-	return 0;
+	}
+
+	return nullptr;
 }
 
-void LuaInterface::SetCurrentSpell(lua_State* state, LuaSpell* spell) {
+void LuaInterface::SetCurrentSpell(lua_State* state, shared_ptr<LuaSpell> spell) {
 	current_spells[state] = spell;
 }
 
-bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters) {
-	if(shutting_down || !spell || !spell->caster)
-		return false;
-	current_spells[spell->state] = spell;
-	if(lua_pcall(spell->state, num_parameters, 0, 0) != 0){
-		LogError("Error running %s", lua_tostring(spell->state, -1));
-		lua_pop(spell->state, 1);
-		RemoveSpell(spell, nullptr);
+bool LuaInterface::CallSpellProcess(shared_ptr<LuaSpell> spell, int8 num_parameters) {
+	if (shutting_down || !spell || !spell->caster) {
 		return false;
 	}
+
+	SetCurrentSpell(spell->state, spell);
+
+	if (lua_pcall(spell->state, num_parameters, 0, 0) != 0) {
+		LogError("Error running %s", lua_tostring(spell->state, -1));
+
+		lua_pop(spell->state, 1);
+
+		SetCurrentSpell(spell->state, nullptr);
+		RemoveSpell(spell, nullptr);
+
+		return false;
+	}
+
+	SetCurrentSpell(spell->state, nullptr);
+
 	return true;
 }
 
@@ -560,7 +567,7 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 	return 0;
 }
 
-void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_function, bool can_delete) {
+void LuaInterface::RemoveSpell(shared_ptr<LuaSpell> spell, Spawn* spawn, bool call_remove_function) {
 	if(shutting_down)
 		return;
 
@@ -599,14 +606,9 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_f
 			}
 		}
 
-		current_spells[spell->state] = spell;
+		SetCurrentSpell(spell->state, spell);
 		lua_pcall(spell->state, data.size() + 2, 0, 0);
-	}
-
-	if (can_delete) {
-		MSpellDelete.lock();
-		spells_pending_delete[spell] = Timer::GetCurrentTime2() + 10000;
-		MSpellDelete.unlock();
+		SetCurrentSpell(spell->state, nullptr);
 	}
 }
 
@@ -876,6 +878,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "AddStoneskin", EQ2Emu_lua_AddStoneskin);
 	lua_register(state, "RemoveStoneskin", EQ2Emu_lua_RemoveStoneskin);
 	lua_register(state, "SetPlayerTriggerCount", EQ2Emu_lua_SetPlayerTriggerCount);
+	lua_register(state, "GetPlayerTriggerCount", EQ2Emu_lua_GetPlayerTriggerCount);
 	lua_register(state, "RemoveTriggerFromPlayer", EQ2Emu_lua_RemoveTriggerFromPlayer);
 
 	lua_register(state, "SetTarget", EQ2Emu_lua_SetTarget);
@@ -1015,27 +1018,6 @@ void LuaInterface::AddUserDataPtr(LUAUserData* data) {
 	MLUAUserData.lock();
 	user_data[data] = Timer::GetCurrentTime2() + 300000; //allow a function to use this pointer for 5 minutes
 	MLUAUserData.unlock();
-}
-
-void LuaInterface::DeletePendingSpells(bool all) {
-	MSpellDelete.lock();
-	if(spells_pending_delete.size() > 0){
-		int32 time = Timer::GetCurrentTime2();
-		map<LuaSpell*, int32>::iterator itr;
-		vector<LuaSpell*> tmp_deletes;
-		vector<LuaSpell*>::iterator del_itr;
-		for(itr = spells_pending_delete.begin(); itr != spells_pending_delete.end(); itr++){
-			if(all || time >= itr->second)
-				tmp_deletes.push_back(itr->first);
-		}
-		LuaSpell* spell = 0;
-		for(del_itr = tmp_deletes.begin(); del_itr != tmp_deletes.end(); del_itr++){
-			spell = *del_itr;
-			spells_pending_delete.erase(spell);
-			safe_delete(spell);
-		}
-	}
-	MSpellDelete.unlock();
 }
 
 void LuaInterface::DeleteUserDataPtrs(bool all) {
@@ -1315,15 +1297,17 @@ void LuaInterface::SetZoneValue(lua_State* state, ZoneServer* zone) {
 	lua_pushlightuserdata(state, zone_wrapper);
 }
 
-LuaSpell* LuaInterface::GetSpell(const char* name)  {
+shared_ptr<LuaSpell> LuaInterface::GetSpell(const char* name)  {
 	string lua_script = string(name);
-	if (lua_script.find(".lua") == string::npos)
+
+	if (lua_script.find(".lua") == string::npos) {
 		lua_script.append(".lua");
-	if(spells.count(lua_script) > 0)
-	{
-		LogWrite(LUA__DEBUG, 0, "LUA", "Found LUA Spell Script: '%s'", lua_script.c_str());
-		LuaSpell* spell = spells[lua_script];
-		LuaSpell* new_spell = new LuaSpell;
+	}
+
+	if (spells.count(lua_script) > 0) {
+		LuaSpell* spell = spells[lua_script].get();
+		shared_ptr<LuaSpell> new_spell = make_shared<LuaSpell>();
+
 		new_spell->state = spell->state;
 		new_spell->file_name = spell->file_name;
 		new_spell->timer = spell->timer;
@@ -1341,8 +1325,7 @@ LuaSpell* LuaInterface::GetSpell(const char* name)  {
 		new_spell->damage_remaining = 0;
 		new_spell->effect_bitmask = 0;
 		return new_spell;
-	}
-	else{
+	} else {
 		LogWrite(LUA__ERROR, 0, "LUA", "Error LUA Spell Script: '%s'", name);
 		return 0;
 	}
@@ -1607,12 +1590,6 @@ bool LuaInterface::RunZoneScript(string script_name, const char* function_name, 
 	}
 	else
 		return false;
-}
-
-void LuaInterface::AddPendingSpellDelete(LuaSpell* spell) {
-	MSpellDelete.lock();
-	spells_pending_delete[spell] = Timer::GetCurrentTime2() + 10000;
-	MSpellDelete.unlock();
 }
 
 LUAUserData::LUAUserData(){

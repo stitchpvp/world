@@ -395,7 +395,7 @@ int64 Guild::GetNextEventID() {
 	return ret;
 }
 
-GuildMember * Guild::GetGuildMemberOnline(Client *client) {
+GuildMember * Guild::GetGuildMemberOnline(const shared_ptr<Client>& client) {
 
 	map<int32, GuildMember*>::iterator itr;
 	GuildMember *ret = 0;
@@ -534,7 +534,7 @@ int8 Guild::GetRecruitingFlag(int8 flag) {
 	return value;
 }
 
-bool Guild::SetGuildRecruiter(Client* client, const char* name, bool value, bool send_packet) {
+bool Guild::SetGuildRecruiter(const shared_ptr<Client>& client, const char* name, bool value, bool send_packet) {
 
 	GuildMember *gm;
 	const char *awarder_name;
@@ -567,7 +567,7 @@ bool Guild::SetGuildRecruiter(Client* client, const char* name, bool value, bool
 	return true;
 }
 
-bool Guild::SetGuildRecruiterDescription(Client *client, const char *description, bool send_packet) {
+bool Guild::SetGuildRecruiterDescription(const shared_ptr<Client>& client, const char *description, bool send_packet) {
 
 	GuildMember *gm;
 
@@ -588,7 +588,7 @@ bool Guild::SetGuildRecruiterDescription(Client *client, const char *description
 	return true;
 }
 
-bool Guild::ToggleGuildRecruiterAdventureClass(Client *client, bool send_packet) {
+bool Guild::ToggleGuildRecruiterAdventureClass(const shared_ptr<Client>& client, bool send_packet) {
 
 	GuildMember *gm;
 
@@ -649,7 +649,7 @@ bool Guild::SetGuildOfficerNote(const char *name, const char *note, bool send_pa
 	return true;
 }
 
-bool Guild::AddNewGuildMember(Client *client, const char *invited_by, int8 rank) {
+bool Guild::AddNewGuildMember(const shared_ptr<Client>& client, const char *invited_by, int8 rank) {
 
 	Player *player;
 	GuildMember *gm;
@@ -734,7 +734,7 @@ bool Guild::AddGuildMember(GuildMember *guild_member) {
 
 void Guild::RemoveGuildMember(int32 character_id, bool send_packet) {
 	GuildMember *gm = 0;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.writelock(__FUNCTION__, __LINE__);
 	if (members.count(character_id) > 0) {
@@ -771,7 +771,7 @@ void Guild::RemoveGuildMember(int32 character_id, bool send_packet) {
 
 void Guild::RemoveAllGuildMembers() {
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.writelock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -788,7 +788,7 @@ void Guild::RemoveAllGuildMembers() {
 
 }
 
-bool Guild::DemoteGuildMember(Client *client, const char *name, bool send_packet) {
+bool Guild::DemoteGuildMember(const shared_ptr<Client>& client, const char *name, bool send_packet) {
 
 	GuildMember *gm;
 	const char *demoter_name;
@@ -819,7 +819,7 @@ bool Guild::DemoteGuildMember(Client *client, const char *name, bool send_packet
 	return ret;
 }
 
-bool Guild::PromoteGuildMember(Client *client, const char *name, bool send_packet) {
+bool Guild::PromoteGuildMember(const shared_ptr<Client>& client, const char *name, bool send_packet) {
 
 	GuildMember *gm;
 	const char *promoter_name;
@@ -848,10 +848,10 @@ bool Guild::PromoteGuildMember(Client *client, const char *name, bool send_packe
 	return ret;
 }
 
-bool Guild::KickGuildMember(Client *client, const char *name, bool send_packet) {
+bool Guild::KickGuildMember(const shared_ptr<Client>& client, const char *name, bool send_packet) {
 
 	GuildMember *gm;
-	Client *kicked_client;
+	shared_ptr<Client> kicked_client;
 	const char *kicker_name;
 
 	assert(client);
@@ -902,9 +902,9 @@ bool Guild::KickGuildMember(Client *client, const char *name, bool send_packet) 
 	return true;
 }
 
-bool Guild::InvitePlayer(Client *client, const char *name, bool send_packet) {
+bool Guild::InvitePlayer(const shared_ptr<Client>& client, const char *name, bool send_packet) {
 
-	Client *client_invite;
+	shared_ptr<Client> client_invite;
 	Player *player_invite;
 	PacketStruct *packet;
 
@@ -949,12 +949,12 @@ bool Guild::InvitePlayer(Client *client, const char *name, bool send_packet) {
 	return true;
 }
 
-bool Guild::AddPointsToAll(Client *client, float points, const char *comment, bool send_packet) {
+bool Guild::AddPointsToAll(const shared_ptr<Client>& client, float points, const char *comment, bool send_packet) {
 
 	map<int32, GuildMember *>::iterator itr;
 	vector<int32> character_ids;
 	GuildMember *gm;
-	Client *client_to;
+	shared_ptr<Client> client_to;
 
 	assert(client);
 
@@ -994,12 +994,12 @@ bool Guild::AddPointsToAll(Client *client, float points, const char *comment, bo
 	return true;
 }
 
-bool Guild::AddPointsToAllOnline(Client *client, float points, const char *comment, bool send_packet) {
+bool Guild::AddPointsToAllOnline(const shared_ptr<Client>& client, float points, const char *comment, bool send_packet) {
 
 	map<int32, GuildMember *>::iterator itr;
 	vector<int32> character_ids;
 	GuildMember *gm;
-	Client *client_to;
+	shared_ptr<Client> client_to;
 
 	assert(client);
 
@@ -1042,7 +1042,7 @@ bool Guild::AddPointsToAllOnline(Client *client, float points, const char *comme
 	return true;
 }
 
-bool Guild::AddPointsToGroup(Client *client, float points, const char *comment, bool send_packet) {
+bool Guild::AddPointsToGroup(const shared_ptr<Client>& client, float points, const char *comment, bool send_packet) {
 
 	deque<GroupMemberInfo*>::iterator itr;
 	deque<GroupMemberInfo*>* group_members;
@@ -1105,7 +1105,7 @@ bool Guild::AddPointsToGroup(Client *client, float points, const char *comment, 
 	return true;
 }
 
-bool Guild::AddPointsToRaid(Client *client, float points, const char *comment, bool send_packet) {
+bool Guild::AddPointsToRaid(const shared_ptr<Client>& client, float points, const char *comment, bool send_packet) {
 
 	assert(client);	
 	LogWrite(MISC__TODO, 1, "TODO", "Implement Raiding\n%s, %s, %i", __FILE__, __FUNCTION__, __LINE__);
@@ -1113,11 +1113,11 @@ bool Guild::AddPointsToRaid(Client *client, float points, const char *comment, b
 	return false;
 }
 
-bool Guild::AddPointsToGuildMember(Client *client, float points, const char *name, const char *comment, bool send_packet) {
+bool Guild::AddPointsToGuildMember(const shared_ptr<Client>& client, float points, const char *name, const char *comment, bool send_packet) {
 
 	vector<int32> character_ids;
 	GuildMember *gm;
-	Client *client_to;
+	shared_ptr<Client> client_to;
 
 	assert(client);
 	assert(name);
@@ -1193,7 +1193,7 @@ bool Guild::AddPointHistory(GuildMember *guild_member, int32 date, const char *m
 	return true;
 }
 
-void Guild::ViewGuildMemberPoints(Client *client, const char * name) {
+void Guild::ViewGuildMemberPoints(const shared_ptr<Client>& client, const char * name) {
 
 	deque<PointHistory *> *ph_list;
 	deque<PointHistory *>::iterator itr;
@@ -1240,7 +1240,7 @@ void Guild::ViewGuildMemberPoints(Client *client, const char * name) {
 	safe_delete(packet);
 }
 
-bool Guild::ChangeMemberFlag(Client *client, int8 member_flag, int8 value, bool send_packet) {
+bool Guild::ChangeMemberFlag(const shared_ptr<Client>& client, int8 member_flag, int8 value, bool send_packet) {
 
 	GuildMember *gm;
 	bool ret = false;
@@ -1491,7 +1491,7 @@ int8 Guild::GetRecruitingLookingForPacketValue() {
 	return ret;
 }
 
-void Guild::SendGuildMOTD(Client* client) {
+void Guild::SendGuildMOTD(const shared_ptr<Client>& client) {
 
 	if (client && strlen(motd) > 0)
 		client->Message(CHANNEL_COLOR_GUILD_MOTD, "Guild MOTD: %s", motd);
@@ -1502,7 +1502,7 @@ void Guild::SendGuildMOTD(Client* client) {
 void Guild::SendGuildEventList() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -1514,7 +1514,7 @@ void Guild::SendGuildEventList() {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild Event List (%s).", __FUNCTION__);
 }
 
-void Guild::SendGuildEventList(Client* client) {
+void Guild::SendGuildEventList(const shared_ptr<Client>& client) {
 
 	if (client) {
 		PacketStruct* packet = configReader.getStruct("WS_GuildEventList", client->GetVersion());
@@ -1539,7 +1539,7 @@ void Guild::SendGuildEventList(Client* client) {
 void Guild::SendGuildEventDetails() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -1550,7 +1550,7 @@ void Guild::SendGuildEventDetails() {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild Event Details (%s).", __FUNCTION__);
 }
 
-void Guild::SendGuildEventDetails(Client* client) {
+void Guild::SendGuildEventDetails(const shared_ptr<Client>& client) {
 
 	if (client) {
 		PacketStruct* packet = configReader.getStruct("WS_GuildEventDetails", client->GetVersion());
@@ -1571,7 +1571,7 @@ void Guild::SendGuildEventDetails(Client* client) {
 void Guild::SendAllGuildEvents() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -1582,7 +1582,7 @@ void Guild::SendAllGuildEvents() {
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Sent ALL guild Events (%s).", __FUNCTION__);
 }
 
-void Guild::SendAllGuildEvents(Client* client) {
+void Guild::SendAllGuildEvents(const shared_ptr<Client>& client) {
 
 	if (client) {
 		deque<GuildEvent*>::iterator itr;
@@ -1592,7 +1592,7 @@ void Guild::SendAllGuildEvents(Client* client) {
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Sent ALL guild Events (%s).", __FUNCTION__);
 }
 
-void Guild::SendOldGuildEvent(Client* client, GuildEvent* guild_event) {
+void Guild::SendOldGuildEvent(const shared_ptr<Client>& client, GuildEvent* guild_event) {
 
 	if (client && guild_event) {
 		PacketStruct* packet = configReader.getStruct("WS_RequestGuildInfo", client->GetVersion());
@@ -1612,7 +1612,7 @@ void Guild::SendOldGuildEvent(Client* client, GuildEvent* guild_event) {
 void Guild::SendNewGuildEvent(GuildEvent* guild_event) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	assert (guild_event);
 	
@@ -1625,7 +1625,7 @@ void Guild::SendNewGuildEvent(GuildEvent* guild_event) {
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Sent NEW guild Events. (%s)", __FUNCTION__);
 }
 
-void Guild::SendNewGuildEvent(Client* client, GuildEvent* guild_event) {
+void Guild::SendNewGuildEvent(const shared_ptr<Client>& client, GuildEvent* guild_event) {
 
 	if (client && guild_event) {
 		PacketStruct* packet = configReader.getStruct("WS_GuildEventAdd", client->GetVersion());
@@ -1646,7 +1646,7 @@ void Guild::SendNewGuildEvent(Client* client, GuildEvent* guild_event) {
 void Guild::SendGuildEventAction(int8 action, GuildEvent* guild_event) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	assert(guild_event);
 
@@ -1660,7 +1660,7 @@ void Guild::SendGuildEventAction(int8 action, GuildEvent* guild_event) {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild events Action. (%s)", __FUNCTION__);
 }
 
-void Guild::SendGuildEventAction(Client* client, int8 action, GuildEvent* guild_event) {
+void Guild::SendGuildEventAction(const shared_ptr<Client>& client, int8 action, GuildEvent* guild_event) {
 
 	if (guild_event) {
 		PacketStruct* packet = configReader.getStruct("WS_GuildEventAction", client->GetVersion());
@@ -1679,7 +1679,7 @@ void Guild::SendGuildEventAction(Client* client, int8 action, GuildEvent* guild_
 void Guild::SendGuildBankEventList() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -1690,7 +1690,7 @@ void Guild::SendGuildBankEventList() {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild bank events list. (%s)", __FUNCTION__);
 }
 
-void Guild::SendGuildBankEventList(Client* client) {
+void Guild::SendGuildBankEventList(const shared_ptr<Client>& client) {
 
 	if (client) {
 		for (int32 i = 0; i < 4; i++) {
@@ -1714,7 +1714,7 @@ void Guild::SendGuildBankEventList(Client* client) {
 void Guild::SendGuildUpdate() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "SendGuildUpdate to all guild member clients online... (%s)", __FUNCTION__);
 	mMembers.readlock(__FUNCTION__, __LINE__);
@@ -1725,7 +1725,7 @@ void Guild::SendGuildUpdate() {
 	mMembers.releasereadlock(__FUNCTION__, __LINE__);
 }
 
-void Guild::SendGuildUpdate(Client* client) {
+void Guild::SendGuildUpdate(const shared_ptr<Client>& client) {
 
 	if (client) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "SendGuildUpdate to client online... (%s)", __FUNCTION__);
@@ -1805,7 +1805,7 @@ void Guild::SendGuildUpdate(Client* client) {
 void Guild::SendGuildMemberList() {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -1816,7 +1816,7 @@ void Guild::SendGuildMemberList() {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild member list to all clients.");
 }
 
-void Guild::SendGuildMemberList(Client* client) {
+void Guild::SendGuildMemberList(const shared_ptr<Client>& client) {
 
 	map<int32, GuildMember *>::iterator itr;
 	GuildMember *gm;
@@ -1866,7 +1866,7 @@ void Guild::SendGuildMemberList(Client* client) {
 void Guild::SendGuildMember(Player* player, bool include_zone) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 	GuildMember *gm;
 
 	assert(player);
@@ -1887,7 +1887,7 @@ void Guild::SendGuildMember(Player* player, bool include_zone) {
 void Guild::SendGuildMember(GuildMember* gm, bool include_zone) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	assert(gm);
 
@@ -1900,7 +1900,7 @@ void Guild::SendGuildMember(GuildMember* gm, bool include_zone) {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild member.");
 }
 
-void Guild::SendGuildMember(Client* client, GuildMember* gm, bool include_zone) {
+void Guild::SendGuildMember(const shared_ptr<Client>& client, GuildMember* gm, bool include_zone) {
 
 	if (client && gm) {
 		PacketStruct* packet = configReader.getStruct("WS_JoinGuildNotify", client->GetVersion());
@@ -1938,7 +1938,7 @@ void Guild::SendGuildMember(Client* client, GuildMember* gm, bool include_zone) 
 void Guild::SendGuildModification(float points, vector<int32>* character_ids) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	if (character_ids) {
 		mMembers.readlock(__FUNCTION__, __LINE__);
@@ -1951,7 +1951,7 @@ void Guild::SendGuildModification(float points, vector<int32>* character_ids) {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild modification to all clients.");
 }
 
-void Guild::SendGuildModification(Client* client, float points, vector<int32>* character_ids) {
+void Guild::SendGuildModification(const shared_ptr<Client>& client, float points, vector<int32>* character_ids) {
 
 	if (client && character_ids) {
 		PacketStruct* packet = configReader.getStruct("WS_ModifyGuild", client->GetVersion());
@@ -1969,10 +1969,10 @@ void Guild::SendGuildModification(Client* client, float points, vector<int32>* c
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild modification to a client.");
 }
 
-void Guild::GuildMemberLogin(Client *client, bool first_login) {
+void Guild::GuildMemberLogin(const shared_ptr<Client>& client, bool first_login) {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client_to;
+	shared_ptr<Client> client_to;
 	char buf[128];
 
 	assert(client);
@@ -2039,7 +2039,7 @@ void Guild::GuildMemberLogoff(Player *player) {
 
 	map<int32, GuildMember*>::iterator itr;
 	GuildMember *gm;
-	Client *client;
+	shared_ptr<Client> client;
 	char buf[128];
 
 	assert(player);
@@ -2063,7 +2063,7 @@ void Guild::GuildMemberLogoff(Player *player) {
 void Guild::SendGuildMemberLeave(int32 character_id) {
 
 	map<int32, GuildMember*>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
 	for (itr = members.begin(); itr != members.end(); itr++) {
@@ -2074,7 +2074,7 @@ void Guild::SendGuildMemberLeave(int32 character_id) {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild member left the guild to all clients.");
 }
 
-void Guild::SendGuildMemberLeave(Client* client, int32 character_id) {
+void Guild::SendGuildMemberLeave(const shared_ptr<Client>& client, int32 character_id) {
 
 	PacketStruct* packet = configReader.getStruct("WS_LeaveGuildNotify", client->GetVersion());
 	if (packet) {
@@ -2086,7 +2086,7 @@ void Guild::SendGuildMemberLeave(Client* client, int32 character_id) {
 	LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild member left the guild to a client.");
 }
 
-void Guild::SendGuildRecruitingDetails(Client* client) {
+void Guild::SendGuildRecruitingDetails(const shared_ptr<Client>& client) {
 
 	if (client) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild recruiting details to a client.");
@@ -2126,7 +2126,7 @@ void Guild::SendGuildRecruitingDetails(Client* client) {
 	}
 }
 
-void Guild::SendGuildRecruitingImages(Client* client) {
+void Guild::SendGuildRecruitingImages(const shared_ptr<Client>& client) {
 	if (client) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild recruiting images to a client.");
 		PacketStruct* packet = configReader.getStruct("WS_GuildRecruitingImage", client->GetVersion());
@@ -2148,7 +2148,7 @@ void Guild::SendGuildRecruitingImages(Client* client) {
 	}
 }
 
-void Guild::SendGuildRecruiterInfo(Client* client, Player* player) {
+void Guild::SendGuildRecruiterInfo(const shared_ptr<Client>& client, Player* player) {
 
 	if (client && player) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "Sent guild recruiter info to a client.");
@@ -2183,11 +2183,11 @@ void Guild::SendGuildRecruiterInfo(Client* client, Player* player) {
 	}
 }
 
-void Guild::HandleGuildSay(Client* sender, const char* message) {
+void Guild::HandleGuildSay(const shared_ptr<Client>& sender, const char* message) {
 
 	map<int32, GuildMember *>::iterator itr;
 	GuildMember *gm;
-	Client *client;
+	shared_ptr<Client> client;
 
 	assert(sender);
 	assert(message);
@@ -2212,11 +2212,11 @@ void Guild::HandleGuildSay(Client* sender, const char* message) {
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild Say");
 }
 
-void Guild::HandleOfficerSay(Client* sender, const char* message) {
+void Guild::HandleOfficerSay(const shared_ptr<Client>& sender, const char* message) {
 
 	map<int32, GuildMember *>::iterator itr;
 	GuildMember *gm;
-	Client *client;
+	shared_ptr<Client> client;
 
 	assert(sender);
 	assert(message);
@@ -2244,7 +2244,7 @@ void Guild::HandleOfficerSay(Client* sender, const char* message) {
 void Guild::SendMessageToGuild(int8 event_type, const char* message, ...) {
 
 	map<int32, GuildMember *>::iterator itr;
-	Client *client;
+	shared_ptr<Client> client;
 	va_list argptr;
 	char buffer[4096];
 

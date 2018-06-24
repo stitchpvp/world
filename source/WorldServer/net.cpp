@@ -21,12 +21,15 @@
 #include "../common/Log.h" 
 
 #include <iostream>
+#include <thread>
+#include <memory>
 using namespace std;
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
-#include <thread> 
+#include <atomic>
+#include <thread>
 
 #include <signal.h>
 
@@ -90,8 +93,8 @@ LuaInterface* lua_interface = new LuaInterface();
 #include "Patch/patch.h"
 
 volatile bool RunLoops = true;
-sint32 numclients = 0;
-sint32 numzones = 0;
+atomic<sint32> numclients(0);
+atomic<sint32> numzones(0);
 extern ClientList client_list;
 extern ZoneList zone_list;
 extern MasterFactionList master_faction_list;
@@ -118,9 +121,6 @@ ThreadReturnType AchievmentLoad (void* tmp);
 ThreadReturnType SpellLoad (void* tmp);
 
 int main(int argc, char** argv) {
-#ifdef PROFILER
-	PROFILE_FUNC();
-#endif
 	LogParseConfigs();
 	WelcomeHeader();
 
@@ -129,83 +129,51 @@ int main(int argc, char** argv) {
 	LogStart();
 
 	LogWrite(INIT__INFO, 0, "Init", "Starting EQ2Emulator WorldServer...");
-	//int32 server_startup = time(NULL);
 
-	//remove this when all database calls are using the new database class
 	database.Init();
 
 	if (!database.ConnectNewDatabase())
 		return EXIT_FAILURE;
 
-	#ifdef _DEBUG
-		_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	#endif
-	
 	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
 		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
 		return 0;
 	}
+
 	if (signal(SIGSEGV, CatchSignal) == SIG_ERR)	{
 		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
 		return 0;
 	}
+
 	if (signal(SIGILL, CatchSignal) == SIG_ERR)	{
 		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
 		return 0;
 	}
-	#ifndef WIN32
-	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
-	#endif
 
-	LogWrite(WORLD__DEBUG, 0, "World", "Randomizing World...");
 	srand(time(NULL));
 
 	net.ReadLoginINI();
-	if(loginserver.UpdatesAuto() || loginserver.UpdatesAsk() || loginserver.UpdatesAutoData()){
-		LogWrite(INIT__PATCHER_INFO, 0, "Patcher", "Connecting to DB PatchServer...");
-		// Old DB patch server
-		/*int16 updateport = 0;
-		char* updateaddress = net.GetUpdateServerInfo(&updateport);
-		loginserver.ConnectToUpdateServer(updateaddress, updateport);
-		LogWrite(INIT__PATCHER_INFO, 0, "Patcher", "DB Update check completed...");*/
 
-		
-		//New patch server
-		if (!patch.IsEnabled())
-			LogWrite(INIT__PATCHER_INFO, 0, "Patcher", "Not checking patch server for updates");
-		else {
-			bool success = patch.Start();
-			if (success)
-				success = patch.Process();
-			patch.Stop();
-			//if (patch.QuitAfter())
-				//looping = false;
-		}
-	}
-	
 	// JA: Grouping all System (core) data loads together for timing purposes
 	LogWrite(WORLD__INFO, 0, "World", "Loading System Data...");
+
 	int32 t_now = Timer::GetUnixTimeStamp();
 
-	LogWrite(WORLD__DEBUG, 1, "World", "-Loading opcodes...");
 	EQOpcodeVersions = database.GetVersions();
-	map<int16,int16>::iterator version_itr;
-	int16 version1 = 0;
-	for (version_itr = EQOpcodeVersions.begin(); version_itr != EQOpcodeVersions.end(); version_itr++) {
-		version1 = version_itr->first;
+
+	for (auto& version : EQOpcodeVersions) {
+		int version1 = version.first;
+
 		EQOpcodeManager[version1] = new RegularOpcodeManager();
 		map<string, uint16> eq = database.GetOpcodes(version1);
+
 		if(!EQOpcodeManager[version1]->LoadOpcodes(&eq)) {
 			LogWrite(INIT__ERROR, 0, "Init", "Loading opcodes failed. Make sure you have sourced the opcodes.sql file!");
 			return false;
 		}
 	}
 
-	LogWrite(WORLD__DEBUG, 1, "World", "-Loading structs...");
-	if(!configReader.LoadFile("CommonStructs.xml") || !configReader.LoadFile("WorldStructs.xml") || !configReader.LoadFile("SpawnStructs.xml") || !configReader.LoadFile("ItemStructs.xml")) {
+	if (!configReader.LoadFile("CommonStructs.xml") || !configReader.LoadFile("WorldStructs.xml") || !configReader.LoadFile("SpawnStructs.xml") || !configReader.LoadFile("ItemStructs.xml")) {
 		LogWrite(INIT__ERROR, 0, "Init", "Loading structs failed. Make sure you have CommonStructs.xml, WorldStructs.xml, SpawnStructs.xml, and ItemStructs.xml in the working directory!");
 		return false;
 	}
@@ -218,59 +186,35 @@ int main(int argc, char** argv) {
 	loginserver.InitLoginServerVariables();
 
 	LogWrite(WORLD__INFO, 0, "World", "Loaded System Data (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);
-	// JA: End System Data loading functions
 
 	if (threadedLoad) {
 		LogWrite(WORLD__WARNING, 0, "Threaded", "Using Threaded loading of static data...");
-#ifdef WIN32
-		_beginthread(ItemLoad, 0, &world);
-		_beginthread(SpellLoad, 0, &world);
-		//_beginthread(AchievmentLoad, 0, &world);
-#else
 		pthread_t thread;
 		pthread_create(&thread, NULL, ItemLoad, &world);
 		pthread_detach(thread);
 		pthread_t thread2;
 		pthread_create(&thread2, NULL, SpellLoad, &world);
 		pthread_detach(thread2);
-		//pthread_t thread3;
-		//pthread_create(&thread3, NULL, AchievmentLoad, &world);
-		//pthread_detach(thread3);
-#endif
 	}
 
-
-	// Called as a function so we can use /reload spawns any time
-	/*LogWrite(SPAWN__INFO, 0, "Spawn", "Initializing Spawn Subsystem...");
-	t_now = Timer::GetUnixTimeStamp();
-	world.LoadSpawnInformation();
-	LogWrite(SPAWN__INFO, 0, "Spawn", "Initialize Spawn Subsystem complete (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);*/
-
-	// JA temp logger
-	LogWrite(MISC__TODO, 0, "Reformat", "JA: This is as far as I got reformatting the console logs.");
-
 	if (!threadedLoad) {
-		// JA: Load all Item info
 		LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
 		database.LoadItemList();
 		MasterItemList::ResetUniqueID(database.LoadNextUniqueItemID());
 	}
 
 	if (!threadedLoad) {
-		// JA: Load all Spell info
 		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
 		database.LoadSpells();
 
 		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
 		database.LoadSpellErrors();
 
-		// Jabantiz: Load traits
 		LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
 		database.LoadTraits();
 	}
 
 	if (!threadedLoad) {
-		// JA: Load all Quest info
 		LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
 		database.LoadQuests();
 	}
@@ -285,23 +229,22 @@ int main(int argc, char** argv) {
 
 	LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipe Books...");
 	database.LoadRecipeBooks();
+
 	LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipes...");
 	database.LoadRecipes();
+
 	LogWrite(TRADESKILL__INFO, 0, "Tradeskills", "Loading Tradeskill Events...");
 	database.LoadTradeskillEvents();
 
-	if (!threadedLoad) {
-		LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Loading Achievements...");
-		//database.LoadAchievements();
-		//master_achievement_list.CreateMasterAchievementListPacket();
-	}
-	
 	LogWrite(SPELL__INFO, 0, "AA", "Loading Alternate Advancements...");
 	database.LoadAltAdvancements();
+
 	LogWrite(SPELL__INFO, 0, "AA", "Loading AA Tree Nodes...");
 	database.LoadTreeNodes();
+
 	LogWrite(WORLD__INFO, 0, "Titles", "Loading Titles...");
 	database.LoadTitles();
+
 	LogWrite(WORLD__INFO, 0, "Languages", "Loading Languages...");
 	database.LoadLanguages();
 
@@ -340,110 +283,94 @@ int main(int argc, char** argv) {
 	LogWrite(WORLD__INFO, 0, "World", "Total World startup time: %u seconds.", Timer::GetUnixTimeStamp() - t_total);
 
 	if (eqsf.Open(net.GetWorldPort())) {
-		if (strlen(net.GetWorldAddress()) == 0)
+		if (strlen(net.GetWorldAddress()) == 0) {
 			LogWrite(NET__INFO, 0, "Net", "World server listening on port %i", net.GetWorldPort());
-		else
+		} else {
 			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
+		}
 
-		if(strlen(net.GetInternalWorldAddress())>0)
+		if (strlen(net.GetInternalWorldAddress()) > 0) {
 			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
-	}
-	else {
+		}
+	} else {
 		LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
 		return 1;
 	}
 
 	Timer InterserverTimer(INTERSERVER_TIMER); // does MySQL pings and auto-reconnect
 	InterserverTimer.Trigger();
+
 	Timer* TimeoutTimer = new Timer(5000);
 	TimeoutTimer->Start();
-	EQStream* eqs = 0;
+
 	UpdateWindowTitle(0);
+
 	LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
 	database.LoadSpecialZones();
+
 	map<EQStream*, int32> connecting_clients;
-	map<EQStream*, int32>::iterator cc_itr;
 
-	// Check to see if a global channel is enabled, if so try to connect to it
-	if (rule_manager.GetGlobalRule(R_World, IRCGlobalEnabled)->GetBool()) {
-		LogWrite(CHAT__INFO, 0, "IRC", "Starting global IRC server...");
-		// Set the irc nick name to: ServerName[IRCBot]
-		string world_name = net.GetWorldName();
-		// Remove all white spaces from the server name
-		world_name.erase(std::remove(world_name.begin(), world_name.end(), ' '), world_name.end());
-		string nick = world_name + string("[IRCBot]");
-		// Connect the global server
-		irc.ConnectToGlobalServer(rule_manager.GetGlobalRule(R_World, IRCAddress)->GetString(), rule_manager.GetGlobalRule(R_World, IRCPort)->GetInt16(), nick.c_str());
-	}
-
-	// JohnAdams - trying to make multi-char console input
 	LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
-	#ifdef WIN32
-					_beginthread(EQ2ConsoleListener, 0, NULL);
-	#else
-					/*pthread_t thread;
-					pthread_create(&thread, NULL, &EQ2ConsoleListener, NULL);
-					pthread_detach(thread);*/
-	#endif
-	//
+	pthread_t thread;
+	pthread_create(&thread, NULL, &EQ2ConsoleListener, NULL);
+	pthread_detach(thread);
 
-	// just before starting loops, announce how to get console help
 	LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
+
 	while(RunLoops) {
 		Timer::SetCurrentTime();
 		
-#ifndef NO_CATCH
-		try
-		{
-#endif
-			while ((eqs = eqsf.Pop())) {
+			while (EQStream* eqs = eqsf.Pop()) {
 				struct in_addr	in;
 				in.s_addr = eqs->GetRemoteIP();
+
 				LogWrite(NET__DEBUG, 0, "Net", "New client from ip: %s port: %i", inet_ntoa(in), ntohs(eqs->GetRemotePort()));
 
 				// JA: Check for BannedIPs
-				if (rule_manager.GetGlobalRule(R_World, UseBannedIPsTable)->GetInt8() == 1)
-				{
-					LogWrite(WORLD__DEBUG, 0, "World", "Checking inbound connection %s against BannedIPs table", inet_ntoa(in));
- 					if (database.CheckBannedIPs(inet_ntoa(in)))
-					{ 
- 						LogWrite(WORLD__DEBUG, 0, "World", "Connection from %s FAILED banned IPs check.  Closing connection.", inet_ntoa(in));
+				if (rule_manager.GetGlobalRule(R_World, UseBannedIPsTable)->GetInt8() == 1) {
+ 					if (database.CheckBannedIPs(inet_ntoa(in))) { 
  						eqs->Close(); // JA: If the inbound IP is on the banned table, close the EQStream.
  					}
 				}
 
-				if(eqs && eqs->CheckActive() && client_list.ContainsStream(eqs) == false){
+				if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
 					LogWrite(NET__DEBUG, 0, "Net", "Adding new client...");
-					Client* client = new Client(eqs);
+
+					auto client = make_shared<Client>(eqs);
 					client_list.Add(client);
-				}
-				else if(eqs && !client_list.ContainsStream(eqs)){
+				} else if (eqs && !client_list.ContainsStream(eqs)) {
 					LogWrite(NET__DEBUG, 0, "Net", "Adding client to waiting list...");
+
 					connecting_clients[eqs] = Timer::GetCurrentTime2();
 				}
 			}
-			if(connecting_clients.size() > 0){
-				for(cc_itr = connecting_clients.begin(); cc_itr!=connecting_clients.end(); cc_itr++){
-					if(cc_itr->first && cc_itr->first->CheckActive() && client_list.ContainsStream(cc_itr->first) == false){
+
+			if (connecting_clients.size() > 0) {
+				for(auto cc_itr = connecting_clients.begin(); cc_itr != connecting_clients.end(); ++cc_itr) {
+					if (cc_itr->first && cc_itr->first->CheckActive() && !client_list.ContainsStream(cc_itr->first)) {
 						LogWrite(NET__DEBUG, 0, "Net", "Removing client from waiting list...");
-						Client* client = new Client(cc_itr->first);
-						client_list.Add(client);
+
+						auto client = make_unique<Client>(cc_itr->first);
+						client_list.Add(move(client));
+
 						connecting_clients.erase(cc_itr);
 						break;
-					}
-					else if(Timer::GetCurrentTime2() >= (cc_itr->second + 10000)){
+					} else if (Timer::GetCurrentTime2() >= (cc_itr->second + 10000)) {
 						connecting_clients.erase(cc_itr);
 						break;
 					}
 				}
 			}
+
 			world.Process();
 			client_list.Process();
 			loginserver.Process();
 			master_server.Process();
-			if(TimeoutTimer->Check()){
+
+			if (TimeoutTimer->Check()) {
 				eqsf.CheckTimeout();
 			}
+
 			if (InterserverTimer.Check()) {
 				InterserverTimer.Start();
 				database.ping();
@@ -455,26 +382,14 @@ int main(int argc, char** argv) {
 
 				if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
 					LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
-#ifdef WIN32
-					_beginthread(AutoInitLoginServer, 0, NULL);
-#else
+
 					pthread_t thread;
 					pthread_create(&thread, NULL, &AutoInitLoginServer, NULL);
 					pthread_detach(thread);
-#endif
 				}
 			}
-#ifndef NO_CATCH
-		}
-		catch(...) {
-			LogWrite(WORLD__ERROR, 0, "World", "Exception caught in net main loop!");
-		}
-#endif
-		if (numclients == 0) {
-			Sleep(10);
-			continue;
-		}
-		Sleep(1);
+
+		this_thread::yield();
 	}
 
 	LogWrite(WORLD__DEBUG, 0, "World", "The world is ending!");
@@ -877,7 +792,7 @@ void UpdateWindowTitle(char* iNewTitle) {
 		snprintf(tmp, sizeof(tmp), "World: %s", iNewTitle);
 	}
 	else {
-		snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients, numzones);
+		snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients.load(), numzones.load());
 	}
 	// Zero terminate ([max - 1] = 0) the string to prevent a warning 
 	tmp[499] = 0;

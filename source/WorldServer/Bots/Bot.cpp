@@ -604,7 +604,7 @@ void Bot::Camp() {
 	if (!GetOwner())
 		return;
 
-	Client* client = GetZone()->GetClientBySpawn(GetOwner());
+	shared_ptr<Client> client = GetZone()->GetClientBySpawn(GetOwner());
 	if (client)
 		client->GetPlayer()->SpawnedBots.erase(BotIndex);
 }

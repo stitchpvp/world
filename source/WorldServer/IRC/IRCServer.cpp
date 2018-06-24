@@ -284,7 +284,7 @@ bool IRCServer::Process() {
 	char *start, *end;
 	char buf[8192];
 	int i, count;
-	Client *client = 0;
+	shared_ptr<Client> client = 0;
 
 	if (!connected)
 		return false;
@@ -353,7 +353,7 @@ bool IRCServer::Process() {
 	return true;
 }
 
-void IRCServer::ProcessLine(Client *client, const char *line) {
+void IRCServer::ProcessLine(const shared_ptr<Client>& client, const char *line) {
 	char *ptr, *ptr2, *ptr3, *ptr4, *findme;
 	size_t len;
 	char *copy;

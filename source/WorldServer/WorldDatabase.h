@@ -125,11 +125,11 @@ public:
 	void	DeleteCharacterSkill(int32 char_id, Skill* skill);
 	void	DeleteCharacterSpell(int32 character_id, int32 spell_id);
 	int32	LoadCharacterSpells(int32 char_id, Player* player);
-	void SavePlayerActiveSpells(Client* client);
-	void DeleteCharacterActiveSpells(Client* client, bool delete_all = false);
+	void SavePlayerActiveSpells(const shared_ptr<Client>& client);
+	void DeleteCharacterActiveSpells(const shared_ptr<Client>& client, bool delete_all = false);
 	int32	LoadItemBlueStats();
 	void	SaveQuickBar(int32 char_id, vector<QuickBarItem*>* quickbar_items);
-	void	SavePlayerSpells(Client* client);
+	void	SavePlayerSpells(const shared_ptr<Client>& client);
 	int32	LoadSkills();
 	void	LoadCommandList();
 	map<int8, vector<MacroData*> >*	LoadCharacterMacros(int32 char_id);
@@ -153,12 +153,12 @@ public:
 	void	SaveVariable(const char* name, const char* value, const char* comment);
 	void	LoadVisualStates();
 	void	LoadAppearanceMasterList();
-	void	Save(Client* client);
-	void	SaveItems(Client* client);
+	void	Save(const shared_ptr<Client>& client);
+	void	SaveItems(const shared_ptr<Client>& client);
 	void	SaveItem(int32 account_id, int32 char_id, Item* item, const char* type);
 	void	DeleteBuyBack(int32 char_id, int32 item_id, int8 quantity, int32 price);
-	void	LoadBuyBacks(Client* client);
-	void	SaveBuyBacks(Client* client);
+	void	LoadBuyBacks(const shared_ptr<Client>& client);
+	void	SaveBuyBacks(const shared_ptr<Client>& client);
 	void	SaveBuyBack(int32 char_id, int32 item_id, int8 quantity, int32 price);
 	void	LoadCharacterActiveSpells(Player * player);
 	void	DeleteItem(int32 char_id, Item* item, const char* type);
@@ -172,12 +172,12 @@ public:
 	int32	LoadNPCAppearanceEquipmentData(ZoneServer* zone);
 	void	SaveNPCAppearanceEquipment(int32 spawn_id, int8 slot_id, int16 type, int8 red=0, int8 green=0, int8 blue=0, int8 hred=0, int8 hgreen=0, int8 hblue=0);
 	void	LoadSpecialZones();
-	void	SaveCharacterSkills(Client* client);
-	void	SaveCharacterQuests(Client* client);
-	void	SaveCharacterQuestProgress(Client* client, Quest* quest);
+	void	SaveCharacterSkills(const shared_ptr<Client>& client);
+	void	SaveCharacterQuests(const shared_ptr<Client>& client);
+	void	SaveCharacterQuestProgress(const shared_ptr<Client>& client, Quest* quest);
 	void	DeleteCharacterQuest(int32 quest_id, int32 char_id, bool repeated_quest = false);
-	void	LoadCharacterQuests(Client* client);
-	void	LoadCharacterQuestProgress(Client* client);
+	void	LoadCharacterQuests(const shared_ptr<Client>& client);
+	void	LoadCharacterQuestProgress(const shared_ptr<Client>& client);
 	void	LoadCharacterFriendsIgnoreList(Player* player);
 	void	LoadZoneInfo(ZoneServer* zone);
 	void	LoadZoneInfo(ZoneInfo* zone_info);
@@ -204,8 +204,8 @@ public:
 	bool	CheckVersionTable();
 	void	LoadFactionAlliances();
 	void	LoadFactionList();
-	bool	LoadPlayerFactions(Client* client);
-	void	SavePlayerFactions(Client* client);
+	bool	LoadPlayerFactions(const shared_ptr<Client>& client);
+	void	SavePlayerFactions(const shared_ptr<Client>& client);
 	void	LoadSpawnScriptData();
 	void	LoadZoneScriptData();
 	int32	LoadSpellScriptData();
@@ -235,7 +235,7 @@ public:
 	void	LoadSpawns(ZoneServer* zone);
 	int8	GetAppearanceType(string type);
 	void	LoadNPCs(ZoneServer* zone);
-	int32	LoadAppearances(ZoneServer* zone, Client* client = 0);
+	int32	LoadAppearances(ZoneServer* zone, const shared_ptr<Client>& client = 0);
 	int32	LoadNPCSpells(ZoneServer* zone);
 	int32	LoadNPCSkills(ZoneServer* zone);
 	int32	LoadNPCEquipment(ZoneServer* zone);
@@ -274,8 +274,8 @@ public:
 	void	LoadDataFromRow(MYSQL_ROW row, Item* item); // JA - eventually get rid of this function when all DB calls are converted
 	void	LoadDataFromRow(DatabaseResult *result, Item* item);
 	void	LoadCharacterItemList(int32 account_id, int32 char_id, Player* player);
-	bool	loadCharacter(const char* name, int32 account_id, Client* client);
-	bool	LoadCharacterStats(int32 id, int32 account_id, Client* client);
+	bool	loadCharacter(const char* name, int32 account_id, const shared_ptr<Client>& client);
+	bool	LoadCharacterStats(int32 id, int32 account_id, const shared_ptr<Client>& client);
 	bool	InsertCharacterStats(int32 character_id, int8 class_id, int8 race_id);
 	bool	UpdateCharacterTimeStamp(int32 account_id, int32 character_id, int32 timestamp);
 	string	GetPlayerName(char* name);
@@ -297,8 +297,8 @@ public:
 	void	WriteServerStatistic(int32 stat_id, sint32 stat_value);
 	void	WriteServerStatisticsNeededQueries();
 	void	SavePlayerMail(Mail* mail);
-	void	SavePlayerMail(Client* client);
-	void	LoadPlayerMail(Client* client, bool new_only = false);
+	void	SavePlayerMail(const shared_ptr<Client>& client);
+	void	LoadPlayerMail(const shared_ptr<Client>& client, bool new_only = false);
 	void	DeletePlayerMail(Mail* mail);
 	vector<int32>* GetAllPlayerIDs();
 	void GetPetNames(ZoneServer* zone);
@@ -319,11 +319,11 @@ public:
 	vector<SpellDisplayEffect*>	LoadSpellEffect(int32 spell_id);
 	vector<LUAData*> LoadSpellLuaData(int32 spell_id);
 	void	LoadTraits();
-	int32	LoadPlayerSkillbar(Client* client);
+	int32	LoadPlayerSkillbar(const shared_ptr<Client>& client);
 	string	GetColumnNames(char* name);
 
 	string	GetZoneName(char* zone_description);
-	bool	GetItemResultsToClient (Client* client, const char* varSearch, int maxResults=20);
+	bool	GetItemResultsToClient (const shared_ptr<Client>& client, const char* varSearch, int maxResults=20);
 	void	LoadRevivePoints(vector<RevivePoint*>* revive_points, int32 zone_id);
 	void	SaveBugReport(const char* category, const char* subcategory, const char* causes_crash, const char* reproducible, const char* summary, const char* description, const char* version, const char* player, int32 account_id, const char* spawn_name, int32 spawn_id, int32 zone_id);
 	void	FixBugReport();
@@ -344,7 +344,7 @@ public:
 	static int32		next_id;
 
 	void ToggleCharacterOnline();
-	void ToggleCharacterOnline(Client* client, int8 toggle);
+	void ToggleCharacterOnline(const shared_ptr<Client>& client, int8 toggle);
 
 	// Zone Instance DB Functions
 	map<int32,int32>*	GetInstanceRemovedSpawns(int32 instance_id, int8 type);
@@ -361,7 +361,7 @@ public:
 	bool				DeleteInstance(int32 instance_id);
 	bool				DeleteInstanceSpawnRemoved(int32 instance_id, int32 spawn_location_entry_id);
 	bool				DeleteCharacterFromInstance(int32 char_id, int32 instance_id);
-	bool				LoadCharacterInstances(Client* client);
+	bool				LoadCharacterInstances(const shared_ptr<Client>& client);
 	//
 
 	MutexMap<int32, LoginEquipmentUpdate>* GetEquipmentUpdates();
@@ -375,8 +375,8 @@ public:
 	bool				AddLocationPoint(int32 location_id, float x, float y, float z);
 	bool				DeleteLocation(int32 location_id);
 	bool				DeleteLocationPoint(int32 location_point_id);
-	void				ListLocations(Client* client);
-	void				ListLocationPoints(Client* client, int32 location_id);
+	void				ListLocations(const shared_ptr<Client>& client);
+	void				ListLocationPoints(const shared_ptr<Client>& client, int32 location_id);
 	bool				LocationExists(int32 location_id);
 
 
@@ -402,18 +402,18 @@ public:
 	int32				LoadCollectionRewards(Collection *collection);
 	void				LoadPlayerCollections(Player *player);
 	void				LoadPlayerCollectionItems(Player *player, Collection *collection);
-	void				SavePlayerCollections(Client *client);
-	void				SavePlayerCollection(Client *client, Collection *collection);
-	void				SavePlayerCollectionItems(Client *client, Collection *collection);
-	void				SavePlayerCollectionItem(Client *client, Collection *collection, int32 item_id);
+	void				SavePlayerCollections(const shared_ptr<Client>& client);
+	void				SavePlayerCollection(const shared_ptr<Client>& client, Collection *collection);
+	void				SavePlayerCollectionItems(const shared_ptr<Client>& client, Collection *collection);
+	void				SavePlayerCollectionItem(const shared_ptr<Client>& client, Collection *collection, int32 item_id);
 	
 	/* Commands */
 	map<int32, string>* GetSpawnTemplateListByName(const char* name);
 	map<int32, string>* GetSpawnTemplateListByID(int32 location_id);
 	int32				SaveSpawnTemplate(int32 placement_id, const char* template_name);
 	bool				RemoveSpawnTemplate(int32 template_id);
-	int32				CreateSpawnFromTemplateByID(Client* client, int32 template_id);
-	int32				CreateSpawnFromTemplateByName(Client* client, const char* template_name);
+	int32				CreateSpawnFromTemplateByID(const shared_ptr<Client>& client, int32 template_id);
+	int32				CreateSpawnFromTemplateByName(const shared_ptr<Client>& client, const char* template_name);
 	bool				SaveZoneSafeCoords(int32 zone_id, float x, float y, float z, float heading);
 	bool				SaveSignZoneToCoords(int32 spawn_id, float x, float y, float z, float heading);
 
@@ -470,14 +470,14 @@ public:
 	int32				LoadCharacterTitles(int32 char_id, Player *player);
 	sint16				GetCharPrefixIndex(int32 char_id, Player *player);
 	sint16				GetCharSuffixIndex(int32 char_id, Player *player);
-	void				SaveCharPrefixIndex(sint16 index, int32 char_id, Client *client);
-	void				SaveCharSuffixIndex(sint16 index, int32 char_id, Client *client);
+	void				SaveCharPrefixIndex(sint16 index, int32 char_id, const shared_ptr<Client>& client);
+	void				SaveCharSuffixIndex(sint16 index, int32 char_id, const shared_ptr<Client>& client);
 
 	/* Languages */
 	void				LoadLanguages();
 	int32				LoadCharacterLanguages(int32 char_id, Player *player);
 	int16				GetCharacterCurrentLang(int32 char_id, Player *player);
-	void				SaveCharacterCurrentLang(int32 id, int32 char_id, Client *client);
+	void				SaveCharacterCurrentLang(int32 id, int32 char_id, const shared_ptr<Client>& client);
 
 	/// <summary>Saves the given language for the given player</summary>
 	/// <param name='char_id'>Character ID to save the language to</param>
@@ -535,7 +535,7 @@ public:
 	/// <param name='client'>Client to save the quest for</param>
 	/// <param name='quest_id'>ID of the quest to save</param>
 	/// <param name='quest_complete_count'>Number of times the quest has already been completed</param>
-	void				SaveCharRepeatableQuest(Client* client, int32 quest_id, int16 quest_complete_count);
+	void				SaveCharRepeatableQuest(const shared_ptr<Client>& client, int32 quest_id, int16 quest_complete_count);
 
 
 	/* Zone Flight Paths */

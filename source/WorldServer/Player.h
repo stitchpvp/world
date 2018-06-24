@@ -370,7 +370,7 @@ public:
 
 	void SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);
 	bool ControlFlagsChanged();
-	void SendControlFlagUpdates(Client* client);
+	void SendControlFlagUpdates(const shared_ptr<Client>& client);
 private:
 	bool flags_changed;
 	map<int8, map<int8, int8> > flag_changes;
@@ -421,10 +421,10 @@ public:
 	float GetSideSpeed() {
 		return appearance.pos.SideSpeed;
 	}
-	void	AddMaintainedSpell(LuaSpell* spell);
-	void	AddSpellEffect(LuaSpell* spell);
-	void	RemoveMaintainedSpell(LuaSpell* spell);
-	void	RemoveSpellEffect(LuaSpell* spell);
+	void	AddMaintainedSpell(shared_ptr<LuaSpell> spell);
+	void	AddSpellEffect(shared_ptr<LuaSpell> spell);
+	void	RemoveMaintainedSpell(shared_ptr<LuaSpell> spell);
+	void	RemoveSpellEffect(shared_ptr<LuaSpell> spell);
 	bool	HasActiveMaintainedSpell(Spell* spell, Spawn* target);
 	bool	HasActiveSpellEffect(Spell* spell, Spawn* target);
 	void	AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int16 icon_type, int32 id, int8 tier, int32 unique_id, const char* text, bool update = true);
@@ -436,7 +436,7 @@ public:
 	PlayerSkillList	  skill_list;
 	Skill*	GetSkillByName(const char* name, bool check_update = false);
 	PlayerSkillList* GetSkills();
-	bool DamageEquippedItems(int8 amount = 10, Client* client = 0);
+	bool DamageEquippedItems(const shared_ptr<Client>& client, int8 amount = 10);
 	vector<EQ2Packet*>	EquipItem(int16 index, int16 version, int8 slot_id = 255);
 	bool CanEquipItem(Item* item);
 	void SetEquippedItemAppearances();
@@ -707,7 +707,7 @@ public:
 	float               GetPosPacketSpeed() { return pos_packet_speed; }
 	bool                ControlFlagsChanged();
 	void                SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);
-	void                SendControlFlagUpdates(Client* client);
+	void                SendControlFlagUpdates(const shared_ptr<Client>& client);
 
 	/// <summary>Casts all the passive spells for the player, only call after zoning is complete.</summary>
 	void ApplyPassiveSpells();
@@ -851,6 +851,8 @@ public:
 	mutex encounter_list_mutex;
 	map<int32, HostileEntity*> encounter_list;
 	vector<shared_ptr<ActivityStatus>> activity_statuses;
+
+	mutex quickbar_mutex;
 
 	map<string, PacketStruct*> packet_cache;
 
