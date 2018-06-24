@@ -246,15 +246,14 @@ void WorldDatabase::SavePlayerActiveSpells(const shared_ptr<Client>& client) {
 	for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
 		shared_ptr<LuaSpell> lua_spell = se[i].spell;
 
-		if (se[i].spell_id != 0xFFFFFFFF && lua_spell->spell->GetSpellData()->friendly_spell && (lua_spell->timer.GetRemainingTime() > 0 || lua_spell->spell->GetSpellData()->duration_until_cancel)) {
+		if (se[i].spell_id != 0xFFFFFFFF && lua_spell->caster == client->GetPlayer() && (lua_spell->timer.GetRemainingTime() > 0 || lua_spell->spell->GetSpellData()->duration_until_cancel)) {
 			Spawn* caster = lua_spell->caster;
 			Spawn* target = client->GetCurrentZone()->GetSpawnByID(lua_spell->initial_target);
 
-			if (caster == client->GetCurrentZone()->unknown_spawn)
-				caster = target;
-			
-			if (caster->IsPlayer() && target->IsPlayer()) {
-				query.RunQuery2(Q_INSERT, "INSERT INTO character_active_spells (character_id, target_character_id, spell_id, spell_tier) VALUES (%u, %u, %u, %u) ON DUPLICATE KEY UPDATE character_id = character_id", ((Player*)caster)->GetCharacterID(), ((Player*)target)->GetCharacterID(), lua_spell->spell->GetSpellID(), lua_spell->spell->GetSpellTier());
+			if (caster == target) {
+				int32 character_id = static_cast<Player*>(caster)->GetCharacterID();
+
+				query.RunQuery2(Q_INSERT, "INSERT INTO character_active_spells (character_id, target_character_id, spell_id, spell_tier) VALUES (%u, %u, %u, %u) ON DUPLICATE KEY UPDATE character_id = character_id", character_id, character_id, lua_spell->spell->GetSpellID(), lua_spell->spell->GetSpellTier());
 			}
 		}
 	}
