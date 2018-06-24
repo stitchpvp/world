@@ -172,7 +172,7 @@ public:
 	bool			LoadSpawnScript(const char* name);
 	bool			LoadZoneScript(string name);
 	bool			LoadZoneScript(const char* name);
-	void			RemoveSpell(LuaSpell* spell, Spawn* spawn, bool call_remove_function = true, bool can_delete = true);
+	void			RemoveSpell(shared_ptr<LuaSpell> spell, Spawn* spawn, bool call_remove_function = true);
 	Spawn*			GetSpawn(lua_State* state, int8 arg_num = 1);
 	Item*			GetItem(lua_State* state, int8 arg_num = 1);
 	Quest*			GetQuest(lua_State* state, int8 arg_num = 1);
@@ -204,10 +204,10 @@ public:
 	void			SetOptionWindowValue(lua_State* state, vector<OptionWindowOption>* optionWindow);
 
 	void			AddSpawnPointers(LuaSpell* spell, bool first_cast, bool precast = false, const char* function = 0, SpellScriptTimer* timer = 0);
-	LuaSpell*		GetCurrentSpell(lua_State* state);
-	void			SetCurrentSpell(lua_State* state, LuaSpell* spell);
-	bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters);
-	LuaSpell* GetSpell(const char* name);
+	shared_ptr<LuaSpell> GetCurrentSpell(lua_State* state);
+	void SetCurrentSpell(lua_State* state, shared_ptr<LuaSpell> spell);
+	bool			CallSpellProcess(shared_ptr<LuaSpell> spell, int8 num_parameters);
+	shared_ptr<LuaSpell> GetSpell(const char* name);
 	void			UseItemScript(const char* name, lua_State* state, bool val);
 	void			UseSpawnScript(const char* name, lua_State* state, bool val);
 	void			UseZoneScript(const char* name, lua_State* state, bool val);
@@ -235,34 +235,29 @@ public:
 
 
 	void			CallQuestFunction(Quest* quest, const char* function, Spawn* player, int32 step_id = 0xFFFFFFFF);
-	void			RemoveDebugClients(Client* client);
-	void			UpdateDebugClients(Client* client);
+	void			RemoveDebugClients(shared_ptr<Client> client);
+	void			UpdateDebugClients(shared_ptr<Client> client);
 	void			ProcessErrorMessage(const char* message);
-	map<Client*, int32> GetDebugClients(){ return debug_clients; }
+	map<shared_ptr<Client>, int32> GetDebugClients(){ return debug_clients; }
 	void			AddUserDataPtr(LUAUserData* data);
 	void			DeleteUserDataPtrs(bool all);
-	void			DeletePendingSpells(bool all);
 	Mutex*			GetSpawnScriptMutex(const char* name);
 	Mutex*			GetItemScriptMutex(const char* name);
 	Mutex*			GetZoneScriptMutex(const char* name);
 	Mutex*			GetQuestMutex(Quest* quest);
 
 	void			SetSpawnScriptsReloading(bool val) { spawn_scripts_reloading = val; }
-
-	void			AddPendingSpellDelete(LuaSpell* spell);
 private:
 	bool			shutting_down;
 	bool			spawn_scripts_reloading;
-	map<LuaSpell*, int32> spells_pending_delete;
 	Timer*			user_data_timer;
-	Timer*			spell_delete_timer;
 	map<LUAUserData*, int32> user_data;
-	map<Client*, int32>	debug_clients;
-	map<lua_State*, LuaSpell*> current_spells;
+	map<shared_ptr<Client>, int32>	debug_clients;
+	map<lua_State*, shared_ptr<LuaSpell>> current_spells;
 	vector<string>*	GetDirectoryListing(const char* directory);
 	lua_State*		LoadLuaFile(const char* name);
 	void			RegisterFunctions(lua_State* state);
-	map<string, LuaSpell*> spells;
+	map<string, unique_ptr<LuaSpell>> spells;
 	map<int32, Quest*>		quests;
 	map<int32, lua_State*> quest_states;
 	map<string, map<lua_State*, bool> > item_scripts;

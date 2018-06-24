@@ -56,7 +56,7 @@ unsigned int Chat::GetNumChannels() {
 	return ret;
 }
 
-EQ2Packet * Chat::GetWorldChannelList(Client *client) {
+EQ2Packet * Chat::GetWorldChannelList(const shared_ptr<Client>& client) {
 	PacketStruct *packet_struct = configReader.getStruct("WS_AvailWorldChannels", client->GetVersion());
 	Player *player = client->GetPlayer();
 	vector<ChatChannel *> channels_to_send;
@@ -171,7 +171,7 @@ bool Chat::CreateChannel(const char *channel_name, const char *password) {
 	return true;
 }
 
-bool Chat::IsInChannel(Client *client, const char *channel_name) {
+bool Chat::IsInChannel(const shared_ptr<Client>& client, const char *channel_name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 
@@ -187,7 +187,7 @@ bool Chat::IsInChannel(Client *client, const char *channel_name) {
 	return ret;
 }
 
-bool Chat::JoinChannel(Client *client, const char *channel_name) {
+bool Chat::JoinChannel(const shared_ptr<Client>& client, const char *channel_name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 
@@ -205,7 +205,7 @@ bool Chat::JoinChannel(Client *client, const char *channel_name) {
 	return ret;
 }
 
-bool Chat::LeaveChannel(Client *client, const char *channel_name) {
+bool Chat::LeaveChannel(const shared_ptr<Client>& client, const char *channel_name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 
@@ -230,7 +230,7 @@ bool Chat::LeaveChannel(Client *client, const char *channel_name) {
 	return ret;
 }
 
-bool Chat::LeaveAllChannels(Client *client) {
+bool Chat::LeaveAllChannels(const shared_ptr<Client>& client) {
 	vector<ChatChannel *>::iterator itr;
 	ChatChannel *channel;
 	bool erased;
@@ -261,7 +261,7 @@ bool Chat::LeaveAllChannels(Client *client) {
 	return true;
 }
 
-bool Chat::TellChannel(Client *client, const char *channel_name, const char *message, const char* name) {
+bool Chat::TellChannel(const shared_ptr<Client>& client, const char *channel_name, const char *message, const char* name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 
@@ -302,7 +302,7 @@ bool Chat::TellChannel(Client *client, const char *channel_name, const char *mes
 	return ret;
 }
 
-bool Chat::SendChannelUserList(Client *client, const char *channel_name) {
+bool Chat::SendChannelUserList(const shared_ptr<Client>& client, const char *channel_name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 

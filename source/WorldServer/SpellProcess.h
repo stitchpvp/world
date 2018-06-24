@@ -118,13 +118,13 @@
 struct InterruptStruct{
 	Spawn*			interrupted;
 	Spawn*			target;
-	LuaSpell*		spell;
+	shared_ptr<LuaSpell> spell;
 	int16			error_code;
 };
 struct CastTimer{
-	Client*			caster;
+	shared_ptr<Client> caster;
+	shared_ptr<LuaSpell> spell;
 	EntityCommand*	entity_command;
-	LuaSpell*		spell;
 	Timer*			timer;
 	ZoneServer*		zone;
 	bool			delete_timer;
@@ -137,7 +137,7 @@ struct CastSpell{
 };
 struct RecastTimer{
 	Entity*			caster;
-	Client*			client;
+	shared_ptr<Client>			client;
 	Spell*			spell;
 	Timer*			timer;
 };
@@ -216,36 +216,36 @@ public:
 	/// <param name='spell'>LuaSpell to cast</param>
 	/// <param name='passive'>Is this a passive spell being cast?</param>
 	/// <returns>True if the spell was casted</returns>
-	bool CastProcessedSpell(LuaSpell* spell, bool passive = false);
+	bool CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive = false);
 
 	/// <summary>Cast the EntityCommand, calls ProcessEntityCommand for the given EntityCommand, as well as sends the messages for the command and calls the casted on function in the targets spawn script</summary>
 	/// <param name='entity_command'>EntityCommand to cast</param>
 	/// <param name='client'>Client casting the entity command</param>
 	/// <returns>True if the spell was casted</returns>
-	bool CastProcessedEntityCommand(EntityCommand* entity_command, Client* client);
+	bool CastProcessedEntityCommand(EntityCommand* entity_command, const shared_ptr<Client>& client);
 
 	/// <summary>Sends the start cast packet for the given client</summary>
 	/// <param name='spell'>LuaSpell being cast</param>
 	/// <param name='client'>The client casting the spell</param>
-	void SendStartCast(LuaSpell* spell, Client* client);
+	void SendStartCast(LuaSpell* spell, const shared_ptr<Client>& client);
 
 	/// <summary>Send finish cast packet and take power/hp or add conc, also checks for quest updates</summary>
 	/// <param name='spell'>LuaSpell that just finished casting</param>
 	/// <param name='client'>Client that just finished casting, null if not a player</param>
-	void SendFinishedCast(LuaSpell* spell, Client* client);
+	void SendFinishedCast(LuaSpell* spell, const shared_ptr<Client>& client);
 
 	/// <summary>Locks all the spells for the given client (shades them all gray)</summary>
 	/// <param name='client'>Client to lock the spells for</param>
-	void LockAllSpells(Client* client);
+	void LockAllSpells(const shared_ptr<Client>& client);
 
 	/// <summary>Unlock all the spells for the given client</summary>
 	/// <param name='client'>Client to unlock the spells for</param>
-	void UnlockAllSpells(Client* client);
+	void UnlockAllSpells(const shared_ptr<Client>& client);
 
 	/// <summary>Unlock a single spell for the given client</summary>
 	/// <param name='client'>The client to unlock the spell for</param>
 	/// <param name='spell'>The spell to unlock</param>
-	void UnlockSpell(Client* client, Spell* spell);
+	void UnlockSpell(const shared_ptr<Client>& client, Spell* spell);
 
 	/// <summary>Remove the given spell for the given caster from the SpellProcess</summary>
 	/// <param name='caster'>The spawn to remove the spell for</param>
@@ -254,7 +254,7 @@ public:
 
 	/// <summary>Remove the given spell from the ZpellProcess</summary>
 	/// <param name='spell'>LuaSpell to remove</param>
-	bool DeleteCasterSpell(LuaSpell* spell, bool call_remove_function = true);
+	bool DeleteCasterSpell(shared_ptr<LuaSpell> spell, bool call_remove_function = true);
 
 	/// <summary>Interrupt the spell</summary>
 	/// <param name='interrupt'>InterruptStruct that contains all the info</param>
@@ -304,7 +304,7 @@ public:
 
 	/// <summary>Send the spell book update packet to the given client</summary>
 	/// <param name='client'>Client to send the packet to</param>
-	void SendSpellBookUpdate(Client* client);
+	void SendSpellBookUpdate(const shared_ptr<Client>& client);
 
 	/// <summary>Gets the target of the currently casting spell for the given entity</summary>
 	/// <param name='caster'>Entity whos spell we are checking</param>
@@ -312,7 +312,7 @@ public:
 	Spawn* GetSpellTarget(Entity* caster);
 
 	void SetInitialTarget(LuaSpell* lua_spell, Spawn* target);
-	bool CanCast(LuaSpell* lua_spell, bool harvest_spell);
+	bool CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell);
 
 	/// <summary>Gets the currently casting spell for the given entity</summary>
 	/// <param name='caster'>Entity to get the spell for</param>
@@ -322,7 +322,7 @@ public:
 	/// <summary>Gets the currently casting LuaSpell for the given entity</summary>
 	/// <param name='caster'>Entity to get the LuaSpell for</param>
 	/// <returns>LuaSpell* for the currently casting spell</returns>
-	LuaSpell* GetLuaSpell(Entity* caster);
+	shared_ptr<LuaSpell> GetLuaSpell(Entity* caster);
 
 	/// <summary>Gets the targets for the spell and adds them to the LuaSpell targets array</summary>
 	/// <param name='luaspell'>LuaSpell to get the targets for</param>
@@ -349,18 +349,15 @@ public:
 	/// <summary>Checks the spell script timers</summary>
 	void CheckSpellScriptTimers();
 
-	/// <summary>Checks to see if the list has the spell</summary>
-	bool SpellScriptTimersHasSpell(LuaSpell* spell);
-
 	void ClearSpellScriptTimerList();
 
-	void RemoveTargetFromSpell(LuaSpell* spell, Spawn* target);
+	void RemoveTargetFromSpell(shared_ptr<LuaSpell> spell, Spawn* target);
 	void CheckRemoveTargetFromSpell();
 
 	/// <summary>Adds a solo HO to the SpellProcess</summary>
 	/// <param name='client'>The client who is starting the HO</param>
 	/// <param name='ho'>The HO that is being started</param>
-	bool AddHO(Client* client, HeroicOP* ho);
+	bool AddHO(shared_ptr<Client> client, HeroicOP* ho);
 
 	/// <summary>Adds a group HO to the SpellProcess</summary>
 	/// <param name='group_id'>ID of the group that is starting the HO</param>
@@ -371,24 +368,24 @@ public:
 	/// <param name='spawn_id'>ID of the spawn targeted by the HO we want to stop</param>
 	void KillHOBySpawnID(int32 spawn_id);
 
-	void AddSpellCancel(LuaSpell* spell);
+	void AddSpellCancel(shared_ptr<LuaSpell> spell);
 
 	void CastSpell(int32 spell_id, int8 tier, Entity* caster, int32 initial_target, int32 duration = 0);
 
-	bool HasActiveSpell(LuaSpell* spell, bool lock_required = true);
+	bool HasActiveSpell(shared_ptr<LuaSpell> spell, bool lock_required = true);
 
 private:
 	/// <summary>Sends the spell data to the lua script</summary>
 	/// <param name='spell'>LuaSpell to call the lua script for</param>
 	/// <param name='first_cast'>No clue, not currently used</param>
 	/// <returns>True if the spell script was called successfully</returns>
-	bool ProcessSpell(LuaSpell* spell, Spawn * target, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
+	bool ProcessSpell(shared_ptr<LuaSpell> spell, Spawn * target, bool first_cast = true, const char* function = 0, SpellScriptTimer* timer = 0);
 	Mutex MSpellProcess;
 	Mutex MRecastTimers;
 	mutex spell_queue_mutex;
 	map<Entity*, Spell*> spell_queue;
 	mutex active_spells_mutex;
-	vector<LuaSpell*> active_spells;
+	vector<shared_ptr<LuaSpell>> active_spells;
 	mutex cast_timers_mutex;
 	vector<CastTimer*> cast_timers;
 	mutex interrupt_list_mutex;
@@ -397,14 +394,14 @@ private:
 	int32 last_checked_time;
 	vector<SpellScriptTimer*> m_spellScriptList;
 	Mutex MSpellScriptTimers;
-	map<LuaSpell*, vector<Spawn*>*> remove_target_list;
+	map<shared_ptr<LuaSpell>, vector<Spawn*>*> remove_target_list;
 	Mutex MRemoveTargetList;
-	vector<LuaSpell*> SpellCancelList;
+	vector<shared_ptr<LuaSpell>> SpellCancelList;
 	Mutex MSpellCancelList;
 
 	Mutex MSoloHO;
 	Mutex MGroupHO;
-	map<Client*, HeroicOP*> m_soloHO;
+	map<shared_ptr<Client>, HeroicOP*> m_soloHO;
 	map<int32, HeroicOP*> m_groupHO;
 };
 

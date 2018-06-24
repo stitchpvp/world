@@ -24,6 +24,7 @@ using namespace std;
 #include <string.h>
 #include <stdio.h>
 #include <iomanip>
+#include <atomic>
 using namespace std;
 #include <stdlib.h>
 #include "../common/md5.h"
@@ -68,8 +69,8 @@ extern int errno;
 #include "../common/ConfigReader.h"
 #include "Rules/Rules.h"
 
-extern sint32			numzones;
-extern sint32			numclients;
+extern atomic<sint32>			numzones;
+extern atomic<sint32>			numclients;
 extern NetConnection net;
 extern LoginServer loginserver;
 extern WorldDatabase	database;
@@ -909,8 +910,8 @@ void LoginServer::SendStatus() {
 	else
 		lss->status = 1;
 
-	lss->num_zones = numzones;
-	lss->num_players = numclients;
+	lss->num_zones = numzones.load();
+	lss->num_players = numclients.load();
 	lss->world_max_level = rule_manager.GetGlobalRule(R_Player, MaxLevel)->GetInt8();
 	SendPacket(pack);
 	delete pack;

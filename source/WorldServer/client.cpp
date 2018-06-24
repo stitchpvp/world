@@ -40,6 +40,8 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRC/IRC.h"
 #include "Chat/Chat.h"
 #include "PVP.h"
+#include <atomic>
+#include <thread>
 
 //#include "Quests.h"
 
@@ -88,7 +90,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 extern WorldDatabase database;
 extern const char* ZONE_NAME;
 extern LoginServer loginserver;
-extern sint32 numclients;
+extern atomic<sint32> numclients;
 extern NetConnection net;
 extern Commands commands;
 extern ClientList client_list;
@@ -140,16 +142,17 @@ Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_deb
 	account_name[0] = 0;
 	account_id = 0;
 	pwaitingforbootup = 0;
-	current_zone = 0;
+	current_zone = nullptr;
+	next_zone = nullptr;
+	waiting_to_zone = false;
 	connected_to_zone = false;
 	connected = false;
 	camp_timer = 0;
 	disconnect_timer = 0;
 	client_zoning = false;
-	player_pos_changed = false;
 	++numclients;
 	if (world.GetServerStatisticValue(STAT_SERVER_MOST_CONNECTIONS) < numclients)
-		world.UpdateServerStatistic(STAT_SERVER_MOST_CONNECTIONS, numclients, true);
+		world.UpdateServerStatistic(STAT_SERVER_MOST_CONNECTIONS, numclients.load(), true);
 	remove_from_list = false;
 	new_client_login = false;
 	UpdateWindowTitle(0);
@@ -189,38 +192,36 @@ Client::~Client() {
 			world.GetGroupManager()->RemoveGroupMember(player->GetGroupMemberInfo()->group_id, player);
 		world.GetGroupManager()->ClearPendingInvite(player);
 	}
-	if(lua_interface)
-		lua_interface->RemoveDebugClients(this);
 
-	if (player)
-		zone_list.RemoveClientFromMap(player->GetName(), this);
+	/*if(lua_interface)
+		lua_interface->RemoveDebugClients(shared_from_this());*/
 
 	//let the stream factory know were done with this stream
-	if(eqs){
+	if (eqs) {
 		eqs->Close();
-		try{
-			eqs->ReleaseFromUse();
-		}
-		catch(...){}
-	}
-	eqs = NULL;
 
-	//safe_delete(autobootup_timeout);
+		try {
+			eqs->ReleaseFromUse();
+		} catch(...) {}
+	}
+	eqs = nullptr;
 
 	safe_delete(disconnect_timer);
 	safe_delete(camp_timer);
 	safe_delete(CLE_keepalive_timer);
 	safe_delete(connect);
+
 	--numclients;
 
 	MDeletePlayer.writelock(__FUNCTION__, __LINE__);
-	if (player && !player->GetPendingDeletion())
+	if (player && !player->GetPendingDeletion()) {
 		safe_delete(player);
+	}
 	MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);
 
 	safe_delete(search_items);
-		safe_delete(current_rez.expire_timer);
-		safe_delete(pending_last_name);
+	safe_delete(current_rez.expire_timer);
+	safe_delete(pending_last_name);
 	safe_delete_array(incoming_paperdoll.image_bytes);
 
 	UpdateWindowTitle(0);
@@ -229,7 +230,7 @@ Client::~Client() {
 void Client::QueuePacket(EQ2Packet* app){
 	if(eqs){
 		if(!eqs->CheckActive()){
-			client_list.Remove(this);
+			client_list.Remove(shared_from_this());
 			eqs = 0;
 		}
 	}
@@ -264,7 +265,7 @@ void Client::SendLoginInfo() {
 	}
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Toggle Character Online...");
-	database.ToggleCharacterOnline(this, 1);
+	database.ToggleCharacterOnline(shared_from_this(), 1);
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Character Skills for player '%s'...", player->GetName());
 	int32 count = database.LoadCharacterSkills(GetCharacterID(), player);
@@ -295,22 +296,19 @@ void Client::SendLoginInfo() {
 	if(count == 0)
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "No character recipe books found!");
 
-	ClientPacketFunctions::SendLoginAccepted( this );
-
-	//ClientPacketFunctions::SendAbilities ( this );
-	ClientPacketFunctions::SendCommandNamePacket ( this );
-
-	ClientPacketFunctions::SendQuickBarInit ( this );
+	ClientPacketFunctions::SendLoginAccepted(shared_from_this());
+	ClientPacketFunctions::SendCommandNamePacket(shared_from_this());
+	ClientPacketFunctions::SendQuickBarInit(shared_from_this());
 
 	// we only need to send the MOTD if it is the first time the person is logging in.
 	if(firstlogin){
-		ClientPacketFunctions::SendMOTD ( this );
-		ClientPacketFunctions::SendCharacterMacros(this);
-		zone_list.CheckFriendList(this);
+		ClientPacketFunctions::SendMOTD(shared_from_this());
+		ClientPacketFunctions::SendCharacterMacros(shared_from_this());
+		zone_list.CheckFriendList(shared_from_this());
 	}
-	database.LoadPlayerFactions(this);
-	database.LoadCharacterQuests(this);
-	database.LoadPlayerMail(this);
+	database.LoadPlayerFactions(shared_from_this());
+	database.LoadCharacterQuests(shared_from_this());
+	database.LoadPlayerMail(shared_from_this());
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 	SendQuestJournal(true);
 	SendCollectionList();
@@ -326,20 +324,6 @@ void Client::SendLoginInfo() {
 			QueuePacket(itr->second->QuestJournalReply(version, GetNameCRC(), player));
 		}
 	}
-	//SendAchievementsList();
-
-	/*Guild* guild = player->GetGuild();
-	if (guild) {
-		guild->UpdateGuildMemberInfo(GetPlayer());
-		if (firstlogin)
-			guild->SendGuildMOTD(this);
-		guild->SendGuildUpdate(this);
-		guild->SendGuildMember(GetPlayer(), firstlogin);
-		guild->SendGuildEventList(this);
-		guild->SendGuildBankEventList(this);
-		guild->SendAllGuildEvents(this);
-		guild->SendGuildMemberList(this);
-	}*/
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Faction Updates...");
 	EQ2Packet* outapp = player->GetFactions()->FactionUpdate(GetVersion());
@@ -350,29 +334,20 @@ void Client::SendLoginInfo() {
 	}
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Command List...");
-	ClientPacketFunctions::SendCommandList( this );
+	ClientPacketFunctions::SendCommandList(shared_from_this());
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Language Updates...");
 	SendLanguagesUpdate(database.GetCharacterCurrentLang(GetCharacterID(), player));
 
-	ClientPacketFunctions::SendInstanceList(this);
+	ClientPacketFunctions::SendInstanceList(shared_from_this());
 
 	SendZoneInfo();
-	/*Spell* spell = 0;
-	vector<QuickBarItem*>::iterator itr;
-	for(itr = player->GetQuickbar()->begin(); itr != player->GetQuickbar()->end(); itr++){
-	if((*itr)->type == 1){
-	spell =  master_spell_list.GetSpell((*itr)->id);
-	if(spell)
-	QueuePacket(spell->serialize(this, false, 0x20));
-	}
-	}*/
 }
 
 void Client::SendPlayerDeathWindow()
 {
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "SendPlayerDeathWindow");
-	vector<RevivePoint*>* results=GetCurrentZone()->GetRevivePoints(this);
+	vector<RevivePoint*>* results=GetCurrentZone()->GetRevivePoints(shared_from_this());
 	vector<RevivePoint*>::iterator itr;
 
 	if (results && results->size()>0)
@@ -445,17 +420,16 @@ void Client::DisplayDeadWindow()
 
 }
 
-void Client::HandlePlayerRevive(int32 point_id)
-{
-	float x, y, z, heading;
-	const char* location_name = "Unknown";
-	RevivePoint* revive_point = 0;
-	bool use_safe_spot = false;
+void Client::HandlePlayerRevive(int32 point_id) {
+	RevivePoint* revive_point = nullptr;
 	string* zone_name = nullptr;
 	string zone_desc = "Unknown";
+	const char* location_name = "Unknown";
+	bool use_safe_spot = false;
 
-	if (point_id != 0xFFFFFFFF)
+	if (point_id != 0xFFFFFFFF) {
 		revive_point = GetCurrentZone()->GetRevivePoint(point_id);
+	}
 
 	if (revive_point && revive_point->zone_id != 0) {
 		zone_name = database.GetZoneName(revive_point->zone_id);
@@ -463,10 +437,10 @@ void Client::HandlePlayerRevive(int32 point_id)
 		if (!zone_name || zone_name->length() == 0) {
 			use_safe_spot = true;
 		} else {
-			x = revive_point->x;
-			y = revive_point->y;
-			z = revive_point->z;
-			heading = revive_point->heading;
+			player->SetX(revive_point->x, false);
+			player->SetY(revive_point->y, false);
+			player->SetZ(revive_point->z, false);
+			player->SetHeading(revive_point->heading, false);
 			location_name = revive_point->location_name.c_str();
 			zone_desc = database.GetZoneDescription(revive_point->zone_id);
 		}
@@ -475,27 +449,13 @@ void Client::HandlePlayerRevive(int32 point_id)
 	}
 
 	if (use_safe_spot) {
-		x = GetCurrentZone()->GetSafeX();
-		y = GetCurrentZone()->GetSafeY();
-		z = GetCurrentZone()->GetSafeZ();
-		heading = GetCurrentZone()->GetSafeHeading();
 		location_name = "Zone Safe Point";
 		zone_desc = GetCurrentZone()->GetZoneDescription();
 	}
 
-	player->SetX(x);
-	player->SetY(y);
-	player->SetZ(z);
-	player->SetHeading(heading);
-
-	player->SetHP(player->GetTotalHP());
-	player->SetPower(player->GetTotalPower());
-
-	//GetCurrentZone()->RemoveDeadSpawn(player, true);
-
 	player->SetResurrecting(true);
 
-	Save();
+	ready_for_updates = false;
 
 	SimpleMessage(CHANNEL_COLOR_REVIVE, "You regain consciousness!");
 
@@ -517,19 +477,16 @@ void Client::HandlePlayerRevive(int32 point_id)
 	zone_desc = GetCurrentZone()->GetZoneDescription();
 	Message(CHANNEL_COLOR_REVIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
 
-	if (use_safe_spot) {
-		Zone(GetCurrentZone()->GetZoneName(), false);
-	} else {
-		Zone(zone_name->c_str(), false);
-	}
+	Zone(GetCurrentZone()->GetZoneName(), use_safe_spot);
 
 	safe_delete(zone_name);
 
 	//TeleportWithinZone(x, y, z, heading);
 	
 	m_resurrect.writelock(__FUNCTION__, __LINE__);
-	if (current_rez.active)
+	if (current_rez.active) {
 		current_rez.should_delete = true;
+	}
 	m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
 }
 
@@ -538,7 +495,7 @@ void Client::SendCharInfo(){
 
 	player->SetEquippedItemAppearances();
 
-	ClientPacketFunctions::SendCharacterData ( this );
+	ClientPacketFunctions::SendCharacterData (shared_from_this());
 
 	SendCharPOVGhost();
 
@@ -552,12 +509,12 @@ void Client::SendCharInfo(){
 	}
 
 	//SendAchievementsList();
-	ClientPacketFunctions::SendCharacterSheet ( this );
-	ClientPacketFunctions::SendTraitList(this);
-	//ClientPacketFunctions::SendAbilities(this);
-	master_aa_list.DisplayAA(this);
-	ClientPacketFunctions::SendSkillBook(this);
-	ClientPacketFunctions::SendLoginCommandMessages(this);
+	ClientPacketFunctions::SendCharacterSheet (shared_from_this());
+	ClientPacketFunctions::SendTraitList(shared_from_this());
+	//ClientPacketFunctions::SendAbilities(shared_from_this());
+	master_aa_list.DisplayAA(shared_from_this());
+	ClientPacketFunctions::SendSkillBook(shared_from_this());
+	ClientPacketFunctions::SendLoginCommandMessages(shared_from_this());
 
 	SendNewSpells(player->GetAdventureClass());
 	SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
@@ -568,7 +525,7 @@ void Client::SendCharInfo(){
 	player->ClearProcs();
 
 	if (!player->IsResurrecting()) {
-		ClientPacketFunctions::SendUpdateSpellBook(this);
+		ClientPacketFunctions::SendUpdateSpellBook(shared_from_this());
 	} else {
 		player->SetResurrecting(false);
 	}
@@ -576,7 +533,7 @@ void Client::SendCharInfo(){
 	//SendCollectionList();
 	Guild* guild = player->GetGuild();
 	if (guild)
-		guild->GuildMemberLogin(this, firstlogin);
+		guild->GuildMemberLogin(shared_from_this(), firstlogin);
 
 	app = player->item_list.serialize(GetPlayer(), GetVersion());
 	if(app){
@@ -600,7 +557,7 @@ void Client::SendCharInfo(){
 		}
 	}
 
-	if (firstlogin && (app = chat.GetWorldChannelList(this)) != NULL)
+	if (firstlogin && (app = chat.GetWorldChannelList(shared_from_this())) != NULL)
 		QueuePacket(app);
 
 	safe_delete(items);
@@ -615,7 +572,7 @@ void Client::SendCharInfo(){
 	GetPlayer()->ChangePrimaryWeapon();
 	GetPlayer()->ChangeSecondaryWeapon();
 	GetPlayer()->ChangeRangedWeapon();
-	database.LoadBuyBacks(this);
+	database.LoadBuyBacks(shared_from_this());
 
 	string zone_motd = GetCurrentZone()->GetZoneMOTD();
 	if (zone_motd.length() > 0 && zone_motd[0] != ' ') {
@@ -662,9 +619,9 @@ void Client::SendZoneSpawns(){
 	QueuePacket(app);
 
 	//GetPlayer()->SortSpellBook();
-	ClientPacketFunctions::SendSkillSlotMappings(this);
-	ClientPacketFunctions::SendGameWorldTime(this);
-	GetCurrentZone()->StartZoneInitialSpawnThread(this);
+	ClientPacketFunctions::SendSkillSlotMappings(shared_from_this());
+	ClientPacketFunctions::SendGameWorldTime(shared_from_this());
+	GetCurrentZone()->StartZoneInitialSpawnThread(shared_from_this());
 }
 
 void Client::SendCharPOVGhost(){
@@ -680,76 +637,23 @@ void Client::SendCharPOVGhost(){
 
 void Client::SendZoneInfo(){
 	ZoneServer* zone = GetCurrentZone();
-	if(zone){
-		EQ2Packet* packet = zone->GetZoneInfoPacket(this);
+
+	if (zone) {
+		EQ2Packet* packet = zone->GetZoneInfoPacket(shared_from_this());
 		QueuePacket(packet);
+
 		PacketStruct* fog_packet = configReader.getStruct("WS_FogInit", GetVersion());
 
-		LogWrite(CCLIENT__PACKET, 0, "Client", "Dump/Print Packet in func: %s, line: %i", __FUNCTION__, __LINE__);
-#if EQDEBUG >= 9
-		fog_packet->PrintPacket();
-#endif
-
-		if(fog_packet){
+		if (fog_packet) {
 			database.LoadFogInit(zone->GetZoneFile(), fog_packet);
 			QueuePacket(fog_packet->serialize());
 			safe_delete(fog_packet);
 		}
 
-		zone->SendFlightPathsPackets(this);
+		zone->SendFlightPathsPackets(shared_from_this());
 	}
-	/*
-	uchar blah[] ={0x00,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x00,0x01,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF
-	,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF
-	,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x10,0x49,0x2B,0x62,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0x00};
-	EQ2Packet* appA = new EQ2Packet(OP_GuildUpdateMsg, blah, sizeof(blah));
-	QueuePacket(appA);
 
-	uchar blahA[] ={0x45,0x00,0x00,0x00,0x06,0x00,0x00,0x00,0x00,0x03,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00
-	,0x00,0x10,0xE2,0x10,0x6C,0x00,0x00,0x00,0x00};
-	EQ2Packet* appB = new EQ2Packet(OP_KeymapDataMsg, blahA, sizeof(blahA));
-	QueuePacket(appB);
-	*/
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "SendFriendList");
 	SendFriendList();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "SendIgnoreList");
 	SendIgnoreList();
 }
 
@@ -815,7 +719,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 				if (EQOpcodeManager.count(GetOpcodeVersion(version)) == 0) {
 					LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
-					ClientPacketFunctions::SendLoginDenied( this );
+					ClientPacketFunctions::SendLoginDenied(shared_from_this());
 					return false;
 				}
 
@@ -824,14 +728,17 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 				ZoneAuthRequest* zar = zone_auth.GetAuth(account_id, access_code);
 
-				if(zar)
-				{
-					firstlogin = zar->isFirstLogin ( );
+				if(zar) {
 					LogWrite(ZONE__INFO, 0, "ZoneAuth", "Access Key: %u, Character Name: %s, Account ID: %u", zar->GetAccessKey(), zar->GetCharacterName(), zar->GetAccountID());
-					if(database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), this)){
+
+					firstlogin = zar->isFirstLogin();
+
+					if (database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), shared_from_this())) {
 						version = request->getType_int16_ByName("version");
-						MDeletePlayer.writelock(__FUNCTION__, __LINE__);
-						Client* client = zone_list.GetClientByCharName(player->GetName());
+						shared_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
+
+						// TODO: Revisit LD code
+						/*MDeletePlayer.writelock(__FUNCTION__, __LINE__);
 						if(client){
 							if(client->getConnection())
 								client->getConnection()->SendDisconnect();
@@ -854,51 +761,63 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 							}
 
 							client->GetPlayer()->SetResurrecting(true);
+						}
+						MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);*/
 
-							GroupMemberInfo* info = 0;
-							if (info = client->GetPlayer()->GetGroupMemberInfo()) {
-								info->client = this;
-								info->member = GetPlayer();
+						if (client) {
+							if (client->IsZoning()) {
+								GroupMemberInfo* info = nullptr ;
 
-								client->GetPlayer()->SetGroupMemberInfo(0);
-								GetPlayer()->SetGroupMemberInfo(info);
+								if (info = client->GetPlayer()->GetGroupMemberInfo()) {
+									info->client = shared_from_this();
+									info->member = GetPlayer();
 
-								GetPlayer()->UpdateGroupMemberInfo();
-								world.GetGroupManager()->SendGroupUpdate(GetPlayer()->GetGroupMemberInfo()->group_id, this);
+									client->GetPlayer()->SetGroupMemberInfo(nullptr);
+
+									GetPlayer()->SetGroupMemberInfo(info);
+									GetPlayer()->UpdateGroupMemberInfo();
+
+									world.GetGroupManager()->SendGroupUpdate(GetPlayer()->GetGroupMemberInfo()->group_id, shared_from_this());
+								}
 							}
-						}
-						MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);						
-						if(!GetCurrentZone()){
-							LogWrite(ZONE__ERROR, 0, "Zone", "Error loading zone for character: %s", player->GetName());
-							ClientPacketFunctions::SendLoginDenied( this );
-						}
-						else if(EQOpcodeManager.count(GetOpcodeVersion(version)) > 0 && getConnection()){
-							getConnection()->SetClientVersion(version);
-							connected_to_zone = true;
-							client_list.Remove(this); //remove from master client list
-							new_client_login = true;
-							GetCurrentZone()->AddClient(this); //add to zones client list
-							zone_list.AddClientToMap(player->GetName(), this);
-						}
-						else{
-							LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
-							ClientPacketFunctions::SendLoginDenied( this );
 
-													return false;
+							client->GetPlayer()->SetResurrecting(true);
 						}
-					}
-					else{
+
+						if (client && client->getConnection()) {
+							ClientPacketFunctions::SendLoginDenied(shared_from_this());
+						} else if (!GetCurrentZone()) {
+							LogWrite(ZONE__ERROR, 0, "Zone", "Error loading zone for character: %s", player->GetName());
+							ClientPacketFunctions::SendLoginDenied(shared_from_this());
+						} else if(EQOpcodeManager.count(GetOpcodeVersion(version)) > 0 && getConnection()) {
+							getConnection()->SetClientVersion(version);
+
+							client_list.Remove(shared_from_this());
+
+							connected_to_zone = true;
+							new_client_login = true;
+
+							GetCurrentZone()->AddIncomingClient(shared_from_this());
+							zone_list.AddClientToMap(player->GetName(), shared_from_this());
+						} else {
+							LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
+							ClientPacketFunctions::SendLoginDenied(shared_from_this());
+
+							return false;
+						}
+					} else {
 						LogWrite(WORLD__ERROR, 0, "World", "Could not load character '%s' with account id of: %u", zar->GetCharacterName(), zar->GetAccountID());
-						ClientPacketFunctions::SendLoginDenied( this );
+
+						ClientPacketFunctions::SendLoginDenied(shared_from_this());
 					}
+
 					zone_auth.RemoveAuth(zar);
-				}
-				else
-				{
+				} else {
 					LogWrite(WORLD__ERROR, 0, "World", "Invalid ZoneAuthRequest, disconnecting client.");
 					Disconnect();
 				}
 			}
+
 			safe_delete(request);
 			break;
 		}
@@ -1348,7 +1267,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				if (item > 0)
 					items.push_back(item);
 
-				GetCurrentZone()->GetTradeskillMgr()->BeginCrafting(this, items);
+				GetCurrentZone()->GetTradeskillMgr()->BeginCrafting(shared_from_this(), items);
 
 				safe_delete(packet);
 			}
@@ -1357,7 +1276,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 		case OP_StopItemCreationMsg: {
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_StopItemCreationMsg", opcode, opcode);
 			//DumpPacket(app->pBuffer, app->size);
-			GetCurrentZone()->GetTradeskillMgr()->StopCrafting(this);
+			GetCurrentZone()->GetTradeskillMgr()->StopCrafting(shared_from_this());
 			break;
 										  }
 		//case OP_SignalMsg:{
@@ -1385,13 +1304,13 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 					string command = packet->getType_EQ2_16BitString_ByName("command").data;
 					if (EntityCommandPrecheck(spawn, command.c_str())){
 						if (spawn->IsGroundSpawn())
-							((GroundSpawn*)spawn)->HandleUse(this, command);
+							((GroundSpawn*)spawn)->HandleUse(shared_from_this(), command);
 						else if (spawn->IsObject())
-							((Object*)spawn)->HandleUse(this, command);
+							((Object*)spawn)->HandleUse(shared_from_this(), command);
 						else if (spawn->IsWidget())
-							((Widget*)spawn)->HandleUse(this, command);
+							((Widget*)spawn)->HandleUse(shared_from_this(), command);
 						else if (spawn->IsSign())
-							((Sign*)spawn)->HandleUse(this, command);
+							((Sign*)spawn)->HandleUse(shared_from_this(), command);
 					}
 				}
 				else{
@@ -1410,12 +1329,12 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 								command.data = command.data.substr(command.data.find(" ")+1);
 								command.size = command.data.length();
 							}
-							commands.Process(handler, &command, this);
+							commands.Process(handler, &command, shared_from_this());
 						}
 						else{
 							if(spawn && spawn->IsNPC()){
 								if (EntityCommandPrecheck(spawn, command.data.c_str())){
-									if (!((NPC*)spawn)->HandleUse(this, command.data)){
+									if (!((NPC*)spawn)->HandleUse(shared_from_this(), command.data)){
 										LogWrite(WORLD__ERROR, 0, "World", "Unhandled command in OP_EntityVerbsVerbMsg: %s", command.data.c_str());
 									}
 								}
@@ -1436,15 +1355,23 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 								 }
 		case OP_UpdateTargetMsg:{
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_UpdateTargetMsg", opcode, opcode);
+
 			int16 index = 0;
+
 			memcpy(&index, app->pBuffer, sizeof(int16));
-			if (index == 0xFFFF)
+
+			if (index == 0xFFFF) {
 				GetPlayer()->SetTarget(0);
-			else
+				GetPlayer()->SetRangeAttack(false);
+				GetPlayer()->SetMeleeAttack(false);
+			} else {
 				GetPlayer()->SetTarget(GetPlayer()->GetSpawnByIndex(index));
-			if(GetPlayer()->GetTarget())
+			}
+
+			if (GetPlayer()->GetTarget()) {
 				GetCurrentZone()->CallSpawnScript(GetPlayer()->GetTarget(), SPAWN_SCRIPT_TARGETED, GetPlayer());
-			//player->SetTarget((int16*)app->pBuffer);
+			}
+
 			break;
 								}
 		case OP_ExamineInfoRequestMsg:{
@@ -1474,7 +1401,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 #if EQDEBUG >= 9
 				DumpPacket(app);
 #endif
-				commands.Process(remote.handler, &remote.command, this);
+				commands.Process(remote.handler, &remote.command, shared_from_this());
 			}
 			else //bad client, disconnect
 				Disconnect();
@@ -1489,24 +1416,30 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 		case OP_UpdatePositionMsg:{
 			LogWrite(OPCODE__DEBUG, 7, "Opcode", "Opcode 0x%X (%i): OP_UpdatePositionMsg", opcode, opcode); 
 			int8 offset = 13;
-			if(app->pBuffer[0]==0xFF)
+
+			if (app->pBuffer[0]==0xFF) {
 				offset +=2;
+			}
+
 			if (app->size>offset) {
-				if(player->IsCasting()){
-					float distance = 0;
+				if (player->IsCasting()) {
 					float x = player->GetX();
 					float y = player->GetY();
 					float z = player->GetZ();
+
 					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
-					distance = player->GetDistance(x, y, z, false);
-					if(distance > .5)
+
+					float distance = player->GetDistance(x, y, z, false);
+
+					if (distance > .5) {
 						current_zone->Interrupted(player, 0, SPELL_ERROR_INTERRUPTED, false, true);
-				}
-				else
+					}
+				} else {
 					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
-				player_pos_changed = true;
-				LogWrite(CCLIENT__PACKET, 0, "Client", "Dump/Print Packet in func: %s, line: %i", __FUNCTION__, __LINE__);
-				//DumpPacket(app);
+				}
+
+				GetPlayer()->position_changed = true;
+				GetPlayer()->changed = true;
 			}
 			break;
 								  }
@@ -1565,16 +1498,15 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				/* Player has contacted a guild recruiter */
 				if (recruiter_name.length() > 0) {
 					Guild* guild = guild_list.GetGuild(packet->getType_int32_ByName("guild_id"));
-					Client* recruiter = zone_list.GetClientByCharName(recruiter_name);
+					shared_ptr<Client> recruiter = zone_list.GetClientByCharName(recruiter_name);
+
 					if (recruiter && guild) {
 						Message(CHANNEL_COLOR_GUILD_EVENT, "Contact request sent to %s of %s.", recruiter->GetPlayer()->GetName(), guild->GetName());
 						recruiter->Message(CHANNEL_COLOR_GUILD_EVENT, "%s [%u %s], [0 Unskilled] (%s) is requesting to speak to YOU about joining the guild.", player->GetName(), player->GetLevel(), classes.GetClassNameCase(player->GetAdventureClass()).c_str(), races.GetRaceNameCase(player->GetRace()));
 						recruiter->PlaySound("ui_guild_page");
 					}
-				}
-				/* New picture taken for guild recruiting */
-				else {
-					//DumpPacket(app->pBuffer, app->size);
+				} else {
+					/* New picture taken for guild recruiting */
 					int32 guild_id = 0;
 					int16 picture_data_size = 0;
 					unsigned char* recruiter_picture_data = 0;
@@ -1936,7 +1868,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				player->custNPCTarget = 0;
 				player->changed = true;
 				player->info_changed = true;
-				current_zone->SendSpawnChanges(player, this);
+				current_zone->SendSpawnChanges(player, shared_from_this());
 			}
 
 			break;
@@ -2199,7 +2131,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 
 		if (spell && sent_spell_details.count(id) == 0) {
 			sent_spell_details[id] = true;
-			EQ2Packet* app = spell->SerializeSpell(this, false, trait_display);
+			EQ2Packet* app = spell->SerializeSpell(shared_from_this(), false, trait_display);
 			//DumpPacket(app);
 			QueuePacket(app);
 		}
@@ -2292,7 +2224,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 			Spell* spell = master_spell_list.GetSpell(id, tier);
 			if(spell && sent_spell_details.count(id) == 0){
 				sent_spell_details[id] = true;
-				EQ2Packet* app = spell->SerializeSpecialSpell(this, false, 0x00, 0x81);
+				EQ2Packet* app = spell->SerializeSpecialSpell(shared_from_this(), false, 0x00, 0x81);
 				//DumpPacket(app);
 				QueuePacket(app);
 			}
@@ -2306,7 +2238,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		int32 id = request->getType_int32_ByName("unknown_id");
 		Recipe *recipe = master_recipe_list.GetRecipe(id);
 		if(recipe){
-			EQ2Packet* app = recipe->SerializeRecipe(this, recipe, false, GetItemPacketType(GetVersion()), 0x02);
+			EQ2Packet* app = recipe->SerializeRecipe(shared_from_this(), recipe, false, GetItemPacketType(GetVersion()), 0x02);
 			//DumpPacket(app);
 			QueuePacket(app);
 		}
@@ -2328,7 +2260,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		//spell = master_spell_list.GetSpell(id, 1);
 		if (spell && sent_spell_details.count(spell->GetSpellID()) == 0) {
 			sent_spell_details[spell->GetSpellID()] = true;
-			EQ2Packet* app = spell->SerializeAASpell(this, data, false, GetItemPacketType(GetVersion()), 0x04);
+			EQ2Packet* app = spell->SerializeAASpell(shared_from_this(), data, false, GetItemPacketType(GetVersion()), 0x04);
 			DumpPacket(app);
 			LogWrite(WORLD__INFO, 0, "WORLD", "Examine Info Request-> Spell ID: %u", spell->GetSpellID());
 			QueuePacket(app);
@@ -2369,18 +2301,20 @@ void Client::HandleQuickbarUpdateRequest(EQApplicationPacket* app){
 }
 
 bool Client::Process(bool zone_process) {
-	if(!eqs) {
-			return false;
-	}
-	if((connected_to_zone && !zone_process) || (!connected_to_zone && zone_process)) {
-			return true;
+	if (!eqs) {
+		return false;
 	}
 
-	if(new_client_login){
+	if ((connected_to_zone && !zone_process) || (!connected_to_zone && zone_process)) {
+		return true;
+	}
+
+	if (new_client_login) {
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
 		SendLoginInfo();
 		new_client_login = false;
 	}
+
 	bool ret = true;
 	sockaddr_in to;
 
@@ -2390,23 +2324,67 @@ bool Client::Process(bool zone_process) {
 	to.sin_addr.s_addr = ip;
 
 	/************ Get all packets from packet manager out queue and process them ************/
-	EQApplicationPacket *app = 0;
-	if(eqs && !eqs->CheckActive()){
+	if (eqs && !eqs->CheckActive()) {
 		num_active_failures++;
 
-		LogWrite(CCLIENT__DEBUG, 7, "Client", "%s, num_active_failures = %i", __FUNCTION__, num_active_failures);
-
-		if(num_active_failures > 100) {
-					return false;
+		if (num_active_failures > 100) {
+			return false;
 		}
-			return true;
+
+		return true;
 	}
-	while(ret && eqs && (app = eqs->PopPacket())) {
+
+	EQApplicationPacket* app = nullptr;
+	while (ret && eqs && (app = eqs->PopPacket())) {
 		ret = HandlePacket(app);
+		safe_delete(app);
+	}
 
-		LogWrite(CCLIENT__DEBUG, 5, "Client", "Func: %s, Line: %i, Opcode: '%s'", __FUNCTION__, __LINE__, app->GetOpcodeName());
+	if (!waiting_to_zone && next_zone) {
+		client_zoning = true;
 
-		delete app;
+		player->DismissPet((NPC*)player->GetPet());
+		player->DismissPet((NPC*)player->GetCharmedPet());
+		player->DismissPet((NPC*)player->GetDeityPet());
+		player->DismissPet((NPC*)player->GetCosmeticPet());
+
+		GetCurrentZone()->RemoveSpawn(player, false);
+
+		SetCurrentZone(next_zone);
+
+		// Do smoething with group to show that the person is ozning
+
+		UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
+
+		if (set_next_zone_coords) {
+			player->SetX(GetCurrentZone()->GetSafeX());
+			player->SetY(GetCurrentZone()->GetSafeY());
+			player->SetZ(GetCurrentZone()->GetSafeZ());
+			player->SetHeading(GetCurrentZone()->GetSafeHeading());
+		}
+
+		if (GetPlayer()->IsResurrecting()) {
+			player->SetHP(player->GetTotalHP());
+			player->SetPower(player->GetTotalPower());
+		}
+
+
+		char* new_zone_ip = 0;
+		struct in_addr in;
+		in.s_addr = GetIP();
+
+		if (strncmp(inet_ntoa(in), "192.168", 7) == 0 && strlen(net.GetInternalWorldAddress()) > 0) {
+			new_zone_ip = net.GetInternalWorldAddress();
+		} else {
+			new_zone_ip = net.GetWorldAddress();
+		}
+
+		int32 key = Timer::GetUnixTimeStamp();
+
+		ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
+		zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
+
+		return true;
 	}
 
 	if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
@@ -2425,18 +2403,18 @@ bool Client::Process(bool zone_process) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, CheckQuestQueue", __FUNCTION__, __LINE__);
 		CheckQuestQueue();
 	}
-	if(pos_update.Check() && player_pos_changed){
-		//GetPlayer()->CalculateLocation();
-		GetCurrentZone()->SendPlayerPositionChanges(GetPlayer());
-		player_pos_changed = false;
-		GetCurrentZone()->CheckTransporters(this);
+
+	if (pos_update.Check() && GetPlayer()->position_changed) {
+		GetCurrentZone()->SendSpawnChanges(GetPlayer());
+		GetCurrentZone()->CheckTransporters(shared_from_this());
 	}
+
 	if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
-		GetCurrentZone()->StartZoneSpawnsForAggroThread(this);
+		GetCurrentZone()->StartZoneSpawnsForAggroThread(shared_from_this());
 		GetPlayer()->SetResendSpawns(false);
 	}
 	if(lua_interface && lua_debug && lua_debug_timer.Check())
-		lua_interface->UpdateDebugClients(this);
+		lua_interface->UpdateDebugClients(shared_from_this());
 	if(quest_pos_timer.Check())
 		CheckPlayerQuestsLocationUpdate();
 	if(camp_timer && camp_timer->Check() && getConnection()){
@@ -2513,13 +2491,18 @@ bool Client::Process(bool zone_process) {
 		failed_step->StepFailed(failed_step->GetTimerStep());
 
 	if (player->ControlFlagsChanged())
-		player->SendControlFlagUpdates(this);
+		player->SendControlFlagUpdates(shared_from_this());
 
 	if (!eqs || !eqs->CheckActive())
 		ret = false;
 
-	if(!ret)
-		Save();
+	if (!ret) {
+		shared_ptr<Client> client = shared_from_this();
+		thread t([client]() {
+			client->Save();
+		});
+		t.detach();
+	}
 
 	return ret;
 }
@@ -2533,12 +2516,10 @@ ClientList::~ClientList() {
 }
 
 void ClientList::ReloadQuests() {
-	list<Client*>::iterator client_iter;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
-		Client* client = *client_iter;
-		if(client)
-			client->ReloadQuests();
+	for (auto client_iter = client_list.begin(); client_iter != client_list.end(); ++client_iter) {
+		const auto& client = *client_iter;
+		client->ReloadQuests();
 	}
 	MClients.releasereadlock(__FUNCTION__, __LINE__);
 
@@ -2548,121 +2529,68 @@ int32 ClientList::Count(){
 	return client_list.size();
 }
 
-void ClientList::Add(Client* client) {
+void ClientList::Add(shared_ptr<Client> client) {
 	MClients.writelock(__FUNCTION__, __LINE__);
-	client_list.push_back(client);
+	client_list.push_back(move(client));
 	MClients.releasewritelock(__FUNCTION__, __LINE__);
 
 }
 
-Client* ClientList::FindByAccountID(int32 account_id) {
-	list<Client*>::iterator client_iter;
-	Client* client = 0;
-	Client* ret = 0;
-	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
-		client = *client_iter;
-		if (client->GetAccountID() == account_id) {
-			ret =  client;
-			break;
-		}
-	}
-	MClients.releasereadlock(__FUNCTION__, __LINE__);
-
-	return ret;
-}
-
-Client* ClientList::FindByName(char* charName) {
-	list<Client*>::iterator client_iter;
-	Client* client = 0;
-	Client* ret = 0;
-	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
-		client = *client_iter;
-		if (!client || !client->GetPlayer())
-			continue;
-
-		if (!strncmp(client->GetPlayer()->GetName(),charName,strlen(charName))) {
-			ret =  client;
-			break;
-		}
-	}
-	MClients.releasereadlock(__FUNCTION__, __LINE__);
-
-	return ret;
-}
-
-Client* ClientList::Get(int32 ip, int16 port) {
-	list<Client*>::iterator client_iter;
-	Client* client = 0;
-	Client* ret = 0;
-	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_list.size() > 0 && client_iter!=client_list.end(); ++client_iter){
-		client = *client_iter;
-		if(client->GetIP() == ip && client->GetPort() == port){
-			ret = client;
-			break;
-		}
-	}
-	MClients.releasereadlock(__FUNCTION__, __LINE__);
-
-	return ret;
-}
-
 void ClientList::Process() {
+	auto erase_iter = client_list.end();
 
-	list<Client*>::iterator client_iter;
-	list<Client*>::iterator erase_iter;
-	Client* client = 0;
 	MClients.readlock(__FUNCTION__, __LINE__);
-	erase_iter = client_list.end();
-	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
-		client = *client_iter;
-		// have a sanity check because the client list can sometimes obtain null client pointers
-		if (!client || (!client->Process() || client->remove_from_list)) {
+	for (auto client_iter = client_list.begin(); client_iter != client_list.end(); ++client_iter) {
+		const auto& client = *client_iter;
+
+		if (!client->Process() || client->remove_from_list) {
 			erase_iter = client_iter;
 			break;
 		}
 	}
 	MClients.releasereadlock(__FUNCTION__, __LINE__);
-	if(erase_iter != client_list.end()){
-		client = *erase_iter;
+
+	if (erase_iter != client_list.end()) {
+		const auto& client = *erase_iter;
+
 		MClients.writelock(__FUNCTION__, __LINE__);
 		client_list.erase(erase_iter);
 		MClients.releasewritelock(__FUNCTION__, __LINE__);
-		if(client && !client->remove_from_list){
+
+		if (!client->remove_from_list) {
 			struct in_addr  in;
 			in.s_addr = client->GetIP();
+
 			LogWrite(WORLD__INFO, 0, "World", "Removing client from ip: %s port: %i", inet_ntoa(in), client->GetPort());
-			safe_delete(client);
 		}
 	}
 
 }
 
 void ClientList::RemoveConnection(EQStream* eqs){
-	if(eqs){
-		list<Client*>::iterator client_iter;
+	if (eqs) {
 		MClients.readlock(__FUNCTION__, __LINE__);
-		for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
-			Client* client = *client_iter;
-			if(client->getConnection() == eqs)
+		for (auto client_iter = client_list.begin(); client_iter != client_list.end(); ++client_iter) {
+			const auto& client = *client_iter;
+
+			if (client->getConnection() == eqs) {
 				client->Disconnect(false);
+			}
 		}
 		MClients.releasereadlock(__FUNCTION__, __LINE__);
 	}
-
 }
 
 bool ClientList::ContainsStream(EQStream* eqs){
-	if(!eqs) {
-			return false;
+	if (!eqs) {
+		return false;
 	}
-	list<Client*>::iterator client_iter;
+
 	bool ret = false;
+
 	MClients.readlock(__FUNCTION__, __LINE__);
-	for(client_iter=client_list.begin(); client_iter!=client_list.end(); ++client_iter){
-		if((*client_iter)->getConnection() && (*client_iter)->getConnection()->GetRemotePort() == eqs->GetRemotePort() && (*client_iter)->getConnection()->GetRemoteIP() == eqs->GetRemoteIP()){
+	for (const auto& client : client_list) {
+		if (client->getConnection() && client->getConnection()->GetRemotePort() == eqs->GetRemotePort() && client->getConnection()->GetRemoteIP() == eqs->GetRemoteIP()) {
 			ret = true;
 			break;
 		}
@@ -2672,12 +2600,8 @@ bool ClientList::ContainsStream(EQStream* eqs){
 	return ret;
 }
 
-void ClientList::Remove(Client* client, bool remove_data) {
+void ClientList::Remove(shared_ptr<Client> client) {
 	client->remove_from_list = true;
-	if(remove_data){
-		safe_delete(client);
-	}
-
 }
 
 void Client::SetCurrentZone(int32 id){
@@ -2756,60 +2680,78 @@ void Client::Disconnect(bool send_disconnect)
 	if(send_disconnect && getConnection())
 		getConnection()->SendDisconnect(true);
 
-	this->Save();
-	this->GetPlayer()->WritePlayerStatistics();
+
+	shared_ptr<Client> client = shared_from_this();
+	thread t([client]() {
+		client->Save();
+	});
+	t.detach();
+
+	GetPlayer()->WritePlayerStatistics();
 
 	eqs = 0;
 }
 
 bool Client::Summon(const char* search_name){
-	Spawn* target = 0;
-	if(search_name || GetPlayer()->GetTarget()){
-		Client* search_client = 0;
-		if(search_name){
+	Spawn* target = nullptr;
+
+	if (search_name || GetPlayer()->GetTarget()) {
+		shared_ptr<Client> search_client = nullptr;
+
+		if (search_name) {
 			target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
-			if(target && target->IsPlayer())
+
+			if (target && target->IsPlayer()) {
 				search_client = GetCurrentZone()->GetClientBySpawn(target);
-			if(!target){
+			} else if (!target) {
 				search_client = zone_list.GetClientByCharName(string(search_name));
-				if(search_client)
+
+				if (search_client) {
 					target = search_client->GetPlayer();
+				}
 			}
-		}
-		else
+		} else {
 			target = GetPlayer()->GetTarget();
-		if(target && target != GetPlayer()){
+		}
+
+		if (target && target != GetPlayer()) {
 			target->SetX(GetPlayer()->GetX());
 			target->SetY(GetPlayer()->GetY());
 			target->SetZ(GetPlayer()->GetZ());
 			target->SetHeading(GetPlayer()->GetHeading());
-			if(!target->IsPlayer()){
+			target->SetLocation(GetPlayer()->GetLocation());
+
+			if (!target->IsPlayer()) {
 				target->SetSpawnOrigX(target->GetX());
 				target->SetSpawnOrigY(target->GetY());
 				target->SetSpawnOrigZ(target->GetZ());
 				target->SetSpawnOrigHeading(target->GetHeading());
 			}
-			target->SetLocation(GetPlayer()->GetLocation());
-		}
-		else if(target)
+		} else if(target) {
 			Message(CHANNEL_COLOR_RED,"Error: You cannot summon yourself!");
-		if(search_client && search_client != this){
+		}
+
+		if (search_client && search_client != shared_from_this()) {
 			search_client->Message(CHANNEL_COLOR_YELLOW, "You have been summoned by '%s'!", GetPlayer()->GetName());
 			Message(CHANNEL_COLOR_YELLOW, "Summoning '%s'...", search_client->GetPlayer()->GetName());
-			if(search_client->GetCurrentZone() != GetCurrentZone())
+
+			if (search_client->GetCurrentZone() != GetCurrentZone()) {
 				search_client->Zone(GetCurrentZone()->GetZoneName(), false);
-			else{
+			} else {
 				EQ2Packet* app = search_client->GetPlayer()->Move(GetPlayer()->GetX(), GetPlayer()->GetY(), GetPlayer()->GetZ(), search_client->GetVersion());
-				if(app)
+
+				if(app) {
 					search_client->QueuePacket(app);
+				}
 			}
 		}
 	}
 
-	if(!target)
+	if (!target) {
 		return false;
-	else
+	} else {
 		return true;
+	}
 }
 
 bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
@@ -2987,35 +2929,46 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 }
 
 bool Client::GotoSpawn(const char* search_name){
-	Spawn* target = 0;
-	if(search_name || GetPlayer()->GetTarget()){
-		Client* search_client = 0;
-		if(search_name){
+	Spawn* target = nullptr;
+
+	if (search_name || GetPlayer()->GetTarget()) {
+		shared_ptr<Client> search_client = nullptr;
+
+		if (search_name) {
 			target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
-			if(!target){
-				search_client = zone_list.GetClientByCharName(search_name);
-				if(search_client)
+
+			if (target && target->IsPlayer()) {
+				search_client = GetCurrentZone()->GetClientBySpawn(target);
+			} else if (!target) {
+				search_client = zone_list.GetClientByCharName(string(search_name));
+
+				if (search_client) {
 					target = search_client->GetPlayer();
+				}
 			}
-		}
-		else
+		} else {
 			target = GetPlayer()->GetTarget();
-		if(target && target != GetPlayer()){
+		}
+
+		if (target && target != GetPlayer()) {
 			GetPlayer()->SetX(target->GetX());
 			GetPlayer()->SetY(target->GetY());
 			GetPlayer()->SetZ(target->GetZ());
 			GetPlayer()->SetHeading(target->GetHeading());
 			GetPlayer()->SetLocation(target->GetLocation());
 			Message(CHANNEL_COLOR_YELLOW, "Warping to '%s'", target->GetName());
-		}
-		else if(target)
+		} else if(target) {
 			Message(CHANNEL_COLOR_RED,"Error: You cannot goto yourself!");
-		if(search_client && search_client->GetCurrentZone() != GetCurrentZone())
+		}
+
+		if (search_client && search_client->GetCurrentZone() != GetCurrentZone()) {
 			Zone(search_client->GetCurrentZone()->GetZoneName(), false);
-		else if(target){
+		} else if (target) {
 			EQ2Packet* app = GetPlayer()->Move(target->GetX(), target->GetY(), target->GetZ(), GetVersion());
-			if(app)
+
+			if (app) {
 				QueuePacket(app);
+			}
 		}
 	}
 
@@ -3023,6 +2976,30 @@ bool Client::GotoSpawn(const char* search_name){
 		return false;
 	else
 		return true;
+}
+
+void Client::Target(const char* search_name) {
+	if (search_name) {
+		Spawn* target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
+
+		if (target && GetPlayer()->WasSentSpawn(target->GetID()) && !GetPlayer()->WasSpawnRemoved(target)) {
+			TargetSpawn(target);
+		}
+	} else {
+		TargetSpawn(GetPlayer());
+	}
+}
+
+void Client::Assist(const char* search_name) {
+	if (search_name) {
+		Spawn* target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
+
+		if (target && GetPlayer()->WasSentSpawn(target->GetID()) && !GetPlayer()->WasSpawnRemoved(target)) {
+			TargetSpawn(target->GetTarget());
+		}
+	} else if (GetPlayer()->GetTarget()) {
+		TargetSpawn(GetPlayer()->GetTarget()->GetTarget());
+	}
 }
 
 bool Client::CheckZoneAccess(const char* zoneName) {
@@ -3114,72 +3091,25 @@ void Client::Zone(int32 instanceid, bool set_coords, bool byInstanceID) {
 
 }
 
-void Client::Zone(ZoneServer* new_zone, bool set_coords){
-	if(!new_zone) {
+void Client::Zone(ZoneServer* new_zone, bool set_coords) {
+	if (!new_zone) {
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request Denied! No 'new_zone' value");
 		return;
 	}
 
-	client_zoning = true;
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting player Resurrecting to 'true'", __FUNCTION__);
-	player->SetResurrecting(true);
+	waiting_to_zone = true;
+	next_zone = new_zone;
 
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from fighting...", __FUNCTION__);
-	//GetCurrentZone()->GetCombat()->RemoveHate(player);
-	
-	database.SavePlayerActiveSpells(this);
+	set_next_zone_coords = set_coords;
 
-	// Remove players pet from zone if there is one
-	player->DismissPet((NPC*)player->GetPet());
-	player->DismissPet((NPC*)player->GetCharmedPet());
-	player->DismissPet((NPC*)player->GetDeityPet());
-	player->DismissPet((NPC*)player->GetCosmeticPet());
+	shared_ptr<Client> client = shared_from_this();
+	thread t([this, client]() {
+		database.SavePlayerActiveSpells(shared_from_this());
+		client->Save();
 
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from current zone...", __FUNCTION__);
-	GetCurrentZone()->RemoveSpawn(player, false);
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->GetZoneName());
-	SetCurrentZone(new_zone);
-
-	// Do smoething with group to show that the person is ozning
-
-	UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
-
-	if(set_coords)
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Zoning player to coordinates x: %2f, y: %2f, z: %2f, heading: %2f in zone '%s'...", 
-			__FUNCTION__, 
-			GetCurrentZone()->GetSafeX(),
-			GetCurrentZone()->GetSafeY(),
-			GetCurrentZone()->GetSafeZ(),
-			GetCurrentZone()->GetSafeHeading(), 
-			new_zone->GetZoneName()
-			);
-		player->SetX(GetCurrentZone()->GetSafeX());
-		player->SetY(GetCurrentZone()->GetSafeY());
-		player->SetZ(GetCurrentZone()->GetSafeZ());
-		player->SetHeading(GetCurrentZone()->GetSafeHeading());
-	}
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Saving Player info...", __FUNCTION__);
-	Save();
-
-	char* new_zone_ip = 0;
-	struct in_addr in;
-	in.s_addr = this->GetIP();
-	if(strncmp(inet_ntoa(in), "192.168",7)==0 && strlen(net.GetInternalWorldAddress()) > 0)
-		new_zone_ip = net.GetInternalWorldAddress();
-	else
-		new_zone_ip = net.GetWorldAddress();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: New Zone IP '%s'...", __FUNCTION__, new_zone_ip);
-
-	int32 key = Timer::GetUnixTimeStamp();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending ZoneChangeMsg...", __FUNCTION__);
-	ClientPacketFunctions::SendZoneChange(this, new_zone_ip, net.GetWorldPort(), key);
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending to zone_auth.AddAuth...", __FUNCTION__);
-	zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
-
+		waiting_to_zone = false;
+	});
+	t.detach();
 }
 
 void Client::Zone(const char* new_zone, bool set_coords)
@@ -3225,9 +3155,10 @@ void Client::TeleportWithinZone(float x, float y, float z, float heading) {
 		client_zoning = true;
 }
 
-float Client::DistanceFrom(Client* client){
+float Client::DistanceFrom(const shared_ptr<Client>& client) {
 	float ret = 0;
-	if(client && client != this){
+
+	if (client && client != shared_from_this()) {
 		ret = pow(player->GetX() - client->player->GetX(), 2) + pow(player->GetY() - client->player->GetY(), 2) + pow(player->GetZ() - client->player->GetZ(), 2);
 		ret = sqrt(ret);
 	}
@@ -3304,19 +3235,23 @@ void Client::DetermineCharacterUpdates ( ) {
 
 }
 
-void Client::Save(){
-	if(current_zone){
+void Client::Save() {
+	if (current_zone) {
 		DetermineCharacterUpdates();
 
 		UpdateCharacterInstances();
 
-		database.Save(this);
-		if(GetPlayer()->UpdateQuickbarNeeded()){
+		database.Save(shared_from_this());
+
+		if (GetPlayer()->UpdateQuickbarNeeded()) {
+			lock_guard<mutex> guard(GetPlayer()->quickbar_mutex);
+
 			database.SaveQuickBar(GetCharacterID(), GetPlayer()->GetQuickbar());
 			GetPlayer()->ResetQuickbarNeeded();
 		}
-		database.SaveItems(this);
-		database.SaveBuyBacks(this);
+
+		database.SaveItems(shared_from_this());
+		database.SaveBuyBacks(shared_from_this());
 
 		GetPlayer()->SaveHistory();
 		GetPlayer()->SaveLUAHistory();
@@ -3493,7 +3428,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 		level_update->setDataByName("new_level", new_level);
 		QueuePacket(level_update->serialize());
 		safe_delete(level_update);
-		GetCurrentZone()->StartZoneSpawnsForLevelThread(this);
+		GetCurrentZone()->StartZoneSpawnsForLevelThread(shared_from_this());
 	}
 
 	PacketStruct* command_packet=configReader.getStruct("WS_CannedEmote", GetVersion());
@@ -3595,8 +3530,8 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	// Also need to force the char sheet update or else there can be a large delay from when you level
 	// to when you are actually able to select traits.
 	QueuePacket(GetPlayer()->GetPlayerInfo()->serialize(GetVersion()));
-	QueuePacket(master_trait_list.GetTraitListPacket(this));
-	ClientPacketFunctions::SendSkillBook(this);
+	QueuePacket(master_trait_list.GetTraitListPacket(shared_from_this()));
+	ClientPacketFunctions::SendSkillBook(shared_from_this());
 
 	if (GetPlayer()->SpawnedBots.size() > 0) {
 		map<int32, int32>::iterator itr;
@@ -3707,7 +3642,7 @@ void Client::ChangeTSLevel(int16 old_level, int16 new_level){
 	// Also need to force the char sheet update or else there can be a large delay from when you level
 	// to when you are actually able to select traits.
 	QueuePacket(GetPlayer()->GetPlayerInfo()->serialize(GetVersion()));
-	QueuePacket(master_trait_list.GetTraitListPacket(this));
+	QueuePacket(master_trait_list.GetTraitListPacket(shared_from_this()));
 }
 
 void Client::SendPendingLoot(int32 total_coins, Entity* entity){
@@ -4178,7 +4113,7 @@ void Client::SetStepComplete(int32 quest_id, int32 step){
 	Quest* quest = player->SetStepComplete(quest_id, step);
 	if(quest){
 		SendQuestUpdate(quest);
-		GetCurrentZone()->SendQuestUpdates(this);
+		GetCurrentZone()->SendQuestUpdates(shared_from_this());
 	}
 
 }
@@ -4187,7 +4122,7 @@ void Client::AddStepProgress(int32 quest_id, int32 step, int32 progress) {
 	Quest* quest = player->AddStepProgress(quest_id, step, progress);
 	if (quest) {
 		SendQuestUpdate(quest);
-		GetCurrentZone()->SendQuestUpdates(this);
+		GetCurrentZone()->SendQuestUpdates(shared_from_this());
 	}
 }
 
@@ -4212,7 +4147,7 @@ void Client::CheckPlayerQuestsChatUpdate(Spawn* spawn){
 	if(quest_updates){
 		for(int32 i=0;i<quest_updates->size();i++)
 			SendQuestUpdate(quest_updates->at(i));
-		GetCurrentZone()->SendQuestUpdates(this);
+		GetCurrentZone()->SendQuestUpdates(shared_from_this());
 	}
 	safe_delete(quest_updates);
 }
@@ -4316,7 +4251,7 @@ void Client::AddPlayerQuest(Quest* quest, bool call_accepted, bool send_packets)
 	quest->SetPlayer(player);
 	current_quest_id = quest->GetQuestID();
 	if(send_packets && quest->GetQuestGiver() > 0)
-		GetCurrentZone()->SendSpawnChanges(quest->GetQuestGiver(), this, false, true);
+		GetCurrentZone()->SendSpawnChanges(quest->GetQuestGiver(), shared_from_this(), false, true);
 	if(lua_interface && call_accepted)
 		lua_interface->CallQuestFunction(quest, "Accepted", player);
 	if(send_packets) {
@@ -4345,7 +4280,7 @@ void Client::RemovePlayerQuest(int32 id, bool send_update, bool delete_quest){
 			database.DeleteCharacterQuest(id, GetCharacterID(), player->GetCompletedPlayerQuests()->count(id) > 0);
 		}
 		if(send_update && player->player_quests[id]->GetQuestGiver() > 0)
-			GetCurrentZone()->SendSpawnChanges(player->player_quests[id]->GetQuestGiver(), this, false, true);
+			GetCurrentZone()->SendSpawnChanges(player->player_quests[id]->GetQuestGiver(), shared_from_this(), false, true);
 		if(send_update) {
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 			SendQuestJournal();
@@ -4414,7 +4349,7 @@ void Client::SendQuestUpdate(Quest* quest){
 			lua_interface->CallQuestFunction(quest, quest->GetCompleteAction(), player);
 		if(quest->GetCompleted()){
 			if (quest->GetQuestReturnNPC() > 0)
-				GetCurrentZone()->SendSpawnChanges(quest->GetQuestReturnNPC(), this, false, true);
+				GetCurrentZone()->SendSpawnChanges(quest->GetQuestReturnNPC(), shared_from_this(), false, true);
 			if (quest->GetCompletedFlag())
 				quest->SetCompletedFlag(false);
 		}
@@ -4424,9 +4359,9 @@ void Client::SendQuestUpdate(Quest* quest){
 
 }
 
-void Client::SendQuestJournal(bool all_quests, Client* client){
+void Client::SendQuestJournal(bool all_quests, shared_ptr<Client> client){
 	if(!client)
-		client = this;
+		client = shared_from_this();
 	PacketStruct* packet = player->GetQuestJournalPacket(all_quests, GetVersion(), GetNameCRC(), current_quest_id);
 	if(packet){
 		EQ2Packet* outapp = packet->serialize();
@@ -4734,7 +4669,7 @@ void Client::GiveQuestReward(Quest* quest){
 		SimpleMessage(type, message.c_str());
 	}
 	if(quest->GetQuestGiver() > 0)
-		GetCurrentZone()->SendSpawnChanges(quest->GetQuestGiver(), this, false, true);
+		GetCurrentZone()->SendSpawnChanges(quest->GetQuestGiver(), shared_from_this(), false, true);
 	RemovePlayerQuest(quest->GetQuestID(), true, false);
 
 }
@@ -4866,7 +4801,7 @@ void Client::CombineSpawns(float radius, Spawn* spawn){
 	spawn->RemoveSpawnFromGroup(true);
 	if(!GetCurrentZone()->AddCloseSpawnsToSpawnGroup(combine_spawn, radius))
 		SimpleMessage(CHANNEL_COLOR_YELLOW, "One or more spawns are in a spawn group and cannot be combined until they are removed from their group.");
-	GetCurrentZone()->RepopSpawns(this, combine_spawn);
+	GetCurrentZone()->RepopSpawns(shared_from_this(), combine_spawn);
 	should_target = true;
 
 }
@@ -4875,7 +4810,7 @@ void Client::AddCombineSpawn(Spawn* spawn){
 	if(combine_spawn && combine_spawn != spawn && spawn){
 		combine_spawn->AddSpawnToGroup(spawn);
 		spawn->AddSpawnToGroup(combine_spawn);
-		GetCurrentZone()->RepopSpawns(this, combine_spawn);
+		GetCurrentZone()->RepopSpawns(shared_from_this(), combine_spawn);
 	}
 	else if(spawn)
 		combine_spawn = spawn;
@@ -4888,7 +4823,7 @@ void Client::RemoveCombineSpawn(Spawn* spawn){
 		spawn->RemoveSpawnFromGroup();
 	if(combine_spawn == spawn)
 		combine_spawn->RemoveSpawnFromGroup(true);
-	GetCurrentZone()->RepopSpawns(this, combine_spawn);
+	GetCurrentZone()->RepopSpawns(shared_from_this(), combine_spawn);
 	if(combine_spawn == spawn)
 		combine_spawn = 0;
 
@@ -4997,7 +4932,7 @@ void Client::SetLuaDebugClient(bool val){
 		lua_debug_timer.Start();
 	lua_debug = val; 
 	if(lua_interface && !val){
-		lua_interface->RemoveDebugClients(this);
+		lua_interface->RemoveDebugClients(shared_from_this());
 		lua_debug_timer.Disable();
 	}
 
@@ -5271,7 +5206,7 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 					}
 					else{
 						Message(CHANNEL_COLOR_RED, "You do not have enough coin to purchase \\aITEM %u 0:%s\\/a.", master_item->details.item_id, master_item->name.c_str());
-						GetCurrentZone()->SendSpellFailedPacket(this, SPELL_ERROR_NOT_ENOUGH_COIN);
+						GetCurrentZone()->SendSpellFailedPacket(shared_from_this(), SPELL_ERROR_NOT_ENOUGH_COIN);
 						PlaySound("buy_failed");
 					}
 				}
@@ -5368,13 +5303,13 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 						}
 						else{
 							Message(CHANNEL_COLOR_RED, "You do not have enough coin to purchase \\aITEM %u 0:%s\\/a.", master_item->details.item_id, master_item->name.c_str());
-							GetCurrentZone()->SendSpellFailedPacket(this, SPELL_ERROR_NOT_ENOUGH_COIN);
+							GetCurrentZone()->SendSpellFailedPacket(shared_from_this(), SPELL_ERROR_NOT_ENOUGH_COIN);
 							PlaySound("buy_failed");
 						}
 					}
 					else{
 						Message(CHANNEL_COLOR_RED, "You do not have enough coin to purchase \\aITEM %u 0:%s\\/a.", master_item->details.item_id, master_item->name.c_str());
-						GetCurrentZone()->SendSpellFailedPacket(this, SPELL_ERROR_NOT_ENOUGH_COIN);
+						GetCurrentZone()->SendSpellFailedPacket(shared_from_this(), SPELL_ERROR_NOT_ENOUGH_COIN);
 						PlaySound("buy_failed");
 					}
 				}
@@ -6270,7 +6205,7 @@ void Client::HandleSentMail(EQApplicationPacket* app) {
 							if (postage_cost > 0 || attachment_cost > 0)
 								PlaySoundA("coin_cha_ching");*/
 							mail->save_needed = false;
-							Client* to_client = zone_list.GetClientByCharID(player_to_id);
+							shared_ptr<Client> to_client = zone_list.GetClientByCharID(player_to_id);
 							if (to_client) {
 								to_client->GetPlayer()->AddMail(mail);
 								to_client->SimpleMessage(CHANNEL_COLOR_MAIL, "You've got mail! :)");
@@ -6787,31 +6722,35 @@ void Client::SetReadyForSpawns(bool val){
 			world.GetGroupManager()->GroupMessage(GetPlayer()->GetGroupMemberInfo()->group_id, "%s has returned from Linkdead.", GetPlayer()->GetName());
 		}
 	}
-	zone_list.CheckFriendZoned(this);
+	zone_list.CheckFriendZoned(shared_from_this());
 
 }
 
 void Client::SendChatRelationship(int8 type, const char* name){
 	if(!name) {
-			return;
+		return;
 	}
+
 	PacketStruct* packet = configReader.getStruct("WS_ChatRelationship", GetVersion());
-	if(packet){
+
+	if(packet) {
 		packet->setDataByName("account_id", GetAccountID());
 		packet->setDataByName("type", type);
 		packet->setArrayLengthByName("num_names", 1);
 		packet->setArrayDataByName("name", name);
-		if(type == 0){
-			Client* client = zone_list.GetClientByCharName(name);
-			if(client){
+
+		if (type == 0) {
+			shared_ptr<Client> client = zone_list.GetClientByCharName(name);
+
+			if (client) {
 				packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName());
 				packet->setArrayDataByName("class_name", classes.GetClassName(client->GetPlayer()->GetAdventureClass()));
 			}
 		}
+
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
-
 }
 
 void Client::SendFriendList(){
@@ -6828,15 +6767,18 @@ void Client::SendFriendList(){
 				names.push_back(itr->first);
 			}
 			packet->setArrayLengthByName("num_names", names.size());
-			for(int32 i=0;i<names.size();i++){
-				Client* client = zone_list.GetClientByCharName(names[i]);
+			for (int32 i=0;i<names.size();i++) {
+				shared_ptr<Client> client = zone_list.GetClientByCharName(names[i]);
+
 				packet->setArrayDataByName("name", names[i].c_str(), i);
-				if(client){
+
+				if (client) {
 					packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName(), i);
 					packet->setArrayDataByName("class_name", classes.GetClassName(client->GetPlayer()->GetAdventureClass()), i);
 				}
 			}
 		}
+
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
@@ -7586,7 +7528,7 @@ void Client::SendUpdateTitles(sint16 prefix, sint16 suffix){
 		memset(player->appearance.prefix_title, 0, strlen(player->appearance.prefix_title));
 	}
 
-	current_zone->SendUpdateTitles(this, suffix_title, prefix_title);
+	current_zone->SendUpdateTitles(shared_from_this(), suffix_title, prefix_title);
 }
 
 void Client::SendLanguagesUpdate(int32 id){
@@ -7633,7 +7575,7 @@ void Client::SendPetOptionsWindow(const char* pet_name, int8 type) {
 }
 
 bool Client::IsCrafting() {
-	return current_zone->GetTradeskillMgr()->IsClientCrafting(this);
+	return current_zone->GetTradeskillMgr()->IsClientCrafting(shared_from_this());
 }
 
 void Client::SendBiography() {
@@ -7697,7 +7639,7 @@ void Client::AcceptResurrection() {
 		return;
 	}
 
-	player->GetZone()->ResurrectSpawn(player, this);
+	player->GetZone()->ResurrectSpawn(player, shared_from_this());
 	current_rez.should_delete = true;
 }
 

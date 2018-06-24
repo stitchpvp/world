@@ -294,6 +294,7 @@ int EQ2Emu_lua_AddStoneskin(lua_State* state);
 int EQ2Emu_lua_RemoveStoneskin(lua_State* state);
 
 int EQ2Emu_lua_SetPlayerTriggerCount(lua_State* state);
+int EQ2Emu_lua_GetPlayerTriggerCount(lua_State* state);
 int EQ2Emu_lua_RemoveTriggerFromPlayer(lua_State* state);
 
 //Combat AI related

@@ -20,7 +20,7 @@ Lua_W_Flags	= -Wall
 
 
 # World flags
-C_Flags		= `mysql_config --cflags` -march=native -pipe -pthread -std=c++0x
+C_Flags		= `mysql_config --cflags` -march=native -pipe -pthread -std=c++14
 LD_Flags	= `mysql_config --libs` -rdynamic -lm -Wl,-E -ldl -lreadline
 W_Flags		= -Wall -Wno-reorder
 D_Flags		= -DEQ2 -DWORLD -D_GNU_SOURCE

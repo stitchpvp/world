@@ -62,7 +62,7 @@ TradeskillMgr::TradeskillMgr() {
 TradeskillMgr::~TradeskillMgr() {
 	m_tradeskills.writelock(__FUNCTION__, __LINE__);
 
-	map<Client*, Tradeskill*>::iterator itr;
+	map<shared_ptr<Client>, Tradeskill*>::iterator itr;
 	for (itr = tradeskillList.begin(); itr != tradeskillList.end(); itr++)
 		safe_delete(itr->second);
 
@@ -73,14 +73,14 @@ TradeskillMgr::~TradeskillMgr() {
 
 void TradeskillMgr::Process() {
 	m_tradeskills.writelock(__FUNCTION__, __LINE__);
-	map<Client*, Tradeskill*>::iterator itr = tradeskillList.begin();
+	map<shared_ptr<Client>, Tradeskill*>::iterator itr = tradeskillList.begin();
 	while (itr != tradeskillList.end()) {
 		Tradeskill* tradeskill = 0;
 		tradeskill = itr->second;
 		if (!tradeskill)
 			continue;
 		if (Timer::GetCurrentTime2() >= tradeskill->nextUpdateTime) {
-			Client* client = itr->first;
+			shared_ptr<Client> client = itr->first;
 			sint32 progress = 0;
 			sint32 durability = 0;
 			/*
@@ -229,7 +229,7 @@ void TradeskillMgr::Process() {
 	m_tradeskills.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void TradeskillMgr::BeginCrafting(Client* client, vector<int32> components) {
+void TradeskillMgr::BeginCrafting(shared_ptr<Client> client, vector<int32> components) {
 	Recipe* recipe = master_recipe_list.GetRecipe(client->GetPlayer()->GetCurrentRecipe());
 
 	if (!recipe) {
@@ -266,7 +266,7 @@ void TradeskillMgr::BeginCrafting(Client* client, vector<int32> components) {
 	}*/
 }
 
-void TradeskillMgr::StopCrafting(Client* client, bool lock) {
+void TradeskillMgr::StopCrafting(shared_ptr<Client> client, bool lock) {
 	
 	if (lock)
 		m_tradeskills.writelock(__FUNCTION__, __LINE__);
@@ -401,7 +401,7 @@ void TradeskillMgr::StopCrafting(Client* client, bool lock) {
 	client->GetPlayer()->LockTSSpells();
 }
 
-bool TradeskillMgr::IsClientCrafting(Client* client) {
+bool TradeskillMgr::IsClientCrafting(shared_ptr<Client> client) {
 	bool ret = false;
 
 	m_tradeskills.readlock(__FUNCTION__, __LINE__);
@@ -411,7 +411,7 @@ bool TradeskillMgr::IsClientCrafting(Client* client) {
 	return ret;
 }
 
-void TradeskillMgr::CheckTradeskillEvent(Client* client, int16 icon) {
+void TradeskillMgr::CheckTradeskillEvent(shared_ptr<Client> client, int16 icon) {
 	// Check to see if the given client is crafting
 	if (!IsClientCrafting(client))
 		return;
@@ -438,7 +438,7 @@ void TradeskillMgr::CheckTradeskillEvent(Client* client, int16 icon) {
 	ClientPacketFunctions::CounterReaction(client, countered);
 }
 
-Tradeskill* TradeskillMgr::GetTradeskill(Client* client) {
+Tradeskill* TradeskillMgr::GetTradeskill(shared_ptr<Client> client) {
 	if (tradeskillList.count(client) == 0)
 		return nullptr;
 
