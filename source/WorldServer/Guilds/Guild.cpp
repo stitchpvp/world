@@ -881,6 +881,8 @@ bool Guild::KickGuildMember(const shared_ptr<Client>& client, const char *name, 
 		else
 			kicked_client->Message(CHANNEL_COLOR_YELLOW, "You were kicked from the guild by %s.", kicker_name);
 	}
+	
+	kicked_client->GetCurrentZone()->SendUpdateTitles(kicked_client->GetPlayer());
 
 	mMembers.writelock(__FUNCTION__, __LINE__);
 	members.erase(gm->character_id);

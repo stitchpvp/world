@@ -27,8 +27,9 @@ using namespace std;
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm> 
+#include <algorithm>
 #include <atomic>
+#include <thread>
 
 #include <signal.h>
 
