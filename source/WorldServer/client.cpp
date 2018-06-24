@@ -4785,11 +4785,15 @@ bool Client::ShouldTarget(){
 	return should_target;
 }
 
-void Client::TargetSpawn(Spawn* spawn){
+void Client::TargetSpawn(Spawn* spawn) {
 	should_target = false;
+
+	GetPlayer()->SetTarget(spawn);
+
 	PacketStruct* packet = configReader.getStruct("WS_ServerUpdateTarget", GetVersion());
-	if(packet){
+	if (packet) {
 		packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(spawn));
+
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
