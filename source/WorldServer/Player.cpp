@@ -2882,12 +2882,10 @@ bool Player::AddXP(int32 xp_amount){
 		return false;
 	}
 	while((xp_amount + GetXP()) >= GetNeededXP()){
-		/*
 		if (!CheckLevelStatus(GetLevel() + 1)) {
 			GetZone()->GetClientBySpawn(this)->SimpleMessage(CHANNEL_COLOR_RED, "You do not have the required status to level up anymore!");
 			return false;
 		}
-		*/
 		xp_amount -= GetNeededXP() - GetXP();
 		SetLevel(GetLevel() + 1);
 		SetXP(0);
