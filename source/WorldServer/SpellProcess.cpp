@@ -888,25 +888,33 @@ Spawn* SpellProcess::GetSpellTarget(Entity* caster) {
 }
 
 void SpellProcess::SetInitialTarget(LuaSpell* lua_spell, Spawn* target) {
-	if (!lua_spell || !lua_spell->spell || !lua_spell->caster || !target)
+	if (!lua_spell || !lua_spell->spell || !lua_spell->caster || !target) {
 		return;
+	}
 
 	lua_spell->initial_target = target->GetID();
 
 	int8 target_type = lua_spell->spell->GetSpellData()->target_type;
 
 	if (lua_spell->caster->IsPlayer() && (target_type == SPELL_TARGET_OTHER || target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE || target_type == SPELL_TARGET_OTHER_GROUP_AE)) {
-		if (target->HasTarget()) {
-			Spawn* secondary_target = target->GetTarget();
-
-			if ((lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target) && !lua_spell->caster->IsHostile(secondary_target)) ||
-				(!lua_spell->spell->GetSpellData()->friendly_spell && !lua_spell->caster->IsHostile(target) && lua_spell->caster->IsHostile(secondary_target))) {
-				lua_spell->initial_target = secondary_target->GetID();
-			} else {
-				lua_spell->initial_target = target->GetID();
-			}
-		} else if (lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target)) {
+		if (lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target)) {
 			lua_spell->initial_target = lua_spell->caster->GetID();
+
+			if (target->HasTarget()) {
+				Spawn* secondary_target = target->GetTarget();
+
+				if (!lua_spell->caster->IsHostile(secondary_target)) {
+					lua_spell->initial_target = secondary_target->GetID();
+				}
+			}
+		} else if (!lua_spell->spell->GetSpellData()->friendly_spell && !lua_spell->caster->IsHostile(target)) {
+			if (target->HasTarget()) {
+				Spawn* secondary_target = target->GetTarget();
+
+				if (lua_spell->caster->IsHostile(secondary_target)) {
+					lua_spell->initial_target = secondary_target->GetID();
+				}
+			}
 		}
 	} else if (target_type == SPELL_TARGET_GROUP_AE || target_type == SPELL_TARGET_RAID_AE) {
 		lua_spell->initial_target = lua_spell->caster->GetID();
