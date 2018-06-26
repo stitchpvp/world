@@ -2543,7 +2543,7 @@ void ClientList::Process() {
 	for (auto client_iter = client_list.begin(); client_iter != client_list.end(); ++client_iter) {
 		const auto& client = *client_iter;
 
-		if (!client->Process() || client->remove_from_list) {
+		if (!client || (!client->Process() || client->remove_from_list)) {
 			erase_iter = client_iter;
 			break;
 		}
@@ -2557,12 +2557,15 @@ void ClientList::Process() {
 		client_list.erase(erase_iter);
 		MClients.releasewritelock(__FUNCTION__, __LINE__);
 
-		if (!client->remove_from_list) {
+		/*
+		if (client && !client->remove_from_list) {
 			struct in_addr  in;
 			in.s_addr = client->GetIP();
 
 			LogWrite(WORLD__INFO, 0, "World", "Removing client from ip: %s port: %i", inet_ntoa(in), client->GetPort());
 		}
+		*/
+		
 	}
 
 }

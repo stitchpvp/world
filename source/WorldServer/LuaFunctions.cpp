@@ -8595,4 +8595,6 @@ int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
 	spawn->info_changed = true;
 	spawn->vis_changed = true;
 	spawn->AddChangedZoneSpawn();
+
+	return 1;
 }

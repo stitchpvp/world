@@ -27,11 +27,11 @@ using namespace std;
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm> 
+#include <algorithm>
 #include <atomic>
 
 #include <signal.h>
-
+#include "../common/types.h"
 #include "../common/queue.h"
 #include "../common/timer.h"
 #include "../common/EQStreamFactory.h"
@@ -118,6 +118,7 @@ PatchServer patch;
 ThreadReturnType ItemLoad (void* tmp);
 ThreadReturnType AchievmentLoad (void* tmp);
 ThreadReturnType SpellLoad (void* tmp);
+ThreadReturnType EQ2ConsoleListener(void* tmp);
 
 int main(int argc, char** argv) {
 	LogParseConfigs();
@@ -188,12 +189,11 @@ int main(int argc, char** argv) {
 
 	if (threadedLoad) {
 		LogWrite(WORLD__WARNING, 0, "Threaded", "Using Threaded loading of static data...");
-		pthread_t thread;
-		pthread_create(&thread, NULL, ItemLoad, &world);
-		pthread_detach(thread);
-		pthread_t thread2;
-		pthread_create(&thread2, NULL, SpellLoad, &world);
-		pthread_detach(thread2);
+
+		thread thr1(ItemLoad, &world);
+		thr1.detach();
+		thread thr2(SpellLoad, &world);
+		thr2.detach();
 	}
 
 	if (!threadedLoad) {
@@ -310,9 +310,8 @@ int main(int argc, char** argv) {
 	map<EQStream*, int32> connecting_clients;
 
 	LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
-	pthread_t thread;
-	pthread_create(&thread, NULL, &EQ2ConsoleListener, NULL);
-	pthread_detach(thread);
+	thread thr3(EQ2ConsoleListener, nullptr);
+	thr3.detach();
 
 	LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
@@ -382,9 +381,8 @@ int main(int argc, char** argv) {
 				if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
 					LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
 
-					pthread_t thread;
-					pthread_create(&thread, NULL, &AutoInitLoginServer, NULL);
-					pthread_detach(thread);
+					thread thr4(AutoInitLoginServer, nullptr);
+					thr4.detach();
 				}
 			}
 
