@@ -6399,12 +6399,12 @@ int EQ2Emu_lua_LastProcHit(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 
 	if (!spawn) {
-		lua_interface->LogError("LUA IsBehind command error: spawn is not valid");
+		lua_interface->LogError("LUA LastProcHit command error: spawn is not valid");
 		return 0;
 	}
 
 	if (!spawn->IsEntity()) {
-		lua_interface->LogError("LUA IsBehind command error: spawn is not an entity");
+		lua_interface->LogError("LUA LastProcHit command error: spawn is not an entity");
 		return 0;
 	}
 
