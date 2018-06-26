@@ -475,46 +475,61 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 	if (hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {
 		DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, name.c_str(), 0, true);
 
-		if (success_msg.length() > 0) {
-			shared_ptr<Client> client = 0;
-			if(IsPlayer())
-				client = GetZone()->GetClientBySpawn(this);
-			if(client) {
-				if(success_msg.find("%t") < 0xFFFFFFFF)
+		last_proc_hit = true;
+
+		if (IsPlayer() && success_msg.length()) {
+			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
+			if (client) {
+				if (success_msg.find("%t") < 0xFFFFFFFF) {
 					success_msg.replace(success_msg.find("%t"), 2, victim->GetName());
+				}
+
 				client->Message(CHANNEL_COLOR_SPELL, success_msg.c_str());
 			}
 		}
-		if (effect_msg.length() > 0) {
-			if(effect_msg.find("%t") < 0xFFFFFFFF)
+
+		if (effect_msg.length()) {
+			if (effect_msg.find("%t") < 0xFFFFFFFF) {
 				effect_msg.replace(effect_msg.find("%t"), 2, victim->GetName());
+			}
+
 			GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_msg.c_str(), victim, 50);
 		}
-	}
-	else {
-		if(victim->IsNPC())
+	} else {
+		if (victim->IsNPC()) {
 			((NPC*)victim)->AddHate(this, 5);
+		}
+
 		GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, hit_result, damage_type, 0, name.c_str());
+
+		last_proc_hit = false;
 	}
 	
 
-	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
-		Entity* pet = 0;
+	if (victim->IsEntity() && victim->Alive() && static_cast<Entity*>(victim)->HasPet()) {
 		bool AddHate = false;
+
 		if (victim->IsPlayer()) {
-			if (((Player*)victim)->GetInfoStruct()->pet_behavior & 1)
+			if (static_cast<Player*>(victim)->GetInfoStruct()->pet_behavior & 1) {
 				AddHate = true;
-		}
-		else
+			}
+		} else {
 			AddHate = true;
+		}
 
 		if (AddHate) {
-			pet = ((Entity*)victim)->GetPet();
-			if (pet)
+			Entity* pet = static_cast<Entity*>(victim)->GetPet();
+
+			if (pet) {
 				pet->AddHate(this, 1);
-			pet = ((Entity*)victim)->GetCharmedPet();
-			if (pet)
+			}
+
+			pet = static_cast<Entity*>(victim)->GetCharmedPet();
+
+			if (pet) {
 				pet->AddHate(this, 1);
+			}
 		}
 	}
 

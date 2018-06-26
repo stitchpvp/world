@@ -6296,6 +6296,7 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 	}
 
 	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg);
+
 	return 0;
 }
 
@@ -6389,6 +6390,29 @@ int EQ2Emu_lua_LastSpellAttackHit(lua_State* state) {
 	lua_interface->SetBooleanValue(state, luaspell->last_spellattack_hit);
 	return 1;
 }
+
+int EQ2Emu_lua_LastProcHit(lua_State* state) {
+	if (!lua_interface) {
+		return 0;
+	}
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA IsBehind command error: spawn is not valid");
+		return 0;
+	}
+
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("LUA IsBehind command error: spawn is not an entity");
+		return 0;
+	}
+
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->LastProcHit());
+
+	return 1;
+}
+
 int EQ2Emu_lua_IsBehind(lua_State* state) {
 	if (!lua_interface)
 		return 0;

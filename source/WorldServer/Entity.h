@@ -851,8 +851,11 @@ public:
 	int GetMitigationForPercentage(int enemy_level, int percentage) { return percentage * (200 + 40 * enemy_level) / (100 - percentage); }
 	float GetSpellMitigationPercentage(int enemy_level, int8 damage_type);
 
+	bool LastProcHit() { return last_proc_hit; }
+
 protected:
 	bool	in_combat;
+	bool	last_proc_hit;
 
 private:
 	MutexList<BonusValues*> bonus_list;
