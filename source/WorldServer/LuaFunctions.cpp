@@ -1121,7 +1121,7 @@ int EQ2Emu_lua_CastSpell(lua_State* state){
 	if (!caster)
 		caster = target;
 
-	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target), force_cast);
+	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target), false, force_cast);
 	return 0;
 }
 
