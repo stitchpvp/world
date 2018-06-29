@@ -329,7 +329,7 @@ bool Brain::ProcessSpell(Entity* target, float distance) {
 }
 
 bool Brain::CheckBuffs() {
-	if (!m_body->GetZone()->GetSpellProcess() || m_body->EngagedInCombat() || m_body->IsCasting() || m_body->IsMezzedOrStunned() || !m_body->Alive() || m_body->IsStifled() || !HasRecovered())
+	if (!m_body->GetZone()->GetSpellProcess() || m_body->IsCasting() || m_body->IsMezzedOrStunned() || !m_body->Alive() || m_body->IsStifled() || !HasRecovered())
 		return false;
 
 	Spell* spell = m_body->GetNextBuffSpell();
