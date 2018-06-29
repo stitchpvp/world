@@ -1898,41 +1898,33 @@ void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 	if (luaspell && luaspell->caster && luaspell->spell && luaspell->spell->GetSpellData()->max_aoe_targets > 0) {
 		if (luaspell->caster->HasTarget() && luaspell->caster->GetTarget() != luaspell->caster){
 			//Check if the caster has an implied target
-			if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius)
+			if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius) {
 				luaspell->initial_target = luaspell->caster->GetTarget()->GetID();
+			}
 		}
+
 		int32 ignore_target = 0;
 		vector<Spawn*> spawns = luaspell->caster->GetZone()->GetAttackableSpawnsByDistance(luaspell->caster, luaspell->spell->GetSpellData()->radius);
+
 		luaspell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spawns.size(); i++) {
-			Spawn* spawn = spawns.at(i);
-			if (i == 0){
-				if (luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target){
-					//this is the "Direct" target and aoe can't be avoided
-					luaspell->targets.push_back(luaspell->initial_target);
-					ignore_target = luaspell->initial_target;
-				}
-				if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-					break;
-			}
-			//If we have already added this spawn, check the next spawn in the list
-			if (spawn && spawn->GetID() == ignore_target){
-				i++;
-				if (i < spawns.size())
-					spawn = spawns.at(i);
-				else
-					break;
+		if (luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target) {
+			//this is the "Direct" target and aoe can't be avoided
+			luaspell->targets.push_back(luaspell->initial_target);
+			ignore_target = luaspell->initial_target;
+		}
+
+		for (const auto spawn : spawns) {
+			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets) {
+				break;
 			}
 
-			if (spawn) {
-				if (static_cast<Entity*>(spawn)->IsAOEImmune() || (luaspell->caster->IsNPC() && spawn->IsNPC()))
+			if (spawn && spawn->GetID() != ignore_target){
+				if (static_cast<Entity*>(spawn)->IsAOEImmune() || (luaspell->caster->IsNPC() && spawn->IsNPC())) {
 					continue;
+				}
 
 				luaspell->targets.push_back(spawn->GetID());
 			}
-
-			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-				break;
 		}
 		luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
