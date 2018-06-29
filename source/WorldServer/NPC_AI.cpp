@@ -60,6 +60,8 @@ void Brain::Think() {
 		// Get the distance to the runback location
 		float run_back_distance = m_body->GetRunbackDistance();
 
+		CheckBuffs();
+
 		if (target) {
 			LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "%s has %s targeted.", m_body->GetName(), target->GetName());
 			// NPC has an entity that it hates
@@ -120,8 +122,6 @@ void Brain::Think() {
 				if (!m_body->IsPet() || (m_body->IsPet() && !m_body->GetOwner()->IsPlayer()))
 					m_body->SetHP(m_body->GetTotalHP());
 			}
-
-			CheckBuffs();
 
 			// If run back distance is greater then 0 then run back
 			if (run_back_distance > 0) {
