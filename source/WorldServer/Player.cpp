@@ -375,6 +375,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("max_power", player->GetTotalPower());
 		packet->setDataByName("base_power", player->GetTotalPowerBase());
 		packet->setDataByName("bonus_power", floor( (float)(player->GetPrimaryStat() * player->CalculateBonusMod())));
+		packet->setDataByName("stat_bonus_damage", 1.0 + (player->CalculateBaseSpellIncrease() / 100.0));
 		packet->setDataByName("conc_used", info_struct->cur_concentration);
 		packet->setDataByName("conc_max", info_struct->max_concentration);
 		packet->setDataByName("attack", info_struct->cur_attack);

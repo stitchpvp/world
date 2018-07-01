@@ -6269,6 +6269,7 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 	int32 high_damage = lua_interface->GetInt32Value(state, 6);
 	string success_msg = lua_interface->GetStringValue(state, 7);
 	string effect_msg = lua_interface->GetStringValue(state, 8);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 9);
 	
 	if (!caster) {
 		lua_interface->LogError("LUA ProcDamage command error: caster is not a valid spawn");
@@ -6295,7 +6296,7 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 		return 0;
 	}
 
-	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg);
+	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg, perform_calcs);
 
 	return 0;
 }
@@ -6310,6 +6311,7 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 	string heal_type = lua_interface->GetStringValue(state, 4);
 	int32 low_heal = lua_interface->GetInt32Value(state, 5);
 	int32 high_heal = lua_interface->GetInt32Value(state, 6);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 7);
 
 	if (!caster) {
 		lua_interface->LogError("LUA ProcHeal command error: caster is not a valid spawn");
@@ -6336,7 +6338,7 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 		return 0;
 	}
 
-	static_cast<Entity*>(caster)->ProcHeal(target, heal_type, low_heal, high_heal, name);
+	static_cast<Entity*>(caster)->ProcHeal(target, heal_type, low_heal, high_heal, name, perform_calcs);
 	return 0;
 }
 

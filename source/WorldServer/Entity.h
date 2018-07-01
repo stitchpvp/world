@@ -251,6 +251,8 @@ struct InfoStruct{
 	int8			breathe_underwater;
 	char			biography[512];
 	float			drunk;
+
+	float base_ability_modifier = 0.0;
 };
 
 struct WardInfo {
@@ -371,6 +373,7 @@ public:
 	bool IsEntity(){ return true; }
 	void CalculateBonuses();
 	float CalculateBonusMod();
+	float CalculateBaseSpellIncrease();
 	float CalculateDPSMultiplier();
 	float CalculateCastingSpeedMod();
 
@@ -484,13 +487,14 @@ public:
 	void			MeleeAttack(Spawn* victim, float distance, bool primary, bool multi_attack = false);
 	void			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);
 	bool			SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false);
-	bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg);
-	bool			ProcHeal(Spawn* victim, string heal_type, int32 low_heal, int32 high_heal, string name);
+	bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg, bool perform_calcs = false);
+	bool			ProcHeal(Spawn* victim, string heal_type, int32 low_heal, int32 high_heal, string name, bool perform_calcs = false);
 	bool            SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false);
 	int8			DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell);
 	float			GetDamageTypeResistPercentage(int8 damage_type);
 	Skill*			GetSkillByWeaponType(int8 type, bool update);
 	bool			DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod = 0, bool is_tick = false, bool no_damage_calcs = false);
+	bool HealSpawn(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, const char* spell_name, int8 crit_mod = 0, bool is_tick = false, bool perform_calcs = true);
 	void			AddHate(Entity* attacker, sint32 hate, bool unprovoked = false);
 	bool			CheckInterruptSpell(Entity* attacker);
 	void			KillSpawn(Spawn* dead, int8 damage_type = 0, int16 kill_blow_type = 0);

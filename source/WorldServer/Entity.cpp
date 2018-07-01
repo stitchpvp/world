@@ -137,16 +137,18 @@ int16 Entity::GetAgi(){
 	return GetInfoStruct()->agi;
 }
 
-int16 Entity::GetPrimaryStat(){
+int16 Entity::GetPrimaryStat() {
 	int8 base_class = classes.GetBaseClass(GetAdventureClass());
-	if (base_class == FIGHTER) 
+
+	if (base_class == FIGHTER) {
 		return GetInfoStruct()->str;	
-	else if (base_class == PRIEST) 
+	} else if (base_class == PRIEST) {
 		return GetInfoStruct()->wis;
-	else if (base_class == MAGE) 
+	} else if (base_class == MAGE) {
 		return GetInfoStruct()->intel;
-	else
+	} else {
 		return GetInfoStruct()->agi;
+	}
 }
 
 int16 Entity::GetHeatResistance(){
@@ -912,12 +914,15 @@ void Entity::CalculateBonuses(){
 
 	int32 sta_hp_bonus = 0.0;
 	int32 prim_power_bonus = 0.0;
-	float bonus_mod = 0.0;
+
 	if (IsPlayer()) {
-		bonus_mod = CalculateBonusMod(); 
+		float bonus_mod = CalculateBonusMod();
+		info->base_ability_modifier = CalculateBaseSpellIncrease();
+
 		sta_hp_bonus = info->sta * bonus_mod;
 		prim_power_bonus = GetPrimaryStat() * bonus_mod;
 	}
+
 	prim_power_bonus = floor(float(prim_power_bonus));
 	sta_hp_bonus = floor(float(sta_hp_bonus));
 	SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
@@ -1346,31 +1351,73 @@ void Entity::DismissPet(NPC* pet, bool from_death) {
 	}
 }
 
-float Entity::CalculateBonusMod() {
-	int8 level = GetLevel();
-	if (level <= 20)
-		return 3.0;
-	else if (level >= 90)
-		return 10.0;
-	else
-		return (level - 20) * .1 + 3.0;
+float Entity::CalculateBaseSpellIncrease() {
+	int16 soft_cap = GetLevel() * 14;
+	int16 hard_cap = GetLevel() * 16;
+	int16 stat = GetPrimaryStat();
+
+	float soft_bonus = min(stat, soft_cap) / GetLevel();
+	float hard_bonus = min(stat, hard_cap) / GetLevel();
+
+	float bonus = 0.0;
+
+	for (int i = 0; i < 2; ++i) {
+		float temp_bonus = 0;
+		float temp_amount = 0;
+
+		if (i == 0) {
+			temp_bonus = soft_bonus;
+			temp_amount = soft_bonus;
+		} else {
+			if (hard_bonus == soft_bonus) {
+				break;
+			}
+
+			temp_bonus = hard_bonus;
+			temp_amount = hard_bonus - soft_bonus;
+		}
+
+		if (temp_bonus <= 14) {
+			bonus += temp_amount * 0.35;
+		} else if (temp_bonus > 14 && temp_bonus <= 16) {
+			bonus += temp_amount * 0.15;
+		} else if (temp_bonus > 16) {
+			bonus += temp_amount * 0.05;
+		}
+	}
+
+	return bonus;
 }
 
-float Entity::CalculateDPSMultiplier(){
+float Entity::CalculateBonusMod() {
+	int8 level = GetLevel();
+
+	if (level <= 20) {
+		return 3.0;
+	} else if (level >= 90) {
+		return 10.0;
+	} else {
+		return (level - 20) * .1 + 3.0;
+	}
+}
+
+float Entity::CalculateDPSMultiplier() {
 	float dps = GetInfoStruct()->dps;
 
-	if (dps > 0){
-		if (dps <= 100)
+	if (dps > 0) {
+		if (dps <= 100) {
 			return (dps / 100 + 1);
-		else if (dps <= 200)
+		} else if (dps <= 200) {
 			return (((dps - 100) * .25 + 100) / 100 + 1);
-		else if (dps <= 300)
+		} else if (dps <= 300) {
 			return (((dps - 200) * .1 + 125) / 100 + 1);
-		else if (dps <= 900)
+		} else if (dps <= 900) {
 			return (((dps - 300) * .05 + 135) / 100 + 1);
-		else
+		} else {
 			return (((dps - 900) * .01 + 165) / 100 + 1);
+		}
 	}
+
 	return 1;
 }
 
