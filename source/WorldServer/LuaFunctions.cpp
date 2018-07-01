@@ -4589,7 +4589,7 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		}
 
 		if (perform_calcs) {
-			damage *= 1 + (spell->caster->info_struct.base_ability_modifier / 100.0);
+			damage *= 1 + (spell->caster->GetInfoStruct()->base_ability_modifier / 100.0);
 			damage = spell->caster->ApplyPotency(damage);
 			damage = spell->caster->ApplyAbilityMod(damage);
 		}
