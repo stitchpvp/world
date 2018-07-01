@@ -909,8 +909,10 @@ void Entity::CalculateBonuses(){
 	info->cur_mitigation += values->vs_pierce;
 	info->cur_mitigation += values->vs_crush;
 	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
-	if (info->cur_mitigation < 0)
+
+	if (info->cur_mitigation < 0) {
 		info->cur_mitigation = 0;
+	}
 
 	int32 sta_hp_bonus = 0.0;
 	int32 prim_power_bonus = 0.0;
@@ -925,12 +927,22 @@ void Entity::CalculateBonuses(){
 
 	prim_power_bonus = floor(float(prim_power_bonus));
 	sta_hp_bonus = floor(float(sta_hp_bonus));
+
 	SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
 	SetTotalPower(GetTotalPowerBase() + values->power + prim_power_bonus);
-	if(GetHP() > GetTotalHP())
+
+	if (GetHP() > GetTotalHP()) {
 		SetHP(GetTotalHP());
-	if(GetPower() > GetTotalPower())
+	} else {
+		SetHP(GetHP() + values->health);
+	}
+
+	if (GetPower() > GetTotalPower()) {
 		SetPower(GetTotalPower());
+	} else {
+		SetPower(GetPower() + values->power);
+	}
+
 	info->max_concentration += values->concentration;
 	info->mitigation_skill1 += values->vs_slash;
 	info->mitigation_skill2 += values->vs_pierce;
