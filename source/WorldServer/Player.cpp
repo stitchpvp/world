@@ -2879,7 +2879,7 @@ bool Player::AddXP(int32 xp_amount){
 	float miniding_min_percent = ((int)(current_xp_percent/10)+1)*10;
 
 	if (GetLevel() == rule_manager.GetGlobalRule(R_Player, MaxLevel)->GetInt16()) {
-		return false;
+		xp_amount = 0;
 	}
 	while((xp_amount + GetXP()) >= GetNeededXP()){
 		if (!CheckLevelStatus(GetLevel() + 1)) {
