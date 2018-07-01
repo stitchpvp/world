@@ -4589,8 +4589,9 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		}
 
 		if (perform_calcs) {
-			damage = static_cast<Entity*>(target)->ApplyPotency(damage);
-			damage = static_cast<Entity*>(target)->ApplyAbilityMod(damage);
+			damage *= 1 + (spell->caster->info_struct.base_ability_modifier / 100.0);
+			damage = spell->caster->ApplyPotency(damage);
+			damage = spell->caster->ApplyAbilityMod(damage);
 		}
 
 		// Create new ward info
