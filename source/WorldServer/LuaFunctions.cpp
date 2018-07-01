@@ -4574,6 +4574,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 	bool keepWard = (lua_interface->GetInt8Value(state, 3) == 1);
 	int8 wardType = lua_interface->GetInt8Value(state, 4);
 	int8 damageTypes = lua_interface->GetInt8Value(state, 5);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 6) == false;
+	bool check_procs = lua_interface->GetBooleanValue(state, 7) == false;
 
 	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
@@ -4586,8 +4588,10 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 			static_cast<Entity*>(target)->RemoveWard(spell);
 		}
 
-		damage = static_cast<Entity*>(target)->ApplyPotency(damage);
-		damage = static_cast<Entity*>(target)->ApplyAbilityMod(damage);
+		if (perform_calcs) {
+			damage = static_cast<Entity*>(target)->ApplyPotency(damage);
+			damage = static_cast<Entity*>(target)->ApplyAbilityMod(damage);
+		}
 
 		// Create new ward info
 		WardInfo* ward = new WardInfo;
@@ -4597,11 +4601,17 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		ward->keepWard = keepWard;
 		ward->WardType = wardType;
 
-		if (wardType == WARD_TYPE_MAGICAL)
+		if (wardType == WARD_TYPE_MAGICAL) {
 			ward->DamageType = damageTypes;
+		}
 
 		// Add the ward to the entity
 		static_cast<Entity*>(target)->AddWard(spell, ward);
+
+		if (check_procs) {
+			spell->caster->CheckProcs(PROC_TYPE_HEALING, target);
+			spell->caster->CheckProcs(PROC_TYPE_BENEFICIAL, target);
+		}
 	}
 
 	return 0;
