@@ -47,7 +47,7 @@ extern RuleManager rule_manager;
 extern MasterTitlesList master_titles_list;
 extern MasterLanguagesList master_languages_list;
 
-Player::Player(){
+Player::Player() : ignored_by_mobs(false), pvp_immune(false) {
 	group = 0;
 	appearance.pos.grid_id = 0;
 	spawn_index = 0;
@@ -2484,7 +2484,7 @@ void Player::PrepareIncomingMovementPacket(int32 len,uchar* data,int16 version)
 		SetBoatSpawn(0);
 
 	if (!IsResurrecting() && !GetBoatSpawn()) {
-		if (!IsRooted() && !IsMezzedOrStunned()) {
+		if (!IsRooted() && !IsMezzedOrStunned() && !IsFeigned()) {
 			SetX(x);
 			SetY(y);
 			SetZ(z);

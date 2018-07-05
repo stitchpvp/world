@@ -1323,8 +1323,9 @@ void Entity::ApplyControlEffects() {
 		bool is_feared = IsFeared();
 		bool is_rooted = IsRooted();
 		bool is_force_faced = IsForceFaced();
+		bool is_feigned = IsFeigned();
 
-		if (is_stunned || is_stifled || is_mezzed || is_feared) {
+		if (is_stunned || is_stifled || is_mezzed || is_feared || is_feigned) {
 			GetZone()->LockAllSpells(player);
 		} else {
 			GetZone()->UnlockAllSpells(player);
@@ -1352,6 +1353,12 @@ void Entity::ApplyControlEffects() {
 			player->SetPlayerControlFlag(1, 16, true);
 		} else {
 			player->SetPlayerControlFlag(1, 16, false);
+		}
+
+		if (is_feigned) {
+			player->SetPlayerControlFlag(5, 1, true);
+		} else {
+			player->SetPlayerControlFlag(5, 1, false);
 		}
 	} else {
 		if (IsRooted()) {
@@ -1998,6 +2005,23 @@ void Entity::CancelAllStealth(shared_ptr<LuaSpell> exclude_spell) {
 	}
 }
 
+void Entity::RemoveAllFeignEffects() {
+	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
+
+	if (feign_list) {
+		auto itr = feign_list->begin();
+
+		while (itr.Next()) {
+			if (itr.value->caster == this) {
+				GetZone()->GetSpellProcess()->AddSpellCancel(itr.value);
+			} else {
+				GetZone()->RemoveTargetFromSpell(itr.value, this);
+				RemoveSpellEffect(itr.value);
+			}
+		}
+	}
+}
+
 bool Entity::CanAttackTarget(Spawn* target) {
 	if (target == this)
 		return false;
@@ -2184,6 +2208,36 @@ void Entity::RemoveFearSpell(shared_ptr<LuaSpell> spell){
 	fear_list->Remove(spell);
 }
 
+void Entity::AddFeignDeathSpell(shared_ptr<LuaSpell> spell) {
+	if (!spell) {
+		return;
+	}
+
+	if (!control_effects[CONTROL_EFFECT_TYPE_FEIGNED]) {
+		control_effects[CONTROL_EFFECT_TYPE_FEIGNED] = new MutexList<shared_ptr<LuaSpell>>;
+	}
+
+	control_effects[CONTROL_EFFECT_TYPE_FEIGNED]->Add(spell);
+
+	SetTempActionState(228);
+}
+
+void Entity::RemoveFeignDeathSpell(shared_ptr<LuaSpell> spell) {
+	if (!spell) {
+		return;
+	}
+
+	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
+
+	if (!feign_list || feign_list->size(true) == 0) {
+		return;
+	}
+
+	feign_list->Remove(spell);
+
+	SetTempActionState(0);
+}
+
 void Entity::AddSnareSpell(shared_ptr<LuaSpell> spell) {
 	if (!spell)
 		return;
@@ -2269,6 +2323,11 @@ bool Entity::IsRooted(){
 bool Entity::IsFeared(){
 	MutexList<shared_ptr<LuaSpell>>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
 	return (fear_list && fear_list->size(true) > 0);
+}
+
+bool Entity::IsFeigned() {
+	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
+	return (feign_list && feign_list->size(true) > 0);
 }
 
 bool Entity::IsWarded() {
@@ -2526,6 +2585,11 @@ void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
 
 	if (effect_bitmask & EFFECT_FLAG_FEAR) {
 		RemoveFearSpell(spell);
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_FEIGNED) {
+		RemoveFeignDeathSpell(spell);
 		ApplyControlEffects();
 	}
 

@@ -363,14 +363,17 @@ void SpellProcess::Process(){
 }
 
 bool SpellProcess::IsReady(Spell* spell, Entity* caster) {
-	if (caster->IsCasting())
+	if (caster->IsCasting()) {
 		return false;
+	}
 
-	if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE && caster->IsPlayer() && static_cast<Player*>(caster)->HasLinkedSpellEffect(spell))
+	if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE && caster->IsPlayer() && static_cast<Player*>(caster)->HasLinkedSpellEffect(spell)) {
 		return false;
+	}
 
-	if (OnCooldown(spell, caster))
+	if (OnCooldown(spell, caster)) {
 		return false;
+	}
 
 	return true;
 }
@@ -975,7 +978,7 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
 				}
 			}
 
-			if (!IsReady(spell, caster)) {
+			if (caster->IsFeigned() || !IsReady(spell, caster)) {
 				CheckSpellQueue(spell, caster);
 				return false;
 			}
