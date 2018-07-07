@@ -1121,7 +1121,7 @@ int EQ2Emu_lua_CastSpell(lua_State* state){
 	if (!caster)
 		caster = target;
 
-	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target), force_cast);
+	target->GetZone()->ProcessSpell(master_spell_list.GetSpell(spell_id, spell_tier), static_cast<Entity*>(caster), static_cast<Entity*>(target), false, force_cast);
 	return 0;
 }
 
@@ -1492,8 +1492,9 @@ int EQ2Emu_lua_SetSpeed(lua_State* state){
 }
 
 int EQ2Emu_lua_AddSpellBonus(lua_State* state){
-	if(!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
 
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 type = lua_interface->GetInt16Value(state, 2);
@@ -1504,32 +1505,34 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state){
 	int32 class_id = 0;
 	int32 i = 0;
 
-	while((class_id = lua_interface->GetInt32Value(state, 4 + i))) {
+	while ((class_id = lua_interface->GetInt32Value(state, 4 + i))) {
 		class_req += pow(2.0, (double)(class_id - 1));
-		i++;
+		++i;
 	}
 
 	if (value != 0 && type >= 0) {
 		if (luaspell) {
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS))
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_SPELLBONUS;
+			}
 		}
 			
 		if (spawn && spawn->IsEntity()) {
 			static_cast<Entity*>(spawn)->AddSpellBonus(luaspell, type, value, class_req);
 
 			if (spawn->IsPlayer()) {
-				if (static_cast<Player*>(spawn)->GetGroupMemberInfo())
+				if (static_cast<Player*>(spawn)->GetGroupMemberInfo()) {
 					static_cast<Player*>(spawn)->UpdateGroupMemberInfo();
+				}
 
 				static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 			}
-		}
-		else
+		} else {
 			lua_interface->SimpleLogError("Unable to apply spell bonus in AddSpellBonus.");
-	}
-	else
+		}
+	} else {
 		lua_interface->SimpleLogError("Invalid parameters for AddSpellBonus.");
+	}
 
 	return 0;
 }
@@ -1581,8 +1584,9 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state){
 }
 
 int EQ2Emu_lua_RemoveSpellBonus(lua_State* state){
-	if(!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
 
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
@@ -1590,8 +1594,9 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state){
 	if (spawn && spawn->IsEntity()) {
 		static_cast<Entity*>(spawn)->RemoveSpellBonus(luaspell);
 
-		if (spawn->IsPlayer())
+		if (spawn->IsPlayer()) {
 			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
+		}
 	}
 
 	return 0;
@@ -3970,8 +3975,9 @@ int EQ2Emu_lua_DismissPet(lua_State* state) {
 		return 0;
 	}
 
-	if (!static_cast<NPC*>(spawn)->IsDismissing())
+	if (!static_cast<NPC*>(spawn)->IsDismissing() && static_cast<NPC*>(spawn)->GetOwner()) {
 		static_cast<NPC*>(spawn)->GetOwner()->DismissPet(static_cast<NPC*>(spawn));
+	}
 
 	return 0;
 }
@@ -4574,6 +4580,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 	bool keepWard = (lua_interface->GetInt8Value(state, 3) == 1);
 	int8 wardType = lua_interface->GetInt8Value(state, 4);
 	int8 damageTypes = lua_interface->GetInt8Value(state, 5);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 6) == false;
+	bool check_procs = lua_interface->GetBooleanValue(state, 7) == false;
 
 	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
@@ -4586,8 +4594,11 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 			static_cast<Entity*>(target)->RemoveWard(spell);
 		}
 
-		damage = static_cast<Entity*>(target)->ApplyPotency(damage);
-		damage = static_cast<Entity*>(target)->ApplyAbilityMod(damage);
+		if (perform_calcs) {
+			damage *= 1 + (spell->caster->GetInfoStruct()->base_ability_modifier / 100.0);
+			damage = spell->caster->ApplyPotency(damage);
+			damage = spell->caster->ApplyAbilityMod(damage);
+		}
 
 		// Create new ward info
 		WardInfo* ward = new WardInfo;
@@ -4597,11 +4608,17 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		ward->keepWard = keepWard;
 		ward->WardType = wardType;
 
-		if (wardType == WARD_TYPE_MAGICAL)
+		if (wardType == WARD_TYPE_MAGICAL) {
 			ward->DamageType = damageTypes;
+		}
 
 		// Add the ward to the entity
 		static_cast<Entity*>(target)->AddWard(spell, ward);
+
+		if (check_procs) {
+			spell->caster->CheckProcs(PROC_TYPE_HEALING, target);
+			spell->caster->CheckProcs(PROC_TYPE_BENEFICIAL, target);
+		}
 	}
 
 	return 0;
@@ -4625,9 +4642,11 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 		WardInfo* ward = static_cast<Entity*>(target)->GetWard(spell);
 
 		if (ward && ward->DamageLeft != ward->BaseDamage) {
-			ward->DamageLeft = static_cast<Entity*>(target)->ApplyAbilityMod(amount);
+			amount = static_cast<Entity*>(target)->ApplyAbilityMod(amount);
+			ward->DamageLeft += amount;
 
 			if (ward->DamageLeft > ward->BaseDamage) {
+				amount -= (ward->DamageLeft - ward->BaseDamage);
 				ward->DamageLeft = ward->BaseDamage;
 			}
 
@@ -6269,6 +6288,7 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 	int32 high_damage = lua_interface->GetInt32Value(state, 6);
 	string success_msg = lua_interface->GetStringValue(state, 7);
 	string effect_msg = lua_interface->GetStringValue(state, 8);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 9);
 	
 	if (!caster) {
 		lua_interface->LogError("LUA ProcDamage command error: caster is not a valid spawn");
@@ -6295,7 +6315,8 @@ int EQ2Emu_lua_ProcDamage(lua_State* state) {
 		return 0;
 	}
 
-	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg);
+	static_cast<Entity*>(caster)->ProcAttack(target, dmg_type, low_damage, high_damage, name, success_msg, effect_msg, perform_calcs);
+
 	return 0;
 }
 
@@ -6309,6 +6330,7 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 	string heal_type = lua_interface->GetStringValue(state, 4);
 	int32 low_heal = lua_interface->GetInt32Value(state, 5);
 	int32 high_heal = lua_interface->GetInt32Value(state, 6);
+	bool perform_calcs = lua_interface->GetBooleanValue(state, 7);
 
 	if (!caster) {
 		lua_interface->LogError("LUA ProcHeal command error: caster is not a valid spawn");
@@ -6335,7 +6357,7 @@ int EQ2Emu_lua_ProcHeal(lua_State* state) {
 		return 0;
 	}
 
-	static_cast<Entity*>(caster)->ProcHeal(target, heal_type, low_heal, high_heal, name);
+	static_cast<Entity*>(caster)->ProcHeal(target, heal_type, low_heal, high_heal, name, perform_calcs);
 	return 0;
 }
 
@@ -6389,6 +6411,29 @@ int EQ2Emu_lua_LastSpellAttackHit(lua_State* state) {
 	lua_interface->SetBooleanValue(state, luaspell->last_spellattack_hit);
 	return 1;
 }
+
+int EQ2Emu_lua_LastProcHit(lua_State* state) {
+	if (!lua_interface) {
+		return 0;
+	}
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA LastProcHit command error: spawn is not valid");
+		return 0;
+	}
+
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("LUA LastProcHit command error: spawn is not an entity");
+		return 0;
+	}
+
+	lua_interface->SetBooleanValue(state, static_cast<Entity*>(spawn)->LastProcHit());
+
+	return 1;
+}
+
 int EQ2Emu_lua_IsBehind(lua_State* state) {
 	if (!lua_interface)
 		return 0;
@@ -6649,22 +6694,12 @@ int EQ2Emu_lua_SetVision(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
-			if (target->IsEntity()) {
-				static_cast<Entity*>(target)->GetInfoStruct()->vision = vision;
-				if (target->IsPlayer())
-					static_cast<Player*>(target)->SetCharSheetChanged(true);
-			}
-		}
+	static_cast<Entity*>(spawn)->GetInfoStruct()->vision = vision;
+
+	if (spawn->IsPlayer()) {
+		static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
-	else {
-		static_cast<Entity*>(spawn)->GetInfoStruct()->vision = vision;
-		if (spawn->IsPlayer())
-			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
-	}
+
 	return 0;
 }
 
@@ -6686,22 +6721,12 @@ int EQ2Emu_lua_BlurVision(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
-			if (target && target->IsEntity()) {
-				static_cast<Entity*>(target)->GetInfoStruct()->drunk = intensity;
-				if (target->IsPlayer())
-					static_cast<Player*>(target)->SetCharSheetChanged(true);
-			}
-		}
+	static_cast<Entity*>(spawn)->GetInfoStruct()->drunk = intensity;
+
+	if (spawn->IsPlayer()) {
+		static_cast<Player*>(spawn)->SetCharSheetChanged(true);
 	}
-	else {
-		static_cast<Entity*>(spawn)->GetInfoStruct()->drunk = intensity;
-		if (spawn->IsPlayer())
-			static_cast<Player*>(spawn)->SetCharSheetChanged(true);
-	}
+
 	return 0;
 }
 
@@ -6724,8 +6749,10 @@ int EQ2Emu_lua_BreatheUnderwater(lua_State* state) {
 	}
 
 	static_cast<Entity*>(spawn)->GetInfoStruct()->breathe_underwater = breatheUnderwater;
-	if (spawn->IsPlayer())
+
+	if (spawn->IsPlayer()) {
 		static_cast<Player*>(spawn)->SetCharSheetChanged(true);
+	}
 
 	return 0;
 }
@@ -6757,22 +6784,11 @@ int EQ2Emu_lua_SetSpeeedMultiplier(lua_State* state) {
 	float val = lua_interface->GetFloatValue(state, 2);
 	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
-	if (spell && spell->spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int32 i = 0; i != spell->targets.size(); i++) {
-			Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i));
-			if (spawn && spawn->IsEntity()) {
-				static_cast<Entity*>(spawn)->SetSpeedMultiplier(val);
-				if (spawn->IsPlayer())
-					static_cast<Player*>(spawn)->SetCharSheetChanged(true);
-			}
-		}
-	}
-	else {
-		if (target && target->IsEntity()) {
-			static_cast<Entity*>(target)->SetSpeedMultiplier(val);
-			if (target->IsPlayer())
-				static_cast<Player*>(target)->SetCharSheetChanged(true);
+	if (target && target->IsEntity()) {
+		static_cast<Entity*>(target)->SetSpeedMultiplier(val);
+
+		if (target->IsPlayer()) {
+			static_cast<Player*>(target)->SetCharSheetChanged(true);
 		}
 	}
 
@@ -8568,9 +8584,10 @@ int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
 
 	static_cast<Player*>(spawn)->SetAlignment(alignment);
 	static_cast<Player*>(spawn)->SetResendSpawns(true);
-	spawn->info_changed = true;
-	spawn->vis_changed = true;
-	spawn->AddChangedZoneSpawn();
+
+	spawn->AddSpawnUpdate(true, false, true);
+
+	return 1;
 
 	return 1;
 }

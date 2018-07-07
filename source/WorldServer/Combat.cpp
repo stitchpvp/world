@@ -130,6 +130,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	}
 
 	if (!FacingTarget(target)) {
+		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: not facing target");
 		return false;
 	}
 
@@ -398,7 +399,7 @@ bool Entity::SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> lua
 	bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
 	if (spell->GetSpellData()->resistibility > 0) {
-		bonus -= (1 - spell->GetSpellData()->resistibility)*100;
+		bonus -= (1 - spell->GetSpellData()->resistibility) * 100;
 	}
 
 	skill = master_skill_list.GetSkill(spell->GetSpellData()->mastery_skill);
@@ -469,52 +470,67 @@ bool Entity::SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> lua
 	return true;
 }
 
-bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg) {
+bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg, bool perform_calcs) {
 	int8 hit_result = DetermineHit(victim, damage_type, 0, true);
 
 	if (hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {
-		DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, name.c_str(), 0, true);
+		DamageSpawn(static_cast<Entity*>(victim), DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, name.c_str(), 0, !perform_calcs);
 
-		if (success_msg.length() > 0) {
-			shared_ptr<Client> client = 0;
-			if(IsPlayer())
-				client = GetZone()->GetClientBySpawn(this);
-			if(client) {
-				if(success_msg.find("%t") < 0xFFFFFFFF)
+		last_proc_hit = true;
+
+		if (IsPlayer() && success_msg.length()) {
+			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
+			if (client) {
+				if (success_msg.find("%t") < 0xFFFFFFFF) {
 					success_msg.replace(success_msg.find("%t"), 2, victim->GetName());
+				}
+
 				client->Message(CHANNEL_COLOR_SPELL, success_msg.c_str());
 			}
 		}
-		if (effect_msg.length() > 0) {
-			if(effect_msg.find("%t") < 0xFFFFFFFF)
+
+		if (effect_msg.length()) {
+			if (effect_msg.find("%t") < 0xFFFFFFFF) {
 				effect_msg.replace(effect_msg.find("%t"), 2, victim->GetName());
+			}
+
 			GetZone()->SimpleMessage(CHANNEL_COLOR_SPELL_EFFECT, effect_msg.c_str(), victim, 50);
 		}
-	}
-	else {
-		if(victim->IsNPC())
+	} else {
+		if (victim->IsNPC()) {
 			((NPC*)victim)->AddHate(this, 5);
+		}
+
 		GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, hit_result, damage_type, 0, name.c_str());
+
+		last_proc_hit = false;
 	}
 	
 
-	if (victim->IsEntity() && victim->GetHP() > 0 && ((Entity*)victim)->HasPet()) {
-		Entity* pet = 0;
+	if (victim->IsEntity() && victim->Alive() && static_cast<Entity*>(victim)->HasPet()) {
 		bool AddHate = false;
+
 		if (victim->IsPlayer()) {
-			if (((Player*)victim)->GetInfoStruct()->pet_behavior & 1)
+			if (static_cast<Player*>(victim)->GetInfoStruct()->pet_behavior & 1) {
 				AddHate = true;
-		}
-		else
+			}
+		} else {
 			AddHate = true;
+		}
 
 		if (AddHate) {
-			pet = ((Entity*)victim)->GetPet();
-			if (pet)
+			Entity* pet = static_cast<Entity*>(victim)->GetPet();
+
+			if (pet) {
 				pet->AddHate(this, 1);
-			pet = ((Entity*)victim)->GetCharmedPet();
-			if (pet)
+			}
+
+			pet = static_cast<Entity*>(victim)->GetCharmedPet();
+
+			if (pet) {
 				pet->AddHate(this, 1);
+			}
 		}
 	}
 
@@ -522,165 +538,30 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 }
 
 bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs) {
-	 if (!target || !luaspell || !luaspell->spell) {
+	if (!target || !luaspell || !luaspell->spell) {
 		return false;
-	 }
+	}
 
-	 bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
+	bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
-	 if (!is_tick) {
-		 CheckProcs(PROC_TYPE_HEALING, target);
-		 CheckProcs(PROC_TYPE_BENEFICIAL, target);
-	 }
-
-	 int32 heal_amt = 0;
-	 bool crit = false;
-
-	 if (high_heal < low_heal) {
-		 high_heal = low_heal;
-	 }
-
-	 if (high_heal == low_heal) {
-		 heal_amt = high_heal;
-	 } else {
-		 heal_amt = MakeRandomInt(low_heal, high_heal);
-	 }
-
-	 if (!no_calcs) {
-		if (is_tick) {
-			if (luaspell->crit) {
-				crit_mod = 1;
-			} else {
-				crit_mod = 2;
-			}
-		}
-		
-		if (heal_amt > 0) {
-			heal_amt = ApplyPotency(heal_amt);
-			heal_amt = ApplyAbilityMod(heal_amt);
+	if (!is_tick) {
+		if (luaspell->crit) {
+			crit_mod = 1;
+		} else {
+			crit_mod = 2;
 		}
 
-		if(!crit_mod || crit_mod == 1){
-			if(crit_mod == 1) 
-				crit = true;
-			else {
-				// Crit Roll
-				float chance = max((float)0, info_struct.crit_chance);
-				crit = (MakeRandomFloat(0, 100) <= chance); 
-			}
-			if(crit){
-				//Apply total crit multiplier with crit bonus
-				heal_amt *= (info_struct.crit_bonus / 100) + 1.3;
-				if(luaspell->spell)
-					luaspell->crit = true;
-			}
-		}
+		CheckProcs(PROC_TYPE_HEALING, target);
+		CheckProcs(PROC_TYPE_BENEFICIAL, target);
 	}
 
-	int16 type = 0;
-	if (heal_type == "Heal") {
-		if (target->GetHP() == target->GetTotalHP())
-			return true;
-
-		if(crit)
-			type = HEAL_PACKET_TYPE_CRIT_HEAL;
-		else
-			type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
-		//apply heal
-		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			heal_amt = target->GetTotalHP() - target->GetHP();
-		target->SetHP(target->GetHP() + heal_amt);
-	}
-	else if (heal_type == "Power"){
-		if (target->GetPower() == target->GetTotalPower())
-			return true;
-
-		if(crit)
-			type = HEAL_PACKET_TYPE_CRIT_MANA;
-		else
-			type = HEAL_PACKET_TYPE_SIMPLE_MANA;
-		//give power
-		if (target->GetPower() + (sint32)heal_amt > target->GetTotalPower())
-			heal_amt = target->GetTotalPower() - target->GetPower();
-		target->SetPower(GetPower() + heal_amt);
-	}
-	/*else if (heal_type == "Savagery"){
-		if(crit)
-			type = HEAL_PACKET_TYPE_CRIT_SAVAGERY;
-		else
-			type = HEAL_PACKET_TYPE_SAVAGERY;
-	}
-	else if (heal_type == "Repair"){
-		if(crit)
-			type = HEAL_PACKET_TYPE_CRIT_REPAIR;
-		else
-			type = HEAL_PACKET_TYPE_REPAIR;
-	}*/
-	else{ //default to heal if type cannot be determined
-		if(crit)
-			type = HEAL_PACKET_TYPE_CRIT_HEAL;
-		else
-			type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
-		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			heal_amt = target->GetTotalHP() - target->GetHP();
-		target->SetHP(target->GetHP() + heal_amt);
-	}	
-
-	target->GetZone()->TriggerCharSheetTimer();
-	if (heal_amt > 0)
-		GetZone()->SendHealPacket(this, target, type, heal_amt, luaspell->spell->GetName());
-
-	if (target->IsEntity()) {
-		int32 hate_amt = heal_amt / 2;
-		set<int32>::iterator itr;
-		for (itr = ((Entity*)target)->HatedBy.begin(); itr != ((Entity*)target)->HatedBy.end(); itr++) {
-			Spawn* spawn = GetZone()->GetSpawnByID(*itr);
-			if (spawn && spawn->IsEntity()) {
-				((Entity*)spawn)->AddHate(this, hate_amt);
-			}
-		}
-	}
+	luaspell->crit = HealSpawn(target, heal_type, low_heal, high_heal, luaspell->spell->GetName(), crit_mod, is_tick, !no_calcs);
 
 	return true;
 }
 
-bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, string name) {
-	int32 heal_amt = 0;
-	bool crit = false;
-
-	if (high_heal < low_heal)
-		high_heal = low_heal;
-	if (high_heal == low_heal)
-		heal_amt = high_heal;
-	else
-		heal_amt = MakeRandomInt(low_heal, high_heal);
-
-	int16 type = 0;
-	if (heal_type == "Heal") {
-		type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
-		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			target->SetHP(target->GetTotalHP());
-		else
-			target->SetHP(target->GetHP() + heal_amt);
-	}
-	else if (heal_type == "Power") {
-		type = HEAL_PACKET_TYPE_SIMPLE_MANA;
-		if (target->GetPower() + (sint32)heal_amt > target->GetTotalPower())
-			target->SetPower(target->GetTotalPower());
-		else
-			target->SetPower(GetPower() + heal_amt);
-	} else {
-		type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
-		if (target->GetHP() + (sint32)heal_amt > target->GetTotalHP())
-			target->SetHP(target->GetTotalHP());
-		else
-			target->SetHP(target->GetHP() + heal_amt);
-	}
-
-	target->GetZone()->TriggerCharSheetTimer();
-
-	if (heal_amt > 0)
-		GetZone()->SendHealPacket(this, target, type, heal_amt, name.c_str());
+bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, string name, bool perform_calcs) {
+	HealSpawn(target, heal_type, low_heal, high_heal, name.c_str(), 2, false, perform_calcs);
 
 	return true;
 }
@@ -853,8 +734,9 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	if (!no_calcs) {
 		if (type == DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE || type == DAMAGE_PACKET_TYPE_RANGE_DAMAGE ) {
 			//DPS mod is only applied to auto attacks
-			damage *= (info_struct.dps_multiplier);
+			damage *= max(1.0f, info_struct.dps_multiplier);
 		} else {
+			damage *= 1 + (info_struct.base_ability_modifier / 100.0);
 			damage = ApplyPotency(damage);
 			damage = ApplyAbilityMod(damage);
 		}
@@ -973,58 +855,165 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	return crit;
 }
 
+bool Entity::HealSpawn(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, const char* spell_name, int8 crit_mod, bool is_tick, bool perform_calcs) {
+	if (!target) {
+		return false;
+	}
+
+	int32 heal_amt = 0;
+	bool crit = false;
+
+	if (high_heal < low_heal) {
+		high_heal = low_heal;
+	}
+
+	if (high_heal == low_heal) {
+		heal_amt = high_heal;
+	} else {
+		heal_amt = MakeRandomInt(low_heal, high_heal);
+	}
+
+	if (perform_calcs) {
+		if (heal_amt > 0) {
+			heal_amt *= 1 + (info_struct.base_ability_modifier / 100.0);
+			heal_amt = ApplyPotency(heal_amt);
+			heal_amt = ApplyAbilityMod(heal_amt);
+		}
+
+		if (!crit_mod || crit_mod == 1) {
+			if (crit_mod == 1) {
+				crit = true;
+			} else {
+				float chance = max(0.0f, info_struct.crit_chance);
+				crit = (MakeRandomFloat(0, 100) <= chance); 
+			}
+
+			if (crit) {
+				heal_amt *= (info_struct.crit_bonus / 100) + 1.3;
+			}
+		}
+	}
+
+	int16 type = 0;
+
+	if (heal_type == "Heal") {
+		if (target->GetHP() == target->GetTotalHP()) {
+			return crit;
+		}
+
+		if (crit) {
+			type = HEAL_PACKET_TYPE_CRIT_HEAL;
+		} else {
+			type = HEAL_PACKET_TYPE_SIMPLE_HEAL;
+		}
+
+		if (target->GetHP() + heal_amt > target->GetTotalHP()) {
+			heal_amt = target->GetTotalHP() - target->GetHP();
+		}
+
+		target->SetHP(target->GetHP() + heal_amt);
+	} else if (heal_type == "Power") {
+		if (target->GetPower() == target->GetTotalPower()) {
+			return crit;
+		}
+
+		if (crit) {
+			type = HEAL_PACKET_TYPE_CRIT_MANA;
+		} else {
+			type = HEAL_PACKET_TYPE_SIMPLE_MANA;
+		}
+
+		if (target->GetPower() + heal_amt > target->GetTotalPower()) {
+			heal_amt = target->GetTotalPower() - target->GetPower();
+		}
+
+		target->SetPower(GetPower() + heal_amt);
+	} else {
+		return crit;
+	}
+
+	target->GetZone()->TriggerCharSheetTimer();
+
+	if (heal_amt > 0) {
+		GetZone()->SendHealPacket(this, target, type, heal_amt, spell_name);
+
+		if (target->IsEntity()) {
+			int32 hate_amt = heal_amt * 0.25;
+			set<int32>::iterator itr;
+			for (itr = ((Entity*)target)->HatedBy.begin(); itr != ((Entity*)target)->HatedBy.end(); itr++) {
+				Spawn* spawn = GetZone()->GetSpawnByID(*itr);
+				if (spawn && spawn->IsEntity()) {
+					((Entity*)spawn)->AddHate(this, hate_amt);
+				}
+			}
+		}
+	}
+
+	return crit;
+}
+
 void Entity::AddHate(Entity* attacker, sint32 hate, bool unprovoked) {
-	if(!attacker || GetHP() <= 0 || attacker->GetHP() <= 0)
+	if (!attacker || !Alive() || !attacker->Alive()) {
 		return;
+	}
 
 	// If a players pet and protect self is off
-	if (IsPet() && ((NPC*)this)->GetOwner()->IsPlayer() && ((((Player*)((NPC*)this)->GetOwner())->GetInfoStruct()->pet_behavior & 2) == 0))
+	if (IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer() && !(static_cast<Player*>(static_cast<NPC*>(this)->GetOwner())->GetInfoStruct()->pet_behavior & 2)) {
 		return;
+	}
 
 	if (IsNPC()) {
-		LogWrite(COMBAT__DEBUG, 3, "Combat", "Add NPC_AI Hate: Victim '%s', Attacker '%s', Hate: %i", GetName(), attacker->GetName(), hate);
+		auto npc = static_cast<NPC*>(this);
 
-		((NPC*)this)->Brain()->AddHate(attacker, hate, unprovoked);
+		npc->Brain()->AddHate(attacker, hate, unprovoked);
 
-		// if encounter size is 0 then add the attacker to the encounter
-		if (!unprovoked && ((NPC*)this)->Brain()->GetEncounterSize() == 0)
-			((NPC*)this)->Brain()->AddToEncounter(attacker);
+		if (!unprovoked && npc->Brain()->GetEncounterSize() == 0) {
+			npc->Brain()->AddToEncounter(attacker);
+		}
 	}
 
 	if (attacker->GetThreatTransfer() && hate > 0) {
-		Spawn* transfer_target = (Entity*)GetZone()->GetSpawnByID(attacker->GetThreatTransfer()->Target);
+		Spawn* transfer_target = GetZone()->GetSpawnByID(attacker->GetThreatTransfer()->Target);
+
 		if (transfer_target && transfer_target->IsEntity()) {
-			sint32 transfered_hate = hate * (GetThreatTransfer()->Amount / 100);
+			sint32 transfered_hate = hate * (attacker->GetThreatTransfer()->Amount / 100);
 			hate -= transfered_hate;
-			this->AddHate((Entity*)transfer_target, transfered_hate);
+
+			this->AddHate(static_cast<Entity*>(transfer_target), transfered_hate);
 		}
 	}
 
 	// If pet is adding hate add some to the pets owner as well
-	if (attacker->IsNPC() && ((NPC*)attacker)->IsPet())
-		AddHate(((NPC*)attacker)->GetOwner(), 1);
+	if (attacker->IsNPC() && static_cast<NPC*>(attacker)->IsPet()) {
+		AddHate(static_cast<NPC*>(attacker)->GetOwner(), hate * 0.1);
+	}
 
 	// If player and player has a pet and protect master is set add hate to the pet
-	if (IsPlayer() && HasPet() && (((Player*)this)->GetInfoStruct()->pet_behavior & 1)) {
-		// If we have a combat pet add hate to it
-		if (((Player*)this)->GetPet())
-			AddHate(((Player*)this)->GetPet(), 1);
-		if (((Player*)this)->GetCharmedPet())
-			AddHate(((Player*)this)->GetCharmedPet(), 1);
+	if (IsPlayer() && HasPet() && static_cast<Player*>(this)->GetInfoStruct()->pet_behavior & 1) {
+		if (static_cast<Player*>(this)->GetPet()) {
+			AddHate(static_cast<Player*>(this)->GetPet(), 1);
+		}
+
+		if (static_cast<Player*>(this)->GetCharmedPet()) {
+			AddHate(static_cast<Player*>(this)->GetCharmedPet(), 1);
+		}
 	}
 
 	// If this spawn has a spawn group then add the attacker to the hate list of the other
 	// group members if not already in their list
 	if (HasSpawnGroup()) {
 		vector<Spawn*>* group = GetSpawnGroup();
-		vector<Spawn*>::iterator itr;
-		for (itr = group->begin(); itr != group->end(); itr++) {
-			if (!(*itr)->IsNPC())
-				continue;
-			NPC* spawn = (NPC*)(*itr);
-			if (spawn->Brain()->GetHate(attacker) == 0)
-				spawn->Brain()->AddHate(attacker, 1, unprovoked);
+
+		for (const auto& spawn : *group) {
+			if (spawn->IsNPC()) {
+				NPC* npc = static_cast<NPC*>(spawn);
+
+				if (npc->Brain()->GetHate(attacker) == 0) {
+					npc->Brain()->AddHate(attacker, 1, unprovoked);
+				}
+			}
 		}
+
 		safe_delete(group);
 	}
 }

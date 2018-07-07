@@ -888,25 +888,33 @@ Spawn* SpellProcess::GetSpellTarget(Entity* caster) {
 }
 
 void SpellProcess::SetInitialTarget(LuaSpell* lua_spell, Spawn* target) {
-	if (!lua_spell || !lua_spell->spell || !lua_spell->caster || !target)
+	if (!lua_spell || !lua_spell->spell || !lua_spell->caster || !target) {
 		return;
+	}
 
 	lua_spell->initial_target = target->GetID();
 
 	int8 target_type = lua_spell->spell->GetSpellData()->target_type;
 
 	if (lua_spell->caster->IsPlayer() && (target_type == SPELL_TARGET_OTHER || target_type == SPELL_TARGET_OTHER_CORPSE || target_type == SPELL_TARGET_GROUP_CORPSE || target_type == SPELL_TARGET_OTHER_GROUP_AE)) {
-		if (target->HasTarget()) {
-			Spawn* secondary_target = target->GetTarget();
-
-			if ((lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target) && !lua_spell->caster->IsHostile(secondary_target)) ||
-				(!lua_spell->spell->GetSpellData()->friendly_spell && !lua_spell->caster->IsHostile(target) && lua_spell->caster->IsHostile(secondary_target))) {
-				lua_spell->initial_target = secondary_target->GetID();
-			} else {
-				lua_spell->initial_target = target->GetID();
-			}
-		} else if (lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target)) {
+		if (lua_spell->spell->GetSpellData()->friendly_spell && lua_spell->caster->IsHostile(target)) {
 			lua_spell->initial_target = lua_spell->caster->GetID();
+
+			if (target->HasTarget()) {
+				Spawn* secondary_target = target->GetTarget();
+
+				if (!lua_spell->caster->IsHostile(secondary_target)) {
+					lua_spell->initial_target = secondary_target->GetID();
+				}
+			}
+		} else if (!lua_spell->spell->GetSpellData()->friendly_spell && !lua_spell->caster->IsHostile(target)) {
+			if (target->HasTarget()) {
+				Spawn* secondary_target = target->GetTarget();
+
+				if (lua_spell->caster->IsHostile(secondary_target)) {
+					lua_spell->initial_target = secondary_target->GetID();
+				}
+			}
 		}
 	} else if (target_type == SPELL_TARGET_GROUP_AE || target_type == SPELL_TARGET_RAID_AE) {
 		lua_spell->initial_target = lua_spell->caster->GetID();
@@ -1296,7 +1304,6 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 
 	if (spell->targets.size() > 0) {
 		ZoneServer* zone = spell->caster->GetZone();
-		Spawn* target = nullptr;
 
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 		for (int32 i = 0; i < spell->targets.size(); i++) {
@@ -1304,7 +1311,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 			int8 damage_type = 0;
 			int8 hit_result = 0;
 
-			target = zone->GetSpawnByID(spell->targets[i]);
+			Spawn* target = zone->GetSpawnByID(spell->targets[i]);
 
 			if (!target) {
 				continue;
@@ -1402,10 +1409,15 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 					if (!spell->resisted && spell->spell->GetSpellData()->duration1 > 0) {
 						spell->timer.Start();
 
-						if (spell->spell->GetSpellData()->call_frequency > 0)
+						if (spell->spell->GetSpellData()->call_frequency > 0) {
 							spell->timer.SetTimer(spell->spell->GetSpellData()->call_frequency * 100);
-						else
+						} else {
 							spell->timer.SetTimer(spell->spell->GetSpellData()->duration1 * 100);
+						}
+
+						if (spell->effect_bitmask & EFFECT_FLAG_SPELLBONUS && target->IsEntity()) {
+							static_cast<Entity*>(target)->CalculateBonuses();
+						}
 					}
 
 					target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_CASTED_ON, spell->caster, spell->spell->GetName());
@@ -1890,41 +1902,33 @@ void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 	if (luaspell && luaspell->caster && luaspell->spell && luaspell->spell->GetSpellData()->max_aoe_targets > 0) {
 		if (luaspell->caster->HasTarget() && luaspell->caster->GetTarget() != luaspell->caster){
 			//Check if the caster has an implied target
-			if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius)
+			if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius) {
 				luaspell->initial_target = luaspell->caster->GetTarget()->GetID();
+			}
 		}
+
 		int32 ignore_target = 0;
 		vector<Spawn*> spawns = luaspell->caster->GetZone()->GetAttackableSpawnsByDistance(luaspell->caster, luaspell->spell->GetSpellData()->radius);
+
 		luaspell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spawns.size(); i++) {
-			Spawn* spawn = spawns.at(i);
-			if (i == 0){
-				if (luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target){
-					//this is the "Direct" target and aoe can't be avoided
-					luaspell->targets.push_back(luaspell->initial_target);
-					ignore_target = luaspell->initial_target;
-				}
-				if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-					break;
-			}
-			//If we have already added this spawn, check the next spawn in the list
-			if (spawn && spawn->GetID() == ignore_target){
-				i++;
-				if (i < spawns.size())
-					spawn = spawns.at(i);
-				else
-					break;
+		if (luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target) {
+			//this is the "Direct" target and aoe can't be avoided
+			luaspell->targets.push_back(luaspell->initial_target);
+			ignore_target = luaspell->initial_target;
+		}
+
+		for (const auto spawn : spawns) {
+			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets) {
+				break;
 			}
 
-			if (spawn) {
-				if (static_cast<Entity*>(spawn)->IsAOEImmune() || (luaspell->caster->IsNPC() && spawn->IsNPC()))
+			if (spawn && spawn->GetID() != ignore_target){
+				if (static_cast<Entity*>(spawn)->IsAOEImmune() || (luaspell->caster->IsNPC() && spawn->IsNPC())) {
 					continue;
+				}
 
 				luaspell->targets.push_back(spawn->GetID());
 			}
-
-			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-				break;
 		}
 		luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
@@ -2061,6 +2065,11 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
 
 						client->Message(CHANNEL_COLOR_SPELL_FADE, fade_message.c_str());
 					}
+				}
+
+
+				if (spell->effect_bitmask & EFFECT_FLAG_SPELLBONUS) {
+					static_cast<Entity*>(target)->CalculateBonuses();
 				}
 			}
 		}
