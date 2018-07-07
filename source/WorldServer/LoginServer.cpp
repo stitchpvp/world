@@ -1016,10 +1016,7 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 	utwrs->response = -2;
 	*/
 	//printf("Response is %i for %i\n",utwrs->response,id);
-	if((strcmp(net.GetWorldAddress(), utwr->ip_address)==0) && (strlen(net.GetInternalWorldAddress())>0))
-		strcpy(utwrs->ip_address, net.GetInternalWorldAddress());
-	else
-		strcpy(utwrs->ip_address, net.GetWorldAddress());
+	strcpy(utwrs->ip_address, net.GetWorldAddress());
 	utwrs->port = net.GetWorldPort();
 	utwrs->worldid = utwr->worldid;
 	SendPacket(outpack);

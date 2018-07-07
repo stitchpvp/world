@@ -57,11 +57,10 @@ public:
 		listening_socket = 0;
 		updateport = 0;
 		memset(worldname, 0, sizeof(worldname));
-		memset(updateaddress, 0, sizeof(updateaddress));
+		memset(worldaddress, 0, sizeof(worldaddress));
 		memset(worldaccount, 0, sizeof(worldaccount));
 		memset(worldpassword, 0, sizeof(worldpassword));
-		memset(worldaddress, 0, sizeof(worldaddress));
-		memset(internalworldaddress, 0, sizeof(internalworldaddress));
+		memset(updateaddress, 0, sizeof(updateaddress));
 		worldport = PORT;
 		DEFAULTSTATUS=0;
 		LoginServerInfo = 0;//ReadLoginINI();
@@ -80,7 +79,6 @@ public:
 	inline char* GetWorldAccount()			{ return worldaccount; }
 	inline char* GetWorldPassword()		{ return worldpassword; }
 	inline char* GetWorldAddress()			{ return worldaddress; }
-	inline char* GetInternalWorldAddress()	{ return internalworldaddress; }
 	inline int16 GetWorldPort()				{ return worldport; }
 	inline int8 GetDefaultStatus()			{ return DEFAULTSTATUS; }
 	bool world_locked;
@@ -94,7 +92,6 @@ private:
 	char	worldaccount[31];
 	char	worldpassword[31];
 	char	worldaddress[255];
-	char	internalworldaddress[21];
 	int16	worldport;
 	int8    DEFAULTSTATUS;
 

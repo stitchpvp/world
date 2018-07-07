@@ -381,7 +381,7 @@ void ClientPacketFunctions::SendMaintainedExamineUpdate(const shared_ptr<Client>
 	}
 }
 
-void ClientPacketFunctions::SendZoneChange(const shared_ptr<Client>& client, char* zone_ip, int16 zone_port, int32 key) {
+void ClientPacketFunctions::SendZoneChange(const shared_ptr<Client>& client, const char* zone_ip, int16 zone_port, int32 key) {
 	if (!client)
 		return;
 

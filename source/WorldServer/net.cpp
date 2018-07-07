@@ -287,10 +287,6 @@ int main(int argc, char** argv) {
 		} else {
 			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
 		}
-
-		if (strlen(net.GetInternalWorldAddress()) > 0) {
-			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
-		}
 	} else {
 		LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
 		return 1;
@@ -563,192 +559,17 @@ void CatchSignal(int sig_num) {
 }
 
 bool NetConnection::ReadLoginINI() {
-	char buf[201], type[201];
-	int items[3] = {0, 0};
-	FILE *f;
-	
-	if (!(f = fopen (MAIN_INI_FILE, "r"))) {
-		LogWrite(INIT__ERROR, 0, "Init", "File '%s' could not be opened", MAIN_INI_FILE);
-		return false;
-	}
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[LoginServer] block not found in '%s'.", MAIN_INI_FILE);
-			fclose (f);
-			return false;
-		}
-	}
-	while (strncasecmp (buf, "[LoginServer]\n", 14) != 0 && strncasecmp (buf, "[LoginServer]\r\n", 15) != 0);
+	strncpy(worldname, getenv("EQ2_WORLD_NAME"), 201);
+	strncpy(worldaddress, getenv("EQ2_ADDRESS"), 250);
+	worldport = atoi(getenv("EQ2_PORT"));
 
-	while (!feof (f))
-	{
-#ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
-#else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
-#endif
-		{
-			if (!strncasecmp (type, "worldname", 9)) {
-				snprintf(worldname, sizeof(worldname), "%s", buf);
-				items[1] = 1;
-				if(strlen(worldname)<4)
-					LogWrite(INIT__ERROR, 0, "Init", "Invalid worldname, please edit LoginServer.ini.  Server name must be at least 4 characters.");
-			}
-			if (!strncasecmp (type, "account", 7)) {
-				strncpy(worldaccount, buf, 30);
-			}
-			if (!strncasecmp (type, "logstats", 8)) {
-				if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
-					net.UpdateStats = true;
-			}
-			if (!strncasecmp (type, "password", 8)) {
-				strncpy (worldpassword, buf, 30);
-				for(int i=strlen(worldpassword);i>=0;i--){
-					if(worldpassword[i] == ' ' || worldpassword[i] == '\n' || worldpassword[i] == '\t' || worldpassword[i] == '\r')
-						worldpassword[i] = '\0';
-				}
-			}
-			if (!strncasecmp (type, "locked", 6)) {
-				if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
-					world_locked = true;
-			}
-			if (!strncasecmp (type, "worldaddress", 12)) {
-				if (strlen(buf) >= 3) {
-					strncpy (worldaddress, buf, 250);
-				}
-			}
-			if (!strncasecmp(type, "autotableupdates", 16)) {
-				if(strlen(buf) >= 3 && !strncasecmp(buf, "ask", 3))
-					loginserver.UpdatesAsk(true);
-				else if(strlen(buf) >= 6 && !strncasecmp(buf, "always", 6))
-					loginserver.UpdatesAuto(true);
-			}
-			if (!strncasecmp (type, "autotableverbose", 16)) {
-				if(strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
-					loginserver.UpdatesVerbose(true);
-			}
-			if (!strncasecmp (type, "autotabledata", 13)) {
-				if(strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
-					loginserver.UpdatesAutoData(true);
-			}
-			if (!strncasecmp (type, "internalworldaddress", 20)) {
-				if (strlen(buf) >= 3) {
-					strncpy(internalworldaddress, buf, 20);
-				}
-			}
-			if (!strncasecmp (type, "worldport", 9)) {
-				if(Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF)
-					worldport = atoi(buf);
-			}
-			if ((!strcasecmp (type, "loginserver")) || (!strcasecmp (type, "loginserver1"))) {
-				strncpy (loginaddress[0], buf, 100);
-				items[0] = 1;
-			}
-			if ((!strcasecmp(type, "loginport")) || (!strcasecmp(type, "loginport1"))) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[0] = atoi(buf);
-				}
-			}
-			if (!strcasecmp (type, "loginserver2")) {
-				strncpy (loginaddress[1], buf, 250);
-			}
-			if (!strcasecmp(type, "loginport2")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[1] = atoi(buf);
-				}
-			}
-			if (!strcasecmp (type, "loginserver3")) {
-				strncpy (loginaddress[2], buf, 250);
-			}
-			if (!strcasecmp(type, "loginport3")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[2] = atoi(buf);
-				}
-			}
-		}
-	}
+	strncpy(worldaccount, getenv("EQ2_LS_USERNAME"), 31);
+	strncpy(worldpassword, getenv("EQ2_LS_PASSWORD"), 31);
+	strncpy(loginaddress[0], getenv("EQ2_LS_ADDRESS"), 250);
+	loginport[0] = atoi(getenv("EQ2_LS_PORT"));
 
-	if (!items[0] || !items[1])
-	{
-		LogWrite(INIT__ERROR, 0, "Init", "Incomplete LoginServer.INI file.");
-		fclose (f);
-		return false;
-	}
-	
-	/*
-	if (strcasecmp(worldname, "Unnamed server") == 0) {
-		cout << "LoginServer.ini: server unnamed, disabling uplink" << endl;
-		fclose (f);
-		return false;
-	}
-	*/
-	
-	fclose(f);
-	f=fopen (MAIN_INI_FILE, "r");
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[WorldServer] block not found in %s", MAIN_INI_FILE);
-			fclose (f);
-			return true;
-		}
+	LoginServerInfo = 1;
 
-	}
-	while (strncasecmp (buf, "[WorldServer]\n", 14) != 0 && strncasecmp (buf, "[WorldServer]\r\n", 15) != 0);
-
-	while (!feof (f))
-	{
-#ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
-#else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
-#endif
-		{
-			
-			if (!strcasecmp(type, "Defaultstatus")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					DEFAULTSTATUS = atoi(buf);
-				}
-			}
-		}
-	}
-	fclose (f);
-
-	f=fopen (MAIN_INI_FILE, "r");
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[UpdateServer] block not found in %s", MAIN_INI_FILE);
-			fclose (f);
-			return true;
-		}
-
-	}
-	while (strncasecmp (buf, "[UpdateServer]\n", 15) != 0 && strncasecmp (buf, "[UpdateServer]\r\n", 16) != 0);
-
-	while (!feof (f))
-	{
-#ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
-#else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
-#endif
-		{
-			if (!strcasecmp(type, "updateserveraddress")) {
-				strncpy (updateaddress, buf, 250);
-				patch.SetHost(buf);
-			}
-			if (!strcasecmp(type, "updateserverport")) {
-				updateport=atoi(buf);
-				patch.SetPort(buf);
-			}
-		}
-	}
-	fclose (f);
-	
-	LogWrite(INIT__DEBUG, 0, "Init", "%s read...", MAIN_INI_FILE);
-	LoginServerInfo=1;
 	return true;
 }
 

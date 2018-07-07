@@ -63,7 +63,7 @@ public:
 
 	static void SendInstanceList(const shared_ptr<Client>& client);
 
-	static void SendZoneChange(const shared_ptr<Client>& client, char* zone_ip, int16 zone_port, int32 key);
+	static void SendZoneChange(const shared_ptr<Client>& client, const char* zone_ip, int16 zone_port, int32 key);
 
 	static void SendStateCommand(const shared_ptr<Client>& client, int32 spawn_id, int32 state);
 
