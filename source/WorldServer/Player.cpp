@@ -2069,11 +2069,27 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 		return;
 
 	Spell* spell = luaspell->spell;
+	shared_ptr<LuaSpell> old_spell = 0;
 	MaintainedEffects* effect = GetFreeMaintainedSpellSlot();
 	int32 target_type = 0;
 	Spawn* spawn = 0;
 
 	if(effect){
+		InfoStruct* info = GetInfoStruct();
+		GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
+		for(int i=0; i < NUM_MAINTAINED_EFFECTS; i++) {
+			shared_ptr<LuaSpell> maintained_spell = info->maintained_effects[i].spell;
+			if (!maintained_spell)
+				continue;
+			else {
+				if (static_cast<Spell*>(maintained_spell->spell)->GetSpellData()->linked_timer == spell->GetSpellData()->linked_timer) {
+					old_spell = info->maintained_effects[i].spell;
+					break;
+				}
+			}
+		}
+		GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
+
 		GetMaintainedMutex()->writelock(__FUNCTION__, __LINE__);
 		strcpy(effect->name, spell->GetSpellData()->name.data.c_str());
 		effect->target = luaspell->initial_target;
@@ -2103,6 +2119,11 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 		else
 			effect->expire_timestamp = Timer::GetCurrentTime2() + (spell->GetSpellDuration()*100);
 		GetMaintainedMutex()->releasewritelock(__FUNCTION__, __LINE__);
+		
+		if (old_spell) {
+			RemoveSpellEffect(old_spell);
+			RemoveMaintainedSpell(old_spell);
+		}
 		charsheet_changed = true;
 	}
 }
