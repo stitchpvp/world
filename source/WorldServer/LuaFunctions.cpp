@@ -8588,6 +8588,4 @@ int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
 	spawn->AddSpawnUpdate(true, false, true);
 
 	return 1;
-
-	return 1;
 }
