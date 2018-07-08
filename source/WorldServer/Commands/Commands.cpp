@@ -2725,25 +2725,29 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 			break;
 		}
 		
-		/*case COMMAND_LUADEBUG:{
-			if(sep && sep->arg[0][0] && strcmp(sep->arg[0], "start") == 0){
+		case COMMAND_LUADEBUG:{
+			if (sep && sep->arg[0][0] && strcmp(sep->arg[0], "start") == 0) {
 				client->SetLuaDebugClient(true);
-				if(lua_interface)
+
+				if (lua_interface) {
 					lua_interface->UpdateDebugClients(client);
+				}
+
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You will now receive LUA error messages.");
-			}
-			else if(sep && sep->arg[0][0] && strcmp(sep->arg[0], "stop") == 0){
+			} else if (sep && sep->arg[0][0] && strcmp(sep->arg[0], "stop") == 0) {
 				client->SetLuaDebugClient(false);
-				if(lua_interface)
+
+				if (lua_interface) {
 					lua_interface->RemoveDebugClients(client);
+				}
+
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You will no longer receive LUA error messages.");
-			}
-			else{
+			} else {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Syntax: /luadebug {start | stop}");
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "This will allow you to receive lua debug messages normally seen only in the console.");
 			}
 			break;
-		}*/
+		}
 		case COMMAND_SPAWN_GROUP:
 		{
 			Spawn* target = client->GetPlayer()->GetTarget();

@@ -187,14 +187,17 @@ Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_deb
 }
 
 Client::~Client() {
-	if(current_zone && player){
-		if(player->GetGroupMemberInfo() && (player->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0)
+	if (current_zone && player) {
+		if (player->GetGroupMemberInfo() && (player->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0) {
 			world.GetGroupManager()->RemoveGroupMember(player->GetGroupMemberInfo()->group_id, player);
+		}
+
 		world.GetGroupManager()->ClearPendingInvite(player);
 	}
 
-	/*if(lua_interface)
-		lua_interface->RemoveDebugClients(shared_from_this());*/
+	if (lua_interface) {
+		lua_interface->RemoveDebugClients(shared_from_this());
+	}
 
 	//let the stream factory know were done with this stream
 	if (eqs) {
