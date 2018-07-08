@@ -2126,7 +2126,7 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell){
 			RemoveSpellEffect(old_spell);
 			RemoveMaintainedSpell(old_spell);
 		}
-		charsheet_changed = true;
+		SetCharSheetChanged(true);
 	}
 }
 void Player::AddSpellEffect(shared_ptr<LuaSpell> luaspell) {
