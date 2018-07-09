@@ -70,8 +70,11 @@ bool PVP::IsHostile(Player* attacker, Spawn* target) {
 
 		// Alignment of 0 is currently "neutral"
 		// Not attackable by either - only meant for GM, perhaps.
-		if (attacker->GetAlignment() == 0 || entity_target->GetAlignment() == 0)
+		if (attacker->GetAlignment() == 0 || entity_target->GetAlignment() == 0) {
 			return false;
+		} else if (attacker->GetAlignment() == 2 || entity_target->GetAlignment() == 2) {
+			return true;
+		}
 
 		return (attacker->GetAlignment() != entity_target->GetAlignment());
 	} else {
