@@ -135,21 +135,6 @@ int main(int argc, char** argv) {
 	if (!database.ConnectNewDatabase())
 		return EXIT_FAILURE;
 
-	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
-
-	if (signal(SIGSEGV, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
-
-	if (signal(SIGILL, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
-
 	srand(time(NULL));
 
 	net.ReadLoginINI();
