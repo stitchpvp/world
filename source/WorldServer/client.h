@@ -165,7 +165,7 @@ public:
 	void	SendLoginDeniedBadVersion();
 	void	SendCharPOVGhost();
 	void	SendPlayerDeathWindow();
-	float	DistanceFrom(const shared_ptr<Client>& client);
+	float	DistanceFrom(const unique_ptr<Client>& client);
 	void	SendDefaultGroupOptions();
 	bool	HandleLootItem(Entity* entity, int32 item_id);
 	bool	HandleLootItem(Entity* entity, Item* item);
@@ -257,7 +257,7 @@ public:
 	void	SetPlayerQuest(Quest* quest, map<int32, int32>* progress);
 	void	AddPlayerQuest(Quest* quest, bool call_accepted = true, bool send_packets = true);
 	void	RemovePlayerQuest(int32 id, bool send_update = true, bool delete_quest = true);
-	void	SendQuestJournal(bool all_quests = false, shared_ptr<Client> client = 0);
+	void	SendQuestJournal(bool all_quests = false, unique_ptr<Client> client = 0);
 	void	SendQuestUpdate(Quest* quest);
 	void	SendQuestFailure(Quest* quest);
 	void	SendQuestUpdateStep(Quest* quest, int32 step, bool display_quest_helper = true);
@@ -499,14 +499,14 @@ public:
 	ClientList();
 	~ClientList();
 	bool	ContainsStream(EQStream* eqs);
-	void	Add(shared_ptr<Client> client);
-	void	Remove(shared_ptr<Client> client);
+	void	Add(unique_ptr<Client> client);
+	void	Remove(unique_ptr<Client> client);
 	void	RemoveConnection(EQStream* eqs);
 	void	Process();
 	int32	Count();
 	void	ReloadQuests();
 private:
 	Mutex	MClients;
-	list<shared_ptr<Client>> client_list;
+	vector<unique_ptr<Client>> client_list;
 };
 #endif

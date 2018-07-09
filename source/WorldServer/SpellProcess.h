@@ -122,7 +122,7 @@ struct InterruptStruct{
 	int16			error_code;
 };
 struct CastTimer{
-	shared_ptr<Client> caster;
+	unique_ptr<Client> caster;
 	shared_ptr<LuaSpell> spell;
 	EntityCommand*	entity_command;
 	Timer*			timer;
@@ -137,7 +137,7 @@ struct CastSpell{
 };
 struct RecastTimer{
 	Entity*			caster;
-	shared_ptr<Client>			client;
+	unique_ptr<Client>			client;
 	Spell*			spell;
 	Timer*			timer;
 };
@@ -222,30 +222,30 @@ public:
 	/// <param name='entity_command'>EntityCommand to cast</param>
 	/// <param name='client'>Client casting the entity command</param>
 	/// <returns>True if the spell was casted</returns>
-	bool CastProcessedEntityCommand(EntityCommand* entity_command, const shared_ptr<Client>& client);
+	bool CastProcessedEntityCommand(EntityCommand* entity_command, const unique_ptr<Client>& client);
 
 	/// <summary>Sends the start cast packet for the given client</summary>
 	/// <param name='spell'>LuaSpell being cast</param>
 	/// <param name='client'>The client casting the spell</param>
-	void SendStartCast(LuaSpell* spell, const shared_ptr<Client>& client);
+	void SendStartCast(LuaSpell* spell, const unique_ptr<Client>& client);
 
 	/// <summary>Send finish cast packet and take power/hp or add conc, also checks for quest updates</summary>
 	/// <param name='spell'>LuaSpell that just finished casting</param>
 	/// <param name='client'>Client that just finished casting, null if not a player</param>
-	void SendFinishedCast(LuaSpell* spell, const shared_ptr<Client>& client);
+	void SendFinishedCast(LuaSpell* spell, const unique_ptr<Client>& client);
 
 	/// <summary>Locks all the spells for the given client (shades them all gray)</summary>
 	/// <param name='client'>Client to lock the spells for</param>
-	void LockAllSpells(const shared_ptr<Client>& client);
+	void LockAllSpells(const unique_ptr<Client>& client);
 
 	/// <summary>Unlock all the spells for the given client</summary>
 	/// <param name='client'>Client to unlock the spells for</param>
-	void UnlockAllSpells(const shared_ptr<Client>& client);
+	void UnlockAllSpells(const unique_ptr<Client>& client);
 
 	/// <summary>Unlock a single spell for the given client</summary>
 	/// <param name='client'>The client to unlock the spell for</param>
 	/// <param name='spell'>The spell to unlock</param>
-	void UnlockSpell(const shared_ptr<Client>& client, Spell* spell);
+	void UnlockSpell(const unique_ptr<Client>& client, Spell* spell);
 
 	/// <summary>Remove the given spell for the given caster from the SpellProcess</summary>
 	/// <param name='caster'>The spawn to remove the spell for</param>
@@ -304,7 +304,7 @@ public:
 
 	/// <summary>Send the spell book update packet to the given client</summary>
 	/// <param name='client'>Client to send the packet to</param>
-	void SendSpellBookUpdate(const shared_ptr<Client>& client);
+	void SendSpellBookUpdate(const unique_ptr<Client>& client);
 
 	/// <summary>Gets the target of the currently casting spell for the given entity</summary>
 	/// <param name='caster'>Entity whos spell we are checking</param>
@@ -357,7 +357,7 @@ public:
 	/// <summary>Adds a solo HO to the SpellProcess</summary>
 	/// <param name='client'>The client who is starting the HO</param>
 	/// <param name='ho'>The HO that is being started</param>
-	bool AddHO(shared_ptr<Client> client, HeroicOP* ho);
+	bool AddHO(unique_ptr<Client> client, HeroicOP* ho);
 
 	/// <summary>Adds a group HO to the SpellProcess</summary>
 	/// <param name='group_id'>ID of the group that is starting the HO</param>
@@ -401,7 +401,7 @@ private:
 
 	Mutex MSoloHO;
 	Mutex MGroupHO;
-	map<shared_ptr<Client>, HeroicOP*> m_soloHO;
+	map<unique_ptr<Client>, HeroicOP*> m_soloHO;
 	map<int32, HeroicOP*> m_groupHO;
 };
 

@@ -73,7 +73,7 @@ int EQ2Emu_lua_PlayFlavor(lua_State* state){
 			text = text_string.c_str();
 		if(emote_string.length() > 0)
 			emote = emote_string.c_str();
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client){
@@ -96,7 +96,7 @@ int EQ2Emu_lua_PlaySound(lua_State* state){
 	float z = lua_interface->GetFloatValue(state, 5);
 	Spawn* player = lua_interface->GetSpawn(state, 6);
 	if(spawn && sound_string.length() > 0){
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client)
@@ -365,7 +365,7 @@ int EQ2Emu_lua_PlayVoice(lua_State* state){
 	int32 key2 = lua_interface->GetInt32Value(state, 4);
 	Spawn* player = lua_interface->GetSpawn(state, 5);
 	if(spawn && mp3_string.length() > 0){
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client){
@@ -444,7 +444,7 @@ int EQ2Emu_lua_GiveLoot(lua_State* state){
 				items->push_back(master_item_list.GetItem(item_id));
 			i++;
 		}
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		client = entity->GetZone()->GetClientBySpawn(player);
 		if(client){
 			static_cast<Player*>(player)->AddPendingLootItems(entity->GetID(), items);
@@ -508,7 +508,7 @@ int EQ2Emu_lua_CloseConversation(lua_State* state){
 	Spawn* npc = lua_interface->GetSpawn(state);
 	Spawn* player = lua_interface->GetSpawn(state, 2);
 	if(npc && player && player->IsPlayer() && player->GetZone()){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if(client){
 			int32 conversation_id = client->GetConversationID(npc, 0);
 			client->CloseDialog(conversation_id);
@@ -523,7 +523,7 @@ int EQ2Emu_lua_CloseItemConversation(lua_State* state){
 	Item* item = lua_interface->GetItem(state);
 	Spawn* player = lua_interface->GetSpawn(state, 2);
 	if(item && player && player->IsPlayer() && player->GetZone()){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if(client){
 			int32 conversation_id = client->GetConversationID(0, item);
 			client->CloseDialog(conversation_id);
@@ -549,7 +549,7 @@ int EQ2Emu_lua_StartDialogConversation(lua_State* state) {
 	int32 key1 = lua_interface->GetInt32Value(state, 7);
 	int32 key2 = lua_interface->GetInt32Value(state, 8);
 	if (conversation && text.length() > 0 && (spawn || item) && player && player->IsPlayer()) {
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if (client) {
 			if (spawn) {
 				// Need to do this so the function works the same as it did before
@@ -584,7 +584,7 @@ int EQ2Emu_lua_StartDialogConversation(lua_State* state) {
 	int32 key1 = lua_interface->GetInt32Value(state, 6);
 	int32 key2 = lua_interface->GetInt32Value(state, 7);
 	if(conversation && text.length() > 0 && item && player && player->IsPlayer()){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if(client){
 			if(mp3.length() > 0)
 				client->DisplayConversation(item, conversation, (char*)text.c_str(), mp3.c_str(), key1, key2);
@@ -607,7 +607,7 @@ int EQ2Emu_lua_StartConversation(lua_State* state){
 	int32 key1 = lua_interface->GetInt32Value(state, 6);
 	int32 key2 = lua_interface->GetInt32Value(state, 7);
 	if(conversation && text.length() > 0 && npc && npc->IsEntity() && player && player->IsPlayer()){
-		shared_ptr<Client> client = npc->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = npc->GetZone()->GetClientBySpawn(player);
 		if(mp3.length() > 0)
 			client->DisplayConversation(static_cast<Entity*>(npc), 1, conversation, text.c_str(), mp3.c_str(), key1, key2);
 		else
@@ -736,7 +736,7 @@ int EQ2Emu_lua_Say(lua_State* state){
 	int32 language = lua_interface->GetInt32Value(state, 4);
 
 	if (spawn && message.length() > 0) {
-		shared_ptr<Client> client = nullptr;
+		unique_ptr<Client> client = nullptr;
 		int distance = 30;
 
 		if (player && player->IsPlayer())
@@ -762,7 +762,7 @@ int EQ2Emu_lua_Shout(lua_State* state){
 	string message = lua_interface->GetStringValue(state, 2);
 	Spawn* player = lua_interface->GetSpawn(state, 3);
 	if(spawn && message.length() > 0){
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client)
@@ -781,7 +781,7 @@ int EQ2Emu_lua_SayOOC(lua_State* state){
 	string message = lua_interface->GetStringValue(state, 2);
 	Spawn* player = lua_interface->GetSpawn(state, 3);
 	if(spawn && message.length() > 0){
-		shared_ptr<Client> client = 0;
+		unique_ptr<Client> client = 0;
 		if(player && player->IsPlayer())
 			client = spawn->GetZone()->GetClientBySpawn(player);
 		if(client)
@@ -807,7 +807,7 @@ int EQ2Emu_lua_Emote(lua_State* state){
 		to = spawn2->GetName();
 
 	if (spawn && message.length() > 0) {
-		shared_ptr<Client> client = nullptr;
+		unique_ptr<Client> client = nullptr;
 		int distance = 30;
 
 		if (player && player->IsPlayer())
@@ -876,7 +876,7 @@ int EQ2Emu_lua_SummonItem(lua_State* state){
 		quantity = 1;
 
 	if (spawn && spawn->IsPlayer()){
-		shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+		unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 		if (client && item_id > 0){
 			lua_interface->SetBooleanValue(state, client->AddItem(item_id, quantity));
 			if (send_messages) {
@@ -897,7 +897,7 @@ int EQ2Emu_lua_SummonItem(lua_State* state){
 int EQ2Emu_lua_RemoveItem(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
-	shared_ptr<Client> client;
+	unique_ptr<Client> client;
 
 	if (spawn && spawn->IsPlayer() && item_id > 0) {
 		if ((client = spawn->GetZone()->GetClientBySpawn(spawn))) {
@@ -1042,7 +1042,7 @@ int EQ2Emu_lua_Zone(lua_State* state){
 		return 0;
 	ZoneServer* zone = lua_interface->GetZone(state);
 	Spawn* player = lua_interface->GetSpawn(state, 2);
-	shared_ptr<Client> client = 0;
+	unique_ptr<Client> client = 0;
 	if(player && player->IsPlayer())
 		client = player->GetZone()->GetClientBySpawn(player);
 	float x = lua_interface->GetFloatValue(state, 3);
@@ -1303,7 +1303,7 @@ int EQ2Emu_lua_SetPosition(lua_State* state){
 		spawn->SetSpawnOrigHeading(spawn->GetHeading());
 
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 
 			if (client) {
 				if (should_zone) {
@@ -1328,7 +1328,7 @@ int EQ2Emu_lua_SetHeading(lua_State* state){
 	if (spawn) {
 		spawn->SetHeading(value);
 		if (spawn->IsPlayer()) {
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client) {
 				EQ2Packet* packet = client->GetPlayer()->Move(spawn->GetX(), spawn->GetY(), spawn->GetZ(), client->GetVersion(), value + 180.0f);
 				client->QueuePacket(packet);
@@ -1474,7 +1474,7 @@ int EQ2Emu_lua_SetSpeed(lua_State* state){
 	if(spawn){
 		spawn->SetSpeed(value);
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client){
 				PacketStruct* packet = configReader.getStruct("WS_SetControlGhost", client->GetVersion());
 				if(packet){
@@ -1622,7 +1622,7 @@ int EQ2Emu_lua_AddSkillBonus(lua_State* state) {
 				if (target->IsPlayer()) {
 					static_cast<Player*>(target)->AddSkillBonus(spell_id, skill_id, value);
 
-					shared_ptr<Client> client = target->GetZone()->GetClientBySpawn(target);
+					unique_ptr<Client> client = target->GetZone()->GetClientBySpawn(target);
 
 					if (client) {
 						EQ2Packet* packet = static_cast<Player*>(target)->GetSkills()->GetSkillPacket(client->GetVersion());
@@ -1654,7 +1654,7 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 		if (spawn->IsPlayer()) {
 			static_cast<Player*>(spawn)->RemoveSkillBonus(luaspell->spell->GetSpellID());
 
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 
 			if (client) {
 				EQ2Packet* packet = static_cast<Player*>(spawn)->GetSkills()->GetSkillPacket(client->GetVersion());
@@ -2263,7 +2263,7 @@ int EQ2Emu_lua_SetStepComplete(lua_State* state){
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	int32 step = lua_interface->GetInt32Value(state, 3);
 	if(player && player->IsPlayer() && quest_id > 0 && step > 0){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if(client)
 			client->AddPendingQuestUpdate(quest_id, step);
 	}
@@ -2276,7 +2276,7 @@ int EQ2Emu_lua_AddStepProgress(lua_State* state) {
 	int32 step = lua_interface->GetInt32Value(state, 3);
 	int32 progress = lua_interface->GetInt32Value(state, 4); 
 	if (player && player->IsPlayer() && quest_id > 0 && step > 0 && progress > 0) {
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if (client)
 			client->AddPendingQuestUpdate(quest_id, step, progress);
 	}
@@ -2519,7 +2519,7 @@ int EQ2Emu_lua_OfferQuest(lua_State* state){
 	if (player && player->IsPlayer() && quest_id > 0){
 		Quest* master_quest = master_quest_list.GetQuest(quest_id);
 		if(master_quest){
-			shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+			unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 			Quest* quest = new Quest(master_quest);
 			if(client && quest){
 				client->AddPendingQuest(quest);
@@ -2780,7 +2780,7 @@ int EQ2Emu_lua_AddQuestStepChat(lua_State* state){
 		if (quest_step && icon > 0)
 			quest_step->SetIcon(icon);
 		if(quest->GetPlayer()){
-			shared_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
+			unique_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
 			quest->GetPlayer()->GetZone()->SendQuestUpdates(client);
 		}
 	}
@@ -3008,7 +3008,7 @@ int EQ2Emu_lua_UpdateQuestTaskGroupDescription(lua_State* state){
 	if(quest && step > 0 && description.length() > 0){
 		quest->SetTaskGroupDescription(step, description, display_bullets);
 		if(quest->GetPlayer()){
-			shared_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
+			unique_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
 			if(client)
 				client->SendQuestUpdateStep(quest, step, false);
 		}
@@ -3025,7 +3025,7 @@ int EQ2Emu_lua_UpdateQuestStepDescription(lua_State* state){
 	if(quest && step > 0 && description.length() > 0){
 		quest->SetStepDescription(step, description);
 		if(quest->GetPlayer()){
-			shared_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
+			unique_ptr<Client> client = quest->GetPlayer()->GetZone()->GetClientBySpawn(quest->GetPlayer());
 			if(client)
 				client->SendQuestUpdateStep(quest, step);
 		}
@@ -3048,7 +3048,7 @@ int EQ2Emu_lua_GiveQuestReward(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state, 2);
 	if(quest && spawn){
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client)
 				client->AddPendingQuestReward(quest);
 		}
@@ -3062,7 +3062,7 @@ int EQ2Emu_lua_Harvest(lua_State* state){
 	Spawn* player = lua_interface->GetSpawn(state);
 	Spawn* node = lua_interface->GetSpawn(state, 2);
 	if(player && node && player->IsPlayer() && node->IsGroundSpawn()){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 
 		if(client){
 			LogWrite(MISC__TODO, 1, "TODO", "Cancel harvest if skill insufficient; Func: %s, Line: %i", __FUNCTION__, __LINE__);
@@ -3072,7 +3072,7 @@ int EQ2Emu_lua_Harvest(lua_State* state){
 		}
 	}
 	else if(player && player->IsPlayer()){
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if(client)
 			client->Message(CHANNEL_COLOR_RED, "Invalid target for this spell.");
 	}
@@ -3085,7 +3085,7 @@ int EQ2Emu_lua_Bind(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn){
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client){
 				if(!client->Bind())
 					client->SimpleMessage(CHANNEL_COLOR_RED, "Unable to set bind point.");
@@ -3101,7 +3101,7 @@ int EQ2Emu_lua_Gate(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn){
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client){
 				if(!client->Gate())
 					client->SimpleMessage(CHANNEL_COLOR_RED, "Unable to gate.");
@@ -3118,7 +3118,7 @@ int EQ2Emu_lua_IsBindAllowed(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn){
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client)
 				ret = client->BindAllowed();
 		}
@@ -3134,7 +3134,7 @@ int EQ2Emu_lua_IsGateAllowed(lua_State* state){
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	if(spawn){
 		if(spawn->IsPlayer()){
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if(client)
 				ret = client->GateAllowed();
 		}
@@ -3168,7 +3168,7 @@ int EQ2Emu_lua_SendMessage(lua_State* state) {
 	string message = lua_interface->GetStringValue(state, 2);
 	string color_str = lua_interface->GetStringValue(state, 3);
 	if (spawn && spawn->IsPlayer() && message.length() > 0) {
-		shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+		unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 		if (client) {
 			int8 color = CHANNEL_COLOR_WHITE;
 			if (color_str.length() > 0) {
@@ -3192,7 +3192,7 @@ int EQ2Emu_lua_SendPopUpMessage(lua_State* state) {
 	int32 words = ::CountWordsInString(message.c_str());
 	if (words < 5)
 		words = 5;
-	shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+	unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 	if (client)
 		client->SendPopupMessage(10, message.c_str(), "ui_harvested_normal", words, red, green, blue);
 	return 0;
@@ -3204,7 +3204,7 @@ int EQ2Emu_lua_SetServerControlFlag(lua_State* state) {
 	int8 param_value = lua_interface->GetInt8Value(state, 3);
 	int8 value = lua_interface->GetInt8Value(state, 4);
 	if (spawn && spawn->IsPlayer() && (param >= 1 && param <= 5)) {
-		shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+		unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 		if (client) {
 			PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", client->GetVersion());
 			switch (param) {
@@ -3276,7 +3276,7 @@ int EQ2Emu_lua_AddSpellBookEntry(lua_State* state) {
 	int16 tier = lua_interface->GetInt16Value(state, 3);
 	Spell* spell = master_spell_list.GetSpell(spellid, tier);
 	if (player && spell && player->IsPlayer()) {
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if (client ) {
 			static_cast<Player*>(player)->AddSpellBookEntry(spell->GetSpellID(), spell->GetSpellTier(), static_cast<Player*>(player)->GetFreeSpellBookSlot(spell->GetSpellData()->spell_book_type), spell->GetSpellData()->spell_book_type, spell->GetSpellData()->linked_timer, true);
 			EQ2Packet* outapp = static_cast<Player*>(player)->GetSpellBookUpdatePacket(client->GetVersion());
@@ -3337,7 +3337,7 @@ int EQ2Emu_lua_HandInCollections(lua_State *state) {
 	if (lua_interface) {
 		player = lua_interface->GetSpawn(state);
 		if (player && static_cast<Player*>(player)->IsPlayer() && static_cast<Player*>(player)->GetCollectionList()->HasCollectionsToHandIn()) {
-			shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+			unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 			if (client)
 				client->HandInCollections();
 		}
@@ -3541,7 +3541,7 @@ int EQ2Emu_lua_SendOptionWindow(lua_State* state) {
 	Spawn* player = lua_interface->GetSpawn(state, 2);
 	string window_title = lua_interface->GetStringValue(state, 3);
 	string cancel_command = lua_interface->GetStringValue(state, 4);
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (option_window && window_title.length() > 0 && client) {
 		PacketStruct* packet = configReader.getStruct("WS_SelectTradeskill", client->GetVersion());
 		if (!packet)
@@ -3667,7 +3667,7 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	// Check to make sure the spawn doesn't already have a pet of this type
 	if (static_cast<Entity*>(spawn)->GetPet()) {
 		if (spawn->IsPlayer()) {
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You already have a pet.");
 		}
@@ -3805,7 +3805,7 @@ int EQ2Emu_lua_SummonDeityPet(lua_State* state){
 
 	if (static_cast<Entity*>(spawn)->GetDeityPet()) {
 		if (spawn->IsPlayer()) {
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You already have a deity pet.");
 		}
@@ -3892,7 +3892,7 @@ int EQ2Emu_lua_SummonCosmeticPet(lua_State* state){
 
 	if (static_cast<Entity*>(spawn)->GetCosmeticPet()) {
 		if (spawn->IsPlayer()) {
-			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+			unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 			if (client)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You already have a cosmetic pet.");
 		}
@@ -4120,7 +4120,7 @@ int EQ2Emu_lua_CastEntityCommand(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
+	unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
 	if (!client) {
 		lua_interface->LogError("LUA CastEntityCommand command error: unable to get a valid client for the given caster");
 		return 0;
@@ -4467,7 +4467,7 @@ int EQ2Emu_lua_GiveQuestItem(lua_State* state)
 		return 1;
 	}
 
-	shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+	unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 	if (!client) {
 		lua_interface->LogError("LUA GiveQuestItem command error: unable to get a valid client from the given spawn");
 		lua_interface->SetBooleanValue(state, false);
@@ -5575,7 +5575,7 @@ int EQ2Emu_lua_SetSuccessTimer(lua_State* state) {
 
 				database.UpdateCharacterInstance(static_cast<Player*>(spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 1, Timer::GetUnixTimeStamp());
 				data->last_success_timestamp = Timer::GetUnixTimeStamp();
-				shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+				unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 				if (client) {
 					string time_msg = "";
 					int32 time = data->success_lockout_time;
@@ -5660,7 +5660,7 @@ int EQ2Emu_lua_SetFailureTimer(lua_State* state) {
 
 				database.UpdateCharacterInstance(static_cast<Player*>(spawn)->GetCharacterID(), string(spawn->GetZone()->GetZoneName()), spawn->GetZone()->GetInstanceID(), 2, Timer::GetUnixTimeStamp());
 				data->last_failure_timestamp = Timer::GetUnixTimeStamp();
-				shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+				unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 				if (client) {
 					string time_msg = "";
 					int32 time = data->failure_lockout_time;
@@ -5797,7 +5797,7 @@ int EQ2Emu_lua_CanHarvest(lua_State* state) {
 
 	// If false, send the message to the client
 	if (!can_harvest) {
-		shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+		unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 		if (client) {
 			string msg = "You do not have enough skill to ";
 			if(collection_skill == "Gathering" || collection_skill == "Collecting")
@@ -5989,7 +5989,7 @@ int EQ2Emu_lua_SpawnMove(lua_State* state){
 		return 0;
 	}
 
-	shared_ptr<Client> client = 0;
+	unique_ptr<Client> client = 0;
 	if(player->GetZone())
 		client = player->GetZone()->GetClientBySpawn(player);
 
@@ -6243,7 +6243,7 @@ int EQ2Emu_lua_Knockback(lua_State* state) {
 	}
 
 	if (spawn->IsPlayer() && (vertical != 0 || horizontal != 0)) {
-		shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+		unique_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
 		PacketStruct* packet = configReader.getStruct("WS_PlayerKnockback", client->GetVersion());
 		if (packet) {
 			packet->setDataByName("target_x", target_spawn->GetX());
@@ -6543,7 +6543,7 @@ int EQ2Emu_lua_SetItemCount(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = owner->GetZone()->GetClientBySpawn(owner);
+	unique_ptr<Client> client = owner->GetZone()->GetClientBySpawn(owner);
 
 	if(!client)
 		return 0;
@@ -6634,7 +6634,7 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = 0;
+	unique_ptr<Client> client = 0;
 	PendingResurrection* rez = 0;
 	ZoneServer* zone = spell->caster->GetZone();
 
@@ -7106,7 +7106,7 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
+	unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
 	if (!client) {
 		lua_interface->LogError("LUA StartHeroicOpportunity command error: unable to get a client for the given caster");
 		return 0;
@@ -7654,7 +7654,7 @@ int EQ2Emu_lua_SetQuestTimer(lua_State* state) {
 		return 0;
 	}
 	
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA SetQuestTimer command error: failed to get a valid client pointer for the given player");
 		return 0;
@@ -7690,7 +7690,7 @@ int EQ2Emu_lua_SetQuestTimerComplete(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA SetQuestTimerComplete command error: failed to get a valid client pointer for the given player");
 		return 0;
@@ -7731,7 +7731,7 @@ int EQ2Emu_lua_RemoveQuestStep(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA RemoveQuestStep command error: unable to get a valid client pointer from the given player.");
 		return 0;
@@ -8032,7 +8032,7 @@ int EQ2Emu_lua_StartAutoMount(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA StartAutoMount command error: unable to get a client from the given player");
 		return 0;
@@ -8068,7 +8068,7 @@ int EQ2Emu_lua_EndAutoMount(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA EndAutoMount command error: unable to get a client from the given player");
 		return 0;
@@ -8093,7 +8093,7 @@ int EQ2Emu_lua_IsOnAutoMount(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA IsOnAutoMount command error: unable to get a client from the given player");
 		return 0;
@@ -8248,7 +8248,7 @@ int EQ2Emu_lua_SetPlayerLevel(lua_State* state) {
 		return 0;
 	}
 
-	shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+	unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
 	if (!client) {
 		lua_interface->LogError("LUA SetPlayerLevel command error: unable to get a client from the given spawn");
 		return 0;

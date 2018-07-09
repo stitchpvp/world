@@ -402,10 +402,10 @@ ZoneList::~ZoneList() {
 	client_timeouts.clear();
 }
 
-void ZoneList::CheckFriendList(const shared_ptr<Client>& client) {
+void ZoneList::CheckFriendList(const unique_ptr<Client>& client) {
 	LogWrite(WORLD__DEBUG, 0, "World", "Sending FriendList...");
 	MClientList.lock();
-	map<string,shared_ptr<Client>>::iterator itr;
+	map<string,unique_ptr<Client>>::iterator itr;
 	for(itr = client_map.begin(); itr != client_map.end(); itr++){
 		if(itr->second != client && itr->second){
 			if(itr->second->GetPlayer()->IsFriend(client->GetPlayer()->GetName())){
@@ -417,9 +417,9 @@ void ZoneList::CheckFriendList(const shared_ptr<Client>& client) {
 	MClientList.unlock();
 }
 
-void ZoneList::CheckFriendZoned(const shared_ptr<Client>& client) {
+void ZoneList::CheckFriendZoned(const unique_ptr<Client>& client) {
 	MClientList.lock();
-	map<string,shared_ptr<Client>>::iterator itr;
+	map<string,unique_ptr<Client>>::iterator itr;
 	for(itr = client_map.begin(); itr != client_map.end(); itr++){
 		if(itr->second != client && itr->second){
 			if(itr->second->GetPlayer()->IsFriend(client->GetPlayer()->GetName())){
@@ -430,14 +430,14 @@ void ZoneList::CheckFriendZoned(const shared_ptr<Client>& client) {
 	MClientList.unlock();
 }
 
-bool ZoneList::HandleGlobalChatMessage(const shared_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name){
+bool ZoneList::HandleGlobalChatMessage(const unique_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name){
 	if (!from) {
 		LogWrite(WORLD__ERROR, 0, "World", "HandleGlobalChatMessage() called with an invalid client");
 		return false;
 	}
 
 	if(channel == CHANNEL_TELL){
-		shared_ptr<Client> find_client = zone_list.GetClientByCharName(to);
+		unique_ptr<Client> find_client = zone_list.GetClientByCharName(to);
 		if(!find_client || find_client->GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
 			return false;
 		else if(find_client == from)
@@ -628,7 +628,7 @@ ZoneServer* ZoneList::Get(int32 id, bool loadZone) {
 }
 
 
-void ZoneList::SendZoneList(const shared_ptr<Client>& client) {
+void ZoneList::SendZoneList(const unique_ptr<Client>& client) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	MZoneList.readlock(__FUNCTION__, __LINE__);
@@ -710,7 +710,7 @@ ZoneServer* ZoneList::GetByLowestPopulation(int32 zone_id) {
 
 bool ZoneList::ClientConnected(int32 account_id){
 	bool ret = false;
-	map<string, shared_ptr<Client>>::iterator itr;
+	map<string, unique_ptr<Client>>::iterator itr;
 	MClientList.lock();
 	for(itr=client_map.begin(); itr != client_map.end(); itr++){
 		if(itr->second && itr->second->GetAccountID() == account_id && (itr->second->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) == 0){
@@ -760,7 +760,7 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
 		for(spawn_iter = tmpPlayers.begin(); spawn_iter!=tmpPlayers.end(); spawn_iter++){
 			player = *spawn_iter;
 			add_player = true;
-			shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
+			unique_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
 			if (find_client == NULL) continue;
 			int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
 			int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
@@ -833,7 +833,7 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
 	}
 }
 
-void ZoneList::ProcessWhoQuery(const char* query, const shared_ptr<Client>& client){
+void ZoneList::ProcessWhoQuery(const char* query, const unique_ptr<Client>& client){
 	list<ZoneServer*>::iterator zone_iter;
 	vector<Entity*> players;
 	vector<Entity*>::iterator spawn_iter;
@@ -897,7 +897,7 @@ void ZoneList::ProcessWhoQuery(const char* query, const shared_ptr<Client>& clie
 			if(i == num_characters)
 				break;
 			player = *spawn_iter;
-			shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
+			unique_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
 			int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
 			int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
 			packet->setArrayDataByName("char_name", player->GetName(), i);
@@ -1044,7 +1044,7 @@ void ZoneList::ShutDownZones(){
 }
 
 void ZoneList::ReloadMail() {
-	map<string, shared_ptr<Client>>::iterator itr;
+	map<string, unique_ptr<Client>>::iterator itr;
 	MClientList.writelock(__FUNCTION__, __LINE__);
 	for (itr = client_map.begin(); itr != client_map.end(); itr++) {
 		itr->second->GetPlayer()->DeleteMail();
@@ -1435,7 +1435,7 @@ void World::RemoveServerStatistics() {
 	server_statistics.clear();
 }
 
-void World::SendGroupQuests(PlayerGroup* group, const shared_ptr<Client>& client){
+void World::SendGroupQuests(PlayerGroup* group, const unique_ptr<Client>& client){
 	return;
 	/*if(!group)
 		return;
@@ -1475,7 +1475,7 @@ void World::SendGroupQuests(PlayerGroup* group, const shared_ptr<Client>& client
 	}
 }*/
 
-void World::RejoinGroup(const shared_ptr<Client>& client){
+void World::RejoinGroup(const unique_ptr<Client>& client){
 	/*map<GroupMemberInfo*, int32>::iterator itr;
 	GroupMemberInfo* found = 0;
 	string name = string(client->GetPlayer()->GetName());
@@ -1679,7 +1679,7 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
 	}
 }
 
-void World::CreateGuild(const char* guild_name, shared_ptr<Client> leader, int32 group_id) {
+void World::CreateGuild(const char* guild_name, unique_ptr<Client> leader, int32 group_id) {
 	deque<GroupMemberInfo*>::iterator itr;
 	GroupMemberInfo* gmi;
 	Guild *guild;
@@ -1792,7 +1792,7 @@ void World::CheckLottoPlayers() {
 		if (Timer::GetCurrentTime2() >= lp->end_time && lp->set) {
 			int8 num_matches = lp->num_matches;
 			LogWrite(PLAYER__DEBUG, 0, "Player", "Num matches: %u", lp->num_matches);
-			shared_ptr<Client> client = zone_list.GetClientByCharID(itr->first);
+			unique_ptr<Client> client = zone_list.GetClientByCharID(itr->first);
 			if (client && num_matches >= 2) {
 				if (num_matches == 2) {
 					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You receive 10 silver.");

@@ -235,10 +235,10 @@ public:
 
 
 	void			CallQuestFunction(Quest* quest, const char* function, Spawn* player, int32 step_id = 0xFFFFFFFF);
-	void			RemoveDebugClients(shared_ptr<Client> client);
-	void			UpdateDebugClients(shared_ptr<Client> client);
+	void			RemoveDebugClients(unique_ptr<Client> client);
+	void			UpdateDebugClients(unique_ptr<Client> client);
 	void			ProcessErrorMessage(const char* message);
-	map<shared_ptr<Client>, int32> GetDebugClients(){ return debug_clients; }
+	map<unique_ptr<Client>, int32> GetDebugClients(){ return debug_clients; }
 	void			AddUserDataPtr(LUAUserData* data);
 	void			DeleteUserDataPtrs(bool all);
 	Mutex*			GetSpawnScriptMutex(const char* name);
@@ -252,7 +252,7 @@ private:
 	bool			spawn_scripts_reloading;
 	Timer*			user_data_timer;
 	map<LUAUserData*, int32> user_data;
-	map<shared_ptr<Client>, int32>	debug_clients;
+	map<unique_ptr<Client>, int32>	debug_clients;
 	map<lua_State*, shared_ptr<LuaSpell>> current_spells;
 	vector<string>*	GetDirectoryListing(const char* directory);
 	lua_State*		LoadLuaFile(const char* name);

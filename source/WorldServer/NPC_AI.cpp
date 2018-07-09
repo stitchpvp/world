@@ -81,7 +81,7 @@ void Brain::Think() {
 			if (run_back_distance > MAX_CHASE_DISTANCE) {
 				LogWrite(NPC_AI__DEBUG, 7, "NPC_AI", "Run back distance is greater then max chase distance, run_back_distance = %f", run_back_distance);
 				// Over the max chase distance, Check to see if the target is is a client
-				shared_ptr<Client> client = target->GetZone()->GetClientBySpawn(target);
+				unique_ptr<Client> client = target->GetZone()->GetClientBySpawn(target);
 				if (client)
 				{
 					// Target is a client so send encounter break messages

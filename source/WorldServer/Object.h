@@ -34,7 +34,7 @@ public:
 	}
 	Object*	Copy();
 	bool IsObject(){ return true; }
-	void	HandleUse(const shared_ptr<Client>& client, string command);
+	void	HandleUse(const unique_ptr<Client>& client, string command);
 	bool clickable;
 	char* zone_name;
 	EQ2Packet* serialize(Player* player, int16 version);

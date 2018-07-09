@@ -306,8 +306,8 @@ bool LuaInterface::LoadZoneScript(const char* name)  {
 
 void LuaInterface::ProcessErrorMessage(const char* message) {
 	MDebugClients.lock();
-	vector<shared_ptr<Client>> delete_clients;
-	map<shared_ptr<Client>, int32>::iterator itr;
+	vector<unique_ptr<Client>> delete_clients;
+	map<unique_ptr<Client>, int32>::iterator itr;
 	for(itr = debug_clients.begin(); itr != debug_clients.end(); itr++){
 		if((Timer::GetCurrentTime2() - itr->second) > 60000)
 			delete_clients.push_back(itr->first);
@@ -319,13 +319,13 @@ void LuaInterface::ProcessErrorMessage(const char* message) {
 	MDebugClients.unlock();
 }
 
-void LuaInterface::RemoveDebugClients(shared_ptr<Client> client) {
+void LuaInterface::RemoveDebugClients(unique_ptr<Client> client) {
 	MDebugClients.lock();
 	debug_clients.erase(client);
 	MDebugClients.unlock();
 }
 
-void LuaInterface::UpdateDebugClients(shared_ptr<Client> client) {
+void LuaInterface::UpdateDebugClients(unique_ptr<Client> client) {
 	MDebugClients.lock();
 	debug_clients[client] = Timer::GetCurrentTime2();
 	MDebugClients.unlock();

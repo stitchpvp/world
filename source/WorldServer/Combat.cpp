@@ -88,7 +88,7 @@ bool Entity::RangeWeaponReady() {
 
 bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	Entity* attacker = this;
-	shared_ptr<Client> client = nullptr;
+	unique_ptr<Client> client = nullptr;
 
 	if (!target || IsMezzedOrStunned() || IsDazed()) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: no target, mezzed, stunned or dazed");
@@ -311,7 +311,7 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 					((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, true);
 				}
 
-				shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+				unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 				EQ2Packet* outapp = ((Player*)this)->GetEquipmentList()->serialize(client->GetVersion());
 				if (outapp) {
 					client->QueuePacket(outapp);
@@ -479,7 +479,7 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 		last_proc_hit = true;
 
 		if (IsPlayer() && success_msg.length()) {
-			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+			unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 
 			if (client) {
 				if (success_msg.find("%t") < 0xFFFFFFFF) {
@@ -1138,7 +1138,7 @@ void Player::ProcessCombat() {
 			RangeAttack(combat_target, distance, weapon, ammo);
 		}
 		else {
-			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+			unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 			if (client) {
 				// Need to get messages from live, made these up so the player knows what is wrong in game if weapon or ammo are not valid
 				if (!ammo)

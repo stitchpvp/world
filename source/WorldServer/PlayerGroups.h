@@ -43,7 +43,7 @@ struct GroupMemberInfo {
 	int8	race_id;
 	int8	class_id;
 	bool	leader;
-	shared_ptr<Client>	client;
+	unique_ptr<Client>	client;
 	Entity*	member;
 };
 
@@ -68,7 +68,7 @@ public:
 
 	/// <summary>Sends updates to all the clients in the group</summary>
 	/// <param name='exclude'>Client to exclude from the update</param>
-	void SendGroupUpdate(shared_ptr<Client> exclude = 0);
+	void SendGroupUpdate(unique_ptr<Client> exclude = 0);
 
 	/// <summary>Gets the total number of members in the group</summary>
 	/// <returns>int32, number of members in the group</returns>
@@ -137,8 +137,8 @@ public:
 
 	/// <summary>Send updates to all the clients in the group</summary>
 	/// <param name='group_id'>ID of the group to send updates to</param>
-	/// <param name='exclude'>shared_ptr<Client> to exclude from the update, usually the one that triggers the update</param>
-	void SendGroupUpdate(int32 group_id, shared_ptr<Client> exclude = 0);
+	/// <param name='exclude'>unique_ptr<Client> to exclude from the update, usually the one that triggers the update</param>
+	void SendGroupUpdate(int32 group_id, unique_ptr<Client> exclude = 0);
 
 	/// <summary>
 	/// Gets the group members for the given group, be sure to call GroupLock() before calling this and ReleaseGroupLock() after you 
@@ -160,11 +160,11 @@ public:
 
 	void ClearPendingInvite(Entity* member);
 
-	void RemoveGroupBuffs(int32 group_id, shared_ptr<Client> client);
+	void RemoveGroupBuffs(int32 group_id, unique_ptr<Client> client);
 
 	int32 GetGroupSize(int32 group_id);
 
-	void SendGroupQuests(int32 group_id, shared_ptr<Client> client);
+	void SendGroupQuests(int32 group_id, unique_ptr<Client> client);
 
 	void SimpleGroupMessage(int32 group_id, const char* message);
 	void GroupMessage(int32 group_id, const char* message, ...);

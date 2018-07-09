@@ -203,7 +203,7 @@ struct SpawnUpdate {
 	bool info_changed;
 	bool vis_changed;
 	bool pos_changed;
-	shared_ptr<Client> client;
+	unique_ptr<Client> client;
 };
 
 struct SpawnData {

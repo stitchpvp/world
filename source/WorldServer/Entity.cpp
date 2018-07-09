@@ -2439,7 +2439,7 @@ void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
 		RemoveSkillBonus(spell->spell->GetSpellID());
 
 		if (IsPlayer()) {
-			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+			unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 
 			if (client) {
 				EQ2Packet* packet = static_cast<Player*>(this)->GetSkills()->GetSkillPacket(client->GetVersion());

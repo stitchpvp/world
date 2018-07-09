@@ -739,7 +739,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 					if (database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), shared_from_this())) {
 						version = request->getType_int16_ByName("version");
-						shared_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
+						unique_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
 
 						// TODO: Revisit LD code
 						/*MDeletePlayer.writelock(__FUNCTION__, __LINE__);
@@ -1472,7 +1472,7 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 				/* Player has contacted a guild recruiter */
 				if (recruiter_name.length() > 0) {
 					Guild* guild = guild_list.GetGuild(packet->getType_int32_ByName("guild_id"));
-					shared_ptr<Client> recruiter = zone_list.GetClientByCharName(recruiter_name);
+					unique_ptr<Client> recruiter = zone_list.GetClientByCharName(recruiter_name);
 
 					if (recruiter && guild) {
 						Message(CHANNEL_COLOR_GUILD_EVENT, "Contact request sent to %s of %s.", recruiter->GetPlayer()->GetName(), guild->GetName());
@@ -2463,7 +2463,7 @@ bool Client::Process(bool zone_process) {
 		ret = false;
 
 	if (!ret) {
-		shared_ptr<Client> client = shared_from_this();
+		unique_ptr<Client> client = shared_from_this();
 		thread t([client]() {
 			client->Save();
 		});
@@ -2495,7 +2495,7 @@ int32 ClientList::Count(){
 	return client_list.size();
 }
 
-void ClientList::Add(shared_ptr<Client> client) {
+void ClientList::Add(unique_ptr<Client> client) {
 	MClients.writelock(__FUNCTION__, __LINE__);
 	client_list.push_back(move(client));
 	MClients.releasewritelock(__FUNCTION__, __LINE__);
@@ -2510,7 +2510,6 @@ void ClientList::Process() {
 		const auto& client = *client_iter;
 
 		if (!client || (!client->Process() || client->remove_from_list)) {
-			erase_iter = client_iter;
 			break;
 		}
 	}
@@ -2519,19 +2518,6 @@ void ClientList::Process() {
 	if (erase_iter != client_list.end()) {
 		const auto& client = *erase_iter;
 
-		MClients.writelock(__FUNCTION__, __LINE__);
-		client_list.erase(erase_iter);
-		MClients.releasewritelock(__FUNCTION__, __LINE__);
-
-		/*
-		if (client && !client->remove_from_list) {
-			struct in_addr  in;
-			in.s_addr = client->GetIP();
-
-			LogWrite(WORLD__INFO, 0, "World", "Removing client from ip: %s port: %i", inet_ntoa(in), client->GetPort());
-		}
-		*/
-		
 	}
 
 }
@@ -2569,8 +2555,12 @@ bool ClientList::ContainsStream(EQStream* eqs){
 	return ret;
 }
 
-void ClientList::Remove(shared_ptr<Client> client) {
+unique_ptr<Client> ClientList::Remove(unique_ptr<Client> client) {
 	client->remove_from_list = true;
+
+	MClients.writelock(__FUNCTION__, __LINE__);
+	client_list.erase(client);
+	MClients.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Client::SetCurrentZone(int32 id){
@@ -2650,7 +2640,7 @@ void Client::Disconnect(bool send_disconnect)
 		getConnection()->SendDisconnect(true);
 
 
-	shared_ptr<Client> client = shared_from_this();
+	unique_ptr<Client> client = shared_from_this();
 	thread t([client]() {
 		client->Save();
 	});
@@ -2665,7 +2655,7 @@ bool Client::Summon(const char* search_name){
 	Spawn* target = nullptr;
 
 	if (search_name || GetPlayer()->GetTarget()) {
-		shared_ptr<Client> search_client = nullptr;
+		unique_ptr<Client> search_client = nullptr;
 
 		if (search_name) {
 			target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
@@ -2901,7 +2891,7 @@ bool Client::GotoSpawn(const char* search_name){
 	Spawn* target = nullptr;
 
 	if (search_name || GetPlayer()->GetTarget()) {
-		shared_ptr<Client> search_client = nullptr;
+		unique_ptr<Client> search_client = nullptr;
 
 		if (search_name) {
 			target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
@@ -3071,7 +3061,7 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords) {
 
 	set_next_zone_coords = set_coords;
 
-	shared_ptr<Client> client = shared_from_this();
+	unique_ptr<Client> client = shared_from_this();
 	thread t([this, client]() {
 		database.SavePlayerActiveSpells(shared_from_this());
 		client->Save();
@@ -3124,7 +3114,7 @@ void Client::TeleportWithinZone(float x, float y, float z, float heading) {
 		client_zoning = true;
 }
 
-float Client::DistanceFrom(const shared_ptr<Client>& client) {
+float Client::DistanceFrom(const unique_ptr<Client>& client) {
 	float ret = 0;
 
 	if (client && client != shared_from_this()) {
@@ -4348,7 +4338,7 @@ void Client::SendQuestUpdate(Quest* quest) {
 
 }
 
-void Client::SendQuestJournal(bool all_quests, shared_ptr<Client> client){
+void Client::SendQuestJournal(bool all_quests, unique_ptr<Client> client){
 	if(!client)
 		client = shared_from_this();
 	PacketStruct* packet = player->GetQuestJournalPacket(all_quests, GetVersion(), GetNameCRC(), current_quest_id);
@@ -6226,7 +6216,7 @@ void Client::HandleSentMail(EQApplicationPacket* app) {
 							if (postage_cost > 0 || attachment_cost > 0)
 								PlaySoundA("coin_cha_ching");*/
 							mail->save_needed = false;
-							shared_ptr<Client> to_client = zone_list.GetClientByCharID(player_to_id);
+							unique_ptr<Client> to_client = zone_list.GetClientByCharID(player_to_id);
 							if (to_client) {
 								to_client->GetPlayer()->AddMail(mail);
 								to_client->SimpleMessage(CHANNEL_COLOR_MAIL, "You've got mail! :)");
@@ -6761,7 +6751,7 @@ void Client::SendChatRelationship(int8 type, const char* name){
 		packet->setArrayDataByName("name", name);
 
 		if (type == 0) {
-			shared_ptr<Client> client = zone_list.GetClientByCharName(name);
+			unique_ptr<Client> client = zone_list.GetClientByCharName(name);
 
 			if (client) {
 				packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName());
@@ -6789,7 +6779,7 @@ void Client::SendFriendList(){
 			}
 			packet->setArrayLengthByName("num_names", names.size());
 			for (int32 i=0;i<names.size();i++) {
-				shared_ptr<Client> client = zone_list.GetClientByCharName(names[i]);
+				unique_ptr<Client> client = zone_list.GetClientByCharName(names[i]);
 
 				packet->setArrayDataByName("name", names[i].c_str(), i);
 
