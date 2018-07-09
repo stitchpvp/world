@@ -80,6 +80,7 @@ public:
 	inline char* GetWorldPassword()		{ return worldpassword; }
 	inline char* GetWorldAddress()			{ return worldaddress; }
 	inline int16 GetWorldPort()				{ return worldport; }
+	inline int16 GetPublicPort() { return publicport; };
 	inline int8 GetDefaultStatus()			{ return DEFAULTSTATUS; }
 	bool world_locked;
 private:
@@ -93,6 +94,7 @@ private:
 	char	worldpassword[31];
 	char	worldaddress[255];
 	int16	worldport;
+	int16   publicport;
 	int8    DEFAULTSTATUS;
 
 };

@@ -547,6 +547,7 @@ bool NetConnection::ReadLoginINI() {
 	strncpy(worldname, getenv("EQ2_WORLD_NAME"), 201);
 	strncpy(worldaddress, getenv("EQ2_ADDRESS"), 250);
 	worldport = atoi(getenv("EQ2_PORT"));
+	publicport = atoi(getenv("PUBLIC_PORT"));
 
 	strncpy(worldaccount, getenv("EQ2_LS_USERNAME"), 31);
 	strncpy(worldpassword, getenv("EQ2_LS_PASSWORD"), 31);
