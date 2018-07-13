@@ -99,6 +99,7 @@ Spawn::Spawn(){
 	size_mod_c = 0;
 	size_shrink_multiplier = 0;
 	size_mod_unknown = 0;
+	last_damage_taken = 0;
 }
 
 Spawn::~Spawn(){
@@ -639,6 +640,14 @@ void Spawn::SetLastAttacker(Spawn* spawn){
 	last_attacker = spawn->GetID();
 }
 
+int32 Spawn::GetLastDamageTaken() {
+	return last_damage_taken;
+}
+
+void Spawn::SetLastDamageTaken(int32 damage) {
+	last_damage_taken = damage;
+}
+
 void Spawn::SetInvulnerable(bool val){
 	invulnerable = val;
 }
@@ -647,23 +656,31 @@ bool Spawn::GetInvulnerable(){
 	return invulnerable;
 }
 
-bool Spawn::TakeDamage(int32 damage){
-	if(invulnerable)
+bool Spawn::TakeDamage(int32 damage) {
+	if (invulnerable) {
 		return false;
-	if (IsEntity()) {
-		if (((Entity*)this)->IsMezzed())
-			((Entity*)this)->RemoveAllMezSpells();
+	}
 
-		if (damage == 0)
+	SetLastDamageTaken(damage);
+
+	if (IsEntity()) {
+		if (static_cast<Entity*>(this)->IsMezzed()) {
+			static_cast<Entity*>(this)->RemoveAllMezSpells();
+		}
+
+		if (damage == 0) {
 			return true;
+		}
 	}
 
 	int32 hp = GetHP();
-	if(damage >= hp) {
+
+	if (damage >= hp) {
 		SetHP(0);
 	} else {
 		SetHP(hp - damage);
 	}
+
 	return true;
 }
 

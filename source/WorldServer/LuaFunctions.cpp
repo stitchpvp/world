@@ -8596,3 +8596,16 @@ int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
 
 	return 1;
 }
+
+int EQ2Emu_lua_GetLastDamageTaken(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA GetLastDamageTaken command error: spawn is not valid");
+		return 0;
+	}
+
+	lua_interface->SetInt32Value(state, spawn->GetLastDamageTaken());
+
+	return 1;
+}

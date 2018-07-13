@@ -109,7 +109,6 @@ int EQ2Emu_lua_GetEquippedItemByID(lua_State* state);
 int EQ2Emu_lua_GetItemByID(lua_State* state);
 int EQ2Emu_lua_GetItemType(lua_State* state);
 int EQ2Emu_lua_GetSpellName(lua_State* state);
-
 int EQ2Emu_lua_GetCaster(lua_State* state);
 int EQ2Emu_lua_SpellWasCured(lua_State* state);
 
@@ -413,4 +412,5 @@ int EQ2Emu_lua_RemoveSpell(lua_State* state);
 int EQ2Emu_lua_DropChest(lua_State* state);
 int EQ2Emu_lua_SendSkillUpdate(lua_State* state);
 int EQ2Emu_lua_SetPlayerAlignment(lua_State* state);
+int EQ2Emu_lua_GetLastDamageTaken(lua_State* state);
 #endif
