@@ -283,25 +283,28 @@ struct Proc {
 	float		chance;
 };
 
-#define PROC_TYPE_OFFENSIVE				1
-#define PROC_TYPE_DEFENSIVE				2
-#define PROC_TYPE_PHYSICAL_OFFENSIVE	3
-#define PROC_TYPE_PHYSICAL_DEFENSIVE	4
-#define PROC_TYPE_MAGICAL_OFFENSIVE		5
-#define PROC_TYPE_MAGICAL_DEFENSIVE		6
-#define PROC_TYPE_BLOCK					7
-#define PROC_TYPE_PARRY					8
-#define PROC_TYPE_RIPOSTE				9
-#define PROC_TYPE_EVADE					10
-#define PROC_TYPE_HEALING				11
-#define PROC_TYPE_BENEFICIAL			12
-#define PROC_TYPE_DEATH                 13
-#define PROC_TYPE_KILL                  14
-#define PROC_TYPE_DAMAGED               15
-#define PROC_TYPE_DAMAGED_MELEE         16
-#define PROC_TYPE_DAMAGED_MAGIC         17
-#define PROC_TYPE_RANGED_ATTACK			18
-#define PROC_TYPE_RANGED_DEFENSE		19
+#define PROC_TYPE_OFFENSIVE					1
+#define PROC_TYPE_DEFENSIVE					2
+#define PROC_TYPE_PHYSICAL_OFFENSIVE		3
+#define PROC_TYPE_PHYSICAL_DEFENSIVE		4
+#define PROC_TYPE_MAGICAL_OFFENSIVE			5
+#define PROC_TYPE_MAGICAL_DEFENSIVE			6
+#define PROC_TYPE_BLOCK						7
+#define PROC_TYPE_PARRY						8
+#define PROC_TYPE_RIPOSTE					9
+#define PROC_TYPE_EVADE						10
+#define PROC_TYPE_HEALING					11
+#define PROC_TYPE_BENEFICIAL				12
+#define PROC_TYPE_DEATH                 	13
+#define PROC_TYPE_KILL                  	14
+#define PROC_TYPE_DAMAGED               	15
+#define PROC_TYPE_DAMAGED_MELEE         	16
+#define PROC_TYPE_DAMAGED_MAGIC         	17
+#define PROC_TYPE_RANGED_ATTACK				18
+#define PROC_TYPE_RANGED_DEFENSE			19
+#define PROC_TYPE_START_CASTING				20
+#define PROC_TYPE_START_CASTING_HOSTILE		21
+#define PROC_TYPE_START_CASTING_FRIENDLY	22
 
 struct ThreatTransfer {
 	int32		Target;

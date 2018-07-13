@@ -1224,6 +1224,13 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 				if (caster) {
 					caster->IsCasting(true);
+					caster->CheckProcs(PROC_TYPE_START_CASTING, target);
+
+					if (spell->GetSpellData()->friendly_spell) {
+						caster->CheckProcs(PROC_TYPE_START_CASTING_FRIENDLY, target);
+					} else {
+						caster->CheckProcs(PROC_TYPE_START_CASTING_HOSTILE, target);
+					}
 				}
 			} else {
 				if (!CastProcessedSpell(lua_spell)) {
