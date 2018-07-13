@@ -179,6 +179,7 @@
 #define CASTING_FLAG_MUST_HAVE_RANGED_WEAPON	1024
 #define CASTING_FLAG_NOT_USABLE_IN_COMBAT		2048
 #define CASTING_FLAG_DOES_NOT_BREAK_STEALTH		4096
+#define CASTING_FLAG_NOT_USABLE_ON_SELF			8192
 
 // Spell type is for AI so code knows what a spell is
 #define SPELL_TYPE_UNSET		1
@@ -348,6 +349,7 @@ public:
 	bool MustBeBehind();
 	bool MustBeStealthed();
 	bool ShouldCancelStealth();
+	bool UsableOnSelf();
 
 private:
 	bool heal_spell;

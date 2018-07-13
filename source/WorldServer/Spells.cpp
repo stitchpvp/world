@@ -935,3 +935,7 @@ bool Spell::MustBeStealthed() {
 bool Spell::ShouldCancelStealth() {
 	return (spell->casting_flags & CASTING_FLAG_DOES_NOT_BREAK_STEALTH) == 0;
 }
+
+bool Spell::UsableOnSelf() {
+	return (spell->casting_flags & CASTING_FLAG_NOT_USABLE_ON_SELF) == 0;
+}

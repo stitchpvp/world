@@ -1037,6 +1037,11 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
 						zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
 						return false;
 					}
+					
+					if (!spell->UsableOnSelf() && caster == target) {
+						zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
+						return false;
+					}
 
 					if (caster->GetDistance(target) > spell->GetSpellData()->range) {
 						zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_FAR_AWAY);
