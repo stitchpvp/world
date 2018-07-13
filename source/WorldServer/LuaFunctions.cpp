@@ -1734,14 +1734,14 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
 				}
 			}
-		} else if (type == CONTROL_EFFECT_TYPE_ROOT){
+		} else if (type == CONTROL_EFFECT_TYPE_ROOT) {
 			entity->AddRootSpell(luaspell);
 			entity->ApplyControlEffects();
 
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
 			}
-		} else if (type == CONTROL_EFFECT_TYPE_FEAR){
+		} else if (type == CONTROL_EFFECT_TYPE_FEAR) {
 			entity->AddFearSpell(luaspell);
 			entity->ApplyControlEffects();
 
@@ -1755,6 +1755,13 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 				if (!entity_spell || !entity_spell->CastWhileFeared()) {
 					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
 				}
+			}
+		} else if (type == CONTROL_EFFECT_TYPE_FORCE_FACE) {
+			entity->AddForceFaceSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FORCE_FACE)) {
+				luaspell->effect_bitmask += EFFECT_FLAG_FORCE_FACE;
 			}
 		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
 			entity->AddWaterwalkSpell(luaspell);

@@ -1249,6 +1249,28 @@ void Entity::RemoveStunSpell(shared_ptr<LuaSpell> spell) {
 	stun_list->Remove(spell);
 }
 
+void Entity::AddForceFaceSpell(shared_ptr<LuaSpell> spell) {
+	if (!spell) {
+		return;
+	}
+
+	if (!control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE]) {
+		control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE] = new MutexList<shared_ptr<LuaSpell>>;
+	}
+
+	control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE]->Add(spell);
+}
+
+void Entity::RemoveForceFaceSpell(shared_ptr<LuaSpell> spell) {
+	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
+
+	if (!force_face_list || !force_face_list->size(true)) {
+		return;
+	}
+
+	force_face_list->Remove(spell);
+}
+
 void Entity::ApplyControlEffects() {
 	if (IsPlayer()) {
 		Player* player = static_cast<Player*>(this);
@@ -1257,6 +1279,7 @@ void Entity::ApplyControlEffects() {
 		bool is_mezzed = IsMezzed();
 		bool is_feared = IsFeared();
 		bool is_rooted = IsRooted();
+		bool is_force_faced = IsForceFaced();
 
 		if (is_stunned || is_stifled || is_mezzed || is_feared) {
 			GetZone()->LockAllSpells(player);
@@ -1280,6 +1303,12 @@ void Entity::ApplyControlEffects() {
 			player->SetPlayerControlFlag(4, 4, true);
 		} else {
 			player->SetPlayerControlFlag(4, 4, false);
+		}
+
+		if (is_force_faced) {
+			player->SetPlayerControlFlag(1, 16, true);
+		} else {
+			player->SetPlayerControlFlag(1, 16, false);
 		}
 	} else {
 		if (IsRooted()) {
@@ -2179,6 +2208,11 @@ bool Entity::IsStunned(){
 	return (stun_list && stun_list->size(true) > 0);
 }
 
+bool Entity::IsForceFaced() {
+	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE];
+	return (force_face_list && !force_face_list->size(true));
+}
+
 bool Entity::IsRooted(){
 	MutexList<shared_ptr<LuaSpell>>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
 	return (root_list && root_list->size(true) > 0);
@@ -2398,16 +2432,24 @@ bool Entity::IsDazeImmune(){
 }
 
 void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
+	if (!spell) {
 		return;
+	}
 
 	//Attempt to remove all applied effects from this spell when spell has been removed from just this target. Should improve performance/easier maitenance
 	int32 effect_bitmask = spell->effect_bitmask;
-	if (effect_bitmask == 0)
+
+	if (effect_bitmask == 0) {
 		return;
+	}
 
 	if (effect_bitmask & EFFECT_FLAG_STUN) {
 		RemoveStunSpell(spell);
+		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_FORCE_FACE) {
+		RemoveForceFaceSpell(spell);
 		ApplyControlEffects();
 	}
 
