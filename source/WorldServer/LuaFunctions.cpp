@@ -3646,84 +3646,59 @@ int EQ2Emu_lua_SetTradeskillLevel(lua_State* state) {
 }
 
 int EQ2Emu_lua_SummonPet(lua_State* state) {
-	// Check to see if we have a valid lua_interface
-	if(!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
 
-	// Get the spawn that is getting the pet
 	Spawn* spawn = lua_interface->GetSpawn(state);
-	// Get the DB ID of the pet
 	int32 pet_id = lua_interface->GetInt32Value(state, 2);
-	// The max level the pet can gain
 	int8 max_level = lua_interface->GetInt8Value(state, 3);
-	// Get the spell that this command was called from
 	shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
 	
-	// Check to make sure the spawn pointer is valid
 	if (!spawn) {
 		lua_interface->LogError("LUA SummonPet command error: Spawn is not valid");
 		return 0;
 	}
 
-	// Check to make sure the spawn is an entity
 	if (!spawn->IsEntity()) {
 		lua_interface->LogError("LUA SummonPet command error: Spawn is not an entity");
 		return 0;
 	}
 
-	// Check to make sure the spawn doesn't already have a pet of this type
 	if (static_cast<Entity*>(spawn)->GetPet()) {
 		if (spawn->IsPlayer()) {
 			shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
-			if (client)
+
+			if (client) {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You already have a pet.");
+			}
 		}
 
 		lua_interface->LogError("LUA SummonPet command error: spawn already has a pet of this type");
 		return 0;
 	}
 	
-	// Check to see if the DB ID for the pet is set
-	if (pet_id == 0) {
+	if (!pet_id) {
 		lua_interface->LogError("LUA SummonPet command error: pet_id can not be set to 0");
 		return 0;
 	}
 
-	// Check to see if the pointer to the spell is valid
 	if (!luaspell) {
 		lua_interface->LogError("LUA SummonPet command error: valid spell not found, SummonPet can only be used in spell scripts");
 		return 0;
 	}
 
-	// Get a pointer to a spawn with the given DB ID and check if the pointer is valid
 	Spawn* pet = spawn->GetZone()->GetSpawn(pet_id);
-	if(!pet) {
+	if (!pet) {
 		lua_interface->LogError("LUA SummonPet command error: Could not find spawn with id of %u.", pet_id);
 		return 0;
 	}
 
-	// Check to make sure the pet is an npc
 	if (!pet->IsNPC()) {
 		lua_interface->LogError("LUA SummonPet command error: id (%u) did not point to a npc", pet_id);
 		return 0;
 	}
 
-	// Spawn the pet at the same location as the owner
-	pet->SetX(spawn->GetX());
-	pet->SetY(spawn->GetY());
-	pet->SetZ(spawn->GetZ());
-	pet->SetLocation(spawn->GetLocation());
-	pet->SetHeading(spawn->GetHeading());			
-	spawn->GetZone()->AddSpawn(pet);
-
-	/*
-	const char* spawn_script = world.GetSpawnScript(pet_id);	
-	if(spawn_script && lua_interface->GetSpawnScript(spawn_script) != 0){
-		spawn->SetSpawnScript(string(spawn_script));
-		zone->CallSpawnScript(spawn, SPAWN_SCRIPT_SPAWN);
-	}*/
-
-	// Get a random pet name
 	string random_pet_name;
 
 	if (spawn->IsPlayer()) {
@@ -3731,10 +3706,46 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	} else {
 		int16 rand_index = MakeRandomInt(0, spawn->GetZone()->pet_names.size() - 1);
 		random_pet_name = spawn->GetZone()->pet_names.at(rand_index);
-		LogWrite(PET__DEBUG, 0, "Pets", "Randomize Pet Name: '%s' (rand: %i)", random_pet_name.c_str(), rand_index);
 	}
 
-	// If player set various values for the char sheet (pet window)
+	pet->SetX(spawn->GetX());
+	pet->SetY(spawn->GetY());
+	pet->SetZ(spawn->GetZ());
+	pet->SetLocation(spawn->GetLocation());
+	pet->SetHeading(spawn->GetHeading());
+	pet->SetName(random_pet_name.c_str());
+	pet->SetFactionID(spawn->GetFactionID());
+	pet->SetPet(true);
+	pet->SetSpawnType(6);
+
+	if (max_level > 0) {
+		pet->SetLevel(spawn->GetLevel() >= max_level ? max_level : spawn->GetLevel());
+	} else {
+		pet->SetLevel(spawn->GetLevel());
+	}
+
+	static_cast<NPC*>(pet)->SetMaxPetLevel(max_level);
+	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
+	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_COMBAT);
+	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
+
+	static_cast<Entity*>(spawn)->SetCombatPet(static_cast<Entity*>(pet));
+
+	if (strlen(pet->GetSubTitle()) > 0) {
+		string pet_subtitle;
+		pet_subtitle.append(spawn->GetName()).append("'s ").append(pet->GetSubTitle());
+		LogWrite(PET__DEBUG, 0, "Pets", "Pet Subtitle: '%s'", pet_subtitle.c_str());
+		pet->SetSubTitle(pet_subtitle.c_str());
+	}
+
+	pet->AddSecondaryEntityCommand("Pet Options", 10.0f, "petoptions", "", 0, 0);
+
+	spawn->GetZone()->AddSpawn(pet);
+
+	pet->ScalePet();
+
 	if (spawn->IsPlayer()) {
 		Player* player = static_cast<Player*>(spawn);
 		player->GetInfoStruct()->pet_id = player->GetIDWithPlayerSpawn(pet);
@@ -3743,53 +3754,11 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 		player->GetInfoStruct()->pet_behavior = 3;
 		player->GetInfoStruct()->pet_health_pct = 1.0f;
 		player->GetInfoStruct()->pet_power_pct = 1.0f;
-		// Make sure the values get sent to the client
 		player->SetCharSheetChanged(true);
 	}
 
-	// Set the pets name
-	pet->SetName(random_pet_name.c_str());
-	// Set the level of the pet to the owners level or max level(if set) if owners level is greater
-	if (max_level > 0)
-		pet->SetLevel(spawn->GetLevel() >= max_level ? max_level : spawn->GetLevel());
-	else
-		pet->SetLevel(spawn->GetLevel());
-	// Set the max level this pet can reach
-	static_cast<NPC*>(pet)->SetMaxPetLevel(max_level);
-	// Set the faction of the pet to the same faction as the owner
-	pet->SetFactionID(spawn->GetFactionID());
-	// Set the spawn as a pet
-	pet->SetPet(true);
-	// Give a pointer of the owner to the pet
-	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
-	// Give a pointer of the pet to the owner
-	static_cast<Entity*>(spawn)->SetCombatPet(static_cast<Entity*>(pet));
-	// Set the pet type
-	(static_cast<NPC*>(pet))->SetPetType(PET_TYPE_COMBAT);
-	// Set the spell id used to create this pet
-	(static_cast<NPC*>(pet))->SetPetSpellID(luaspell->spell->GetSpellData()->id);
-	// Set the spell tier used to create this pet
-	(static_cast<NPC*>(pet))->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
-
-	pet->ScalePet();
-
-	// Set the pets spawn type to 6
-	pet->SetSpawnType(6);
-	// Set the pets brain
-	static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
-	// Check to see if the pet has a subtitle
-	if (strlen(pet->GetSubTitle()) > 0) {
-		// Add the players name to the front of the sub title
-		string pet_subtitle;
-		pet_subtitle.append(spawn->GetName()).append("'s ").append(pet->GetSubTitle());
-		LogWrite(PET__DEBUG, 0, "Pets", "Pet Subtitle: '%s'", pet_subtitle.c_str());
-		// Set the pets subtitle to the new one
-		pet->SetSubTitle(pet_subtitle.c_str());
-	}
-	// Add the "Pet Options" entity command to the pet
-	pet->AddSecondaryEntityCommand("Pet Options", 10.0f, "petoptions", "", 0, 0);
-	// Set the pet as the return value for this function
 	lua_interface->SetSpawnValue(state, pet);
+
 	return 1;
 }
 
@@ -5848,29 +5817,24 @@ int EQ2Emu_lua_HasRecipeBook(lua_State* state){
 }
 
 int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
-	// Check to see if we have a valid lua_interface
-	if(!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
 
-	// Get the spawn that is getting the pet
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	Spawn* target = lua_interface->GetSpawn(state, 2);
-	// Get the DB ID of the pet
 	int32 pet_id = lua_interface->GetInt32Value(state, 3);
 
 	float x = lua_interface->GetFloatValue(state, 4);
 	float y = lua_interface->GetFloatValue(state, 5);
 	float z = lua_interface->GetFloatValue(state, 6);
-	// Get the spell that this command was called from
 	shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
 	
-	// Check to make sure the spawn pointer is valid
 	if (!spawn) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: Spawn is not valid");
 		return 0;
 	}
 
-	// Check to make sure the spawn is an entity
 	if (!spawn->IsEntity()) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: Spawn is not an entity");
 		return 0;
@@ -5886,54 +5850,38 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 		return 0;
 	}
 	
-	// Check to see if the DB ID for the pet is set
-	if (pet_id == 0) {
+	if (!pet_id) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: pet_id can not be set to 0");
 		return 0;
 	}
 
-	// Check to see if the pointer to the spell is valid
 	if (!luaspell) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: valid spell not found, SummonPet can only be used in spell scripts");
 		return 0;
 	}
 
-	// Get a pointer to a spawn with the given DB ID and check if the pointer is valid
 	Spawn* pet = spawn->GetZone()->GetSpawn(pet_id);
-	if(!pet) {
+	if (!pet) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: Could not find spawn with id of %u.", pet_id);
 		return 0;
 	}
 
-	// Check to make sure the pet is an npc
 	if (!pet->IsNPC()) {
 		lua_interface->LogError("LUA SummonDumbFirePet command error: id (%u) did not point to a npc", pet_id);
 		return 0;
 	}
 
-	if (x == 0)
+	if (x == 0) {
 		x = spawn->GetX();
+	}
 
-	if (y == 0)
+	if (y == 0) {
 		y = spawn->GetY();
+	}
 
-	if (z == 0)
+	if (z == 0) {
 		z = spawn->GetZ();
-
-	// Spawn the pet at the same location as the owner
-	pet->SetX(x);
-	pet->SetY(y);
-	pet->SetZ(z);
-	pet->SetLocation(spawn->GetLocation());
-	pet->SetHeading(spawn->GetHeading());			
-	spawn->GetZone()->AddSpawn(pet);
-
-	/*
-	const char* spawn_script = world.GetSpawnScript(pet_id);	
-	if(spawn_script && lua_interface->GetSpawnScript(spawn_script) != 0){
-		spawn->SetSpawnScript(string(spawn_script));
-		zone->CallSpawnScript(spawn, SPAWN_SCRIPT_SPAWN);
-	}*/
+	}
 
 	// Get a random pet name
 	string random_pet_name;
@@ -5941,40 +5889,38 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 	random_pet_name = spawn->GetZone()->pet_names.at(rand_index);
 	LogWrite(PET__DEBUG, 0, "Pets", "Randomize Pet Name: '%s' (rand: %i)", random_pet_name.c_str(), rand_index);
 
-	// Set the pets name
+	// Spawn the pet at the same location as the owner
+	pet->SetX(x);
+	pet->SetY(y);
+	pet->SetZ(z);
+	pet->SetLocation(spawn->GetLocation());
+	pet->SetHeading(spawn->GetHeading());			
 	pet->SetName(random_pet_name.c_str());
-	// Set the level of the pet to the owners level
 	pet->SetLevel(spawn->GetLevel());
-	// Set the faction of the pet to the same faction as the owner
 	pet->SetFactionID(spawn->GetFactionID());
-	// Set the spawn as a pet
 	pet->SetPet(true);
-	// Give a pointer of the owner to the pet
+	pet->SetSpawnType(6);
+
+	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DUMBFIRE);
+	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
+	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
+	static_cast<NPC*>(pet)->SetBrain(new DumbFirePetBrain(static_cast<NPC*>(pet), static_cast<Entity*>(target), luaspell->spell->GetSpellDuration() * 100));
+
 	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
 	static_cast<Entity*>(spawn)->AddDumbfirePet(static_cast<Entity*>(pet));
-	
-	// Set the pet type
-	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DUMBFIRE);
-	// Set the spell id used to create this pet
-	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
-	// Set the spell tier used to create this pet
-	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
-	// Set the pets spawn type to 6
-	pet->SetSpawnType(6);
-	// Set the pets brain
-	static_cast<NPC*>(pet)->SetBrain(new DumbFirePetBrain(static_cast<NPC*>(pet), static_cast<Entity*>(target), luaspell->spell->GetSpellDuration() * 100));
-	// Check to see if the pet has a subtitle
+
 	if (strlen(pet->GetSubTitle()) > 0) {
-		// Add the players name to the front of the sub title
 		string pet_subtitle;
 		pet_subtitle.append(spawn->GetName()).append("'s ").append(pet->GetSubTitle());
-		LogWrite(PET__DEBUG, 0, "Pets", "Pet Subtitle: '%s'", pet_subtitle.c_str());
-		// Set the pets subtitle to the new one
 		pet->SetSubTitle(pet_subtitle.c_str());
 	}
 
-	// Set the pet as the return value for this function
+	spawn->GetZone()->AddSpawn(pet);
+
+	pet->ScalePet();
+	
 	lua_interface->SetSpawnValue(state, pet);
+
 	return 1;
 }
 

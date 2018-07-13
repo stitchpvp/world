@@ -729,12 +729,7 @@ void Spawn::SetHP(sint32 new_val, bool setUpdateFlags) {
 	if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
 		Player* player = static_cast<Player*>(static_cast<NPC*>(this)->GetOwner());
 
-		if (player->GetPet() && player->GetCharmedPet()) {
-			if (this == player->GetPet()) {
-				player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
-				player->SetCharSheetChanged(true);
-			}
-		} else {
+		if (this == player->GetPet() || this == player->GetCharmedPet()) {
 			player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
 			player->SetCharSheetChanged(true);
 		}
@@ -768,12 +763,7 @@ void Spawn::SetTotalHP(sint32 new_val){
 	if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
 		Player* player = static_cast<Player*>(static_cast<NPC*>(this)->GetOwner());
 
-		if (player->GetPet() && player->GetCharmedPet()) {
-			if (this == player->GetPet()) {
-				player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
-				player->SetCharSheetChanged(true);
-			}
-		} else {
+		if (this == player->GetPet() || this == player->GetCharmedPet()) {
 			player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
 			player->SetCharSheetChanged(true);
 		}
@@ -835,12 +825,7 @@ void Spawn::SetPower(sint32 power, bool setUpdateFlags) {
 	if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
 		Player* player = (Player*)((NPC*)this)->GetOwner();
 
-		if (player->GetPet() && player->GetCharmedPet()) {
-			if (this == player->GetPet()) {
-				player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
-				player->SetCharSheetChanged(true);
-			}
-		} else {
+		if (this == player->GetPet() || this == player->GetCharmedPet()) {
 			player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
 			player->SetCharSheetChanged(true);
 		}
@@ -875,12 +860,7 @@ void Spawn::SetTotalPower(sint32 new_val) {
 	if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
 		Player* player = (Player*)((NPC*)this)->GetOwner();
 
-		if (player->GetPet() && player->GetCharmedPet()) {
-			if (this == player->GetPet()) {
-				player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
-				player->SetCharSheetChanged(true);
-			}
-		} else {
+		if (this == player->GetPet() || this == player->GetCharmedPet()) {
 			player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
 			player->SetCharSheetChanged(true);
 		}
