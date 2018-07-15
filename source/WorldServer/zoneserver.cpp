@@ -4435,7 +4435,7 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast
 			for (int32 i = 0; i < spell->targets.size(); i++) {
 				Spawn* spawn = GetSpawnByID(spell->targets[i]);
 
-				if (!client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->WasSpawnRemoved(spawn)) {
+				if (!spawn || !client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->WasSpawnRemoved(spawn)) {
 					continue;
 				}
 
