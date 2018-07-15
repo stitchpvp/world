@@ -4416,9 +4416,6 @@ void ZoneServer::SendInterruptPacket(Spawn* interrupted, LuaSpell* spell){
 }
 
 void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast_time) {
-	EQ2Packet* outapp = 0;
-	PacketStruct* packet = nullptr;
-
 	if (!caster || !spell || !spell->spell || spell->interrupted) {
 		return;
 	}
@@ -4426,21 +4423,37 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast
 	shared_lock<shared_timed_mutex> guard(clients_mutex);
 
 	for (const auto& client : clients) {
-		packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
+		if (!client->GetPlayer()->WasSentSpawn(caster->GetID()) || client->GetPlayer()->WasSpawnRemoved(caster)) {
+			continue;
+		}
+
+		PacketStruct* packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
 
 		if (packet) {
 			packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(caster));
-			packet->setArrayLengthByName("num_targets", spell->targets.size());
+
+			int8 num_targets = 0;
 			for (int32 i = 0; i < spell->targets.size(); i++) {
-				packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(spell->caster->GetZone()->GetSpawnByID(spell->targets[i])), i);
+				Spawn* spawn = GetSpawnByID(spell->targets[i]);
+
+				if (!client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->WasSpawnRemoved(spawn)) {
+					continue;
+				}
+
+				packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(spawn), i);
+				++num_targets;
 			}
+			packet->setArrayLengthByName("num_targets", num_targets);
+
 			packet->setDataByName("spell_visual", spell->spell->GetSpellData()->spell_visual); //result
 			packet->setDataByName("cast_time", cast_time*.01); //delay
 			packet->setDataByName("spell_id", spell->spell->GetSpellID());
 			packet->setDataByName("spell_level", 1);
 			packet->setDataByName("spell_tier", spell->spell->GetSpellData()->tier);
-			outapp = packet->serialize();
+
+			EQ2Packet* outapp = packet->serialize();
 			client->QueuePacket(outapp);
+
 			safe_delete(packet);
 		}
 	}
@@ -4448,13 +4461,10 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast
 
 void ZoneServer::SendCastSpellPacket(int32 spell_visual, Spawn* target, Spawn* caster) {
 	if (target) {
-		EQ2Packet* outapp = 0;
-		PacketStruct* packet = nullptr;
-
 		shared_lock<shared_timed_mutex> guard(clients_mutex);
 
 		for (const auto& client : clients) {
-			packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
+			PacketStruct* packet = configReader.getStruct("WS_HearCastSpell", client->GetVersion());
 
 			if (packet) {
 				int32 caster_id = 0xFFFFFFFF;
@@ -4472,12 +4482,13 @@ void ZoneServer::SendCastSpellPacket(int32 spell_visual, Spawn* target, Spawn* c
 				packet->setDataByName("spell_id", 0);
 				packet->setDataByName("spell_level", 0);
 				packet->setDataByName("spell_tier", 0);
-				outapp = packet->serialize();
+
+				EQ2Packet* outapp = packet->serialize();
 				client->QueuePacket(outapp);
+
 				safe_delete(packet);
 			}
 		}
-		safe_delete(packet);
 	}
 }
 
