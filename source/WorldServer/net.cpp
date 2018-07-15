@@ -309,11 +309,11 @@ int main(int argc, char** argv) {
 
 	map<EQStream*, int32> connecting_clients;
 
-	LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
-	thread thr3(EQ2ConsoleListener, nullptr);
-	thr3.detach();
+	//LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
+	//thread thr3(EQ2ConsoleListener, nullptr);
+	//thr3.detach();
 
-	LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
+	//LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
 	while(RunLoops) {
 		Timer::SetCurrentTime();

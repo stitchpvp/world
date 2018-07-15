@@ -481,6 +481,7 @@ public:
 	void Command_Heal(const shared_ptr<Client>& client);
 	void Command_Target(const shared_ptr<Client>& client, Seperator* sep);
 	void Command_Assist(const shared_ptr<Client>& client, Seperator* sep);
+	void Command_Debug(const shared_ptr<Client>& client, Seperator* sep);
 
 private:
 	RemoteCommands* remote_commands;
@@ -898,5 +899,6 @@ private:
 #define COMMAND_RESET_ENCOUNTER 2007
 #define COMMAND_KNOCKBACK 2008
 #define COMMAND_HEAL 2009
+#define COMMAND_DEBUG 2010
 
 #endif

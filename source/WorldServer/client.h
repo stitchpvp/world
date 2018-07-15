@@ -390,6 +390,7 @@ public:
 
 	bool	client_zoning;
 	bool ready_for_updates;
+	bool debug_spawns = false;
 
 	atomic<bool> waiting_to_zone;
 

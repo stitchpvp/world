@@ -196,12 +196,14 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, damage_type, min_damage, max_damage, 0);
 
 		if (!multi_attack) {
-			if (victim->IsEntity() && victim->Alive()) {
-				static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
-			}
+			if (victim->Alive()) {
+				if (victim->IsEntity()) {
+					static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
+				}
 
-			CheckProcs(PROC_TYPE_OFFENSIVE, victim);
-			CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
+				CheckProcs(PROC_TYPE_OFFENSIVE, victim);
+				CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
+			}
 		}
 	} else {
 		GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, hit_result, damage_type, 0, 0);
@@ -290,14 +292,16 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 				DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_RANGE_DAMAGE, ammo->thrown_info->damage_type, weapon->ranged_info->weapon_info.damage_low3, weapon->ranged_info->weapon_info.damage_high3+ammo->thrown_info->damage_modifier, 0);
 
 				if (!multi_attack) {
-					if (victim->IsEntity() && victim->Alive()) {
-						static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
-						static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_RANGED_DEFENSE, this);
-					}
+					if (victim->Alive()) {
+						if (victim->IsEntity()) {
+							static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_PHYSICAL_DEFENSIVE, this);
+							static_cast<Entity*>(victim)->CheckProcs(PROC_TYPE_RANGED_DEFENSE, this);
+						}
 
-					CheckProcs(PROC_TYPE_OFFENSIVE, victim);
-					CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
-					CheckProcs(PROC_TYPE_RANGED_ATTACK, victim);
+						CheckProcs(PROC_TYPE_OFFENSIVE, victim);
+						CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
+						CheckProcs(PROC_TYPE_RANGED_ATTACK, victim);
+					}
 				}
 			} else {
 				GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_RANGE_DAMAGE, hit_result, ammo->thrown_info->damage_type, 0, 0);
@@ -422,7 +426,7 @@ bool Entity::SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> lua
 
 	luaspell->crit = DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, low_damage, high_damage, spell->GetName(), crit_mod, is_tick, no_calcs);
 
-	if (!is_tick) {
+	if (!is_tick && victim->Alive()) {
 		CheckProcs(PROC_TYPE_OFFENSIVE, victim);
 
 		if (spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_SPELL) {
@@ -848,7 +852,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		KillSpawn(victim, damage_type, blow_type);
 	}
 
-	if (!is_tick && victim->EngagedInCombat()) {
+	if (!is_tick && victim->EngagedInCombat() && victim->Alive()) {
 		victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
 	}
 

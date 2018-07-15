@@ -3716,6 +3716,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		case COMMAND_HEAL				: { Command_Heal(client);  break; }
 		case COMMAND_TARGET				: { Command_Target(client, sep); break; }
 		case COMMAND_ASSIST				: { Command_Assist(client, sep); break; }
+		case COMMAND_DEBUG				: { Command_Debug(client, sep); break; }
 
 		case COMMAND_BOT				: { Command_Bot(client, sep); break; }
 		case COMMAND_BOT_CREATE			: { Command_Bot_Create(client, sep); break; }
@@ -8520,4 +8521,15 @@ void Commands::Command_Assist(const shared_ptr<Client>& client, Seperator* sep) 
 	}
 
 	client->Assist(search_name);
+}
+
+void Commands::Command_Debug(const shared_ptr<Client>& client, Seperator* sep) {
+	if (sep && sep->arg[0]) {
+		const char* action = sep->arg[0];
+
+		if (strncasecmp(action, "spawns", strlen(action)) == 0) {
+			client->debug_spawns ^= 1;
+			client->GetPlayer()->SetResendSpawns(true);
+		}
+	}
 }

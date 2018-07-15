@@ -245,18 +245,31 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 
 	int8 vis_flags = 0;
 	if (MeetsSpawnAccessRequirements(player)){
-		if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this))))
+		shared_ptr<Client> client = GetZone()->GetClientBySpawn(player);
+
+		if (client->debug_spawns || appearance.attackable || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this)))) {
 			vis_flags += 64;
-		if (appearance.show_level == 1)
+		}
+
+		if (client->debug_spawns || appearance.show_level) {
 			vis_flags += 32;
-		if (appearance.display_name == 1)
+		}
+
+		if (client->debug_spawns || appearance.display_name) {
 			vis_flags += 16;
-		if (IsPlayer() || appearance.targetable == 1)
+		}
+
+		if (client->debug_spawns || IsPlayer() || appearance.targetable == 1) {
 			vis_flags += 4;
-		if (appearance.show_command_icon == 1)
+		}
+
+		if (appearance.show_command_icon == 1) {
 			vis_flags += 2;
-		if (this == player)
+		}
+
+		if (this == player) {
 			vis_flags += 1;
+		}
 	} else if (req_quests_override > 0) {
 			vis_flags = req_quests_override & 0xFF;
 	}
@@ -266,7 +279,7 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 	if (MeetsSpawnAccessRequirements(player)) {
 		vis_packet->setDataByName("hand_flag", appearance.display_hand_icon);
 	} else if ((req_quests_override & 256) > 0) {
-			vis_packet->setDataByName("hand_flag", 1);
+		vis_packet->setDataByName("hand_flag", 1);
 	}
 }
 

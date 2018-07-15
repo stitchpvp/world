@@ -493,9 +493,13 @@ void ZoneServer::DeleteData(bool boot_clients){
 	ClearSpawnRangeMap();
 
 	if (boot_clients) {
-		{
-			unique_lock<shared_timed_mutex> guard(clients_mutex);
-			clients.clear();
+		unique_lock<shared_timed_mutex> guard(clients_mutex);
+		clients.clear();
+	} else {
+		shared_lock<shared_timed_mutex> guard(clients_mutex);
+
+		for (const auto client : clients) {
+			AddToSpawnRangeMap(client);
 		}
 	}
 
@@ -1694,27 +1698,29 @@ bool ZoneServer::UpdateProcess() {
 
 	}
 
-	bool spawnRange = spawn_range.Check();
-	bool checkRemove = spawn_check_remove.Check();
+	if (!reloading) {
+		bool spawnRange = spawn_range.Check();
+		bool checkRemove = spawn_check_remove.Check();
 
-	MSpawnList.readlock(__FUNCTION__, __LINE__);
-	for (const auto& kv : spawn_list) {
-		const auto spawn = kv.second;
+		MSpawnList.readlock(__FUNCTION__, __LINE__);
+		for (const auto& kv : spawn_list) {
+			const auto spawn = kv.second;
 
-		if (spawn) {
-			if (spawnRange) {
-				CheckSpawnRange(spawn);
-			}
+			if (spawn) {
+				if (spawnRange) {
+					CheckSpawnRange(spawn);
+				}
 
-			if (checkRemove) {
-				CheckRemoveSpawnFromClient(spawn);
+				if (checkRemove) {
+					CheckRemoveSpawnFromClient(spawn);
+				}
 			}
 		}
-	}
-	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
+		MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 
-	if (spawn_check_add.Check()) {
-		CheckSendSpawnToClient();
+		if (spawn_check_add.Check()) {
+			CheckSendSpawnToClient();
+		}
 	}
 
 	return (zoneShuttingDown == false);
