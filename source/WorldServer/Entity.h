@@ -431,6 +431,8 @@ public:
 	void	SetPowerRegen(int16 new_val);
 	int16	GetHPRegen();
 	int16	GetPowerRegen();
+	int16 GetTotalHPRegen();
+	int16 GetTotalPowerRegen();
 	void	DoRegenUpdate();
 	MaintainedEffects* GetFreeMaintainedSpellSlot();
 	SpellEffects* GetFreeSpellEffectSlot();

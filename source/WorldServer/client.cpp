@@ -3414,25 +3414,11 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 
 	if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && new_level >= rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8())
 		player->set_character_flag(CF_ENABLE_CHANGE_LASTNAME);
-
-	player->GetSkills()->IncreaseAllSkillCaps(5 * (new_level - old_level));
-	SendNewSpells(player->GetAdventureClass());
-	SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
-	SendNewSpells(classes.GetSecondaryBaseClass(player->GetAdventureClass()));
 	
-
-	GetPlayer()->ChangePrimaryWeapon();
-	GetPlayer()->ChangeSecondaryWeapon();
-	GetPlayer()->ChangeRangedWeapon();
 	GetPlayer()->GetInfoStruct()->level = new_level;
-
-	LogWrite(MISC__TODO, 1, "TODO", "Get new HP/POWER/stat based on default values from DB\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
 	GetPlayer()->SetTotalHPBase(new_level*new_level*2+40);
 	GetPlayer()->SetTotalPowerBase((sint32)(new_level*new_level*2.1+45));
-	GetPlayer()->CalculateBonuses();
-	GetPlayer()->SetHP(GetPlayer()->GetTotalHP());
-	GetPlayer()->SetPower(GetPlayer()->GetTotalPower());
 	GetPlayer()->GetInfoStruct()->agi_base = new_level*2+15;
 	GetPlayer()->GetInfoStruct()->intel_base = new_level*2+15;
 	GetPlayer()->GetInfoStruct()->wis_base = new_level*2+15;
@@ -3445,17 +3431,34 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	GetPlayer()->GetInfoStruct()->magic_base = (int16)(new_level * 4.6);
 	GetPlayer()->GetInfoStruct()->divine_base = (int16)(new_level * 4.6);
 	GetPlayer()->GetInfoStruct()->poison_base = (int16)(new_level * 4.6);
-	GetPlayer()->SetHPRegen((int)(new_level*.75)+(int)(new_level/10)+3);
-	GetPlayer()->SetPowerRegen(new_level+(int)(new_level/10)+4);
-	UpdateTimeStampFlag ( LEVEL_UPDATE_FLAG );
+
+	UpdateTimeStampFlag(LEVEL_UPDATE_FLAG);
+
+	// This needs to happen before we SetHP() and SetPower()
+	GetPlayer()->CalculateBonuses();
+
+	GetPlayer()->SetHP(GetPlayer()->GetTotalHP());
+	GetPlayer()->SetPower(GetPlayer()->GetTotalPower());
+
+	GetPlayer()->ChangePrimaryWeapon();
+	GetPlayer()->ChangeSecondaryWeapon();
+	GetPlayer()->ChangeRangedWeapon();
+
 	GetPlayer()->SetCharSheetChanged(true);
 
 	Message(CHANNEL_COLOR_EXP,"You are now level %i!", new_level);
 	LogWrite(WORLD__DEBUG, 0, "World", "Player: %s leveled from %u to %u", GetPlayer()->GetName(), old_level, new_level);
-	GetPlayer()->GetSkills()->SetSkillCapsByType(1, 5*new_level);
-	GetPlayer()->GetSkills()->SetSkillCapsByType(3, 5*new_level);
-	GetPlayer()->GetSkills()->SetSkillCapsByType(6, 5*new_level);
-	GetPlayer()->GetSkills()->SetSkillCapsByType(13, 5*new_level);
+
+	SendNewSpells(player->GetAdventureClass());
+	SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
+	SendNewSpells(classes.GetSecondaryBaseClass(player->GetAdventureClass()));
+
+	player->GetSkills()->IncreaseAllSkillCaps(5 * (new_level - old_level));
+
+	GetPlayer()->GetSkills()->SetSkillCapsByType(1, 5 * new_level);
+	GetPlayer()->GetSkills()->SetSkillCapsByType(3, 5 * new_level);
+	GetPlayer()->GetSkills()->SetSkillCapsByType(6, 5 * new_level);
+	GetPlayer()->GetSkills()->SetSkillCapsByType(13, 5 * new_level);
 
 	Guild* guild = GetPlayer()->GetGuild();
 	if (guild) {
@@ -3500,9 +3503,6 @@ void Client::ChangeLevel(int16 old_level, int16 new_level){
 	}
 
 	// Need to send the trait list every time the players level changes
-	// Also need to force the char sheet update or else there can be a large delay from when you level
-	// to when you are actually able to select traits.
-	ClientPacketFunctions::SendCharacterSheet(shared_from_this());
 	QueuePacket(master_trait_list.GetTraitListPacket(shared_from_this()));
 	ClientPacketFunctions::SendSkillBook(shared_from_this());
 

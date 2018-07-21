@@ -989,18 +989,22 @@ sint32 Spawn::GetDissonance()
 }
 
 void Spawn::ScalePet() {
-	if (!IsPet() || !IsEntity()) return;
-
-	double base = pow(GetLevel(), 2) * 2 + 40;
-
-	SetTotalHP(static_cast<sint32>(base * 1.5));
-	SetTotalPower(static_cast<sint32>(base * 1.5));
-	SetHP(GetTotalHP());
-	SetPower(GetTotalPower());
+	if (!IsEntity() || !IsPet()) {
+		return;
+	}
 
 	Entity* entity = static_cast<Entity*>(this);
+	double base = pow(GetLevel(), 2) * 2 + 40;
+
+	SetTotalHPBase(static_cast<sint32>(base * 1.5));
+	SetTotalPowerBase(static_cast<sint32>(base * 1.5));
+
+	entity->CalculateBonuses();
 	entity->ChangePrimaryWeapon();
 	entity->ChangeSecondaryWeapon();
+
+	SetHP(GetTotalHP());
+	SetPower(GetTotalPower());
 }
 
 /* --< Alternate Advancement Points >-- */

@@ -427,31 +427,33 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("pet_behavior", info_struct->pet_behavior);
 
 		packet->setDataByName("status_points", info_struct->status_points);
-		string* bind_name = 0;
-		if(bind_zone_id > 0)
+
+		string* bind_name = nullptr;
+		if (bind_zone_id > 0) {
 			bind_name = database.GetZoneName(bind_zone_id);
-		if(bind_name){
+		}
+
+		if (bind_name) {
 			packet->setDataByName("bind_zone", bind_name->c_str());
 			safe_delete(bind_name);
-		}
-		else
+		} else {
 			packet->setDataByName("bind_zone", "None");
-		string* house_name = 0;
-		if(house_zone_id > 0)
+		}
+
+		string* house_name = nullptr;
+		if (house_zone_id > 0) {
 			house_name = database.GetZoneName(house_zone_id);
-		if(house_name){
+		}
+
+		if (house_name) {
 			packet->setDataByName("house_zone", house_name->c_str());
 			safe_delete(house_name);
-		}
-		else
+		} else {
 			packet->setDataByName("house_zone", "None");
-		//packet->setDataByName("account_age_base", 14);
-		if(player->GetHPRegen() == 0)
-			player->SetHPRegen((int)(info_struct->level*.75)+(int)(info_struct->level/10)+1);
-		if(player->GetPowerRegen() == 0)
-			player->SetPowerRegen(info_struct->level+(int)(info_struct->level/10)+4);
-		packet->setDataByName("hp_regen", player->GetHPRegen() + player->stats[ITEM_STAT_HPREGEN]);
-		packet->setDataByName("power_regen", player->GetPowerRegen() + player->stats[ITEM_STAT_MANAREGEN]);
+		}
+
+		packet->setDataByName("hp_regen", player->GetTotalHPRegen());
+		packet->setDataByName("power_regen", player->GetTotalPowerRegen());
 
 		packet->setDataByName("mitigation2_cur", 2367);
 		packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvE

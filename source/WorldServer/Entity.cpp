@@ -499,72 +499,86 @@ float Entity::GetShieldBlockChance(){
 	return ret;
 }
 
-float Entity::GetDodgeChance(){
+float Entity::GetDodgeChance() {
 	float ret = 0;
 	
 	return ret;
 }
 
-bool Entity::EngagedInCombat(){
+bool Entity::EngagedInCombat() {
 	return in_combat;
 }
 
-void Entity::InCombat(bool val){
+void Entity::InCombat(bool val) {
 	in_combat = val;
 }
 
-void Entity::SetHPRegen(int16 new_val){
+void Entity::SetHPRegen(int16 new_val) {
 	regen_hp_rate = new_val;
 }
-void Entity::SetPowerRegen(int16 new_val){
+
+void Entity::SetPowerRegen(int16 new_val) {
 	regen_power_rate = new_val;
 }
-int16 Entity::GetHPRegen(){
+
+int16 Entity::GetHPRegen() {
 	return regen_hp_rate;
 }
-int16 Entity::GetPowerRegen(){
+
+int16 Entity::GetPowerRegen() {
 	return regen_power_rate;
 }
 
-void Entity::DoRegenUpdate(){
+int16 Entity::GetTotalHPRegen() {
+	int16 ret = regen_hp_rate;
+
+	if (EngagedInCombat()) {
+		ret *= 0.5;
+		ret += stats[ITEM_STAT_COMBATHPREGEN];
+	} else {
+		ret += stats[ITEM_STAT_HPREGEN];
+	}
+
+	return ret;
+}
+
+int16 Entity::GetTotalPowerRegen() {
+	int16 ret = regen_power_rate;
+
+	if (EngagedInCombat()) {
+		ret *= 0.5;
+		ret += stats[ITEM_STAT_COMBATMANAREGEN];
+	} else {
+		ret += stats[ITEM_STAT_MANAREGEN];
+	}
+}
+
+void Entity::DoRegenUpdate() {
 	if (!Alive()) {
 		return;
 	}
 
-	// No regen for NPC's while in combat
-	// Temp solution for now
-	if (IsNPC() && EngagedInCombat())
+	if (IsNPC() && EngagedInCombat()) {
 		return;
+	}
 
-	sint32 hp = GetHP();
-	sint32 power = GetPower();
-	int16 level = GetLevel();
+	if (GetHP() < GetTotalHP()) {
+		int16 amount = GetTotalHPRegen();
 
-	if (hp < GetTotalHP()) {
-		int16 temp = regen_hp_rate;
-		
-		if (!EngagedInCombat()) {
-			temp += stats[ITEM_STAT_HPREGEN];
-		}
-
-		if ((hp + temp) > GetTotalHP()) {
+		if ((GetHP() + amount) > GetTotalHP()) {
 			SetHP(GetTotalHP());
 		} else {
-			SetHP(hp + temp);
+			SetHP(GetHP() + amount);
 		}
 	}
 
 	if (GetPower() < GetTotalPower()) {
-		int16 temp = regen_power_rate;
+		int16 amount = GetTotalPowerRegen();
 
-		if (!EngagedInCombat()) {
-			temp += stats[ITEM_STAT_MANAREGEN];
-		}
-
-		if ((power + regen_power_rate) > GetTotalPower()) {
+		if ((GetPower() + amount) > GetTotalPower()) {
 			SetPower(GetTotalPower());
 		} else {
-			SetPower(power + temp);
+			SetPower(GetPower() + amount);
 		}
 	}
 }
@@ -929,6 +943,10 @@ void Entity::CalculateBonuses() {
 		sta_hp_bonus = info->sta * bonus_mod;
 		prim_power_bonus = GetPrimaryStat() * bonus_mod;
 	}
+
+	int16 base_regen = static_cast<int16>(info->level * 1.6);
+	SetHPRegen(base_regen);
+	SetPowerRegen(base_regen);
 
 	prim_power_bonus = floor(float(prim_power_bonus));
 	sta_hp_bonus = floor(float(sta_hp_bonus));
