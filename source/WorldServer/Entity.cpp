@@ -944,7 +944,7 @@ void Entity::CalculateBonuses() {
 		prim_power_bonus = GetPrimaryStat() * bonus_mod;
 	}
 
-	int16 base_regen = static_cast<int16>(info->level * 1.6);
+	int16 base_regen = static_cast<int16>(GetLevel() * 1.6);
 	SetHPRegen(base_regen);
 	SetPowerRegen(base_regen);
 
