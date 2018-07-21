@@ -437,10 +437,10 @@ public:
 	Skill*	GetSkillByName(const char* name, bool check_update = false);
 	PlayerSkillList* GetSkills();
 	bool DamageEquippedItems(const shared_ptr<Client>& client, int8 amount = 10);
-	vector<EQ2Packet*>	EquipItem(int16 index, int16 version, int8 slot_id = 255);
+	void EquipItem(int16 index, int16 version, int8 slot_id = 255);
 	bool CanEquipItem(Item* item);
 	void SetEquippedItemAppearances();
-	vector<EQ2Packet*>	UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version);
+	void UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version);
 	EQ2Packet* SwapEquippedItems(int8 slot1, int8 slot2, int16 version);
 	EQ2Packet*	RemoveInventoryItem(int8 bag_slot, int8 slot);
 	EQ2Packet*	SendInventoryUpdate(int16 version);

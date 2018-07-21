@@ -909,6 +909,7 @@ public:
 	bool  HasFreeBagSlot();
 	void DestroyItem(int16 index);
 	Item* CanStack(Item* item, bool include_bank = false);
+	int32 GetItemIndex(Item* item);
 
 	void RemoveItem(Item* item, bool delete_item = false);
 	void AddItem(Item* item);

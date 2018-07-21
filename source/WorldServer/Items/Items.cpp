@@ -2620,24 +2620,29 @@ void PlayerItemList::Stack(Item* orig_item, Item* item){
 	orig_item->save_needed = true;
 }
 
-bool PlayerItemList::AssignItemToFreeSlot(Item* item){
-	if(item){
+bool PlayerItemList::AssignItemToFreeSlot(Item* item) {
+	if (item) {
 		Item* orig_item = CanStack(item);
-		if(orig_item){
+
+		if (orig_item) {
 			Stack(orig_item, item);
 			return true;
 		}
+
 		bool use_bag_freeslot = false;
-		if(item->IsBag())
+
+		if (item->IsBag()) {
 			use_bag_freeslot = HasFreeBagSlot();
+		}
+
 		MPlayerItems.writelock(__FUNCTION__, __LINE__);
 		if(!use_bag_freeslot){
-			Item* bag = 0;
-			for(int8 i=0;i<NUM_INV_SLOTS;i++){
-				bag = GetBag(i, false);
-				if(bag && bag->details.num_slots > 0){
-					for(int16 x=0;x<bag->details.num_slots;x++){
-						if(items[bag->details.bag_id].count(x) == 0){
+			for (int8 i=0;i<NUM_INV_SLOTS;i++) {
+				Item* bag = GetBag(i, false);
+
+				if (bag && bag->details.num_slots > 0) {
+					for (int16 x = 0; x < bag->details.num_slots; ++x) {
+						if (items[bag->details.bag_id].count(x) == 0){
 							item->details.inv_slot_id = bag->details.bag_id;
 							item->details.slot_id = x;
 							MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
@@ -2649,8 +2654,8 @@ bool PlayerItemList::AssignItemToFreeSlot(Item* item){
 			}
 		}
 		//bags full, check inventory slots
-		for(int8 i=0;i<NUM_INV_SLOTS;i++){
-			if(items[0].count(i) == 0){
+		for (int8 i = 0; i < NUM_INV_SLOTS; ++i) {
+			if (items[0].count(i) == 0){
 				item->details.inv_slot_id = 0;
 				item->details.slot_id = i;
 				MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
@@ -3067,6 +3072,16 @@ vector<Item*>* PlayerItemList::GetItemsInBag(Item* bag){
 	return ret_items;
 }
 
+int32 PlayerItemList::GetItemIndex(Item* item) {
+	for (const auto& kv : indexed_items) {
+		if (kv.second == item) {
+			return kv.first;
+		}
+	}
+
+	return 0xFFFFFFFF;
+}
+
 Item* PlayerItemList::GetItemFromID(int32 id, int8 count, bool include_bank, bool lock){
 	//first check for an exact count match
 	map<sint32, map<int16, Item*> >::iterator itr;
@@ -3375,20 +3390,26 @@ bool EquipmentItemList::CheckEquipSlot(Item* tmp, int8 slot){
 	return false;
 }
 
-int8 EquipmentItemList::GetFreeSlot(Item* tmp, int8 slot_id){
-	int8 slot = 0;
-	MEquipmentItems.lock();
-	for(int8 i=0;tmp && i<tmp->slot_data.size();i++){
-		slot = tmp->slot_data[i];
-		if(slot_id == 255 || slot == slot_id){
-			Item* tmp_item = GetItem(slot);
-			if(!tmp_item || tmp_item->details.item_id == 0){
-				MEquipmentItems.unlock();
-				return slot;
+int8 EquipmentItemList::GetFreeSlot(Item* tmp, int8 slot_id) {
+	if (tmp) {
+		int8 slot = 0;
+
+		MEquipmentItems.lock();
+		for (int8 i = 0; i < tmp->slot_data.size(); ++i) {
+			slot = tmp->slot_data[i];
+
+			if (slot_id == 255 || slot == slot_id) {
+				Item* tmp_item = GetItem(slot);
+
+				if (!tmp_item || !tmp_item->details.item_id) {
+					MEquipmentItems.unlock();
+					return slot;
+				}
 			}
 		}
+		MEquipmentItems.unlock();
 	}
-	MEquipmentItems.unlock();
+
 	return 255;
 }
 

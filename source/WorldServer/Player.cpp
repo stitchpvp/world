@@ -950,173 +950,221 @@ bool Player::DamageEquippedItems(const shared_ptr<Client>& client, int8 amount) 
 	return ret;
 }
 
-vector<EQ2Packet*>	Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version){
-	vector<EQ2Packet*>	packets;
+// Index is really the equipment slot
+// Bag id is the item id of the bag
+// Slot is the inventory slot
+void Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version) {
+	vector<EQ2Packet*> packets;
+
 	Item* item = equipment_list.items[index];
-	if(item && bag_id == -999){
-		int8 old_slot = item->details.slot_id;
-		if(item_list.AssignItemToFreeSlot(item)){
-			database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
 
-			if (item->GetItemScript() && lua_interface)
-				lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+	if (item) {
+		if (bag_id == -999) {
+			int8 old_slot = item->details.slot_id;
 
-			item->save_needed = true;
-			EQ2Packet* outapp = item_list.serialize(this, version);
-			if(outapp){
-				packets.push_back(outapp);
-				packets.push_back(item->serialize(version, false));
-				EQ2Packet* bag_packet = SendBagUpdate(item->details.inv_slot_id, version);
-				if(bag_packet)
-					packets.push_back(bag_packet);
-			}
-			equipment_list.RemoveItem(index);
-			packets.push_back(equipment_list.serialize(version, this));
-			CalculateBonuses();
-			SetCharSheetChanged(true);
-			SetEquipment(0, old_slot);
-		}
-		else{
-			PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-			if(packet){
-				packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-				packet->setMediumStringByName("text", "Unable to unequip item: no free inventory locations.");
-				packet->setDataByName("unknown02", 0x00ff);
-				packets.push_back(packet->serialize());
-				safe_delete(packet);		
-			}
-		}
-	}
-	else if(item){
-		Item* to_item = 0;
-		if(item_list.items.count(bag_id) > 0 && item_list.items[bag_id].count(slot) > 0)
-			to_item = item_list.items[bag_id][slot];
-		if(to_item && GetEquipmentList()->CanItemBeEquippedInSlot(to_item, item->details.slot_id)){
-			equipment_list.RemoveItem(index);
-			database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-			database.DeleteItem(GetCharacterID(), to_item, "NOT-EQUIPPED");
+			if (item_list.AssignItemToFreeSlot(item)) {
+				database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
 
-			if (item->GetItemScript() && lua_interface)
-				lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-
-			if (to_item->GetItemScript() && lua_interface)
-				lua_interface->RunItemScript(to_item->GetItemScript(), "equipped", to_item, this);
-
-			item_list.RemoveItem(to_item);
-			equipment_list.SetItem(item->details.slot_id, to_item);
-			to_item->save_needed = true;
-			packets.push_back(to_item->serialize(version, false));
-			SetEquipment(to_item);
-			CalculateBonuses();
-			item->details.inv_slot_id = bag_id;
-			item->details.slot_id = slot;
-			item_list.AddItem(item);
-			item->save_needed = true;
-			packets.push_back(item->serialize(version, false));
-			packets.push_back(equipment_list.serialize(version));
-			packets.push_back(item_list.serialize(this, version));
-		}
-		else if(to_item && to_item->IsBag() && to_item->details.num_slots > 0){
-			bool free_slot = false;
-			for(int8 i=0;i<to_item->details.num_slots;i++){
-				if(item_list.items[to_item->details.bag_id].count(i) == 0){
-					SetEquipment(0, item->details.slot_id);
-					database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-
-					if (item->GetItemScript() && lua_interface)
-						lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-
-					equipment_list.RemoveItem(index);
-					CalculateBonuses();
-					item->details.inv_slot_id = to_item->details.bag_id;
-					item->details.slot_id = i;
-					item_list.AddItem(item);
-					item->save_needed = true;
-					packets.push_back(equipment_list.serialize(version));
-					packets.push_back(item->serialize(version, false));
-					packets.push_back(to_item->serialize(version, false, this));
-					packets.push_back(item_list.serialize(this, version));
-					free_slot = true;
-					break;
+				if (item->GetItemScript() && lua_interface) {
+					lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
 				}
-			}
-			if(!free_slot){
+
+				item->save_needed = true;
+
+				EQ2Packet* outapp = item_list.serialize(this, version);
+				if (outapp) {
+					packets.push_back(outapp);
+					packets.push_back(item->serialize(version, false));
+
+					EQ2Packet* bag_packet = SendBagUpdate(item->details.inv_slot_id, version);
+
+					if (bag_packet) {
+						packets.push_back(bag_packet);
+					}
+				}
+
+				equipment_list.RemoveItem(index);
+
+				SetEquipment(0, old_slot);
+
+				packets.push_back(equipment_list.serialize(version, this));
+			} else {
 				PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-				if(packet){
+
+				if (packet) {
 					packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-					packet->setMediumStringByName("text", "Unable to unequip item: no free space in the bag.");
+					packet->setMediumStringByName("text", "Unable to unequip item: no free inventory locations.");
 					packet->setDataByName("unknown02", 0x00ff);
 					packets.push_back(packet->serialize());
-					safe_delete(packet);	
+					safe_delete(packet);		
 				}
 			}
-		}
-		else if(to_item){
-			PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-			if(packet){
-				packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-				packet->setMediumStringByName("text", "Unable to swap items: that item cannot be equipped there.");
-				packet->setDataByName("unknown02", 0x00ff);
-				packets.push_back(packet->serialize());
-				safe_delete(packet);	
+		} else {
+			Item* to_item = nullptr;
+
+			if (item_list.items.count(bag_id) && item_list.items[bag_id].count(slot)) {
+				to_item = item_list.items[bag_id][slot];
 			}
-		}
-		else{
-			if((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == -3 && slot < NUM_BANK_SLOTS) || (bag_id == -4 && slot < NUM_SHARED_BANK_SLOTS)){
-				if(bag_id == -4 && item->CheckFlag(NO_TRADE)){
+
+			if (to_item) {
+				if (GetEquipmentList()->CanItemBeEquippedInSlot(to_item, item->details.slot_id)) {
+					equipment_list.RemoveItem(index);
+
+					EquipItem(item_list.GetItemIndex(to_item), version, index);
+
+					if (!to_item->CheckFlag(ATTUNEABLE)) {
+						item->details.inv_slot_id = bag_id;
+						item->details.slot_id = slot;
+
+						item_list.AddItem(item);
+
+						item->save_needed = true;
+
+						database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+						if (lua_interface) {
+							if (item->GetItemScript()) {
+								lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+							}
+						}
+
+						packets.push_back(item->serialize(version, false));
+						packets.push_back(equipment_list.serialize(version));
+						packets.push_back(item_list.serialize(this, version));
+					} else {
+						equipment_list.AddItem(index, item);
+					}
+				} else if (to_item->IsBag() && to_item->details.num_slots > 0) {
+					bool free_slot = false;
+
+					for (int8 i = 0; i < to_item->details.num_slots; i++) {
+						if (!item_list.items[to_item->details.bag_id].count(i)) {
+							equipment_list.RemoveItem(index);
+
+							SetEquipment(0, item->details.slot_id);
+
+							item->details.inv_slot_id = to_item->details.bag_id;
+							item->details.slot_id = i;
+
+							item_list.AddItem(item);
+
+							item->save_needed = true;
+
+							database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+							if (item->GetItemScript() && lua_interface) {
+								lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+							}
+
+							packets.push_back(equipment_list.serialize(version));
+							packets.push_back(item_list.serialize(this, version));
+							packets.push_back(item->serialize(version, false));
+							packets.push_back(to_item->serialize(version, false, this));
+
+							free_slot = true;
+
+							break;
+						}
+					}
+
+					if (!free_slot) {
+						PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
+
+						if (packet) {
+							packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
+							packet->setMediumStringByName("text", "Unable to unequip item: no free space in the bag.");
+							packet->setDataByName("unknown02", 0x00ff);
+							packets.push_back(packet->serialize());
+							safe_delete(packet);	
+						}
+					}
+				} else {
 					PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-					if(packet){
+
+					if (packet) {
 						packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-						packet->setMediumStringByName("text", "Unable to unequip item: that item cannot be traded.");
+						packet->setMediumStringByName("text", "Unable to swap items: that item cannot be equipped there.");
 						packet->setDataByName("unknown02", 0x00ff);
 						packets.push_back(packet->serialize());
 						safe_delete(packet);	
 					}
 				}
-				else{
-					SetEquipment(0, item->details.slot_id);
-					database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+			} else {
+				if ((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == -3 && slot < NUM_BANK_SLOTS) || (bag_id == -4 && slot < NUM_SHARED_BANK_SLOTS)) {
+					if (bag_id == -4 && item->CheckFlag(NO_TRADE)) {
+						PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
 
-					if (item->GetItemScript() && lua_interface)
-						lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+						if (packet) {
+							packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
+							packet->setMediumStringByName("text", "Unable to unequip item: that item cannot be traded.");
+							packet->setDataByName("unknown02", 0x00ff);
+							packets.push_back(packet->serialize());
+							safe_delete(packet);	
+						}
+					} else {
+						equipment_list.RemoveItem(index);
 
-					equipment_list.RemoveItem(index);
-					item->details.inv_slot_id = bag_id;
-					item->details.slot_id = slot;
-					item_list.AddItem(item);
-					CalculateBonuses();
-					item->save_needed = true;
-					packets.push_back(equipment_list.serialize(version));
-					packets.push_back(item->serialize(version, false));
-					packets.push_back(item_list.serialize(this, version));
+						SetEquipment(0, item->details.slot_id);
+
+						item->details.inv_slot_id = bag_id;
+						item->details.slot_id = slot;
+
+						item_list.AddItem(item);
+
+						item->save_needed = true;
+
+						database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+						if (item->GetItemScript() && lua_interface) {
+							lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+						}
+
+						packets.push_back(equipment_list.serialize(version));
+						packets.push_back(item->serialize(version, false));
+						packets.push_back(item_list.serialize(this, version));
+					}
+				} else {
+					Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
+
+					if (bag && bag->IsBag() && slot < bag->details.num_slots) {
+						SetEquipment(0, item->details.slot_id);
+						database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+						if (item->GetItemScript() && lua_interface) {
+							lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+						}
+
+						equipment_list.RemoveItem(index);
+						item->details.inv_slot_id = bag_id;
+						item->details.slot_id = slot;
+						item_list.AddItem(item);
+						item->save_needed = true;
+						packets.push_back(equipment_list.serialize(version));
+						packets.push_back(item->serialize(version, false));
+						packets.push_back(item_list.serialize(this, version));
+					}
 				}
 			}
-			else{
-				Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
-				if(bag && bag->IsBag() && slot < bag->details.num_slots){
-					SetEquipment(0, item->details.slot_id);
-					database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
 
-					if (item->GetItemScript() && lua_interface)
-						lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+			Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
 
-					equipment_list.RemoveItem(index);
-					item->details.inv_slot_id = bag_id;
-					item->details.slot_id = slot;
-					item_list.AddItem(item);
-					CalculateBonuses();
-					item->save_needed = true;
-					packets.push_back(equipment_list.serialize(version));
-					packets.push_back(item->serialize(version, false));
-					packets.push_back(item_list.serialize(this, version));
-				}
+			if (bag && bag->IsBag()) {
+				packets.push_back(bag->serialize(version, false, this));
 			}
 		}
-		Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
-		if(bag && bag->IsBag())
-			packets.push_back(bag->serialize(version, false, this));
+
+		CalculateBonuses();
+		SetCharSheetChanged(true);
 	}
-	return packets;
+
+	shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+	if (client) {
+		for (EQ2Packet* outapp : packets) {
+			if (outapp) {
+				client->QueuePacket(outapp);
+			}
+		}
+	}
 }
 
 map<int32, Item*>* Player::GetItemList(){
@@ -1189,86 +1237,107 @@ bool Player::CanEquipItem(Item* item) {
 	return false;
 }
 
-vector<EQ2Packet*> Player::EquipItem(int16 index, int16 version, int8 slot_id){
-	vector<EQ2Packet*>	packets;
-	if(item_list.indexed_items.count(index) == 0)
-		return packets;
+void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
+	vector<EQ2Packet*> packets;
+
+	if (!item_list.indexed_items.count(index)) {
+		return;
+	}
+
 	Item* item = item_list.indexed_items[index];
-	if(item){
-		if(slot_id != 255 && !item->HasSlot(slot_id))
-			return packets;
+
+	if (item) {
+		if (slot_id != 255 && !item->HasSlot(slot_id)) {
+			return;
+		}
+
 		int8 slot = equipment_list.GetFreeSlot(item, slot_id);
-		bool canEquip = CanEquipItem(item);
-		if (canEquip && item->CheckFlag(ATTUNEABLE)) {
-			PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", version);
-			char text[255];
-			sprintf(text, "%s must be attuned before it can be equipped. Would you like to attune it now?", item->name.c_str());
-			char accept_command[25];
-			sprintf(accept_command, "attune_inv %i 1 0 -1", index);
-			packet->setDataByName("text", text);
-			packet->setDataByName("accept_text", "Attune");
-			packet->setDataByName("accept_command", accept_command);
-			packet->setDataByName("cancel_text", "Cancel");
-			// No clue if we even need the following 2 unknowns, just added them so the packet matches what live sends
-			packet->setDataByName("unknown2", 50);
-			packet->setDataByName("unknown4", 1);
-			packets.push_back(packet->serialize());
-			safe_delete(packet);
-			return packets;
-		}
-		if(canEquip && slot == 255)
-		{
-			if(slot_id == 255)
-				slot = item->slot_data.at(0);
-			else
-				slot = slot_id;
-			packets = UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
-			// If item is a 2handed weapon and something is in the secondary, unequip the secondary
-			if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
-				vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
-				//packets.reserve(packets.size() + tmp_packets.size());
-				packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
-			}
-		}
-		else if(canEquip && slot < 255) {
-			// If item is a 2handed weapon and something is in the secondary, unequip the secondary
-			if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
-				vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
-				//packets.reserve(packets.size() + tmp_packets.size());
-				packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
-			}
 
-			database.DeleteItem(GetCharacterID(), item, "NOT-EQUIPPED");
+		if (CanEquipItem(item)) {
+			if (item->CheckFlag(ATTUNEABLE)) {
+				PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", version);
+				char text[255];
+				char accept_command[25];
 
-			if (item->GetItemScript() && lua_interface)
-				lua_interface->RunItemScript(item->GetItemScript(), "equipped", item, this);
+				sprintf(text, "%s must be attuned before it can be equipped. Would you like to attune it now?", item->name.c_str());
+				sprintf(accept_command, "attune_inv %i 1 0 -1", index);
 
-			item_list.RemoveItem(item);
-			equipment_list.SetItem(slot, item);
-			item->save_needed = true;
-			packets.push_back(item->serialize(version, false));
-			SetEquipment(item);
-			int32 bag_id = item->details.inv_slot_id;
-			if (item->generic_info.condition == 0) {
-				shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
-				if (client) {
-					client->Message(CHANNEL_COLOR_RED, "Your \\aITEM %u %u:%s\\/a is worn out and will not be effective until repaired.", item->details.item_id, item->details.unique_id, item->name.c_str());
+				packet->setDataByName("text", text);
+				packet->setDataByName("accept_text", "Attune");
+				packet->setDataByName("accept_command", accept_command);
+				packet->setDataByName("cancel_text", "Cancel");
+
+				// No clue if we even need the following 2 unknowns, just added them so the packet matches what live sends
+				packet->setDataByName("unknown2", 50);
+				packet->setDataByName("unknown4", 1);
+				packets.push_back(packet->serialize());
+
+				safe_delete(packet);
+			} else {
+				item_list.RemoveItem(item);
+
+				if (slot == 255) {
+					slot = item->slot_data.at(0);
+					UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
 				}
+
+				equipment_list.SetItem(slot, item);
+
+				if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT)) {
+					UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
+				}
+
+				SetEquipment(item);
+
+				item->save_needed = true;
+
+				database.DeleteItem(GetCharacterID(), item, "NOT-EQUIPPED");
+
+				if (item->GetItemScript() && lua_interface) {
+					lua_interface->RunItemScript(item->GetItemScript(), "equipped", item, this);
+				}
+
+				int32 bag_id = item->details.inv_slot_id;
+
+				if (item->generic_info.condition == 0) {
+					shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
+					if (client) {
+						client->Message(CHANNEL_COLOR_RED, "Your \\aITEM %u %u:%s\\/a is worn out and will not be effective until repaired.", item->details.item_id, item->details.unique_id, item->name.c_str());
+					}
+				}
+
+				packets.push_back(item->serialize(version, false));
+				packets.push_back(equipment_list.serialize(version, this));
+
+				EQ2Packet* outapp = item_list.serialize(this, version);
+
+				if (outapp) {
+					packets.push_back(outapp);
+
+					EQ2Packet* bag_packet = SendBagUpdate(bag_id, version);
+
+					if (bag_packet) {
+						packets.push_back(bag_packet);
+					}
+				}
+
+				CalculateBonuses();
+				SetCharSheetChanged(true);
 			}
-			packets.push_back(equipment_list.serialize(version, this));
-			EQ2Packet* outapp = item_list.serialize(this, version);
-			if(outapp){
-				packets.push_back(outapp);
-				EQ2Packet* bag_packet = SendBagUpdate(bag_id, version);
-				if(bag_packet)
-					packets.push_back(bag_packet);
-			}
-			CalculateBonuses();
-			SetCharSheetChanged(true);
 		}
 	}
-	return packets;
+
+	shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+	if (client) {
+		for (EQ2Packet* outapp : packets) {
+			if (outapp) {
+				client->QueuePacket(outapp);
+			}
+		}
+	}
 }
+
 bool Player::AddItem(Item* item){
 	if(item && item->details.item_id > 0){
 		if(item_list.AssignItemToFreeSlot(item)){

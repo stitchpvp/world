@@ -4822,26 +4822,17 @@ void Commands::Command_Inventory(const shared_ptr<Client>& client, Seperator* se
 		}
 		else if(sep->arg[1][0] && strncasecmp("equip", sep->arg[0], 5) == 0 && sep->IsNumber(1))
 		{
-			if(client->GetPlayer()->EngagedInCombat())
+			if (client->GetPlayer()->EngagedInCombat()) {
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You may not equip items while in combat.");
-			else
-			{
+			} else {
 				int16 index = atoi(sep->arg[1]);
 				int8 slot_id = 255;
 
-				if(sep->arg[2][0] && sep->IsNumber(2))
+				if (sep->arg[2][0] && sep->IsNumber(2)) {
 					slot_id = atoi(sep->arg[2]);
-
-				vector<EQ2Packet*> packets = client->GetPlayer()->EquipItem(index, client->GetVersion(), slot_id);
-				EQ2Packet* outapp = 0;
-
-				for(int32 i=0;i<packets.size();i++)
-				{
-					outapp = packets[i];
-					if(outapp)
-						client->QueuePacket(outapp);
 				}
 
+				client->GetPlayer()->EquipItem(index, client->GetVersion(), slot_id);
 				client->GetPlayer()->ChangePrimaryWeapon();
 				client->GetPlayer()->ChangeSecondaryWeapon();
 				client->GetPlayer()->ChangeRangedWeapon();
@@ -4867,17 +4858,7 @@ void Commands::Command_Inventory(const shared_ptr<Client>& client, Seperator* se
 						to_slot = atoi(sep->arg[3]);
 				}
 
-				vector<EQ2Packet*> packets = client->GetPlayer()->UnequipItem(index, bag_id, to_slot, client->GetVersion());
-				EQ2Packet* outapp = 0;
-
-				for(int32 i=0;i<packets.size();i++)
-				{
-					outapp = packets[i];
-
-					if(outapp)
-						client->QueuePacket(outapp);
-				}
-
+				client->GetPlayer()->UnequipItem(index, bag_id, to_slot, client->GetVersion());
 				client->GetPlayer()->ChangePrimaryWeapon();
 				client->GetPlayer()->ChangeSecondaryWeapon();
 				client->GetPlayer()->ChangeRangedWeapon();
@@ -8147,16 +8128,8 @@ void Commands::Command_Attune_Inv(const shared_ptr<Client>& client, Seperator* s
 
 			client->QueuePacket(item->serialize(client->GetVersion(), false, client->GetPlayer()));
 
-			vector<EQ2Packet*> packets = client->GetPlayer()->EquipItem(index, client->GetVersion(), -1);
-			EQ2Packet* outapp = 0;
-
-			for (int32 i = 0; i < packets.size(); i++) {
-				outapp = packets[i];
-				if (outapp)
-					client->QueuePacket(outapp);
-			}
+			client->GetPlayer()->EquipItem(index, client->GetVersion(), -1);
 		}
-
 	}
 }
 
