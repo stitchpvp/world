@@ -1174,6 +1174,8 @@ void ZoneServer::CheckSendSpawnToClient(const shared_ptr<Client>& client, bool i
 	map<int32, float>* client_range = GetClientRangeMap(client);
 
 	if (client_range) {
+		lock_guard<mutex> guard(client_range_mutex_map[client]);
+
 		for (const auto& kv : *client_range) {
 			Spawn* spawn = GetSpawnByID(kv.first);
 			float distance = kv.second;
@@ -1845,6 +1847,8 @@ void ZoneServer::ResendSpawns(const shared_ptr<Client>& client) {
 	map<int32, float>* client_range = GetClientRangeMap(client);
 
 	if (client_range) {
+		lock_guard<mutex> guard(client_range_mutex_map[client]);
+
 		for (const auto& kv : *client_range) {
 			AddSpawnUpdate(kv.first, true, false, true, client);
 		}
@@ -3844,6 +3848,8 @@ void ZoneServer::SendAllSpawnsForLevelChange(const shared_ptr<Client>& client){
 	map<int32, float>* client_range = GetClientRangeMap(client);
 
 	if (client_range) {
+		lock_guard<mutex> guard(client_range_mutex_map[client]);
+
 		for (const auto& kv : *client_range) {
 			Spawn* spawn = GetSpawnByID(kv.first);
 
