@@ -2698,28 +2698,31 @@ void ZoneServer::ReloadTransporters(){
 
 void ZoneServer::CheckTransporters(const shared_ptr<Client>& client) {
 	MTransportLocations.readlock(__FUNCTION__, __LINE__);
-	if(transporter_locations.size() > 0){
-		LocationTransportDestination* loc = 0;
-		list<LocationTransportDestination*>::iterator itr;
-		for (itr = transporter_locations.begin(); itr != transporter_locations.end(); itr++) {
-			loc = *itr;
-			if(client->GetPlayer()->GetDistance(loc->trigger_x, loc->trigger_y, loc->trigger_z) <= loc->trigger_radius){
-				if(loc->destination_zone_id == 0 || loc->destination_zone_id == GetZoneID()){
-					EQ2Packet* packet = client->GetPlayer()->Move(loc->destination_x, loc->destination_y, loc->destination_z, client->GetVersion());
-					if(packet)
-						client->QueuePacket(packet);
-				}
-				else{
-					ZoneServer* new_zone = zone_list.Get(loc->destination_zone_id);
-					if(new_zone){
-						client->GetPlayer()->SetX(loc->destination_x);
-						client->GetPlayer()->SetY(loc->destination_y);
-						client->GetPlayer()->SetZ(loc->destination_z);
-						client->GetPlayer()->SetHeading(loc->destination_heading);
-						client->Zone(new_zone, false);
+	if (transporter_locations.size() > 0) {
+		for (const auto loc : transporter_locations) {
+			if (loc) {
+				if (client->GetPlayer()->GetDistance(loc->trigger_x, loc->trigger_y, loc->trigger_z) <= loc->trigger_radius) {
+					if (loc->destination_zone_id == 0 || loc->destination_zone_id == GetZoneID()) {
+						float heading = (loc->destination_heading ? loc->destination_heading + 180.0f : -1.0f);
+
+						EQ2Packet* packet = client->GetPlayer()->Move(loc->destination_x, loc->destination_y, loc->destination_z, client->GetVersion(), heading);
+
+						if (packet) {
+							client->QueuePacket(packet);
+						}
+					} else {
+						ZoneServer* new_zone = zone_list.Get(loc->destination_zone_id);
+
+						if (new_zone) {
+							client->GetPlayer()->SetX(loc->destination_x);
+							client->GetPlayer()->SetY(loc->destination_y);
+							client->GetPlayer()->SetZ(loc->destination_z);
+							client->GetPlayer()->SetHeading(loc->destination_heading);
+							client->Zone(new_zone, false);
+						}
 					}
+					break;
 				}
-				break;
 			}
 		}
 	}
@@ -2892,6 +2895,7 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 
 		RemoveSpawn(client->GetPlayer(), false);
 		RemoveFromSpawnRangeMap(client);
+		RemovePlayerProximity(client);
 
 		map<int32, int32>::iterator itr;
 		for (itr = client->GetPlayer()->SpawnedBots.begin(); itr != client->GetPlayer()->SpawnedBots.end(); itr++) {
@@ -4023,12 +4027,6 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		ClearHate(dead_entity);
 
 		if (dead->IsPlayer()) {
-			static_cast<Player*>(dead)->SetRangeAttack(false);
-			static_cast<Player*>(dead)->SetMeleeAttack(false);
-			static_cast<Player*>(dead)->ClearEncounterList();
-
-			static_cast<Player*>(dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
-
 			shared_ptr<Client> client = GetClientBySpawn(dead);
 
 			if (client) {
@@ -4042,12 +4040,16 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 			}
 
 			if (PVP::IsEnabled()) {
-				if (killer && killer->IsPlayer()) {
-					PVP::HandleFameChange(static_cast<Player*>(killer), static_cast<Player*>(dead));
-				}
+				PVP::HandleFameChange(static_cast<Player*>(dead));
 			}
 
+			static_cast<Player*>(dead)->SetRangeAttack(false);
+			static_cast<Player*>(dead)->SetMeleeAttack(false);
+			static_cast<Player*>(dead)->ClearEncounterList();
+
 			spellProcess->RemoveSpellFromQueue(static_cast<Player*>(dead), true);
+
+			static_cast<Player*>(dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
 		}
 
 		if (dead->IsPet() && static_cast<NPC*>(dead)->GetOwner()) {

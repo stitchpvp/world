@@ -121,7 +121,7 @@ extern MasterAAList master_tree_nodes;
 
 using namespace std;
 
-Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_debug_timer(30000){
+Client::Client(EQStream* ieqs) : pos_update(500), quest_pos_timer(2000), lua_debug_timer(30000) {
 	eqs = ieqs;
 	ip = eqs->GetrIP();
 	port = ntohs(eqs->GetrPort());
@@ -2364,17 +2364,16 @@ bool Client::Process(bool zone_process) {
 		should_load_spells = false;
 	}
 
-	if(quest_updates) {
+	if (quest_updates) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, ProcessQuestUpdates", __FUNCTION__, __LINE__);
 		ProcessQuestUpdates();
 	}
-	if(last_update_time > 0 && last_update_time < (Timer::GetCurrentTime2() - 300))	{
+	if (last_update_time > 0 && last_update_time < (Timer::GetCurrentTime2() - 300)) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, CheckQuestQueue", __FUNCTION__, __LINE__);
 		CheckQuestQueue();
 	}
 
-	if (pos_update.Check() && GetPlayer()->position_changed) {
-		GetPlayer()->AddSpawnUpdate(false, true, false);
+	if (GetCurrentZone() && pos_update.Check()) {
 		GetCurrentZone()->CheckTransporters(shared_from_this());
 	}
 
@@ -2383,17 +2382,22 @@ bool Client::Process(bool zone_process) {
 		GetPlayer()->SetResendSpawns(false);
 	}
 
-	if(lua_interface && lua_debug && lua_debug_timer.Check())
+	if (lua_interface && lua_debug && lua_debug_timer.Check()) {
 		lua_interface->UpdateDebugClients(shared_from_this());
-	if(quest_pos_timer.Check())
+	}
+
+	if (quest_pos_timer.Check()) {
 		CheckPlayerQuestsLocationUpdate();
-	if(camp_timer && camp_timer->Check() && getConnection()){
+	}
+
+	if (camp_timer && camp_timer->Check() && getConnection()) {
 		getConnection()->SendDisconnect(false);
 		safe_delete(camp_timer);
 		disconnect_timer = new Timer(2000);
 		disconnect_timer->Start();
 	}
-	if(player->GetSkills()->HasSkillUpdates()){
+
+	if (player->GetSkills()->HasSkillUpdates()) {
 		vector<Skill*>* skills = player->GetSkills()->GetSkillUpdates();
 		if(skills){
 			vector<Skill*>::iterator itr;

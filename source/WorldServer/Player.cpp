@@ -199,18 +199,30 @@ EQ2Packet* Player::serialize(Player* player, int16 version){
 
 EQ2Packet* Player::Move(float x, float y, float z, int16 version, float heading){
 	PacketStruct* packet = configReader.getStruct("WS_MoveClient", version);
-	if(packet){
+
+	if (packet) {
 		packet->setDataByName("x", x);
 		packet->setDataByName("y", y);
 		packet->setDataByName("z", z);
 		packet->setDataByName("unknown", 1);	// 1 seems to force the client to re-render the zone at the new location
 		packet->setDataByName("location", 0xFFFFFFFF); //added in 869
-		if (heading != -1.0f)
+
+		SetX(x);
+		SetY(y);
+		SetZ(z);
+
+		if (heading != -1.0f) {
 			packet->setDataByName("heading", heading);
+
+			SetHeading(heading - 180.0f);
+		}
+
 		EQ2Packet* outapp = packet->serialize();
 		safe_delete(packet);
+
 		return outapp;
 	}
+
 	return 0;
 }
 
@@ -2666,13 +2678,15 @@ void Player::CheckEncounterList() {
 	for (const auto& kv : encounter_list) {
 		Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
 
-		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000)))
+		if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000))) {
 			to_remove.push_back(kv.first);
+		}
 	}
 	encounter_list_mutex.unlock();
 
-	for (const auto& spawn : to_remove)
+	for (const auto& spawn : to_remove) {
 		RemoveFromEncounterList(spawn);
+	}
 }
 
 void Player::SetCharSheetChanged(bool val){

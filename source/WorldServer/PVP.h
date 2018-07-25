@@ -23,6 +23,6 @@ public:
 	static bool IsHostile(Player* attacker, Spawn* target);
 	static string GetRank(Player*);
 	static int GetRankIndex(Player* player);
-	static void HandleFameChange(Player* attacker, Player* victim);
+	static void HandleFameChange(Player* victim);
 	static bool IsEnabled(ZoneServer* zone = 0);
 };

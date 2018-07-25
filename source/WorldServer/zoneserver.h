@@ -717,7 +717,6 @@ private:
 	MutexMap<int32, MutexList<int32> >				spawn_group_map;								// MutexList<int32> is a list of spawn id's
 	map<int32, list<int32>* >						spawn_location_groups;
 	map<int32, SpawnLocation*>						spawn_location_list;
-	//MutexMap<shared_ptr<Client>, MutexMap<int32, float >* >	spawn_range_map;								// int32 in the MutexMap<int32, float>* = spawn id, float = distance
 	MutexMap<int32, int32>							widget_timers;									// 1st int32 = spawn id
 
 	map<shared_ptr<Client>, unique_ptr<map<int32, float>>> spawn_range_map;
