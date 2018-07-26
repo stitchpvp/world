@@ -551,6 +551,8 @@ int16 Entity::GetTotalPowerRegen() {
 	} else {
 		ret += stats[ITEM_STAT_MANAREGEN];
 	}
+
+	return ret;
 }
 
 void Entity::DoRegenUpdate() {
