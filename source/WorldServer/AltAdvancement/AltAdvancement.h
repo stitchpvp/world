@@ -27,88 +27,84 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../client.h"
 
 // defines for AA tabs based on group # from DB
-#define AA_CLASS				0
-#define AA_SUBCLASS				1
-#define AA_SHADOW				2
-#define AA_HEROIC				3
-#define AA_TRADESKILL			4
-#define AA_PRESTIGE				5
-#define AA_TRADESKILL_PRESTIGE	6
-#define AA_DRAGON				7
+#define AA_CLASS 0
+#define AA_SUBCLASS 1
+#define AA_SHADOW 2
+#define AA_HEROIC 3
+#define AA_TRADESKILL 4
+#define AA_PRESTIGE 5
+#define AA_TRADESKILL_PRESTIGE 6
+#define AA_DRAGON 7
 
-struct AltAdvanceData
-{
-	int32	spellID;
-	int32	spell_crc;
-	string	name;
-	string	description;
-	int8	group;
-	int16	icon;
-	int16	icon2;
-	int8	col;
-	int8	row;
-	int8	rankCost;
-	int8	maxRank;
-	int32	rankPrereqID;
-	int8	rankPrereq;
-	int8	class_req;
-	int8	tier;
-	int8	req_points;
-	int16	req_tree_points;
-	string	class_name;
-	string	subclass_name;
-	string	line_title;
-	int32	node_id;
+struct AltAdvanceData {
+  int32 spellID;
+  int32 spell_crc;
+  string name;
+  string description;
+  int8 group;
+  int16 icon;
+  int16 icon2;
+  int8 col;
+  int8 row;
+  int8 rankCost;
+  int8 maxRank;
+  int32 rankPrereqID;
+  int8 rankPrereq;
+  int8 class_req;
+  int8 tier;
+  int8 req_points;
+  int16 req_tree_points;
+  string class_name;
+  string subclass_name;
+  string line_title;
+  int32 node_id;
 };
 
-
-class MasterAAList
-{
+class MasterAAList {
 public:
-	MasterAAList();
-	~MasterAAList();
-	/// <summary>Sorts the Alternate Advancements for the given client, creates and sends the OP_AdventureList packet.</summary>
-	/// <param name='client'>The Client calling this function</param>
-	/// <returns>EQ2Packet*</returns>
-	EQ2Packet* GetAAListPacket(const shared_ptr<Client>& client);
+  MasterAAList();
+  ~MasterAAList();
+  /// <summary>Sorts the Alternate Advancements for the given client, creates and sends the OP_AdventureList packet.</summary>
+  /// <param name='client'>The Client calling this function</param>
+  /// <returns>EQ2Packet*</returns>
+  EQ2Packet* GetAAListPacket(const shared_ptr<Client>& client);
 
-	/// <summary>Add Alternate Advancement data to the global list.</summary>
-	/// <param name='data'>The Alternate Advancement data to add.</param>
-	void AddAltAdvancement(AltAdvanceData* data);
+  /// <summary>Add Alternate Advancement data to the global list.</summary>
+  /// <param name='data'>The Alternate Advancement data to add.</param>
+  void AddAltAdvancement(AltAdvanceData* data);
 
-	/// <summary>Get the total number of Alternate Advancements in the global list.</summary>
-	int Size();
+  /// <summary>Get the total number of Alternate Advancements in the global list.</summary>
+  int Size();
 
-	/// <summary>Get the Alternate Advancement data for the given spell.</summary>
-	/// <param name='spellID'>Spell ID to get Alternate Advancement data for.</param>
-	AltAdvanceData* GetAltAdvancement(int32 spellID);
+  /// <summary>Get the Alternate Advancement data for the given spell.</summary>
+  /// <param name='spellID'>Spell ID to get Alternate Advancement data for.</param>
+  AltAdvanceData* GetAltAdvancement(int32 spellID);
 
-	/// <summary>empties the master Alternate Advancement list</summary>
-	void DestroyAltAdvancements();
-	void DisplayAA(const shared_ptr<Client>& client);
-private:
-	vector <AltAdvanceData*> AAList;
-	Mutex MMasterAAList;
-};
-
-struct TreeNodeData
-{
-	int32	classID;
-	int32	treeID;
-};
-
-class MasterAANodeList
-{
-public:
-	MasterAANodeList();
-	~MasterAANodeList();
-	void AddTreeNode(TreeNodeData* data);
-	int Size();
-	void DestroyTreeNodes();
-	vector<TreeNodeData*> GetTreeNodes();
+  /// <summary>empties the master Alternate Advancement list</summary>
+  void DestroyAltAdvancements();
+  void DisplayAA(const shared_ptr<Client>& client);
 
 private:
-	vector<TreeNodeData*> TreeNodeList;
+  vector<AltAdvanceData*> AAList;
+  Mutex MMasterAAList;
+};
+
+struct TreeNodeData {
+  int32 classID;
+  int32 treeID;
+};
+
+class MasterAANodeList {
+public:
+  MasterAANodeList();
+  ~MasterAANodeList();
+  void AddTreeNode(TreeNodeData* data);
+  int Size();
+  void DestroyTreeNodes();
+  vector<TreeNodeData*> GetTreeNodes();
+
+private:
+  vector<TreeNodeData*> TreeNodeList;
 };
 
 #endif

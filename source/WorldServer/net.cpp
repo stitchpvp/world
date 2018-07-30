@@ -18,7 +18,7 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../common/debug.h"
-#include "../common/Log.h" 
+#include "../common/Log.h"
 
 #include <iostream>
 #include <thread>
@@ -60,15 +60,15 @@ using namespace std;
 #include "IRC/IRC.h"
 
 #ifdef WIN32
-	#include <process.h>
-	#define snprintf	_snprintf
-	#define vsnprintf	_vsnprintf
-	#define strncasecmp	_strnicmp
-	#define strcasecmp  _stricmp
-	#include <conio.h>
+#include <process.h>
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#include <conio.h>
 #else
-	#include <pthread.h>
-	#include "../common/unix.h"
+#include <pthread.h>
+#include "../common/unix.h"
 #endif
 
 #ifdef PROFILER
@@ -115,794 +115,775 @@ extern MasterAchievementList master_achievement_list;
 extern map<int16, int16> EQOpcodeVersions;
 PatchServer patch;
 
-ThreadReturnType ItemLoad (void* tmp);
-ThreadReturnType AchievmentLoad (void* tmp);
-ThreadReturnType SpellLoad (void* tmp);
+ThreadReturnType ItemLoad(void* tmp);
+ThreadReturnType AchievmentLoad(void* tmp);
+ThreadReturnType SpellLoad(void* tmp);
 ThreadReturnType EQ2ConsoleListener(void* tmp);
 
 int main(int argc, char** argv) {
-	LogParseConfigs();
-	WelcomeHeader();
+  LogParseConfigs();
+  WelcomeHeader();
 
-	int32 t_total = Timer::GetUnixTimeStamp();
+  int32 t_total = Timer::GetUnixTimeStamp();
 
-	LogStart();
+  LogStart();
 
-	LogWrite(INIT__INFO, 0, "Init", "Starting EQ2Emulator WorldServer...");
+  LogWrite(INIT__INFO, 0, "Init", "Starting EQ2Emulator WorldServer...");
 
-	database.Init();
+  database.Init();
 
-	if (!database.ConnectNewDatabase())
-		return EXIT_FAILURE;
+  if (!database.ConnectNewDatabase())
+    return EXIT_FAILURE;
 
-	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
+  if (signal(SIGINT, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
 
-	if (signal(SIGSEGV, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
+  if (signal(SIGSEGV, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
 
-	if (signal(SIGILL, CatchSignal) == SIG_ERR)	{
-		LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-		return 0;
-	}
+  if (signal(SIGILL, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
 
-	srand(time(NULL));
+  srand(time(NULL));
 
-	net.ReadLoginINI();
+  net.ReadLoginINI();
 
-	// JA: Grouping all System (core) data loads together for timing purposes
-	LogWrite(WORLD__INFO, 0, "World", "Loading System Data...");
+  // JA: Grouping all System (core) data loads together for timing purposes
+  LogWrite(WORLD__INFO, 0, "World", "Loading System Data...");
 
-	int32 t_now = Timer::GetUnixTimeStamp();
+  int32 t_now = Timer::GetUnixTimeStamp();
 
-	EQOpcodeVersions = database.GetVersions();
+  EQOpcodeVersions = database.GetVersions();
 
-	for (auto& version : EQOpcodeVersions) {
-		int version1 = version.first;
+  for (auto& version : EQOpcodeVersions) {
+    int version1 = version.first;
 
-		EQOpcodeManager[version1] = new RegularOpcodeManager();
-		map<string, uint16> eq = database.GetOpcodes(version1);
+    EQOpcodeManager[version1] = new RegularOpcodeManager();
+    map<string, uint16> eq = database.GetOpcodes(version1);
 
-		if(!EQOpcodeManager[version1]->LoadOpcodes(&eq)) {
-			LogWrite(INIT__ERROR, 0, "Init", "Loading opcodes failed. Make sure you have sourced the opcodes.sql file!");
-			return false;
-		}
-	}
+    if (!EQOpcodeManager[version1]->LoadOpcodes(&eq)) {
+      LogWrite(INIT__ERROR, 0, "Init", "Loading opcodes failed. Make sure you have sourced the opcodes.sql file!");
+      return false;
+    }
+  }
 
-	if (!configReader.LoadFile("CommonStructs.xml") || !configReader.LoadFile("WorldStructs.xml") || !configReader.LoadFile("SpawnStructs.xml") || !configReader.LoadFile("ItemStructs.xml")) {
-		LogWrite(INIT__ERROR, 0, "Init", "Loading structs failed. Make sure you have CommonStructs.xml, WorldStructs.xml, SpawnStructs.xml, and ItemStructs.xml in the working directory!");
-		return false;
-	}
+  if (!configReader.LoadFile("CommonStructs.xml") || !configReader.LoadFile("WorldStructs.xml") || !configReader.LoadFile("SpawnStructs.xml") || !configReader.LoadFile("ItemStructs.xml")) {
+    LogWrite(INIT__ERROR, 0, "Init", "Loading structs failed. Make sure you have CommonStructs.xml, WorldStructs.xml, SpawnStructs.xml, and ItemStructs.xml in the working directory!");
+    return false;
+  }
 
-	world.init();
+  world.init();
 
-	bool threadedLoad = rule_manager.GetGlobalRule(R_World, ThreadedLoad)->GetBool();
+  bool threadedLoad = rule_manager.GetGlobalRule(R_World, ThreadedLoad)->GetBool();
 
-	LogWrite(WORLD__DEBUG, 1, "World", "-Loading EQ2 time of day...");
-	loginserver.InitLoginServerVariables();
+  LogWrite(WORLD__DEBUG, 1, "World", "-Loading EQ2 time of day...");
+  loginserver.InitLoginServerVariables();
 
-	LogWrite(WORLD__INFO, 0, "World", "Loaded System Data (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);
+  LogWrite(WORLD__INFO, 0, "World", "Loaded System Data (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);
 
-	if (threadedLoad) {
-		LogWrite(WORLD__WARNING, 0, "Threaded", "Using Threaded loading of static data...");
+  if (threadedLoad) {
+    LogWrite(WORLD__WARNING, 0, "Threaded", "Using Threaded loading of static data...");
 
-		thread thr1(ItemLoad, &world);
-		thr1.detach();
-		thread thr2(SpellLoad, &world);
-		thr2.detach();
-	}
+    thread thr1(ItemLoad, &world);
+    thr1.detach();
+    thread thr2(SpellLoad, &world);
+    thr2.detach();
+  }
 
-	if (!threadedLoad) {
-		LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
-		database.LoadItemList();
-		MasterItemList::ResetUniqueID(database.LoadNextUniqueItemID());
-	}
+  if (!threadedLoad) {
+    LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
+    database.LoadItemList();
+    MasterItemList::ResetUniqueID(database.LoadNextUniqueItemID());
+  }
 
-	if (!threadedLoad) {
-		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
-		database.LoadSpells();
+  if (!threadedLoad) {
+    LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
+    database.LoadSpells();
 
-		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
-		database.LoadSpellErrors();
+    LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
+    database.LoadSpellErrors();
 
-		LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
-		database.LoadTraits();
-	}
+    LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
+    database.LoadTraits();
+  }
 
-	if (!threadedLoad) {
-		LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
-		database.LoadQuests();
-	}
+  if (!threadedLoad) {
+    LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
+    database.LoadQuests();
+  }
 
-	if (!threadedLoad) {
-		LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
-		database.LoadCollections();
-	}
+  if (!threadedLoad) {
+    LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
+    database.LoadCollections();
+  }
 
-	LogWrite(GUILD__INFO, 0, "Guilds", "Loading Guilds...");
-	database.LoadGuilds();
+  LogWrite(GUILD__INFO, 0, "Guilds", "Loading Guilds...");
+  database.LoadGuilds();
 
-	LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipe Books...");
-	database.LoadRecipeBooks();
+  LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipe Books...");
+  database.LoadRecipeBooks();
 
-	LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipes...");
-	database.LoadRecipes();
+  LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipes...");
+  database.LoadRecipes();
 
-	LogWrite(TRADESKILL__INFO, 0, "Tradeskills", "Loading Tradeskill Events...");
-	database.LoadTradeskillEvents();
+  LogWrite(TRADESKILL__INFO, 0, "Tradeskills", "Loading Tradeskill Events...");
+  database.LoadTradeskillEvents();
 
-	LogWrite(SPELL__INFO, 0, "AA", "Loading Alternate Advancements...");
-	database.LoadAltAdvancements();
+  LogWrite(SPELL__INFO, 0, "AA", "Loading Alternate Advancements...");
+  database.LoadAltAdvancements();
 
-	LogWrite(SPELL__INFO, 0, "AA", "Loading AA Tree Nodes...");
-	database.LoadTreeNodes();
+  LogWrite(SPELL__INFO, 0, "AA", "Loading AA Tree Nodes...");
+  database.LoadTreeNodes();
 
-	LogWrite(WORLD__INFO, 0, "Titles", "Loading Titles...");
-	database.LoadTitles();
+  LogWrite(WORLD__INFO, 0, "Titles", "Loading Titles...");
+  database.LoadTitles();
 
-	LogWrite(WORLD__INFO, 0, "Languages", "Loading Languages...");
-	database.LoadLanguages();
+  LogWrite(WORLD__INFO, 0, "Languages", "Loading Languages...");
+  database.LoadLanguages();
 
-	LogWrite(CHAT__INFO, 0, "Chat", "Loading channels...");
-	database.LoadChannels();
+  LogWrite(CHAT__INFO, 0, "Chat", "Loading channels...");
+  database.LoadChannels();
 
-	if (!threadedLoad) {
-		LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
-		database.LoadMerchantInformation();
-	}
+  if (!threadedLoad) {
+    LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
+    database.LoadMerchantInformation();
+  }
 
-	LogWrite(LUA__INFO, 0, "LUA", "Loading Spawn Scripts...");
-	database.LoadSpawnScriptData();
+  LogWrite(LUA__INFO, 0, "LUA", "Loading Spawn Scripts...");
+  database.LoadSpawnScriptData();
 
-	LogWrite(LUA__INFO, 0, "LUA", "Loading Zone Scripts...");
-	database.LoadZoneScriptData();
+  LogWrite(LUA__INFO, 0, "LUA", "Loading Zone Scripts...");
+  database.LoadZoneScriptData();
 
-	LogWrite(WORLD__INFO, 0, "World", "Loading House Zone Data...");
-	database.LoadHouseZones();
-	database.LoadPlayerHouses();
+  LogWrite(WORLD__INFO, 0, "World", "Loading House Zone Data...");
+  database.LoadHouseZones();
+  database.LoadPlayerHouses();
 
-	LogWrite(WORLD__INFO, 0, "World", "Loading Heroic OP Data...");
-	database.LoadHOStarters();
-	database.LoadHOWheel();
+  LogWrite(WORLD__INFO, 0, "World", "Loading Heroic OP Data...");
+  database.LoadHOStarters();
+  database.LoadHOWheel();
 
-	LogWrite(WORLD__INFO, 0, "World", "Loading Race Types Data...");
-	database.LoadRaceTypes();
+  LogWrite(WORLD__INFO, 0, "World", "Loading Race Types Data...");
+  database.LoadRaceTypes();
 
-	if (threadedLoad) {
-		LogWrite(WORLD__INFO, 0, "World", "Waiting for load threads to finish.");
-		while (!world.items_loaded || !world.spells_loaded /*|| !world.achievments_loaded*/)
-			Sleep(10);
-		LogWrite(WORLD__INFO, 0, "World", "Load threads finished.");
-	}
+  if (threadedLoad) {
+    LogWrite(WORLD__INFO, 0, "World", "Waiting for load threads to finish.");
+    while (!world.items_loaded || !world.spells_loaded /*|| !world.achievments_loaded*/)
+      Sleep(10);
+    LogWrite(WORLD__INFO, 0, "World", "Load threads finished.");
+  }
 
-	LogWrite(WORLD__INFO, 0, "World", "Total World startup time: %u seconds.", Timer::GetUnixTimeStamp() - t_total);
+  LogWrite(WORLD__INFO, 0, "World", "Total World startup time: %u seconds.", Timer::GetUnixTimeStamp() - t_total);
 
-	if (eqsf.Open(net.GetWorldPort())) {
-		if (strlen(net.GetWorldAddress()) == 0) {
-			LogWrite(NET__INFO, 0, "Net", "World server listening on port %i", net.GetWorldPort());
-		} else {
-			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
-		}
+  if (eqsf.Open(net.GetWorldPort())) {
+    if (strlen(net.GetWorldAddress()) == 0) {
+      LogWrite(NET__INFO, 0, "Net", "World server listening on port %i", net.GetWorldPort());
+    } else {
+      LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
+    }
 
-		if (strlen(net.GetInternalWorldAddress()) > 0) {
-			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
-		}
-	} else {
-		LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
-		return 1;
-	}
+    if (strlen(net.GetInternalWorldAddress()) > 0) {
+      LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
+    }
+  } else {
+    LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
+    return 1;
+  }
 
-	Timer InterserverTimer(INTERSERVER_TIMER); // does MySQL pings and auto-reconnect
-	InterserverTimer.Trigger();
+  Timer InterserverTimer(INTERSERVER_TIMER); // does MySQL pings and auto-reconnect
+  InterserverTimer.Trigger();
 
-	Timer* TimeoutTimer = new Timer(5000);
-	TimeoutTimer->Start();
+  Timer* TimeoutTimer = new Timer(5000);
+  TimeoutTimer->Start();
 
-	UpdateWindowTitle(0);
+  UpdateWindowTitle(0);
 
-	LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
-	database.LoadSpecialZones();
-
-	map<EQStream*, int32> connecting_clients;
-
-	//LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
-	//thread thr3(EQ2ConsoleListener, nullptr);
-	//thr3.detach();
-
-	//LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
-
-	while(RunLoops) {
-		Timer::SetCurrentTime();
-		
-			while (EQStream* eqs = eqsf.Pop()) {
-				struct in_addr	in;
-				in.s_addr = eqs->GetRemoteIP();
-
-				LogWrite(NET__DEBUG, 0, "Net", "New client from ip: %s port: %i", inet_ntoa(in), ntohs(eqs->GetRemotePort()));
-
-				// JA: Check for BannedIPs
-				if (rule_manager.GetGlobalRule(R_World, UseBannedIPsTable)->GetInt8() == 1) {
- 					if (database.CheckBannedIPs(inet_ntoa(in))) { 
- 						eqs->Close(); // JA: If the inbound IP is on the banned table, close the EQStream.
- 					}
-				}
-
-				if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
-					LogWrite(NET__DEBUG, 0, "Net", "Adding new client...");
-
-					auto client = make_shared<Client>(eqs);
-					client_list.Add(client);
-				} else if (eqs && !client_list.ContainsStream(eqs)) {
-					LogWrite(NET__DEBUG, 0, "Net", "Adding client to waiting list...");
-
-					connecting_clients[eqs] = Timer::GetCurrentTime2();
-				}
-			}
-
-			if (connecting_clients.size() > 0) {
-				for(auto cc_itr = connecting_clients.begin(); cc_itr != connecting_clients.end(); ++cc_itr) {
-					if (cc_itr->first && cc_itr->first->CheckActive() && !client_list.ContainsStream(cc_itr->first)) {
-						LogWrite(NET__DEBUG, 0, "Net", "Removing client from waiting list...");
-
-						auto client = make_unique<Client>(cc_itr->first);
-						client_list.Add(move(client));
-
-						connecting_clients.erase(cc_itr);
-						break;
-					} else if (Timer::GetCurrentTime2() >= (cc_itr->second + 10000)) {
-						connecting_clients.erase(cc_itr);
-						break;
-					}
-				}
-			}
-
-			world.Process();
-			client_list.Process();
-			loginserver.Process();
-			master_server.Process();
-
-			if (TimeoutTimer->Check()) {
-				eqsf.CheckTimeout();
-			}
-
-			if (InterserverTimer.Check()) {
-				InterserverTimer.Start();
-				database.ping();
-
-				if (getenv("MASTER_SERVER_ENABLED") == "true" && !master_server.Connected() && master_server.Connect()) {
-					LogWrite(WORLD__INFO, 0, "Master", "Connected to Master Server");
-					master_server.SayHello();
-				}
-
-				if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
-					LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
-
-					thread thr4(AutoInitLoginServer, nullptr);
-					thr4.detach();
-				}
-			}
-
-		this_thread::yield();
-	}
-
-	LogWrite(WORLD__DEBUG, 0, "World", "The world is ending!");
-
-	LogWrite(WORLD__DEBUG, 0, "IRC", "Shutting IRC down");
-	irc.SetRunning(false);
-
-	LogWrite(WORLD__DEBUG, 0, "World", "Shutting down zones...");
-	zone_list.ShutDownZones();
-
-	LogWrite(WORLD__DEBUG, 0, "World", "Shutting down LUA interface...");
-	safe_delete(lua_interface);
-	safe_delete(TimeoutTimer);
-	eqsf.Close();
-	map<int16, OpcodeManager*>::iterator opcode_itr;
-	for(opcode_itr=EQOpcodeManager.begin();opcode_itr!=EQOpcodeManager.end();opcode_itr++){
-		safe_delete(opcode_itr->second);
-	}
-	CheckEQEMuErrorAndPause();
+  //LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
+  //database.LoadSpecialZones();
+
+  map<EQStream*, int32> connecting_clients;
+
+  //LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
+  //thread thr3(EQ2ConsoleListener, nullptr);
+  //thr3.detach();
+
+  //LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
+
+  ZoneServer* zs = zone_list.Get("freeport");
+
+  while (RunLoops) {
+    Timer::SetCurrentTime();
+
+    while (EQStream* eqs = eqsf.Pop()) {
+      struct in_addr in;
+      in.s_addr = eqs->GetRemoteIP();
+
+      LogWrite(NET__DEBUG, 0, "Net", "New client from ip: %s port: %i", inet_ntoa(in), ntohs(eqs->GetRemotePort()));
+
+      if (rule_manager.GetGlobalRule(R_World, UseBannedIPsTable)->GetInt8() == 1) {
+        if (database.CheckBannedIPs(inet_ntoa(in))) {
+          eqs->Close();
+        }
+      }
+
+      if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
+        auto client = make_unique<Client>(eqs);
+        client->SetCurrentZone(zs);
+        client_list.Add(client.get());
+        zs->AddIncomingClient(move(client));
+      } else if (eqs && !client_list.ContainsStream(eqs)) {
+        connecting_clients[eqs] = Timer::GetCurrentTime2();
+      }
+    }
+
+    if (connecting_clients.size() > 0) {
+      for (auto cc_itr = connecting_clients.begin(); cc_itr != connecting_clients.end(); ++cc_itr) {
+        if (cc_itr->first && cc_itr->first->CheckActive() && !client_list.ContainsStream(cc_itr->first)) {
+          LogWrite(NET__DEBUG, 0, "Net", "Removing client from waiting list...");
+
+          auto client = make_unique<Client>(cc_itr->first);
+          client_list.Add(client.get());
+          zs->AddIncomingClient(move(client));
+
+          connecting_clients.erase(cc_itr);
+          break;
+        } else if (Timer::GetCurrentTime2() >= (cc_itr->second + 10000)) {
+          connecting_clients.erase(cc_itr);
+          break;
+        }
+      }
+    }
+
+    world.Process();
+    //client_list.Process();
+    loginserver.Process();
+    master_server.Process();
+
+    if (TimeoutTimer->Check()) {
+      eqsf.CheckTimeout();
+    }
+
+    if (InterserverTimer.Check()) {
+      InterserverTimer.Start();
+      database.ping();
+
+      if (true /*getenv("MASTER_SERVER_ENABLED") == "true"*/ && !master_server.Connected() && master_server.Connect()) {
+        LogWrite(WORLD__INFO, 0, "Master", "Connected to Master Server");
+        master_server.SayHello(zs->GetZoneID());
+      }
+
+      /*if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
+				LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
+
+				thread thr4(AutoInitLoginServer, nullptr);
+				thr4.detach();
+			}*/
+    }
+
+    this_thread::yield();
+  }
+
+  LogWrite(WORLD__DEBUG, 0, "World", "The world is ending!");
+
+  LogWrite(WORLD__DEBUG, 0, "IRC", "Shutting IRC down");
+  irc.SetRunning(false);
+
+  LogWrite(WORLD__DEBUG, 0, "World", "Shutting down zones...");
+  zone_list.ShutDownZones();
+
+  LogWrite(WORLD__DEBUG, 0, "World", "Shutting down LUA interface...");
+  safe_delete(lua_interface);
+  safe_delete(TimeoutTimer);
+  eqsf.Close();
+
+  for (auto opcode_itr = EQOpcodeManager.begin(); opcode_itr != EQOpcodeManager.end(); ++opcode_itr) {
+    safe_delete(opcode_itr->second);
+  }
+
+  CheckEQEMuErrorAndPause();
 
 #ifdef PROFILER
-	PROFILER_UPDATE();
-	PROFILER_OUTPUT();
+  PROFILER_UPDATE();
+  PROFILER_OUTPUT();
 #endif
 
-	LogWrite(WORLD__INFO, 0, "World", "Exiting... we hope you enjoyed your flight.");
-	LogStop();
-	return 0;
+  LogWrite(WORLD__INFO, 0, "World", "Exiting... we hope you enjoyed your flight.");
+  LogStop();
+  return 0;
 }
 
-ThreadReturnType ItemLoad (void* tmp)
-{
-	LogWrite(WORLD__WARNING, 0, "Thread", "Item Loading Thread started.");
+ThreadReturnType ItemLoad(void* tmp) {
+  LogWrite(WORLD__WARNING, 0, "Thread", "Item Loading Thread started.");
 #ifdef WIN32
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 #endif
-	if (tmp == 0) {
-		ThrowError("ItemLoad(): tmp = 0!");
-		THREAD_RETURN(NULL);
-	}
-	World* world = (World*) tmp;
-	WorldDatabase db;
-	db.Init();
-	db.ConnectNewDatabase();
-	
-	LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
-	db.LoadItemList();
-	MasterItemList::ResetUniqueID(db.LoadNextUniqueItemID());
+  if (tmp == 0) {
+    ThrowError("ItemLoad(): tmp = 0!");
+    THREAD_RETURN(NULL);
+  }
+  World* world = (World*)tmp;
+  WorldDatabase db;
+  db.Init();
+  db.ConnectNewDatabase();
 
-	// Relies on the item list so needs to be in the item thread
-	LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
-	db.LoadCollections();
+  LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
+  db.LoadItemList();
+  MasterItemList::ResetUniqueID(db.LoadNextUniqueItemID());
 
-	LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
-	db.LoadMerchantInformation();
+  // Relies on the item list so needs to be in the item thread
+  LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
+  db.LoadCollections();
 
-	LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
-	db.LoadQuests();
+  LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
+  db.LoadMerchantInformation();
 
-	world->items_loaded = true;
-	LogWrite(WORLD__WARNING, 0, "Thread", "Item Loading Thread completed.");
+  LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
+  db.LoadQuests();
 
-	mysql_thread_end();
-	THREAD_RETURN(NULL);
+  world->items_loaded = true;
+  LogWrite(WORLD__WARNING, 0, "Thread", "Item Loading Thread completed.");
+
+  mysql_thread_end();
+  THREAD_RETURN(NULL);
 }
 
-ThreadReturnType SpellLoad (void* tmp)
-{
-	LogWrite(WORLD__WARNING, 0, "Thread", "Spell Loading Thread started.");
+ThreadReturnType SpellLoad(void* tmp) {
+  LogWrite(WORLD__WARNING, 0, "Thread", "Spell Loading Thread started.");
 #ifdef WIN32
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 #endif
-	if (tmp == 0) {
-		ThrowError("ItemLoad(): tmp = 0!");
-		THREAD_RETURN(NULL);
-	}
-	World* world = (World*) tmp;
-	WorldDatabase db;
-	db.Init();
-	db.ConnectNewDatabase();
-	LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
-	db.LoadSpells();
+  if (tmp == 0) {
+    ThrowError("ItemLoad(): tmp = 0!");
+    THREAD_RETURN(NULL);
+  }
+  World* world = (World*)tmp;
+  WorldDatabase db;
+  db.Init();
+  db.ConnectNewDatabase();
+  LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
+  db.LoadSpells();
 
-	LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
-	db.LoadSpellErrors();
+  LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
+  db.LoadSpellErrors();
 
-	LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
-	db.LoadTraits();
+  LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
+  db.LoadTraits();
 
-	world->spells_loaded = true;
-	LogWrite(WORLD__WARNING, 0, "Thread", "Spell Loading Thread completed.");
+  world->spells_loaded = true;
+  LogWrite(WORLD__WARNING, 0, "Thread", "Spell Loading Thread completed.");
 
-	mysql_thread_end();
-	THREAD_RETURN(NULL);
+  mysql_thread_end();
+  THREAD_RETURN(NULL);
 }
 
-ThreadReturnType AchievmentLoad (void* tmp)
-{
-	LogWrite(WORLD__WARNING, 0, "Thread", "Achievement Loading Thread started.");
+ThreadReturnType AchievmentLoad(void* tmp) {
+  LogWrite(WORLD__WARNING, 0, "Thread", "Achievement Loading Thread started.");
 #ifdef WIN32
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 #endif
-	if (tmp == 0) {
-		ThrowError("ItemLoad(): tmp = 0!");
-		THREAD_RETURN(NULL);
-	}
-	World* world = (World*) tmp;
-	WorldDatabase db;
-	db.Init();
-	db.ConnectNewDatabase();
+  if (tmp == 0) {
+    ThrowError("ItemLoad(): tmp = 0!");
+    THREAD_RETURN(NULL);
+  }
+  World* world = (World*)tmp;
+  WorldDatabase db;
+  db.Init();
+  db.ConnectNewDatabase();
 
-	LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Loading Achievements...");
-	int32 t_now = Timer::GetUnixTimeStamp();
-	db.LoadAchievements();
-	master_achievement_list.CreateMasterAchievementListPacket();
-	LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Achievements loaded (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);
+  LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Loading Achievements...");
+  int32 t_now = Timer::GetUnixTimeStamp();
+  db.LoadAchievements();
+  master_achievement_list.CreateMasterAchievementListPacket();
+  LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Achievements loaded (took %u seconds)", Timer::GetUnixTimeStamp() - t_now);
 
-	world->achievments_loaded = true;
-	LogWrite(WORLD__WARNING, 0, "Thread", "Achievement Loading Thread completed.");
-	
-	mysql_thread_end();
-	THREAD_RETURN(NULL);
+  world->achievments_loaded = true;
+  LogWrite(WORLD__WARNING, 0, "Thread", "Achievement Loading Thread completed.");
+
+  mysql_thread_end();
+  THREAD_RETURN(NULL);
 }
 
-ThreadReturnType EQ2ConsoleListener(void* tmp)
-{
-	char cmd[300]; 
-	size_t i = 0;
-	size_t len;
+ThreadReturnType EQ2ConsoleListener(void* tmp) {
+  char cmd[300];
+  size_t i = 0;
+  size_t len;
 
-	while( RunLoops )
-	{
-		// Read in single line from "stdin"
-		memset( cmd, 0, sizeof( cmd ) ); 
-		if( fgets( cmd, 300, stdin ) == NULL )
-			continue;
+  while (RunLoops) {
+    // Read in single line from "stdin"
+    memset(cmd, 0, sizeof(cmd));
+    if (fgets(cmd, 300, stdin) == NULL)
+      continue;
 
-		if( !RunLoops )
-			break;
+    if (!RunLoops)
+      break;
 
-		len = strlen(cmd);
-		for( i = 0; i < len; ++i )
-		{
-			if(cmd[i] == '\n' || cmd[i] == '\r')
-				cmd[i] = '\0';
-		}
+    len = strlen(cmd);
+    for (i = 0; i < len; ++i) {
+      if (cmd[i] == '\n' || cmd[i] == '\r')
+        cmd[i] = '\0';
+    }
 
-		ProcessConsoleInput(cmd);
-	}
-	THREAD_RETURN(NULL);
+    ProcessConsoleInput(cmd);
+  }
+  THREAD_RETURN(NULL);
 }
 
 #include <fstream>
 void CatchSignal(int sig_num) {
-	// In rare cases this can be called after the log system is shut down causing a deadlock or crash
-	// when the world shuts down, if this happens again comment out the LogWrite and uncomment the printf
-	if (last_signal != sig_num){
-		static Mutex lock;
-		static ofstream signal_out;
+  // In rare cases this can be called after the log system is shut down causing a deadlock or crash
+  // when the world shuts down, if this happens again comment out the LogWrite and uncomment the printf
+  if (last_signal != sig_num) {
+    static Mutex lock;
+    static ofstream signal_out;
 
-		lock.lock();
-		if (!signal_out.is_open())
-			signal_out.open("signal_catching.log", ios::trunc);
-		if (signal_out){
-			signal_out << "Caught signal " << sig_num << "\n";
-			signal_out.flush();
-		}
-		printf("Caught signal %i\n", sig_num);
-		lock.unlock();
+    lock.lock();
+    if (!signal_out.is_open())
+      signal_out.open("signal_catching.log", ios::trunc);
+    if (signal_out) {
+      signal_out << "Caught signal " << sig_num << "\n";
+      signal_out.flush();
+    }
+    printf("Caught signal %i\n", sig_num);
+    lock.unlock();
 
-		last_signal = sig_num;
-		RunLoops = false;
-	}
+    last_signal = sig_num;
+    RunLoops = false;
+  }
 }
 
 bool NetConnection::ReadLoginINI() {
-	char buf[201], type[201];
-	int items[3] = {0, 0};
-	FILE *f;
-	
-	if (!(f = fopen (MAIN_INI_FILE, "r"))) {
-		LogWrite(INIT__ERROR, 0, "Init", "File '%s' could not be opened", MAIN_INI_FILE);
-		return false;
-	}
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[LoginServer] block not found in '%s'.", MAIN_INI_FILE);
-			fclose (f);
-			return false;
-		}
-	}
-	while (strncasecmp (buf, "[LoginServer]\n", 14) != 0 && strncasecmp (buf, "[LoginServer]\r\n", 15) != 0);
+  char buf[201], type[201];
+  int items[3] = {0, 0};
+  FILE* f;
 
-	while (!feof (f))
-	{
+  if (!(f = fopen(MAIN_INI_FILE, "r"))) {
+    LogWrite(INIT__ERROR, 0, "Init", "File '%s' could not be opened", MAIN_INI_FILE);
+    return false;
+  }
+  do {
+    if (fgets(buf, 200, f) == NULL || feof(f)) {
+      LogWrite(INIT__ERROR, 0, "Init", "[LoginServer] block not found in '%s'.", MAIN_INI_FILE);
+      fclose(f);
+      return false;
+    }
+  } while (strncasecmp(buf, "[LoginServer]\n", 14) != 0 && strncasecmp(buf, "[LoginServer]\r\n", 15) != 0);
+
+  while (!feof(f)) {
 #ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
 #else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
 #endif
-		{
-			if (!strncasecmp (type, "worldname", 9)) {
-				snprintf(worldname, sizeof(worldname), "%s", buf);
-				items[1] = 1;
-				if(strlen(worldname)<4)
-					LogWrite(INIT__ERROR, 0, "Init", "Invalid worldname, please edit LoginServer.ini.  Server name must be at least 4 characters.");
-			}
-			if (!strncasecmp (type, "account", 7)) {
-				strncpy(worldaccount, buf, 30);
-			}
-			if (!strncasecmp (type, "logstats", 8)) {
-				if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
-					net.UpdateStats = true;
-			}
-			if (!strncasecmp (type, "password", 8)) {
-				strncpy (worldpassword, buf, 30);
-				for(int i=strlen(worldpassword);i>=0;i--){
-					if(worldpassword[i] == ' ' || worldpassword[i] == '\n' || worldpassword[i] == '\t' || worldpassword[i] == '\r')
-						worldpassword[i] = '\0';
-				}
-			}
-			if (!strncasecmp (type, "locked", 6)) {
-				if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
-					world_locked = true;
-			}
-			if (!strncasecmp (type, "worldaddress", 12)) {
-				if (strlen(buf) >= 3) {
-					strncpy (worldaddress, buf, 250);
-				}
-			}
-			if (!strncasecmp(type, "autotableupdates", 16)) {
-				if(strlen(buf) >= 3 && !strncasecmp(buf, "ask", 3))
-					loginserver.UpdatesAsk(true);
-				else if(strlen(buf) >= 6 && !strncasecmp(buf, "always", 6))
-					loginserver.UpdatesAuto(true);
-			}
-			if (!strncasecmp (type, "autotableverbose", 16)) {
-				if(strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
-					loginserver.UpdatesVerbose(true);
-			}
-			if (!strncasecmp (type, "autotabledata", 13)) {
-				if(strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
-					loginserver.UpdatesAutoData(true);
-			}
-			if (!strncasecmp (type, "internalworldaddress", 20)) {
-				if (strlen(buf) >= 3) {
-					strncpy(internalworldaddress, buf, 20);
-				}
-			}
-			if (!strncasecmp (type, "worldport", 9)) {
-				if(Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF)
-					worldport = atoi(buf);
-			}
-			if ((!strcasecmp (type, "loginserver")) || (!strcasecmp (type, "loginserver1"))) {
-				strncpy (loginaddress[0], buf, 100);
-				items[0] = 1;
-			}
-			if ((!strcasecmp(type, "loginport")) || (!strcasecmp(type, "loginport1"))) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[0] = atoi(buf);
-				}
-			}
-			if (!strcasecmp (type, "loginserver2")) {
-				strncpy (loginaddress[1], buf, 250);
-			}
-			if (!strcasecmp(type, "loginport2")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[1] = atoi(buf);
-				}
-			}
-			if (!strcasecmp (type, "loginserver3")) {
-				strncpy (loginaddress[2], buf, 250);
-			}
-			if (!strcasecmp(type, "loginport3")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					loginport[2] = atoi(buf);
-				}
-			}
-		}
-	}
+    {
+      if (!strncasecmp(type, "worldname", 9)) {
+        snprintf(worldname, sizeof(worldname), "%s", buf);
+        items[1] = 1;
+        if (strlen(worldname) < 4)
+          LogWrite(INIT__ERROR, 0, "Init", "Invalid worldname, please edit LoginServer.ini.  Server name must be at least 4 characters.");
+      }
+      if (!strncasecmp(type, "account", 7)) {
+        strncpy(worldaccount, buf, 30);
+      }
+      if (!strncasecmp(type, "logstats", 8)) {
+        if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
+          net.UpdateStats = true;
+      }
+      if (!strncasecmp(type, "password", 8)) {
+        strncpy(worldpassword, buf, 30);
+        for (int i = strlen(worldpassword); i >= 0; i--) {
+          if (worldpassword[i] == ' ' || worldpassword[i] == '\n' || worldpassword[i] == '\t' || worldpassword[i] == '\r')
+            worldpassword[i] = '\0';
+        }
+      }
+      if (!strncasecmp(type, "locked", 6)) {
+        if (strcasecmp(buf, "true") == 0 || (buf[0] == '1' && buf[1] == 0))
+          world_locked = true;
+      }
+      if (!strncasecmp(type, "worldaddress", 12)) {
+        if (strlen(buf) >= 3) {
+          strncpy(worldaddress, buf, 250);
+        }
+      }
+      if (!strncasecmp(type, "autotableupdates", 16)) {
+        if (strlen(buf) >= 3 && !strncasecmp(buf, "ask", 3))
+          loginserver.UpdatesAsk(true);
+        else if (strlen(buf) >= 6 && !strncasecmp(buf, "always", 6))
+          loginserver.UpdatesAuto(true);
+      }
+      if (!strncasecmp(type, "autotableverbose", 16)) {
+        if (strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
+          loginserver.UpdatesVerbose(true);
+      }
+      if (!strncasecmp(type, "autotabledata", 13)) {
+        if (strlen(buf) >= 4 && !strncasecmp(buf, "true", 4))
+          loginserver.UpdatesAutoData(true);
+      }
+      if (!strncasecmp(type, "internalworldaddress", 20)) {
+        if (strlen(buf) >= 3) {
+          strncpy(internalworldaddress, buf, 20);
+        }
+      }
+      if (!strncasecmp(type, "worldport", 9)) {
+        if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF)
+          worldport = atoi(buf);
+      }
+      if ((!strcasecmp(type, "loginserver")) || (!strcasecmp(type, "loginserver1"))) {
+        strncpy(loginaddress[0], buf, 100);
+        items[0] = 1;
+      }
+      if ((!strcasecmp(type, "loginport")) || (!strcasecmp(type, "loginport1"))) {
+        if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
+          loginport[0] = atoi(buf);
+        }
+      }
+      if (!strcasecmp(type, "loginserver2")) {
+        strncpy(loginaddress[1], buf, 250);
+      }
+      if (!strcasecmp(type, "loginport2")) {
+        if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
+          loginport[1] = atoi(buf);
+        }
+      }
+      if (!strcasecmp(type, "loginserver3")) {
+        strncpy(loginaddress[2], buf, 250);
+      }
+      if (!strcasecmp(type, "loginport3")) {
+        if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
+          loginport[2] = atoi(buf);
+        }
+      }
+    }
+  }
 
-	if (!items[0] || !items[1])
-	{
-		LogWrite(INIT__ERROR, 0, "Init", "Incomplete LoginServer.INI file.");
-		fclose (f);
-		return false;
-	}
-	
-	/*
+  if (!items[0] || !items[1]) {
+    LogWrite(INIT__ERROR, 0, "Init", "Incomplete LoginServer.INI file.");
+    fclose(f);
+    return false;
+  }
+
+  /*
 	if (strcasecmp(worldname, "Unnamed server") == 0) {
 		cout << "LoginServer.ini: server unnamed, disabling uplink" << endl;
 		fclose (f);
 		return false;
 	}
 	*/
-	
-	fclose(f);
-	f=fopen (MAIN_INI_FILE, "r");
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[WorldServer] block not found in %s", MAIN_INI_FILE);
-			fclose (f);
-			return true;
-		}
 
-	}
-	while (strncasecmp (buf, "[WorldServer]\n", 14) != 0 && strncasecmp (buf, "[WorldServer]\r\n", 15) != 0);
+  fclose(f);
+  f = fopen(MAIN_INI_FILE, "r");
+  do {
+    if (fgets(buf, 200, f) == NULL || feof(f)) {
+      LogWrite(INIT__ERROR, 0, "Init", "[WorldServer] block not found in %s", MAIN_INI_FILE);
+      fclose(f);
+      return true;
+    }
 
-	while (!feof (f))
-	{
+  } while (strncasecmp(buf, "[WorldServer]\n", 14) != 0 && strncasecmp(buf, "[WorldServer]\r\n", 15) != 0);
+
+  while (!feof(f)) {
 #ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
 #else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
 #endif
-		{
-			
-			if (!strcasecmp(type, "Defaultstatus")) {
-				if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
-					DEFAULTSTATUS = atoi(buf);
-				}
-			}
-		}
-	}
-	fclose (f);
+    {
 
-	f=fopen (MAIN_INI_FILE, "r");
-	do {
-		if (fgets (buf, 200, f) == NULL || feof(f))
-		{
-			LogWrite(INIT__ERROR, 0, "Init", "[UpdateServer] block not found in %s", MAIN_INI_FILE);
-			fclose (f);
-			return true;
-		}
+      if (!strcasecmp(type, "Defaultstatus")) {
+        if (Seperator::IsNumber(buf) && atoi(buf) > 0 && atoi(buf) < 0xFFFF) {
+          DEFAULTSTATUS = atoi(buf);
+        }
+      }
+    }
+  }
+  fclose(f);
 
-	}
-	while (strncasecmp (buf, "[UpdateServer]\n", 15) != 0 && strncasecmp (buf, "[UpdateServer]\r\n", 16) != 0);
+  f = fopen(MAIN_INI_FILE, "r");
+  do {
+    if (fgets(buf, 200, f) == NULL || feof(f)) {
+      LogWrite(INIT__ERROR, 0, "Init", "[UpdateServer] block not found in %s", MAIN_INI_FILE);
+      fclose(f);
+      return true;
+    }
 
-	while (!feof (f))
-	{
+  } while (strncasecmp(buf, "[UpdateServer]\n", 15) != 0 && strncasecmp(buf, "[UpdateServer]\r\n", 16) != 0);
+
+  while (!feof(f)) {
 #ifdef WIN32
-		if (fscanf (f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\n]\r\n", type, buf) == 2)
 #else
-		if (fscanf (f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
+    if (fscanf(f, "%[^=]=%[^\r\n]\n", type, buf) == 2)
 #endif
-		{
-			if (!strcasecmp(type, "updateserveraddress")) {
-				strncpy (updateaddress, buf, 250);
-				patch.SetHost(buf);
-			}
-			if (!strcasecmp(type, "updateserverport")) {
-				updateport=atoi(buf);
-				patch.SetPort(buf);
-			}
-		}
-	}
-	fclose (f);
-	
-	LogWrite(INIT__DEBUG, 0, "Init", "%s read...", MAIN_INI_FILE);
-	LoginServerInfo=1;
-	return true;
+    {
+      if (!strcasecmp(type, "updateserveraddress")) {
+        strncpy(updateaddress, buf, 250);
+        patch.SetHost(buf);
+      }
+      if (!strcasecmp(type, "updateserverport")) {
+        updateport = atoi(buf);
+        patch.SetPort(buf);
+      }
+    }
+  }
+  fclose(f);
+
+  LogWrite(INIT__DEBUG, 0, "Init", "%s read...", MAIN_INI_FILE);
+  LoginServerInfo = 1;
+  return true;
 }
 
 char* NetConnection::GetUpdateServerInfo(int16* oPort) {
-	if (oPort == 0)
-		return 0;
-	if (updateaddress[0] == 0)
-		return 0;
+  if (oPort == 0)
+    return 0;
+  if (updateaddress[0] == 0)
+    return 0;
 
-	*oPort = updateport;
-	return updateaddress;
+  *oPort = updateport;
+  return updateaddress;
 }
 
 char* NetConnection::GetLoginInfo(int16* oPort) {
-	if (oPort == 0)
-		return 0;
-	if (loginaddress[0][0] == 0)
-		return 0;
+  if (oPort == 0)
+    return 0;
+  if (loginaddress[0][0] == 0)
+    return 0;
 
-	int8 tmp[3] = { 0, 0, 0 };
-	int8 count = 0;
+  int8 tmp[3] = {0, 0, 0};
+  int8 count = 0;
 
-	for (int i=0; i<3; i++) {
-		if (loginaddress[i][0])
-			tmp[count++] = i;
-	}
+  for (int i = 0; i < 3; i++) {
+    if (loginaddress[i][0])
+      tmp[count++] = i;
+  }
 
-	int x = rand() % count;
+  int x = rand() % count;
 
-	*oPort = loginport[tmp[x]];
-	return loginaddress[tmp[x]];
+  *oPort = loginport[tmp[x]];
+  return loginaddress[tmp[x]];
 }
 
 void UpdateWindowTitle(char* iNewTitle) {
 
-	char tmp[500];
-	if (iNewTitle) {
-		snprintf(tmp, sizeof(tmp), "World: %s", iNewTitle);
-	}
-	else {
-		snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients.load(), numzones.load());
-	}
-	// Zero terminate ([max - 1] = 0) the string to prevent a warning 
-	tmp[499] = 0;
-	#ifdef WIN32
-		SetConsoleTitle(tmp);
-	#else
-		printf("%c]0;%s%c", '\033', tmp, '\007');
-	#endif
+  char tmp[500];
+  if (iNewTitle) {
+    snprintf(tmp, sizeof(tmp), "World: %s", iNewTitle);
+  } else {
+    snprintf(tmp, sizeof(tmp), "%s, Version: %s: %i Clients(s) in %i Zones(s)", EQ2EMU_MODULE, CURRENT_VERSION, numclients.load(), numzones.load());
+  }
+  // Zero terminate ([max - 1] = 0) the string to prevent a warning
+  tmp[499] = 0;
+#ifdef WIN32
+  SetConsoleTitle(tmp);
+#else
+  printf("%c]0;%s%c", '\033', tmp, '\007');
+#endif
 }
 
 ZoneAuthRequest::ZoneAuthRequest(int32 account_id, char* name, int32 access_key) {
-accountid = account_id;
-character_name = string(name);
-accesskey = access_key;
-timestamp = Timer::GetUnixTimeStamp();
-firstlogin = false;
+  accountid = account_id;
+  character_name = string(name);
+  accesskey = access_key;
+  timestamp = Timer::GetUnixTimeStamp();
+  firstlogin = false;
 }
 
-ZoneAuthRequest::~ZoneAuthRequest ( )
-{
+ZoneAuthRequest::~ZoneAuthRequest() {
 }
 
-void ZoneAuth::AddAuth(ZoneAuthRequest *zar) {
-	LogWrite(NET__DEBUG, 0, "Net", "AddAuth: %u Key: %u", zar->GetAccountID(), zar->GetAccessKey());
-	list.Insert(zar);
+void ZoneAuth::AddAuth(ZoneAuthRequest* zar) {
+  LogWrite(NET__DEBUG, 0, "Net", "AddAuth: %u Key: %u", zar->GetAccountID(), zar->GetAccessKey());
+  list.Insert(zar);
 }
 
 ZoneAuthRequest* ZoneAuth::GetAuth(int32 account_id, int32 access_key) {
-	LinkedListIterator<ZoneAuthRequest*> iterator(list);
+  LinkedListIterator<ZoneAuthRequest*> iterator(list);
 
-	iterator.Reset();
-	while(iterator.MoreElements()) {
-		if (iterator.GetData()->GetAccountID() == account_id && iterator.GetData()->GetAccessKey() == access_key) {
-			ZoneAuthRequest* tmp = iterator.GetData();
-			return tmp;
-		}
-		iterator.Advance();
-	}
-	return 0;
-
+  iterator.Reset();
+  while (iterator.MoreElements()) {
+    if (iterator.GetData()->GetAccountID() == account_id && iterator.GetData()->GetAccessKey() == access_key) {
+      ZoneAuthRequest* tmp = iterator.GetData();
+      return tmp;
+    }
+    iterator.Advance();
+  }
+  return 0;
 }
 
 void ZoneAuth::PurgeInactiveAuth() {
-	LinkedListIterator<ZoneAuthRequest*> iterator(list);
+  LinkedListIterator<ZoneAuthRequest*> iterator(list);
 
-	iterator.Reset();
-	int32 current_time = Timer::GetUnixTimeStamp();
-	while(iterator.MoreElements()) {
-		if ((iterator.GetData()->GetTimeStamp()+60) < current_time) {
-			iterator.RemoveCurrent();
-		}
-		iterator.Advance();
-	}
+  iterator.Reset();
+  int32 current_time = Timer::GetUnixTimeStamp();
+  while (iterator.MoreElements()) {
+    if ((iterator.GetData()->GetTimeStamp() + 60) < current_time) {
+      iterator.RemoveCurrent();
+    }
+    iterator.Advance();
+  }
 }
 
-void ZoneAuth::RemoveAuth(ZoneAuthRequest *zar) {
-	LinkedListIterator<ZoneAuthRequest*> iterator(list);
+void ZoneAuth::RemoveAuth(ZoneAuthRequest* zar) {
+  LinkedListIterator<ZoneAuthRequest*> iterator(list);
 
-	iterator.Reset();
-	while(iterator.MoreElements()) {
-		if (iterator.GetData() == zar) {
-			iterator.RemoveCurrent();
-			break;
-		}
-		iterator.Advance();
-	}
+  iterator.Reset();
+  while (iterator.MoreElements()) {
+    if (iterator.GetData() == zar) {
+      iterator.RemoveCurrent();
+      break;
+    }
+    iterator.Advance();
+  }
 }
 
-void WelcomeHeader()
-{
-	#ifdef _WIN32
-		HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(console, FOREGROUND_WHITE_BOLD);
-	#endif
-	printf("Module: %s, Version: %s", EQ2EMU_MODULE, CURRENT_VERSION);
-	#ifdef _WIN32
-		SetConsoleTextAttribute(console, FOREGROUND_YELLOW_BOLD);
-	#endif
-	printf("\n\nCopyright (C) 2007-2011 EQ2Emulator. http://eq2emulator.net/ \n\n");
-	printf("EQ2Emulator is free software: you can redistribute it and/or modify\n");
-	printf("it under the terms of the GNU General Public License as published by\n");
-	printf("the Free Software Foundation, either version 3 of the License, or\n");
-	printf("(at your option) any later version.\n\n");
-	printf("EQ2Emulator is distributed in the hope that it will be useful,\n");
-	printf("but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
-	printf("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
-	printf("GNU General Public License for more details.\n\n");
-	#ifdef _WIN32
-		SetConsoleTextAttribute(console, FOREGROUND_GREEN_BOLD);
-	#endif
-	printf(" /$$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$$                        \n");
-	printf("| $$_____/ /$$__  $$ /$$__  $$| $$_____/                        \n");
-	printf("| $$      | $$  \\ $$|__/  \\ $$| $$       /$$$$$$/$$$$  /$$   /$$\n");
-	printf("| $$$$$   | $$  | $$  /$$$$$$/| $$$$$   | $$_  $$_  $$| $$  | $$\n");
-	printf("| $$__/   | $$  | $$ /$$____/ | $$__/   | $$ \\ $$ \\ $$| $$  | $$\n");
-	printf("| $$      | $$/$$ $$| $$      | $$      | $$ | $$ | $$| $$  | $$\n");
-	printf("| $$$$$$$$|  $$$$$$/| $$$$$$$$| $$$$$$$$| $$ | $$ | $$|  $$$$$$/\n");
-	printf("|________/ \\____ $$$|________/|________/|__/ |__/ |__/ \\______/ \n");
-	printf("                \\__/                                            \n\n");
-	#ifdef _WIN32
-		SetConsoleTextAttribute(console, FOREGROUND_MAGENTA_BOLD);
-	#endif
-	printf(" Website     : http://eq2emulator.net \n");
-	printf(" Forums      : http://eq2emulator.net/phpBB3/ \n");
-	printf(" Contributors: http://eq2emulator.net/wiki/index.php/Developer:Contributors \n");
-	printf(" SVN         : http://svn.eq2emulator.net/svn/eq2server \n\n");
-	#ifdef _WIN32
-		SetConsoleTextAttribute(console, FOREGROUND_WHITE_BOLD);
-	#endif
-	printf("For more detailed logging, modify 'Level' param the log_config.xml file.\n\n");
-	#ifdef _WIN32
-		SetConsoleTextAttribute(console, FOREGROUND_WHITE);
-	#endif
+void WelcomeHeader() {
+#ifdef _WIN32
+  HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+  SetConsoleTextAttribute(console, FOREGROUND_WHITE_BOLD);
+#endif
+  printf("Module: %s, Version: %s", EQ2EMU_MODULE, CURRENT_VERSION);
+#ifdef _WIN32
+  SetConsoleTextAttribute(console, FOREGROUND_YELLOW_BOLD);
+#endif
+  printf("\n\nCopyright (C) 2007-2011 EQ2Emulator. http://eq2emulator.net/ \n\n");
+  printf("EQ2Emulator is free software: you can redistribute it and/or modify\n");
+  printf("it under the terms of the GNU General Public License as published by\n");
+  printf("the Free Software Foundation, either version 3 of the License, or\n");
+  printf("(at your option) any later version.\n\n");
+  printf("EQ2Emulator is distributed in the hope that it will be useful,\n");
+  printf("but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+  printf("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
+  printf("GNU General Public License for more details.\n\n");
+#ifdef _WIN32
+  SetConsoleTextAttribute(console, FOREGROUND_GREEN_BOLD);
+#endif
+  printf(" /$$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$$                        \n");
+  printf("| $$_____/ /$$__  $$ /$$__  $$| $$_____/                        \n");
+  printf("| $$      | $$  \\ $$|__/  \\ $$| $$       /$$$$$$/$$$$  /$$   /$$\n");
+  printf("| $$$$$   | $$  | $$  /$$$$$$/| $$$$$   | $$_  $$_  $$| $$  | $$\n");
+  printf("| $$__/   | $$  | $$ /$$____/ | $$__/   | $$ \\ $$ \\ $$| $$  | $$\n");
+  printf("| $$      | $$/$$ $$| $$      | $$      | $$ | $$ | $$| $$  | $$\n");
+  printf("| $$$$$$$$|  $$$$$$/| $$$$$$$$| $$$$$$$$| $$ | $$ | $$|  $$$$$$/\n");
+  printf("|________/ \\____ $$$|________/|________/|__/ |__/ |__/ \\______/ \n");
+  printf("                \\__/                                            \n\n");
+#ifdef _WIN32
+  SetConsoleTextAttribute(console, FOREGROUND_MAGENTA_BOLD);
+#endif
+  printf(" Website     : http://eq2emulator.net \n");
+  printf(" Forums      : http://eq2emulator.net/phpBB3/ \n");
+  printf(" Contributors: http://eq2emulator.net/wiki/index.php/Developer:Contributors \n");
+  printf(" SVN         : http://svn.eq2emulator.net/svn/eq2server \n\n");
+#ifdef _WIN32
+  SetConsoleTextAttribute(console, FOREGROUND_WHITE_BOLD);
+#endif
+  printf("For more detailed logging, modify 'Level' param the log_config.xml file.\n\n");
+#ifdef _WIN32
+  SetConsoleTextAttribute(console, FOREGROUND_WHITE);
+#endif
 
-	fflush(stdout);
+  fflush(stdout);
 }

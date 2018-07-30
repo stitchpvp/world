@@ -23,39 +23,34 @@
 static bool g_bInitStateInitialized = false;
 static uchar g_byInitState[256];
 
-RC4::RC4(int64 nKey)
-{
-	if( !g_bInitStateInitialized )
-	{
-		for(int16 i = 0; i < 256; i++ )
-			g_byInitState[i] = i;
-	}
-	Init(nKey);
+RC4::RC4(int64 nKey) {
+  if (!g_bInitStateInitialized) {
+    for (int16 i = 0; i < 256; i++)
+      g_byInitState[i] = i;
+  }
+  Init(nKey);
 }
 
-RC4::~RC4()
-{
+RC4::~RC4() {
 }
 
-void RC4::Init(int64 nKey)
-{
-	memcpy(m_state, g_byInitState, 256);
-	m_x = 0;
-	m_y = 0;
+void RC4::Init(int64 nKey) {
+  memcpy(m_state, g_byInitState, 256);
+  m_x = 0;
+  m_y = 0;
 
-	ulong dwKeyIndex = 0;
-	ulong dwStateIndex = 0;
-	uchar* pKey = (uchar*)&nKey;
-	for(int16 i = 0; i < 256; i++ )
-	{
-		ulong dwTemp = m_state[i];
-		dwStateIndex += pKey[dwKeyIndex] + dwTemp;
-		dwStateIndex &= 0xFF;
-		m_state[i] = m_state[dwStateIndex];
-		m_state[dwStateIndex] = (uchar)dwTemp;
-		dwKeyIndex++;
-		dwKeyIndex &= 7;
-	}
+  ulong dwKeyIndex = 0;
+  ulong dwStateIndex = 0;
+  uchar* pKey = (uchar*)&nKey;
+  for (int16 i = 0; i < 256; i++) {
+    ulong dwTemp = m_state[i];
+    dwStateIndex += pKey[dwKeyIndex] + dwTemp;
+    dwStateIndex &= 0xFF;
+    m_state[i] = m_state[dwStateIndex];
+    m_state[dwStateIndex] = (uchar)dwTemp;
+    dwKeyIndex++;
+    dwKeyIndex &= 7;
+  }
 }
 
 // A = m_state[X + 1]
@@ -67,27 +62,24 @@ void RC4::Init(int64 nKey)
 // C = 0
 // m_state[(A + B)] = Cypher Byte
 
-void RC4::Cypher(uchar* pBuffer, int32 nLength)
-{
-	int32 nOffset = 0;
-	uchar byKey1 = m_x;
-	uchar byKey2 = m_y;
-	if( nLength > 0 )
-	{
-		do
-		{
-			byKey1++;
-			uchar byKeyVal1 = m_state[byKey1];
+void RC4::Cypher(uchar* pBuffer, int32 nLength) {
+  int32 nOffset = 0;
+  uchar byKey1 = m_x;
+  uchar byKey2 = m_y;
+  if (nLength > 0) {
+    do {
+      byKey1++;
+      uchar byKeyVal1 = m_state[byKey1];
 
-			byKey2 += byKeyVal1;
-			uchar byKeyVal2 = m_state[byKey2];
-			
-			m_state[byKey1] = byKeyVal2;
-			m_state[byKey2] = byKeyVal1;
+      byKey2 += byKeyVal1;
+      uchar byKeyVal2 = m_state[byKey2];
 
-			pBuffer[nOffset++] ^= m_state[(byKeyVal1 + byKeyVal2) & 0xFF];
-		} while( nOffset < nLength );
-	}
-	m_x = byKey1;
-	m_y = byKey2;
+      m_state[byKey1] = byKeyVal2;
+      m_state[byKey2] = byKeyVal1;
+
+      pBuffer[nOffset++] ^= m_state[(byKeyVal1 + byKeyVal2) & 0xFF];
+    } while (nOffset < nLength);
+  }
+  m_x = byKey1;
+  m_y = byKey2;
 }

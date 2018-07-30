@@ -24,113 +24,112 @@
 #include "../common/Mutex.h"
 
 struct Faction {
-	int32	id;
-	string	name;
-	string	type;
-	string	description;
-	int16	negative_change;
-	int16	positive_change;
-	sint32	default_value;
+  int32 id;
+  string name;
+  string type;
+  string description;
+  int16 negative_change;
+  int16 positive_change;
+  sint32 default_value;
 };
 
-class MasterFactionList{
+class MasterFactionList {
 public:
-	MasterFactionList(){
+  MasterFactionList() {
+  }
+  ~MasterFactionList() {
+    Clear();
+  }
+  void Clear() {
+    map<int32, Faction*>::iterator iter;
+    for (iter = global_faction_list.begin(); iter != global_faction_list.end(); iter++) {
+      safe_delete(iter->second);
+    }
+  }
+  sint32 GetDefaultFactionValue(int32 faction_id) {
+    if (global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
+      return global_faction_list[faction_id]->default_value;
+    return 0;
+  }
+  Faction* GetFaction(char* name) {
+    return faction_name_list[name];
+  }
+  Faction* GetFaction(int32 id) {
+    if (global_faction_list.count(id) > 0)
+      return global_faction_list[id];
+    return 0;
+  }
+  void AddFaction(Faction* faction) {
+    global_faction_list[faction->id] = faction;
+    faction_name_list[faction->name] = faction;
+  }
+  sint32 GetIncreaseAmount(int32 faction_id) {
+    if (global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
+      return global_faction_list[faction_id]->positive_change;
+    return 0;
+  }
+  sint32 GetDecreaseAmount(int32 faction_id) {
+    if (global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
+      return global_faction_list[faction_id]->negative_change;
+    return 0;
+  }
+  int32 GetFactionCount() {
+    return global_faction_list.size();
+  }
+  void AddHostileFaction(int32 faction_id, int32 hostile_faction_id) {
+    hostile_factions[faction_id].push_back(hostile_faction_id);
+  }
+  void AddFriendlyFaction(int32 faction_id, int32 friendly_faction_id) {
+    friendly_factions[faction_id].push_back(friendly_faction_id);
+  }
+  vector<int32>* GetFriendlyFactions(int32 faction_id) {
+    if (friendly_factions.count(faction_id) > 0)
+      return &friendly_factions[faction_id];
+    else
+      return 0;
+  }
+  vector<int32>* GetHostileFactions(int32 faction_id) {
+    if (hostile_factions.count(faction_id) > 0)
+      return &hostile_factions[faction_id];
+    else
+      return 0;
+  }
+  const char* GetFactionNameByID(int32 faction_id) {
+    if (faction_id > 0 && global_faction_list.count(faction_id) > 0)
+      return global_faction_list[faction_id]->name.c_str();
+    return 0;
+  }
 
-	}
-	~MasterFactionList(){
-		Clear();
-	}
-	void Clear() {
-		map<int32,Faction*>::iterator iter;
-		for(iter = global_faction_list.begin();iter != global_faction_list.end(); iter++){
-			safe_delete(iter->second);
-		}
-	}
-	sint32 GetDefaultFactionValue(int32 faction_id){
-		if(global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
-			return global_faction_list[faction_id]->default_value;
-		return 0;
-	}
-	Faction* GetFaction(char* name){
-		return faction_name_list[name];
-	}
-	Faction* GetFaction(int32 id){
-		if(global_faction_list.count(id) > 0)
-			return global_faction_list[id];
-		return 0;
-	}
-	void AddFaction(Faction* faction){
-		global_faction_list[faction->id] = faction;
-		faction_name_list[faction->name] = faction;
-	}
-	sint32 GetIncreaseAmount(int32 faction_id){
-		if(global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
-			return global_faction_list[faction_id]->positive_change;
-		return 0;
-	}
-	sint32 GetDecreaseAmount(int32 faction_id){
-		if(global_faction_list.count(faction_id) > 0 && global_faction_list[faction_id])
-			return global_faction_list[faction_id]->negative_change;
-		return 0;
-	}
-	int32 GetFactionCount(){
-		return global_faction_list.size();
-	}
-	void AddHostileFaction(int32 faction_id, int32 hostile_faction_id){
-		hostile_factions[faction_id].push_back(hostile_faction_id);
-	}
-	void AddFriendlyFaction(int32 faction_id, int32 friendly_faction_id){
-		friendly_factions[faction_id].push_back(friendly_faction_id);
-	}
-	vector<int32>* GetFriendlyFactions(int32 faction_id){
-		if(friendly_factions.count(faction_id) > 0)
-			return &friendly_factions[faction_id];
-		else
-			return 0;
-	}
-	vector<int32>* GetHostileFactions(int32 faction_id){
-		if(hostile_factions.count(faction_id) > 0)
-			return &hostile_factions[faction_id];
-		else
-			return 0;
-	}
-	const char* GetFactionNameByID(int32 faction_id) {
-		if (faction_id > 0 && global_faction_list.count(faction_id) > 0)
-			return global_faction_list[faction_id]->name.c_str();
-		return 0;
-	}
 private:
-	map<int32, vector<int32> > friendly_factions;
-	map<int32, vector<int32> > hostile_factions;
-	map<int32,Faction*> global_faction_list;
-	map<string,Faction*> faction_name_list;
+  map<int32, vector<int32>> friendly_factions;
+  map<int32, vector<int32>> hostile_factions;
+  map<int32, Faction*> global_faction_list;
+  map<string, Faction*> faction_name_list;
 };
 
-class PlayerFaction{
+class PlayerFaction {
 public:
-	PlayerFaction();
-	sint32		GetMaxValue(sint8 con);
-	sint32		GetMinValue(sint8 con);
-	EQ2Packet*	FactionUpdate(int16 version);
-	sint32		GetFactionValue(int32 faction_id);
-	bool		ShouldIncrease(int32 faction_id);
-	bool		ShouldDecrease(int32 faction_id);
-	bool		IncreaseFaction(int32 faction_id, int32 amount = 0);
-	bool		DecreaseFaction(int32 faction_id, int32 amount = 0);
-	bool		SetFactionValue(int32 faction_id, sint32 value);
-	sint8		GetCon(int32 faction_id);
-	int8		GetPercent(int32 faction_id);
-	map<int32, sint32>* GetFactionValues(){
-		return &faction_values;
-	}
-	bool		ShouldAttack(int32 faction_id);
+  PlayerFaction();
+  sint32 GetMaxValue(sint8 con);
+  sint32 GetMinValue(sint8 con);
+  EQ2Packet* FactionUpdate(int16 version);
+  sint32 GetFactionValue(int32 faction_id);
+  bool ShouldIncrease(int32 faction_id);
+  bool ShouldDecrease(int32 faction_id);
+  bool IncreaseFaction(int32 faction_id, int32 amount = 0);
+  bool DecreaseFaction(int32 faction_id, int32 amount = 0);
+  bool SetFactionValue(int32 faction_id, sint32 value);
+  sint8 GetCon(int32 faction_id);
+  int8 GetPercent(int32 faction_id);
+  map<int32, sint32>* GetFactionValues() {
+    return &faction_values;
+  }
+  bool ShouldAttack(int32 faction_id);
 
 private:
-	Mutex					MFactionUpdateNeeded;
-	vector<int32>			faction_update_needed;
-	map<int32, sint32>		faction_values;
-	map<int32, int8>		faction_percent;
+  Mutex MFactionUpdateNeeded;
+  vector<int32> faction_update_needed;
+  map<int32, sint32> faction_values;
+  map<int32, int8> faction_percent;
 };
 #endif
-

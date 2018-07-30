@@ -29,7 +29,7 @@ D_Flags		= -DEQ2 -DWORLD -D_GNU_SOURCE
 # Setup Debug or Release build
 ifeq ($(BUILD),debug)
 	# "Debug" build - minimum optimization, and debugging symbols
-	C_Flags += -O0 -ggdb
+	C_Flags += -O2 -ggdb
 	D_Flags += -DDEBUG
 	Current_Build_Dir := $(Build_Dir)/debug
 	App_Filename = $(APP)_debug

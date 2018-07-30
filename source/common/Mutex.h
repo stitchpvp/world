@@ -20,84 +20,85 @@
 #ifndef MYMUTEX_H
 #define MYMUTEX_H
 #ifdef WIN32
-	#include <WinSock2.h>
-	#include <windows.h>
+#include <WinSock2.h>
+#include <windows.h>
 #else
-	#include <pthread.h>
-	#include "../common/unix.h"
+#include <pthread.h>
+#include "../common/unix.h"
 #endif
 #include "../common/types.h"
 #include <string>
 #include <map>
 
-#define MUTEX_ATTRIBUTE_FAST      1
+#define MUTEX_ATTRIBUTE_FAST 1
 #define MUTEX_ATTRIBUTE_RECURSIVE 2
-#define MUTEX_ATTRIBUTE_ERRORCHK  3
-#define MUTEX_TIMEOUT_MILLISECONDS     10000
+#define MUTEX_ATTRIBUTE_ERRORCHK 3
+#define MUTEX_TIMEOUT_MILLISECONDS 10000
 
 class CriticalSection {
 public:
-	CriticalSection(int attribute = MUTEX_ATTRIBUTE_FAST);
-	~CriticalSection();
-	void lock();
-	void unlock();
-	bool trylock();
+  CriticalSection(int attribute = MUTEX_ATTRIBUTE_FAST);
+  ~CriticalSection();
+  void lock();
+  void unlock();
+  bool trylock();
+
 private:
 #ifdef WIN32
-	CRITICAL_SECTION CSMutex;
+  CRITICAL_SECTION CSMutex;
 #else
-	pthread_mutex_t CSMutex;
-	pthread_mutexattr_t type_attribute;
+  pthread_mutex_t CSMutex;
+  pthread_mutexattr_t type_attribute;
 #endif
 };
 
 class Mutex {
 public:
-	Mutex();
-	~Mutex();
+  Mutex();
+  ~Mutex();
 
-	void lock();
-	void unlock();
-	bool trylock();
+  void lock();
+  void unlock();
+  bool trylock();
 
-	void readlock(const char* function = 0, int32 line = 0);
-	void releasereadlock(const char* function = 0, int32 line = 0);
-	bool tryreadlock(const char* function = 0);
+  void readlock(const char* function = 0, int32 line = 0);
+  void releasereadlock(const char* function = 0, int32 line = 0);
+  bool tryreadlock(const char* function = 0);
 
-	void writelock(const char* function = 0, int32 line = 0);
-	void releasewritelock(const char* function = 0, int32 line = 0);
-	bool trywritelock(const char* function = 0);
+  void writelock(const char* function = 0, int32 line = 0);
+  void releasewritelock(const char* function = 0, int32 line = 0);
+  bool trywritelock(const char* function = 0);
 
-	void waitReaders(const char* function = 0, int32 line = 0);
+  void waitReaders(const char* function = 0, int32 line = 0);
 
-	void SetName(string in_name);
+  void SetName(string in_name);
+
 private:
-	CriticalSection  CSRead;
-	CriticalSection  CSWrite;
-	CriticalSection* CSLock;
+  CriticalSection CSRead;
+  CriticalSection CSWrite;
+  CriticalSection* CSLock;
 
-#ifdef DEBUG	//Used for debugging only
-	CriticalSection  CSStack;
-	map<string, int32> stack;
+#ifdef DEBUG //Used for debugging only
+  CriticalSection CSStack;
+  map<string, int32> stack;
 #endif
 
-	int readers;
-	bool writing;
-	volatile bool mlocked;
-	string name;
+  int readers;
+  bool writing;
+  volatile bool mlocked;
+  string name;
 };
-
 
 class LockMutex {
 public:
-	LockMutex(Mutex* in_mut, bool iLock = true);
-	~LockMutex();
-	void unlock();
-	void lock();
-private:
-	bool	locked;
-	Mutex*	mut;
-};
+  LockMutex(Mutex* in_mut, bool iLock = true);
+  ~LockMutex();
+  void unlock();
+  void lock();
 
+private:
+  bool locked;
+  Mutex* mut;
+};
 
 #endif

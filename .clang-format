@@ -1,0 +1,7 @@
+BreakBeforeBraces: Attach
+ColumnLimit: 0
+IndentWidth: 2
+NamespaceIndentation: All
+PointerBindsToType: true
+SortIncludes: false
+TabWidth: 2

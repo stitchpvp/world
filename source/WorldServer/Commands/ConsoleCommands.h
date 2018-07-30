@@ -23,39 +23,38 @@
 
 #include "../../common/seperator.h"
 
-struct ConsoleCommand
-{
-	bool(*CommandPointer)(Seperator *);
-	const char * Name;					// 10 chars
-	const char * ParameterFormat;		// 30 chars
-	const char * Description;			// 40 chars
-										// = 70 chars
+struct ConsoleCommand {
+  bool (*CommandPointer)(Seperator*);
+  const char* Name;            // 10 chars
+  const char* ParameterFormat; // 30 chars
+  const char* Description;     // 40 chars
+                               // = 70 chars
 };
 
-	void ProcessConsoleInput(const char * command);
+void ProcessConsoleInput(const char* command);
 
-	bool ConsoleBanCommand(Seperator *sep);
-	bool ConsoleUnbanCommand(Seperator *sep);
-	bool ConsoleKickCommand(Seperator *sep);
+bool ConsoleBanCommand(Seperator* sep);
+bool ConsoleUnbanCommand(Seperator* sep);
+bool ConsoleKickCommand(Seperator* sep);
 
-	bool ConsoleAnnounceCommand(Seperator *sep);
-	bool ConsoleBroadcastCommand(Seperator *sep);
-	bool ConsoleChannelCommand(Seperator *sep);
-	bool ConsoleTellCommand(Seperator *sep);
+bool ConsoleAnnounceCommand(Seperator* sep);
+bool ConsoleBroadcastCommand(Seperator* sep);
+bool ConsoleChannelCommand(Seperator* sep);
+bool ConsoleTellCommand(Seperator* sep);
 
-	bool ConsoleGuildCommand(Seperator *sep);
-	bool ConsolePlayerCommand(Seperator *sep);
-	bool ConsoleWorldCommand(Seperator *sep);
-	bool ConsoleZoneCommand(Seperator *sep);
-	bool ConsoleGetMOTDCommand(Seperator *sep);
-	bool ConsoleSetMOTDCommand(Seperator *sep);
-	bool ConsoleWhoCommand(Seperator *sep);
-	bool ConsoleReloadCommand(Seperator *sep);
+bool ConsoleGuildCommand(Seperator* sep);
+bool ConsolePlayerCommand(Seperator* sep);
+bool ConsoleWorldCommand(Seperator* sep);
+bool ConsoleZoneCommand(Seperator* sep);
+bool ConsoleGetMOTDCommand(Seperator* sep);
+bool ConsoleSetMOTDCommand(Seperator* sep);
+bool ConsoleWhoCommand(Seperator* sep);
+bool ConsoleReloadCommand(Seperator* sep);
 
-	bool ConsoleShutdownCommand(Seperator *sep);
-	bool ConsoleCancelShutdownCommand(Seperator *sep);
-	bool ConsoleExitCommand(Seperator *sep);
-	bool ConsoleRulesCommand(Seperator *sep);
-	bool ConsoleTestCommand(Seperator *sep);
+bool ConsoleShutdownCommand(Seperator* sep);
+bool ConsoleCancelShutdownCommand(Seperator* sep);
+bool ConsoleExitCommand(Seperator* sep);
+bool ConsoleRulesCommand(Seperator* sep);
+bool ConsoleTestCommand(Seperator* sep);
 
 #endif

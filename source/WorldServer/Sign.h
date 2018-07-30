@@ -22,67 +22,67 @@
 #define __EQ2_SIGN__
 #include "Spawn.h"
 
-#define SIGN_TYPE_GENERIC	0
-#define SIGN_TYPE_ZONE		1
+#define SIGN_TYPE_GENERIC 0
+#define SIGN_TYPE_ZONE 1
 
 using namespace std;
 
-class Sign : public Spawn{
+class Sign : public Spawn {
 public:
-	Sign();
-	virtual ~Sign();
-	bool	IsSign(){ return true; }
-	int32	GetWidgetID();
-	void	SetWidgetID(int32 val);
-	void	SetWidgetX(float val);
-	float	GetWidgetX();
-	void	SetWidgetY(float val);
-	float	GetWidgetY();
-	void	SetWidgetZ(float val);
-	float	GetWidgetZ();
-	void	SetSignIcon(int8 val);
-	Sign*	Copy();
-	EQ2Packet* serialize(Player *player, int16 version);
-	void	HandleUse(const shared_ptr<Client>& client, string command);
-	int8	GetSignType();
-	void	SetSignType(int8 val);
-	float	GetSignZoneX();
-	void	SetSignZoneX(float val);
-	float	GetSignZoneY();
-	void	SetSignZoneY(float val);
-	float	GetSignZoneZ();
-	void	SetSignZoneZ(float val);
-	float	GetSignZoneHeading();
-	void	SetSignZoneHeading(float val);
-	float	GetSignDistance();
-	void	SetSignDistance(float val);
-	int32	GetSignZoneID();
-	void	SetSignZoneID(int32 val);
-	const char*	GetSignTitle();
-	void	SetSignTitle(const char* val);
-	const char*	GetSignDescription();
-	void	SetSignDescription(const char* val);
-	void	SetIncludeLocation(bool val);
-	bool	GetIncludeLocation();
-	void	SetIncludeHeading(bool val);
-	bool	GetIncludeHeading();
+  Sign();
+  virtual ~Sign();
+  bool IsSign() { return true; }
+  int32 GetWidgetID();
+  void SetWidgetID(int32 val);
+  void SetWidgetX(float val);
+  float GetWidgetX();
+  void SetWidgetY(float val);
+  float GetWidgetY();
+  void SetWidgetZ(float val);
+  float GetWidgetZ();
+  void SetSignIcon(int8 val);
+  Sign* Copy();
+  EQ2Packet* serialize(Player* player, int16 version);
+  void HandleUse(const shared_ptr<Client>& client, string command);
+  int8 GetSignType();
+  void SetSignType(int8 val);
+  float GetSignZoneX();
+  void SetSignZoneX(float val);
+  float GetSignZoneY();
+  void SetSignZoneY(float val);
+  float GetSignZoneZ();
+  void SetSignZoneZ(float val);
+  float GetSignZoneHeading();
+  void SetSignZoneHeading(float val);
+  float GetSignDistance();
+  void SetSignDistance(float val);
+  int32 GetSignZoneID();
+  void SetSignZoneID(int32 val);
+  const char* GetSignTitle();
+  void SetSignTitle(const char* val);
+  const char* GetSignDescription();
+  void SetSignDescription(const char* val);
+  void SetIncludeLocation(bool val);
+  bool GetIncludeLocation();
+  void SetIncludeHeading(bool val);
+  bool GetIncludeHeading();
 
 private:
-	string	description;
-	string	title;
-	int8	sign_type;
-	float	widget_x;
-	float	widget_y;
-	float	widget_z;
-	int32	widget_id;
-	float	zone_x;
-	float	zone_y;
-	float	zone_z;
-	float	zone_heading;
-	int32	zone_id;
-	float	sign_distance;
-	bool	include_location;
-	bool	include_heading;
+  string description;
+  string title;
+  int8 sign_type;
+  float widget_x;
+  float widget_y;
+  float widget_z;
+  int32 widget_id;
+  float zone_x;
+  float zone_y;
+  float zone_z;
+  float zone_heading;
+  int32 zone_id;
+  float sign_distance;
+  bool include_location;
+  bool include_heading;
 };
 
 #endif

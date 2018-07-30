@@ -29,59 +29,55 @@ using namespace std;
 // maximum amount of iterations it will attempt to find a entree
 #define HASH_SEARCH_MAX 20
 
-class Appearance
-{
+class Appearance {
 public:
-	// JA: someday add the min_client_version to the map to determine which appearance_id to set per client version
-	Appearance(int32 inID, const char *inName, int16 inVer)
-	{
-		if( !inName )
-			return;
-		name = string(inName);
-		id = inID;
-		min_client = inVer;
-	}
+  // JA: someday add the min_client_version to the map to determine which appearance_id to set per client version
+  Appearance(int32 inID, const char* inName, int16 inVer) {
+    if (!inName)
+      return;
+    name = string(inName);
+    id = inID;
+    min_client = inVer;
+  }
 
-	int32 GetID() { return id; }
-	const char* GetName() { return name.c_str(); }
-	int16 GetMinClientVersion() { return min_client; }
-	string GetNameString() { return name; }
+  int32 GetID() { return id; }
+  const char* GetName() { return name.c_str(); }
+  int16 GetMinClientVersion() { return min_client; }
+  string GetNameString() { return name; }
 
 private:
-	int32 id;
-	string name;
-	int16 min_client;
+  int32 id;
+  string name;
+  int16 min_client;
 };
 
-class Appearances
-{
+class Appearances {
 public:
-	~Appearances(){
-		Reset();
-	}
+  ~Appearances() {
+    Reset();
+  }
 
-	void Reset(){
-		ClearAppearances();
-	}
+  void Reset() {
+    ClearAppearances();
+  }
 
-	void ClearAppearances(){
-		map<int32, Appearance*>::iterator map_list;
-		for(map_list = appearanceMap.begin(); map_list != appearanceMap.end(); map_list++ )
-			safe_delete(map_list->second);
-		appearanceMap.clear();
-	}
+  void ClearAppearances() {
+    map<int32, Appearance*>::iterator map_list;
+    for (map_list = appearanceMap.begin(); map_list != appearanceMap.end(); map_list++)
+      safe_delete(map_list->second);
+    appearanceMap.clear();
+  }
 
-	void InsertAppearance(Appearance* a){
-		appearanceMap[a->GetID()] = a;
-	}
+  void InsertAppearance(Appearance* a) {
+    appearanceMap[a->GetID()] = a;
+  }
 
-	Appearance* FindAppearanceByID(int32 id){
-		if(appearanceMap.count(id) > 0)
-			return appearanceMap[id];
-		return 0;
-	}
+  Appearance* FindAppearanceByID(int32 id) {
+    if (appearanceMap.count(id) > 0)
+      return appearanceMap[id];
+    return 0;
+  }
 
 private:
-	map<int32, Appearance*> appearanceMap;
+  map<int32, Appearance*> appearanceMap;
 };
-

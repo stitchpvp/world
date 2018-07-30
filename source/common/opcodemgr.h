@@ -29,111 +29,111 @@ using namespace std;
 
 class OpcodeManager {
 public:
-	OpcodeManager();
-	virtual ~OpcodeManager() {}
-	
-	virtual bool Mutable() { return(false); }
-	virtual bool LoadOpcodes(const char *filename) = 0;
-	virtual bool LoadOpcodes(map<string, uint16>* eq) = 0;
-	virtual bool ReloadOpcodes(const char *filename) = 0;
-	
-	virtual uint16 EmuToEQ(const EmuOpcode emu_op) = 0;
-	virtual EmuOpcode EQToEmu(const uint16 eq_op) = 0;
-	
-	static const char *EmuToName(const EmuOpcode emu_op);
-	const char *EQToName(const uint16 emu_op);
-	EmuOpcode NameSearch(const char *name);
-	
-	//This has to be public for stupid visual studio
-	class OpcodeSetStrategy {
-		public:
-			virtual void Set(EmuOpcode emu_op, uint16 eq_op) = 0;
-			virtual ~OpcodeSetStrategy(){}
-	};
+  OpcodeManager();
+  virtual ~OpcodeManager() {}
+
+  virtual bool Mutable() { return (false); }
+  virtual bool LoadOpcodes(const char* filename) = 0;
+  virtual bool LoadOpcodes(map<string, uint16>* eq) = 0;
+  virtual bool ReloadOpcodes(const char* filename) = 0;
+
+  virtual uint16 EmuToEQ(const EmuOpcode emu_op) = 0;
+  virtual EmuOpcode EQToEmu(const uint16 eq_op) = 0;
+
+  static const char* EmuToName(const EmuOpcode emu_op);
+  const char* EQToName(const uint16 emu_op);
+  EmuOpcode NameSearch(const char* name);
+
+  //This has to be public for stupid visual studio
+  class OpcodeSetStrategy {
+  public:
+    virtual void Set(EmuOpcode emu_op, uint16 eq_op) = 0;
+    virtual ~OpcodeSetStrategy() {}
+  };
 
 protected:
-	bool loaded;                    //true if all opcodes loaded
-	Mutex MOpcodes;	//this only protects the local machine
-					//in a shared manager, this dosent protect others
-	
-	static bool LoadOpcodesFile(const char *filename, OpcodeSetStrategy *s);
-	static bool LoadOpcodesMap(map<string, uint16>* eq, OpcodeSetStrategy *s);
+  bool loaded;    //true if all opcodes loaded
+  Mutex MOpcodes; //this only protects the local machine
+                  //in a shared manager, this dosent protect others
+
+  static bool LoadOpcodesFile(const char* filename, OpcodeSetStrategy* s);
+  static bool LoadOpcodesMap(map<string, uint16>* eq, OpcodeSetStrategy* s);
 };
 
 class MutableOpcodeManager : public OpcodeManager {
 public:
-	MutableOpcodeManager() : OpcodeManager() {}
-	virtual bool Mutable() { return(true); }
-	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op) = 0;
+  MutableOpcodeManager() : OpcodeManager() {}
+  virtual bool Mutable() { return (true); }
+  virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op) = 0;
 };
 
-#ifdef SHARED_OPCODES	//quick toggle since only world and zone should possibly use this
+#ifdef SHARED_OPCODES //quick toggle since only world and zone should possibly use this
 //keeps opcodes in shared memory
 class SharedOpcodeManager : public OpcodeManager {
 public:
-	virtual ~SharedOpcodeManager() {}
-	
-	virtual bool LoadOpcodes(const char *filename);
-	virtual bool LoadOpcodes(map<string, uint16>* eq);
-	virtual bool ReloadOpcodes(const char *filename);
-	
-	virtual uint16 EmuToEQ(const EmuOpcode emu_op);
-	virtual EmuOpcode EQToEmu(const uint16 eq_op);
-	
+  virtual ~SharedOpcodeManager() {}
+
+  virtual bool LoadOpcodes(const char* filename);
+  virtual bool LoadOpcodes(map<string, uint16>* eq);
+  virtual bool ReloadOpcodes(const char* filename);
+
+  virtual uint16 EmuToEQ(const EmuOpcode emu_op);
+  virtual EmuOpcode EQToEmu(const uint16 eq_op);
+
 protected:
-	class SharedMemStrategy : public OpcodeManager::OpcodeSetStrategy {
-	public:
-		void Set(EmuOpcode emu_op, uint16 eq_op);
-	};
-	static bool DLLLoadOpcodesCallback(const char *filename);
+  class SharedMemStrategy : public OpcodeManager::OpcodeSetStrategy {
+  public:
+    void Set(EmuOpcode emu_op, uint16 eq_op);
+  };
+  static bool DLLLoadOpcodesCallback(const char* filename);
 };
 #endif //SHARED_OPCODES
 
 //keeps opcodes in regular heap memory
 class RegularOpcodeManager : public MutableOpcodeManager {
 public:
-	RegularOpcodeManager();
-	virtual ~RegularOpcodeManager();
-	
-	virtual bool Editable() { return(true); }
-	virtual bool LoadOpcodes(const char *filename);
-	virtual bool LoadOpcodes(map<string, uint16>* eq);
-	virtual bool ReloadOpcodes(const char *filename);
-	
-	virtual uint16 EmuToEQ(const EmuOpcode emu_op);
-	virtual EmuOpcode EQToEmu(const uint16 eq_op);
-	
-	//implement our editing interface
-	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op);
-	
+  RegularOpcodeManager();
+  virtual ~RegularOpcodeManager();
+
+  virtual bool Editable() { return (true); }
+  virtual bool LoadOpcodes(const char* filename);
+  virtual bool LoadOpcodes(map<string, uint16>* eq);
+  virtual bool ReloadOpcodes(const char* filename);
+
+  virtual uint16 EmuToEQ(const EmuOpcode emu_op);
+  virtual EmuOpcode EQToEmu(const uint16 eq_op);
+
+  //implement our editing interface
+  virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op);
+
 protected:
-	class NormalMemStrategy : public OpcodeManager::OpcodeSetStrategy {
-	public:
-		RegularOpcodeManager *it;
-		void Set(EmuOpcode emu_op, uint16 eq_op);
-	};
-	friend class NormalMemStrategy;
-	
-	uint16 *emu_to_eq;
-	EmuOpcode *eq_to_emu;
-	uint32 EQOpcodeCount;
-	uint32 EmuOpcodeCount;
+  class NormalMemStrategy : public OpcodeManager::OpcodeSetStrategy {
+  public:
+    RegularOpcodeManager* it;
+    void Set(EmuOpcode emu_op, uint16 eq_op);
+  };
+  friend class NormalMemStrategy;
+
+  uint16* emu_to_eq;
+  EmuOpcode* eq_to_emu;
+  uint32 EQOpcodeCount;
+  uint32 EmuOpcodeCount;
 };
 
 //always resolves everything to 0 or OP_Unknown
 class NullOpcodeManager : public MutableOpcodeManager {
 public:
-	NullOpcodeManager();
-	
-	virtual bool LoadOpcodes(const char *filename);
-	virtual bool LoadOpcodes(map<string, uint16>* eq);
-	virtual bool ReloadOpcodes(const char *filename);
-	
-	virtual uint16 EmuToEQ(const EmuOpcode emu_op);
-	virtual EmuOpcode EQToEmu(const uint16 eq_op);
-	
-	//fake it, just used for testing anyways
-	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op) {}
+  NullOpcodeManager();
+
+  virtual bool LoadOpcodes(const char* filename);
+  virtual bool LoadOpcodes(map<string, uint16>* eq);
+  virtual bool ReloadOpcodes(const char* filename);
+
+  virtual uint16 EmuToEQ(const EmuOpcode emu_op);
+  virtual EmuOpcode EQToEmu(const uint16 eq_op);
+
+  //fake it, just used for testing anyways
+  virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op) {}
 };
 
 //starts as NullOpcodeManager, but remembers any mappings set
@@ -141,22 +141,21 @@ public:
 //by overriding its load methods to be empty.
 class EmptyOpcodeManager : public MutableOpcodeManager {
 public:
-	EmptyOpcodeManager();
-	
-	virtual bool LoadOpcodes(const char *filename);
-	virtual bool LoadOpcodes(map<string, uint16>* eq);
-	virtual bool ReloadOpcodes(const char *filename);
-	
-	virtual uint16 EmuToEQ(const EmuOpcode emu_op);
-	virtual EmuOpcode EQToEmu(const uint16 eq_op);
-	
-	//fake it, just used for testing anyways
-	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op);
+  EmptyOpcodeManager();
+
+  virtual bool LoadOpcodes(const char* filename);
+  virtual bool LoadOpcodes(map<string, uint16>* eq);
+  virtual bool ReloadOpcodes(const char* filename);
+
+  virtual uint16 EmuToEQ(const EmuOpcode emu_op);
+  virtual EmuOpcode EQToEmu(const uint16 eq_op);
+
+  //fake it, just used for testing anyways
+  virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op);
+
 protected:
-	map<EmuOpcode, uint16> emu_to_eq;
-	map<uint16, EmuOpcode> eq_to_emu;
+  map<EmuOpcode, uint16> emu_to_eq;
+  map<uint16, EmuOpcode> eq_to_emu;
 };
 
 #endif
-
-

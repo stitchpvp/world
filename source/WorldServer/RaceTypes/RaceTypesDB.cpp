@@ -25,19 +25,19 @@
 extern MasterRaceTypeList race_types_list;
 
 void WorldDatabase::LoadRaceTypes() {
-	DatabaseResult result;
-	
-	if(database_new.Select(&result, "SELECT `model_type`, `race_id` FROM `race_types`")) {
-		int32 count = 0;
+  DatabaseResult result;
 
-		while (result.Next()) {
-			int16 race_id = result.GetInt16Str("race_id");
-			if (race_id > 0) {
-				race_types_list.AddRaceType(result.GetInt32Str("model_type"), race_id);
-				count++;
-			}
-		}
+  if (database_new.Select(&result, "SELECT `model_type`, `race_id` FROM `race_types`")) {
+    int32 count = 0;
 
-		LogWrite(WORLD__INFO, 0, "World", "- Loaded %u Race Types", count);
-	}
+    while (result.Next()) {
+      int16 race_id = result.GetInt16Str("race_id");
+      if (race_id > 0) {
+        race_types_list.AddRaceType(result.GetInt32Str("model_type"), race_id);
+        count++;
+      }
+    }
+
+    LogWrite(WORLD__INFO, 0, "World", "- Loaded %u Race Types", count);
+  }
 }

@@ -27,108 +27,105 @@ extern ConfigReader configReader;
 extern MasterSpellList master_spell_list;
 
 void ClientPacketFunctions::SendHeroicOPUpdate(const shared_ptr<Client>& client, HeroicOP* ho) {
-	if (!client) {
-		LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid client");
-		return;
-	}
+  if (!client) {
+    LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid client");
+    return;
+  }
 
-	if (!ho) {
-		LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid HO");
-		return;
-	}
+  if (!ho) {
+    LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid HO");
+    return;
+  }
 
-	PacketStruct* packet = configReader.getStruct("WS_HeroicOpportunity", client->GetVersion());
-	Spell* spell = 0;
-	if (packet) {
-		packet->setDataByName("id", client->GetPlayer()->player_spawn_reverse_id_map[client->GetPlayer()]);
-		if (ho->GetWheel()) {
-			spell = master_spell_list.GetSpell(ho->GetWheel()->spell_id, 1);
-			if (!spell) {
-				LogWrite(SPELL__ERROR, 0, "HO", "Unable to get the spell (%u)", ho->GetWheel()->spell_id);
-				return;
-			}
+  PacketStruct* packet = configReader.getStruct("WS_HeroicOpportunity", client->GetVersion());
+  Spell* spell = 0;
+  if (packet) {
+    packet->setDataByName("id", client->GetPlayer()->player_spawn_reverse_id_map[client->GetPlayer()]);
+    if (ho->GetWheel()) {
+      spell = master_spell_list.GetSpell(ho->GetWheel()->spell_id, 1);
+      if (!spell) {
+        LogWrite(SPELL__ERROR, 0, "HO", "Unable to get the spell (%u)", ho->GetWheel()->spell_id);
+        return;
+      }
 
-			packet->setDataByName("name", spell->GetName());
-			packet->setDataByName("description", spell->GetDescription());
-			packet->setDataByName("order", ho->GetWheel()->order);
-			packet->setDataByName("time_total", ho->GetTotalTime());
-			packet->setDataByName("time_left", max(0.0f, (float)(((ho->GetStartTime() + (ho->GetTotalTime() * 1000)) - Timer::GetCurrentTime2()) / 1000)));
-			// This is not displayed in the wheel so set it to 0xFFFF
-			packet->setDataByName("starter_icon", 0xFFFF);
+      packet->setDataByName("name", spell->GetName());
+      packet->setDataByName("description", spell->GetDescription());
+      packet->setDataByName("order", ho->GetWheel()->order);
+      packet->setDataByName("time_total", ho->GetTotalTime());
+      packet->setDataByName("time_left", max(0.0f, (float)(((ho->GetStartTime() + (ho->GetTotalTime() * 1000)) - Timer::GetCurrentTime2()) / 1000)));
+      // This is not displayed in the wheel so set it to 0xFFFF
+      packet->setDataByName("starter_icon", 0xFFFF);
 
-			if (ho->HasShifted())
-				packet->setDataByName("shift_icon", 0xFFFF);
-			else
-				packet->setDataByName("shift_icon", ho->GetWheel()->shift_icon);
+      if (ho->HasShifted())
+        packet->setDataByName("shift_icon", 0xFFFF);
+      else
+        packet->setDataByName("shift_icon", ho->GetWheel()->shift_icon);
 
-			// If completed set special values
-			if (ho->GetComplete() > 0) {
-				packet->setDataByName("wheel_type", 2);
-				packet->setDataByName("unknown", ho->GetComplete());
-			}
+      // If completed set special values
+      if (ho->GetComplete() > 0) {
+        packet->setDataByName("wheel_type", 2);
+        packet->setDataByName("unknown", ho->GetComplete());
+      }
 
-			char temp[20];
-			char ability[20];
+      char temp[20];
+      char ability[20];
 
-			// Set the icons for the whee;
-			for (int8 i = 1; i < 7; i++) {
-				strcpy(ability, "icon");
-				itoa(i, temp, 10);
-				strcat(ability, temp);
-				packet->setDataByName(ability, ho->GetWheel()->abilities[i-1]);
-			}
+      // Set the icons for the whee;
+      for (int8 i = 1; i < 7; i++) {
+        strcpy(ability, "icon");
+        itoa(i, temp, 10);
+        strcat(ability, temp);
+        packet->setDataByName(ability, ho->GetWheel()->abilities[i - 1]);
+      }
 
-			// Flag the icons that are completed
-			for (int8 i = 1; i < 7; i++) {
-				strcpy(ability, "countered");
-				itoa(i, temp, 10);
-				strcat(ability, temp);
-				packet->setDataByName(ability, ho->countered[i-1]);
-			}
+      // Flag the icons that are completed
+      for (int8 i = 1; i < 7; i++) {
+        strcpy(ability, "countered");
+        itoa(i, temp, 10);
+        strcat(ability, temp);
+        packet->setDataByName(ability, ho->countered[i - 1]);
+      }
 
-		}
-		else {
-			if (ho->GetComplete() > 0) {
-				// This will make the ui element vanish
-				packet->setDataByName("wheel_type", 5);
-				packet->setDataByName("unknown", 8);
-			}
-			else {
-				packet->setDataByName("wheel_type", 4);
-			}
+    } else {
+      if (ho->GetComplete() > 0) {
+        // This will make the ui element vanish
+        packet->setDataByName("wheel_type", 5);
+        packet->setDataByName("unknown", 8);
+      } else {
+        packet->setDataByName("wheel_type", 4);
+      }
 
-			packet->setDataByName("icon1", 0xFFFF);
-			packet->setDataByName("icon2", 0xFFFF);
-			packet->setDataByName("icon3", 0xFFFF);
-			packet->setDataByName("icon4", 0xFFFF);
-			packet->setDataByName("icon5", 0xFFFF);
-			packet->setDataByName("icon6", 0xFFFF);
-			packet->setDataByName("shift_icon", 0xFFFF);
-			
-			int8 index = 1;
-			char temp[20];
-			char ability[20];
-			vector<HeroicOPStarter*>::iterator itr;
-			for (itr = ho->GetStarterChains()->begin(); itr != ho->GetStarterChains()->end(); itr++, index++) {
-				if (index > 6 )
-					break;
+      packet->setDataByName("icon1", 0xFFFF);
+      packet->setDataByName("icon2", 0xFFFF);
+      packet->setDataByName("icon3", 0xFFFF);
+      packet->setDataByName("icon4", 0xFFFF);
+      packet->setDataByName("icon5", 0xFFFF);
+      packet->setDataByName("icon6", 0xFFFF);
+      packet->setDataByName("shift_icon", 0xFFFF);
 
-				strcpy(ability, "icon");
-				itoa(index, temp, 10);
-				strcat(ability, temp);
+      int8 index = 1;
+      char temp[20];
+      char ability[20];
+      vector<HeroicOPStarter*>::iterator itr;
+      for (itr = ho->GetStarterChains()->begin(); itr != ho->GetStarterChains()->end(); itr++, index++) {
+        if (index > 6)
+          break;
 
-				packet->setDataByName(ability, (*itr)->abilities[ho->GetStage()]);
+        strcpy(ability, "icon");
+        itoa(index, temp, 10);
+        strcat(ability, temp);
 
-				// Only set this once
-				if (index == 1)
-					packet->setDataByName("starter_icon", (*itr)->starter_icon);
-			}
-		}
-		client->QueuePacket(packet->serialize());
-	}
-	safe_delete(packet);
+        packet->setDataByName(ability, (*itr)->abilities[ho->GetStage()]);
+
+        // Only set this once
+        if (index == 1)
+          packet->setDataByName("starter_icon", (*itr)->starter_icon);
+      }
+    }
+    client->QueuePacket(packet->serialize());
+  }
+  safe_delete(packet);
 }
-
 
 /*
 <Struct Name="WS_HeroicOpportunity" ClientVersion="1" OpcodeName="OP_UpdateOpportunityMsg">

@@ -21,10 +21,10 @@
 #include <string.h>
 #include "IRCChannel.h"
 
-IRCChannel::IRCChannel(const char *name) {
-	assert(name != NULL);
+IRCChannel::IRCChannel(const char* name) {
+  assert(name != NULL);
 
-	strncpy(this->name, name, IRC_CHANNEL_LEN_MAX);
+  strncpy(this->name, name, IRC_CHANNEL_LEN_MAX);
 }
 
 IRCChannel::~IRCChannel() {

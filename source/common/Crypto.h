@@ -26,39 +26,44 @@
 using namespace std;
 class Crypto {
 public:
-	~Crypto(){ safe_delete(client); safe_delete(server); }
-	Crypto() { rc4_key = 0; encrypted = false; client = 0; server = 0; };
+  ~Crypto() {
+    safe_delete(client);
+    safe_delete(server);
+  }
+  Crypto() {
+    rc4_key = 0;
+    encrypted = false;
+    client = 0;
+    server = 0;
+  };
 
-	static int64 RSADecrypt(uchar* text, int16 size);
-	void RC4Encrypt(uchar* text, int32 size);
-	void RC4Decrypt(uchar* text, int32 size);
-	int64 getRC4Key() { return rc4_key; }
-	void setRC4Key(int64 key) { 
-		rc4_key = key;
-		if(key > 0){
-			encrypted = true; 
-			client = new RC4(~key);
-			server = new RC4(key); 
-			uchar temp[20];
-			client->Cypher(temp, 20);
-			server->Cypher(temp, 20);
-		}
-		else{
-			encrypted = false;
-			safe_delete(client);
-			safe_delete(server);
-		}
-	}
-	bool isEncrypted(){ return encrypted; }
-	void setEncrypted(bool in_val){ encrypted = in_val; }
-
+  static int64 RSADecrypt(uchar* text, int16 size);
+  void RC4Encrypt(uchar* text, int32 size);
+  void RC4Decrypt(uchar* text, int32 size);
+  int64 getRC4Key() { return rc4_key; }
+  void setRC4Key(int64 key) {
+    rc4_key = key;
+    if (key > 0) {
+      encrypted = true;
+      client = new RC4(~key);
+      server = new RC4(key);
+      uchar temp[20];
+      client->Cypher(temp, 20);
+      server->Cypher(temp, 20);
+    } else {
+      encrypted = false;
+      safe_delete(client);
+      safe_delete(server);
+    }
+  }
+  bool isEncrypted() { return encrypted; }
+  void setEncrypted(bool in_val) { encrypted = in_val; }
 
 private:
-	RC4* server;
-	RC4* client;
-	bool encrypted;
-	int64 rc4_key;
+  RC4* server;
+  RC4* client;
+  bool encrypted;
+  int64 rc4_key;
 };
 
 #endif
-

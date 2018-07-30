@@ -18,116 +18,115 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __EQ2_NET__
-#define	__EQ2_NET__
+#define __EQ2_NET__
 #ifndef WIN32
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <arpa/inet.h>
-	#include <netdb.h>
-	#include <unistd.h>
-	#include <errno.h>
-	#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
 #else
-	#include <cerrno>
-	#include <fcntl.h>
-	#include <WinSock2.h>
-	#include <windows.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <WinSock2.h>
+#include <windows.h>
 #endif
 
 #include "../common/linked_list.h"
 #include "../common/types.h"
 
-ThreadReturnType EQ2ConsoleListener(void *tmp);
+ThreadReturnType EQ2ConsoleListener(void* tmp);
 void CatchSignal(int sig_num);
 void UpdateWindowTitle(char* iNewTitle);
 void WelcomeHeader();
 
-#define PORT		9000
-#define LOGIN_PORT	9100
+#define PORT 9000
+#define LOGIN_PORT 9100
 
-class NetConnection
-{
+class NetConnection {
 public:
-	NetConnection() {
-		world_locked = false;
-		for (int i=0; i<3; i++) {
-			memset(loginaddress[i], 0, sizeof(loginaddress[i]));
-			loginport[i] = LOGIN_PORT;
-		}
-		listening_socket = 0;
-		updateport = 0;
-		memset(worldname, 0, sizeof(worldname));
-		memset(updateaddress, 0, sizeof(updateaddress));
-		memset(worldaccount, 0, sizeof(worldaccount));
-		memset(worldpassword, 0, sizeof(worldpassword));
-		memset(worldaddress, 0, sizeof(worldaddress));
-		memset(internalworldaddress, 0, sizeof(internalworldaddress));
-		worldport = PORT;
-		DEFAULTSTATUS=0;
-		LoginServerInfo = 0;//ReadLoginINI();
-		UpdateStats = false;
-	}
-	~NetConnection() { }
+  NetConnection() {
+    world_locked = false;
+    for (int i = 0; i < 3; i++) {
+      memset(loginaddress[i], 0, sizeof(loginaddress[i]));
+      loginport[i] = LOGIN_PORT;
+    }
+    listening_socket = 0;
+    updateport = 0;
+    memset(worldname, 0, sizeof(worldname));
+    memset(updateaddress, 0, sizeof(updateaddress));
+    memset(worldaccount, 0, sizeof(worldaccount));
+    memset(worldpassword, 0, sizeof(worldpassword));
+    memset(worldaddress, 0, sizeof(worldaddress));
+    memset(internalworldaddress, 0, sizeof(internalworldaddress));
+    worldport = PORT;
+    DEFAULTSTATUS = 0;
+    LoginServerInfo = 0; //ReadLoginINI();
+    UpdateStats = false;
+  }
+  ~NetConnection() {}
 
-	bool ReadLoginINI();
-	bool LoginServerInfo;
-	bool UpdateStats;
-	char* GetLoginInfo(int16* oPort);
-	char* GetUpdateServerInfo(int16* oPort);
-	inline char* GetLoginAddress(int8 i)	{ return loginaddress[i]; }
-	inline int16 GetLoginPort(int8 i)		{ return loginport[i]; }
-	inline char* GetWorldName()			{ return worldname; }
-	inline char* GetWorldAccount()			{ return worldaccount; }
-	inline char* GetWorldPassword()		{ return worldpassword; }
-	inline char* GetWorldAddress()			{ return worldaddress; }
-	inline char* GetInternalWorldAddress()	{ return internalworldaddress; }
-	inline int16 GetWorldPort()				{ return worldport; }
-	inline int8 GetDefaultStatus()			{ return DEFAULTSTATUS; }
-	bool world_locked;
+  bool ReadLoginINI();
+  bool LoginServerInfo;
+  bool UpdateStats;
+  char* GetLoginInfo(int16* oPort);
+  char* GetUpdateServerInfo(int16* oPort);
+  inline char* GetLoginAddress(int8 i) { return loginaddress[i]; }
+  inline int16 GetLoginPort(int8 i) { return loginport[i]; }
+  inline char* GetWorldName() { return worldname; }
+  inline char* GetWorldAccount() { return worldaccount; }
+  inline char* GetWorldPassword() { return worldpassword; }
+  inline char* GetWorldAddress() { return worldaddress; }
+  inline char* GetInternalWorldAddress() { return internalworldaddress; }
+  inline int16 GetWorldPort() { return worldport; }
+  inline int8 GetDefaultStatus() { return DEFAULTSTATUS; }
+  bool world_locked;
+
 private:
-	int		listening_socket;
-	char	loginaddress[3][255];
-	char	updateaddress[255];
-	int16	loginport[3];
-	int16	updateport;
-	char	worldname[201];
-	char	worldaccount[31];
-	char	worldpassword[31];
-	char	worldaddress[255];
-	char	internalworldaddress[21];
-	int16	worldport;
-	int8    DEFAULTSTATUS;
-
+  int listening_socket;
+  char loginaddress[3][255];
+  char updateaddress[255];
+  int16 loginport[3];
+  int16 updateport;
+  char worldname[201];
+  char worldaccount[31];
+  char worldpassword[31];
+  char worldaddress[255];
+  char internalworldaddress[21];
+  int16 worldport;
+  int8 DEFAULTSTATUS;
 };
 
-class ZoneAuthRequest
-{
+class ZoneAuthRequest {
 public:
-	ZoneAuthRequest(int32 account_id, char* name, int32 access_key);
-	~ZoneAuthRequest( );
-	int32	GetAccountID() { return accountid; }
-	const char*	GetCharacterName() { return character_name.c_str(); }
-	int32	GetAccessKey() { return accesskey; }
-	int32	GetTimeStamp() { return timestamp; }
-	void	SetTimeStamp(int32 new_timestamp) { timestamp = new_timestamp; }
-	void	setFirstLogin(bool value) { firstlogin = value; }
-	bool	isFirstLogin() { return firstlogin; }
+  ZoneAuthRequest(int32 account_id, char* name, int32 access_key);
+  ~ZoneAuthRequest();
+  int32 GetAccountID() { return accountid; }
+  const char* GetCharacterName() { return character_name.c_str(); }
+  int32 GetAccessKey() { return accesskey; }
+  int32 GetTimeStamp() { return timestamp; }
+  void SetTimeStamp(int32 new_timestamp) { timestamp = new_timestamp; }
+  void setFirstLogin(bool value) { firstlogin = value; }
+  bool isFirstLogin() { return firstlogin; }
+
 private:
-	int32 accountid;
-	string character_name;
-	int32 accesskey;
-	int32 timestamp;
-	bool firstlogin;
+  int32 accountid;
+  string character_name;
+  int32 accesskey;
+  int32 timestamp;
+  bool firstlogin;
 };
 
-class ZoneAuth
-{
+class ZoneAuth {
 public:
-	void				AddAuth(ZoneAuthRequest* zar);
-	ZoneAuthRequest*	GetAuth(int32 account_id, int32 access_key);
-	void				PurgeInactiveAuth();
-	void				RemoveAuth(ZoneAuthRequest* zar);
+  void AddAuth(ZoneAuthRequest* zar);
+  ZoneAuthRequest* GetAuth(int32 account_id, int32 access_key);
+  void PurgeInactiveAuth();
+  void RemoveAuth(ZoneAuthRequest* zar);
+
 private:
-	LinkedList<ZoneAuthRequest*> list;
+  LinkedList<ZoneAuthRequest*> list;
 };
 #endif

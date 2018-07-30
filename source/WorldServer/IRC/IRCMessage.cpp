@@ -23,68 +23,68 @@
 #include "../../common/types.h"
 #include "IRCMessage.h"
 
-IRCMessage::IRCMessage(const char *message, ...) {
-	int n, size = 512;
-	va_list ap;
+IRCMessage::IRCMessage(const char* message, ...) {
+  int n, size = 512;
+  va_list ap;
 
-	len = 0;
-	serialized = false;
+  len = 0;
+  serialized = false;
 
-	while (true) {
-		//allocate our buffer
-		this->message = new char[size];
+  while (true) {
+    //allocate our buffer
+    this->message = new char[size];
 
-		//print the format into the buffer
-		va_start(ap, message);
-		n = vsnprintf(this->message, size, message, ap);
-		va_end(ap);
+    //print the format into the buffer
+    va_start(ap, message);
+    n = vsnprintf(this->message, size, message, ap);
+    va_end(ap);
 
-		//did we write what we needed to?
-		if (n > -1 && n < size)
-			break;
+    //did we write what we needed to?
+    if (n > -1 && n < size)
+      break;
 
 #ifdef _WIN32
-		size *= 2;	//double the buffer
+    size *= 2; //double the buffer
 #else
-		if (n > -1)
-			size = n + 1;	//we know exactly how many bytes to write
-		else
-			size *= 2;	//double the buffer
+    if (n > -1)
+      size = n + 1; //we know exactly how many bytes to write
+    else
+      size *= 2; //double the buffer
 #endif
 
-		safe_delete_array(this->message);
-	}
+    safe_delete_array(this->message);
+  }
 }
 
 IRCMessage::~IRCMessage() {
-	if (message != NULL)
-		safe_delete_array(message);
+  if (message != NULL)
+    safe_delete_array(message);
 }
 
-const char * IRCMessage::Serialize() {
-	char *buf;
+const char* IRCMessage::Serialize() {
+  char* buf;
 
-	if (message == NULL || serialized)
-		return message;
+  if (message == NULL || serialized)
+    return message;
 
-	//allocate enough room for the /r/n, and of course the null
-	len = strlen(message) + 3;
-	buf = new char[len];
-	snprintf(buf, len, "%s\r\n", message);
+  //allocate enough room for the /r/n, and of course the null
+  len = strlen(message) + 3;
+  buf = new char[len];
+  snprintf(buf, len, "%s\r\n", message);
 
-	//now copy back into our true buffer
-	safe_delete_array(message);
-	message = new char[len];
-	strncpy(message, buf, len);
+  //now copy back into our true buffer
+  safe_delete_array(message);
+  message = new char[len];
+  strncpy(message, buf, len);
 
-	//and finally free our temporary buffer
-	safe_delete_array(buf);
+  //and finally free our temporary buffer
+  safe_delete_array(buf);
 
-	//we don't want to do this process again if for some reason Serialize() is called again
-	serialized = true;
-	
-	//we don't want to include the trailing null in the length
-	len--;
+  //we don't want to do this process again if for some reason Serialize() is called again
+  serialized = true;
 
-	return message;
+  //we don't want to include the trailing null in the length
+  len--;
+
+  return message;
 }
