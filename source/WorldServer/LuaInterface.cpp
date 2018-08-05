@@ -995,6 +995,13 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "SendSkillUpdate", EQ2Emu_lua_SendSkillUpdate);
 	lua_register(state, "SetPlayerAlignment", EQ2Emu_lua_SetPlayerAlignment);
 	lua_register(state, "GetLastDamageTaken", EQ2Emu_lua_GetLastDamageTaken);
+	lua_register(state, "GetAdminStatus", EQ2Emu_lua_GetAdminStatus);
+
+	lua_register(state, "InitializeTournament", EQ2Emu_lua_InitializeTournament);
+	lua_register(state, "AddTournamentStartingPoint", EQ2Emu_lua_AddTournamentStartingPoint);
+	lua_register(state, "SetTournamentEndPoint", EQ2Emu_lua_SetTournamentEndPoint);
+	lua_register(state, "AddPlayerToTournament", EQ2Emu_lua_AddPlayerToTournament);
+	lua_register(state, "StartTournament", EQ2Emu_lua_StartTournament);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

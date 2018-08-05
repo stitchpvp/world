@@ -413,4 +413,11 @@ int EQ2Emu_lua_DropChest(lua_State* state);
 int EQ2Emu_lua_SendSkillUpdate(lua_State* state);
 int EQ2Emu_lua_SetPlayerAlignment(lua_State* state);
 int EQ2Emu_lua_GetLastDamageTaken(lua_State* state);
+int EQ2Emu_lua_GetAdminStatus(lua_State* state);
+
+int EQ2Emu_lua_InitializeTournament(lua_State* state);
+int EQ2Emu_lua_AddTournamentStartingPoint(lua_State* state);
+int EQ2Emu_lua_SetTournamentEndPoint(lua_State* state);
+int EQ2Emu_lua_AddPlayerToTournament(lua_State* state);
+int EQ2Emu_lua_StartTournament(lua_State* state);
 #endif

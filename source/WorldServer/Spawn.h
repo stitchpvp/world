@@ -33,6 +33,7 @@
 #include "Items/Items.h"
 #include "../common/Mutex.h"
 #include <deque>
+#include "Tournament.h"
 
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL		0x41
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL_CRIT_DMG	0x45
@@ -142,6 +143,7 @@ using namespace std;
 class Spell;
 class ZoneServer;
 class Quest;
+class Tournament;
 struct LUAHistory;
 struct Cell;
 
@@ -960,6 +962,18 @@ public:
 	}
 	int16 GetIllusionModel() { return m_illusionModel; }
 
+	void SetTournament(unique_ptr<Tournament> in_tournament) {
+		tournament = move(in_tournament);
+	}
+
+	Tournament* GetTournament() {
+	    if (tournament) {
+			return tournament.get();
+	    }
+
+	    return nullptr;
+	}
+
 	int8 size_mod_a;
 	int8 size_mod_b;
 	int8 size_mod_c;
@@ -1031,6 +1045,8 @@ private:
 	int16           req_quests_override;
 	bool            req_quests_continued_access;
 	float			last_heading_angle;
+
+	unique_ptr<Tournament> tournament;
 
 	map<string, int8>			m_tempVariableTypes;
 	map<string, int32>			m_tempVariableSpawn;

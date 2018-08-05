@@ -8555,3 +8555,145 @@ int EQ2Emu_lua_GetLastDamageTaken(lua_State* state) {
 
 	return 1;
 }
+
+int EQ2Emu_lua_GetAdminStatus(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA GetAdminStatus command error: spawn is not valid");
+		return 0;
+	}
+
+	if (!spawn->IsPlayer()) {
+		lua_interface->LogError("LUA GetAdminStatus command error: spawn is not a player");
+		return 0;
+	}
+
+	shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
+
+	if (client) {
+		lua_interface->LogError("LUA GetAdminStatus command error: unable to find client for spawn");
+		return 0;
+	}
+
+	lua_interface->SetInt32Value(state, client->GetAdminStatus());
+
+    return 1;
+}
+
+int EQ2Emu_lua_InitializeTournament(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA InitializeTournament command error: spawn is not valid");
+		return 0;
+	}
+
+	if (spawn->GetTournament()) {
+		lua_interface->LogError("LUA InitializeTournament command error: spawn is already managing a tournament");
+		return 0;
+	}
+
+	unique_ptr<Tournament> tournament = make_unique<Tournament>();
+	tournament->SetManager(spawn);
+
+	spawn->SetTournament(move(tournament));
+
+	return 1;
+}
+
+int EQ2Emu_lua_AddTournamentStartingPoint(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA AddTournamentStartingPoint command error: spawn is not valid");
+		return 0;
+	}
+
+	float x = lua_interface->GetFloatValue(state, 2);
+	float y = lua_interface->GetFloatValue(state, 3);
+	float z = lua_interface->GetFloatValue(state, 4);
+
+	Tournament* tournament = spawn->GetTournament();
+
+    if (!tournament) {
+        lua_interface->LogError("LUA AddTournamentStartingPoint command error: spawn is not managing a tournament");
+        return 0;
+    }
+
+    tournament->AddStartingPoint(x, y, z);
+
+	return 1;
+}
+
+int EQ2Emu_lua_SetTournamentEndPoint(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA SetTournamentEndPoint command error: spawn is not valid");
+		return 0;
+	}
+
+	float x = lua_interface->GetFloatValue(state, 2);
+	float y = lua_interface->GetFloatValue(state, 3);
+	float z = lua_interface->GetFloatValue(state, 4);
+
+	Tournament* tournament = spawn->GetTournament();
+
+	if (!tournament) {
+		lua_interface->LogError("LUA SetTournamentEndPoint command error: spawn is not managing a tournament");
+		return 0;
+	}
+
+	tournament->SetEndingPoint(x, y, z);
+
+	return 1;
+}
+
+int EQ2Emu_lua_AddPlayerToTournament(lua_State* state) {
+    Spawn* spawn = lua_interface->GetSpawn(state);
+	Spawn* player_spawn = lua_interface->GetSpawn(state, 2);
+
+    if (!spawn) {
+        lua_interface->LogError("LUA AddPlayerToTournament command error: spawn is not valid");
+        return 0;
+    }
+
+	if (!player_spawn || !player_spawn->IsPlayer()) {
+		lua_interface->LogError("LUA AddPlayerToTournament command error: spawn is not a player");
+		return 0;
+	}
+
+	Player* player = static_cast<Player*>(player_spawn);
+
+	Tournament* tournament = spawn->GetTournament();
+
+	if (!tournament) {
+		lua_interface->LogError("LUA AddPlayerToTournament command error: spawn is not managing a tournament");
+		return 0;
+	}
+
+	tournament->AddParticipant(player->GetCharacterID());
+
+	return 1;
+}
+
+int EQ2Emu_lua_StartTournament(lua_State* state) {
+    Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA StartTournament command error: spawn is not valid");
+		return 0;
+	}
+
+	Tournament* tournament = spawn->GetTournament();
+
+	if (!tournament) {
+		lua_interface->LogError("LUA StartTournament command error: spawn is not managing a tournament");
+		return 0;
+	}
+
+	tournament->Start();
+
+	return 1;
+}
