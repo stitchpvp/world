@@ -1542,6 +1542,10 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
 				break;
 			}
 
+			case ITEM_STAT_VS_PHYSICAL: {
+			    values->vs_physical += value;
+			}
+
 			case ITEM_STAT_VS_ELEMENTAL: {
 				values->vs_heat += value;
 				values->vs_cold += value;

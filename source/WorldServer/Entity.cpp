@@ -929,6 +929,7 @@ void Entity::CalculateBonuses() {
 	info->cur_mitigation += values->vs_slash;
 	info->cur_mitigation += values->vs_pierce;
 	info->cur_mitigation += values->vs_crush;
+	info->cur_mitigation += values->vs_physical;
 	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 
 	if (info->cur_mitigation < 0) {
