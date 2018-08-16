@@ -4640,7 +4640,7 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
 	packet->setSmallStringByName("zone_desc", GetZoneDescription());
 	packet->setSmallStringByName("char_name", client->GetPlayer()->GetName());
 
-	packet->setDataByName("expansions_enabled", 0);
+	packet->setDataByName("expansions_enabled", 49247);
 	packet->setDataByName("x", client->GetPlayer()->GetX());
 	packet->setDataByName("y", client->GetPlayer()->GetY());
 	packet->setDataByName("z", client->GetPlayer()->GetZ());
@@ -4653,9 +4653,10 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
 	} else if (client->GetVersion() >= 63225) {
 		packet->setDataByName("unknown2a", 9);
 		packet->setDataByName("unknown2b", 2304);
-		//packet->setDataByName("unknown3a", 512);
-		//packet->setDataByName("unknown3b", 4160708352);
-		//packet->setDataByName("unknown3c", 4294938605);
+		packet->setDataByName("unknown3a", 12587148);
+		packet->setDataByName("unknown3b", 113270528);
+		packet->setDataByName("unknown3c", 4291923949);
+		packet->setDataByName("unknown3d", 49375);
 	} else {
 		packet->setDataByName("unknown2a", 8);
 		packet->setDataByName("unknown2b", 8);

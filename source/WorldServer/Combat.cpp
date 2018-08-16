@@ -570,70 +570,165 @@ bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 hig
 	return true;
 }
 
-int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell){
-	if(!victim) {
+bool Entity::CheckDodge(float hit_chance) {
+	double chance = (GetAgi() / GetLevel()) / 7.0;
+	int8 roll = (rand() % 100) + 1;
+
+	Skill* skill = GetSkillByName("Defense", true);
+	if (skill) {
+	    chance += (skill->current_val / GetLevel()) / 4.0;
+	}
+
+	chance += GetInfoStruct()->base_avoidance_bonus;
+
+	return roll >= (hit_chance - chance);
+}
+
+bool Entity::CheckParry(float hit_chance) {
+	double chance = 0.0;
+	int8 roll = (rand() % 100) + 1;
+
+	Skill* skill = GetSkillByName("Parry", true);
+	if (skill) {
+		chance += (skill->current_val / GetLevel()) / 1.5;
+	}
+
+	return roll >= (hit_chance - chance);
+}
+
+bool Entity::CheckRiposte(float hit_chance) {
+	double chance = 0.0;
+	int8 roll = (rand() % 100) + 1;
+
+	Skill* skill = GetSkillByName("Parry", true);
+	if (skill) {
+		chance += ((skill->current_val / GetLevel()) / 1.5) * 0.2;
+	}
+
+	return roll >= (hit_chance - chance);
+}
+
+bool Entity::CheckDeflect(float hit_chance) {
+	double chance = GetInfoStruct()->minimum_deflection_chance;
+	int8 roll = (rand() % 100) + 1;
+
+	return roll >= (hit_chance - chance);
+}
+
+bool Entity::CheckBlock() {
+    EquipmentItemList* equipment_list = GetEquipmentList();
+
+    if (!equipment_list) {
+    	return false;
+    }
+
+    Item* item = equipment_list->GetItem(EQ2_SECONDARY_SLOT);
+
+    if (!item || !item->IsShield()) {
+    	return false;
+    }
+
+    double chance = 0.0;
+    int8 roll = (rand() % 100) + 1;
+
+    switch(item->generic_info.skill_req1) {
+    	case SKILL_BUCKLER:
+    		chance += 2.0;
+    		break;
+
+    	case SKILL_ROUND_SHIELD:
+    		chance += 3.0;
+    		break;
+
+    	case SKILL_KITE_SHIELD:
+    		chance += 4.0;
+    		break;
+
+    	case SKILL_TOWER_SHIELD:
+    		chance += 5.0;
+
+    	default:
+    		break;
+    }
+
+    chance += (item->armor_info->mitigation_high / GetLevel()) / 20.0;
+
+	return roll >= 100 - chance;
+}
+
+int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, bool spell) {
+	if (!victim) {
 		return DAMAGE_PACKET_RESULT_MISS;
 	}
 
-	if(victim->GetInvulnerable()) {
-		return DAMAGE_PACKET_RESULT_INVULNERABLE;
-	}
-
-	if(!victim->IsEntity() || (!spell && BehindTarget(victim))) {
+	if (!victim->IsEntity()) {
 		return DAMAGE_PACKET_RESULT_SUCCESSFUL;
 	}
 
-	float bonus = ToHitBonus;
-	Skill* skill = GetSkillByWeaponType(damage_type, true);
-	if (skill)
-		bonus += skill->current_val / 25;
-	if (victim->IsEntity())
-		bonus -= ((Entity*)victim)->GetDamageTypeResistPercentage(damage_type);
-
-
-	Entity* entity_victim = (Entity*)victim;
-	float chance = 90 + bonus; // 90% base chance that the victim will get hit (plus bonus)
-	sint16 roll_chance = 100;
-	if(skill)
-		roll_chance -= skill->current_val / 25;
-
-	if(!spell){ // melee or range attack		
-		skill = GetSkillByName("Offense", true); //add this skill for NPCs
-		if(skill)
-			roll_chance -= skill->current_val / 25;
-
-		if(rand()%roll_chance >= (chance - entity_victim->GetInfoStruct()->base_avoidance_bonus - entity_victim->GetAgi() / 125)){
-			entity_victim->CheckProcs(PROC_TYPE_EVADE, this);
-			return DAMAGE_PACKET_RESULT_DODGE;//successfully dodged
-		}
-		if(rand() % roll_chance >= chance)
-			return DAMAGE_PACKET_RESULT_MISS; //successfully avoided
-
-		skill = entity_victim->GetSkillByName("Parry", true);
-		if(skill){
-			if(rand()%roll_chance >= (chance - 5 - skill->current_val/25)){ //successful parry
-				if(rand()%100 <= 20) {
-					entity_victim->CheckProcs(PROC_TYPE_RIPOSTE, this);
-					return DAMAGE_PACKET_RESULT_RIPOSTE;
-				}
-				entity_victim->CheckProcs(PROC_TYPE_PARRY, this);
-				return DAMAGE_PACKET_RESULT_PARRY;
-			}
-		}
-
-		skill = entity_victim->GetSkillByName("Deflection", true);
-		if(skill){
-			if(rand()%100 >= (chance - entity_victim->GetInfoStruct()->minimum_deflection_chance - skill->current_val/25)) { //successfully deflected
-				return DAMAGE_PACKET_RESULT_DEFLECT;
-			}
-		}
+	if (victim->GetInvulnerable()) {
+		return DAMAGE_PACKET_RESULT_INVULNERABLE;
 	}
-	else{
+
+	if (!spell && BehindTarget(victim)) {
+		return DAMAGE_PACKET_RESULT_SUCCESSFUL;
+	}
+
+	Entity* entity_victim = static_cast<Entity*>(victim);
+
+	float chance = 100 + ToHitBonus;
+
+	Skill* skill = GetSkillByWeaponType(damage_type, true);
+
+	if (skill) {
+		chance += skill->current_val / 25;
+		//roll_chance -= skill->current_val / 25;
+	}
+
+	chance -= entity_victim->GetDamageTypeResistPercentage(damage_type);
+
+	if (!spell) {
+		skill = GetSkillByName("Offense", true); //add this skill for NPCs
+
+		if (skill) {
+			chance += skill->current_val / 25;
+		}
+
+		if (entity_victim->CheckDodge(chance)) {
+			entity_victim->CheckProcs(PROC_TYPE_EVADE, this);
+			return DAMAGE_PACKET_RESULT_DODGE;
+		}
+
+		if ((rand() % 100) + 1 >= chance) {
+			return DAMAGE_PACKET_RESULT_MISS;
+		}
+
+		if (entity_victim->CheckParry(chance)) {
+		    if (entity_victim->CheckRiposte(chance)) {
+				entity_victim->CheckProcs(PROC_TYPE_RIPOSTE, this);
+				return DAMAGE_PACKET_RESULT_RIPOSTE;
+		    }
+
+			entity_victim->CheckProcs(PROC_TYPE_PARRY, this);
+			return DAMAGE_PACKET_RESULT_PARRY;
+		}
+
+		if (entity_victim->CheckBlock()) {
+			entity_victim->CheckProcs(PROC_TYPE_BLOCK, this);
+		    return DAMAGE_PACKET_RESULT_BLOCK;
+		}
+
+		if (entity_victim->CheckDeflect(chance)) {
+		    return DAMAGE_PACKET_RESULT_DEFLECT;
+		}
+	} else {
 		skill = entity_victim->GetSkillByName("Spell Avoidance", true);
-		if(skill)
+
+		if (skill) {
 			chance -= skill->current_val / 25;
-		if(rand()%roll_chance >= chance) {
-			return DAMAGE_PACKET_RESULT_RESIST; //successfully resisted	
+		}
+
+		if ((rand() % 100) + 1 >= chance) {
+			return DAMAGE_PACKET_RESULT_RESIST;
 		}
 	}
 

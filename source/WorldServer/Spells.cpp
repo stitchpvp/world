@@ -546,7 +546,7 @@ void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scal
 	for (int32 i = 0; i < effects.size(); ++i) {
 		string description = effects[i]->description;
 
-		for (unsigned int x = 0; x <= 8; x++) {
+		for (sint8 x = 14; x >= 0; --x) {
 			string search = "%" + to_string(x + 1);
 
 			if (x <= scaled_data.size() && description.find(search) != string::npos && (scaled_data.at(x).type == 0 || scaled_data.at(x).type == 1)) {

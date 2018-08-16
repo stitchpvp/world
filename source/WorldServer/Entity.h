@@ -864,6 +864,12 @@ public:
 	int GetMitigationForPercentage(int enemy_level, int percentage) { return percentage * (200 + 40 * enemy_level) / (100 - percentage); }
 	float GetSpellMitigationPercentage(int enemy_level, int8 damage_type);
 
+	bool CheckDodge(float hit_chance);
+	bool CheckParry(float hit_chance);
+	bool CheckRiposte(float hit_chance);
+	bool CheckDeflect(float hit_chance);
+	bool CheckBlock();
+
 	bool LastProcHit() { return last_proc_hit; }
 
 protected:

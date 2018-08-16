@@ -179,6 +179,11 @@ extern MasterItemList master_item_list;
 #define ITEM_TYPE_DUNGEON_MAKER   21
 #define ITEM_TYPE_MARKETPLACE     22
 
+#define SKILL_BUCKLER 4037812502
+#define SKILL_ROUND_SHIELD 3173504370
+#define SKILL_KITE_SHIELD 2608320658
+#define SKILL_TOWER_SHIELD 570458645
+
 
 //DOV defines everything till 13 is the same
 //#define ITEM_TYPE_BOOK			  13
