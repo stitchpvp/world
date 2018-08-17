@@ -698,6 +698,9 @@ public:
 	void AddForceFaceSpell(shared_ptr<LuaSpell> spell);
 	void RemoveForceFaceSpell(shared_ptr<LuaSpell> spell);
 	bool IsForceFaced();
+	void AddTauntSpell(shared_ptr<LuaSpell> spell);
+	void RemoveTauntSpell(shared_ptr<LuaSpell> spell);
+	bool IsTaunted();
 	void AddRootSpell(shared_ptr<LuaSpell> spell);
 	void RemoveRootSpell(shared_ptr<LuaSpell> spell);
 	bool IsRooted();

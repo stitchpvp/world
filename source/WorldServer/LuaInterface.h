@@ -70,6 +70,7 @@ struct OptionWindowOption {
 #define EFFECT_FLAG_STIFLE_IMMUNE 2097152
 #define EFFECT_FLAG_FEAR_IMMUNE 4194304
 #define EFFECT_FLAG_SAFEFALL 8388608
+#define EFFECT_FLAG_TAUNT 33554432
 
 struct LuaSpell{
 	Entity*			caster;

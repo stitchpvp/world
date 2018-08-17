@@ -804,6 +804,10 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		}
 		player->GetDetrimentMutex()->releasereadlock(__FUNCTION__, __LINE__);
 
+		if (player->IsTaunted()) {
+			packet->setDataByName("unknown_flags", 128);
+		}
+
 		string* data = packet->serializeString();
 		int32 size = data->length();
 		//packet->PrintPacket();

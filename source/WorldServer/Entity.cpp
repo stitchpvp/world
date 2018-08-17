@@ -1283,13 +1283,35 @@ void Entity::AddForceFaceSpell(shared_ptr<LuaSpell> spell) {
 }
 
 void Entity::RemoveForceFaceSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
+	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE];
 
 	if (!force_face_list || !force_face_list->size(true)) {
 		return;
 	}
 
 	force_face_list->Remove(spell);
+}
+
+void Entity::AddTauntSpell(shared_ptr<LuaSpell> spell) {
+    if (!spell) {
+        return;
+    }
+
+    if (!control_effects[CONTROL_EFFECT_TYPE_TAUNT]) {
+        control_effects[CONTROL_EFFECT_TYPE_TAUNT] = new MutexList<shared_ptr<LuaSpell>>;
+    }
+
+    control_effects[CONTROL_EFFECT_TYPE_TAUNT]->Add(spell);
+}
+
+void Entity::RemoveTauntSpell(shared_ptr<LuaSpell> spell) {
+    MutexList<shared_ptr<LuaSpell>>* taunt_list = control_effects[CONTROL_EFFECT_TYPE_TAUNT];
+
+    if (!taunt_list || !taunt_list->size(true)) {
+        return;
+    }
+
+    taunt_list->Remove(spell);
 }
 
 void Entity::ApplyControlEffects() {
@@ -2234,6 +2256,11 @@ bool Entity::IsForceFaced() {
 	return (force_face_list && !force_face_list->size(true));
 }
 
+bool Entity::IsTaunted() {
+	MutexList<shared_ptr<LuaSpell>>* taunt_list = control_effects[CONTROL_EFFECT_TYPE_TAUNT];
+	return (taunt_list && !taunt_list->size(true));
+}
+
 bool Entity::IsRooted(){
 	MutexList<shared_ptr<LuaSpell>>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
 	return (root_list && root_list->size(true) > 0);
@@ -2472,6 +2499,10 @@ void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
 	if (effect_bitmask & EFFECT_FLAG_FORCE_FACE) {
 		RemoveForceFaceSpell(spell);
 		ApplyControlEffects();
+	}
+
+	if (effect_bitmask & EFFECT_FLAG_TAUNT) {
+		RemoveTauntSpell(spell);
 	}
 
 	if (effect_bitmask & EFFECT_FLAG_ROOT) {
