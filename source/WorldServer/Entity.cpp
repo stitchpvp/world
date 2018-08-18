@@ -2253,12 +2253,12 @@ bool Entity::IsStunned(){
 
 bool Entity::IsForceFaced() {
 	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE];
-	return (force_face_list && !force_face_list->size(true));
+	return (force_face_list && force_face_list->size(true) > 0);
 }
 
 bool Entity::IsTaunted() {
 	MutexList<shared_ptr<LuaSpell>>* taunt_list = control_effects[CONTROL_EFFECT_TYPE_TAUNT];
-	return (taunt_list && !taunt_list->size(true));
+	return (taunt_list && taunt_list->size(true) > 0);
 }
 
 bool Entity::IsRooted(){

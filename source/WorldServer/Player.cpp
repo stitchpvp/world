@@ -806,6 +806,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 
 		if (player->IsTaunted()) {
 			packet->setDataByName("unknown_flags", 128);
+		} else {
+			packet->setDataByName("unknown_flags", 0);
 		}
 
 		string* data = packet->serializeString();
