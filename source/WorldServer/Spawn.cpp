@@ -473,6 +473,19 @@ uchar* Spawn::spawn_info_changes(Player* player, int16 version){
  		Encode(xor_info_packet, orig_packet, size);
 	}
 
+	bool changed = false;
+	for (int i = 0; i < size; ++i) {
+		if (xor_info_packet[i]) {
+			changed = true;
+			break;
+		}
+	}
+
+	if (!changed) {
+		player->info_mutex.releasewritelock(__FUNCTION__, __LINE__);
+		return nullptr;
+	}
+
 	uchar* tmp = new uchar[size + 10];
 	size = Pack(tmp, xor_info_packet, size, size, version);
 
@@ -518,6 +531,19 @@ uchar* Spawn::spawn_vis_changes(Player* player, int16 version){
 	if (orig_packet) {
 		memcpy(xor_vis_packet, (uchar*)data->c_str(), size);
 		Encode(xor_vis_packet, orig_packet, size);
+	}
+
+	bool changed = false;
+	for (int i = 0; i < size; ++i) {
+		if (xor_vis_packet[i]) {
+			changed = true;
+			break;
+		}
+	}
+
+	if (!changed) {
+		player->vis_mutex.releasewritelock(__FUNCTION__, __LINE__);
+		return nullptr;
 	}
 
 	uchar* tmp = new uchar[size + 10];
@@ -568,6 +594,19 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version){
 		Encode(xor_pos_packet, orig_packet, size);
 	}
 
+	bool changed = false;
+	for (int i = 0; i < size; ++i) {
+		if (xor_pos_packet[i]) {
+			changed = true;
+			break;
+		}
+	}
+
+	if (!changed) {
+		player->pos_mutex.releasewritelock(__FUNCTION__, __LINE__);
+		return nullptr;
+	}
+
 	uchar* tmp = new uchar[size + 10];
 
 	size = Pack(tmp, xor_pos_packet, size, size, version);
@@ -596,19 +635,19 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version){
 	// extra byte in coe+ clients, 0 for NPC's 1 for Players
 	int8 x = 0;
 
-	if (IsPlayer()) {
-		if (version >= 1188) {
+	if (version >= 1188) {
+	    if (IsPlayer()) {
 			x = 1;
 			memcpy(ptr, &x, sizeof(int8));
 			ptr += sizeof(int8);
-		}
 
-		int32 now = Timer::GetCurrentTime2();
-		memcpy(ptr, &now, sizeof(int32));
-		ptr += sizeof(int32);
-	} else if (version >= 1188) {
-		memcpy(ptr, &x, sizeof(int8));
-		ptr += sizeof(int8);
+			int32 now = Timer::GetCurrentTime2();
+			memcpy(ptr, &now, sizeof(int32));
+			ptr += sizeof(int32);
+	    } else {
+			memcpy(ptr, &x, sizeof(int8));
+			ptr += sizeof(int8);
+	    }
 	}
 
 	memcpy(ptr, tmp + sizeof(int32), orig_size - sizeof(int32));

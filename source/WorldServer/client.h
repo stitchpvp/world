@@ -404,7 +404,7 @@ private:
 	void	GiveQuestReward(Quest* quest);
 	void	SetStepComplete(int32 quest_id, int32 step);
 	void	AddStepProgress(int32 quest_id, int32 step, int32 progress);
-	void SendSpawnChanges(vector<Spawn*>& spawns);
+	void SendSpawnChanges(set<Spawn*>& spawns);
 
 	map<int32, map<int32, int32> > quest_pending_updates;
 	vector<QueuedQuest*> quest_queue;
@@ -492,7 +492,11 @@ private:
 	bool on_auto_mount;
 	bool EntityCommandPrecheck(Spawn* spawn, const char* command);
 
-	map<int32, shared_ptr<SpawnUpdate>> spawn_updates;
+	deque<int32> info_changes;
+	deque<int32> pos_changes;
+	deque<int32> vis_changes;
+
+	mutex update_mutex;
 };
 
 class ClientList {

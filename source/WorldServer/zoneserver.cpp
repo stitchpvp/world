@@ -256,7 +256,7 @@ void ZoneServer::Init()
 	sscanf (rule_manager.GetGlobalRule(R_World, DawnTime)->GetString(), "%d:%d", &dawn_hour, &dawn_minute);
 
 	player_pos_update.Start(125);
-	spawn_update.Start(rule_manager.GetGlobalRule(R_Zone, SpawnUpdateTimer)->GetInt16());
+	spawn_update.Start(100); //rule_manager.GetGlobalRule(R_Zone, SpawnUpdateTimer)->GetInt16());
 	spawn_pos_update.Start(200);
 
 	spawn_delete_timer = rule_manager.GetGlobalRule(R_Zone, SpawnDeleteTimer)->GetInt32();
@@ -1686,13 +1686,13 @@ bool ZoneServer::UpdateProcess() {
 			changed_spawns.clear();
 		}
 
-		if (player_pos_update.Check()) {
+		/*if (player_pos_update.Check()) {
 			SendSpawnChanges(true, true);
 		}
 
 		if (spawn_pos_update.Check()) {
 			SendSpawnChanges(true);
-		}
+		}*/
 
 		if (spawn_update.Check()) {
 			SendSpawnChanges();
@@ -1850,7 +1850,15 @@ void ZoneServer::ResendSpawns(const shared_ptr<Client>& client) {
 		lock_guard<mutex> guard(client_range_mutex_map[client]);
 
 		for (const auto& kv : *client_range) {
-			AddSpawnUpdate(kv.first, true, false, true, client);
+			Spawn* spawn = GetSpawnByID(kv.first);
+
+			if (spawn) {
+				sint8 npc_con = client->GetPlayer()->GetFactions()->GetCon(spawn->faction_id);
+
+				if (npc_con == -4) {
+					AddSpawnUpdate(kv.first, true, false, true, client);
+				}
+			}
 		}
 	}
 }
