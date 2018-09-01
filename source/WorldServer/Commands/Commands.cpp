@@ -8477,6 +8477,10 @@ void Commands::Command_Heal(const shared_ptr<Client>& client) {
 void Commands::Command_Target(const shared_ptr<Client>& client, Seperator* sep) {
 	const char* search_name = nullptr;
 
+	if (client->GetPlayer()->IsTaunted()) {
+		return;
+	}
+
 	if (sep && sep->IsSet(0)) {
 		search_name = sep->argplus[0];
 	}
@@ -8488,6 +8492,10 @@ void Commands::Command_Target(const shared_ptr<Client>& client, Seperator* sep) 
 
 void Commands::Command_Assist(const shared_ptr<Client>& client, Seperator* sep) {
 	const char* search_name = nullptr;
+
+	if (client->GetPlayer()->IsTaunted()) {
+		return;
+	}
 
 	if (sep && sep->IsSet(0)) {
 		search_name = sep->argplus[0];
