@@ -1311,7 +1311,6 @@ int EQ2Emu_lua_SetPosition(lua_State* state){
 				} else {
 					EQ2Packet* packet = client->GetPlayer()->Move(x, y, z, client->GetVersion(), (heading == 0 ? -1.0f : (heading + 180.0f)));
 					client->QueuePacket(packet);
-					safe_delete(packet);
 				}
 			}
 		}
