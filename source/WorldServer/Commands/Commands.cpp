@@ -8525,7 +8525,7 @@ void Commands::Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seper
 	if (sep && sep->IsNumber(0)) {
 		int type = atoi(sep->arg[0]);
 
-		if (type <= 3) {
+		if (type >= 0 && type <= 3) {
 			int8 current_type = client->GetPlayer()->GetAutoAttackMode();
 
 			if (current_type != type) {
