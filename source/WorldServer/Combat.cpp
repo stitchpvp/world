@@ -90,7 +90,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	Entity* attacker = this;
 	shared_ptr<Client> client = nullptr;
 
-	if (!target || IsMezzedOrStunned() || IsDazed()) {
+	if (!target || IsMezzedOrStunned() || IsDazed() || IsFeigned()) {
 		LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: no target, mezzed, stunned or dazed");
 		return false;
 	}
@@ -1188,8 +1188,9 @@ void NPC::ProcessCombat() {
 void Player::ProcessCombat() {
 	CheckEncounterList();
 
-	if (!EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
+	if (!EngagedInCombat() || IsCasting() || IsDazed() || IsFeared() || IsFeigned()) {
 		return;
+	}
 
 	//If no target delete combat_target and return out
 	Spawn* Target = GetZone()->GetSpawnByID(target);

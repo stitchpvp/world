@@ -7636,7 +7636,8 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 	if (sep->IsSet(1) && sep->IsNumber(1)) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
-	/*if (sep->IsSet(0) && sep->IsNumber(0)) {
+
+	if (sep->IsSet(0) && sep->IsNumber(0)) {
 		client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
 	}
 
@@ -7653,8 +7654,10 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 	}
 
 	if (sep->IsSet(4) && sep->IsNumber(4)) {
-		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
-	}*/
+		client->GetPlayer()->size_mod_unknown = atol(sep->arg[4]);
+	}
+
+	client->GetPlayer()->AddSpawnUpdate(true, false, false);
 
 	//if (sep->IsSet(0) && sep->IsNumber(0) && atoi(sep->arg[0]) == 1) {
 	//	shared_ptr<ActivityStatus> status(new ActivityStatus);
@@ -7668,13 +7671,13 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 	//	client->GetPlayer()->AddActivityStatus(status);
 	//}
 	
-	if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
+	/*if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
 		if (sep->IsSet(1) && sep->IsNumber(1)) {
 			client->GetPlayer()->GetTarget()->movement_unknown = atoi(sep->arg[1]);
 		}
 
 		client->GetPlayer()->GetTarget()->SetInitialState(atoi(sep->arg[0]));
-	}
+	}*/
 }
 
 void Commands::Command_LeaveChannel(const shared_ptr<Client>& client, Seperator *sep) {

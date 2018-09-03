@@ -1769,6 +1769,13 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_TAUNT)) {
 				luaspell->effect_bitmask += EFFECT_FLAG_TAUNT;
 			}
+		} else if (type == CONTROL_EFFECT_TYPE_FEIGNED) {
+			entity->AddFeignDeathSpell(luaspell);
+			entity->ApplyControlEffects();
+
+			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEIGNED)) {
+				luaspell->effect_bitmask += EFFECT_FLAG_FEIGNED;
+			}
 		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
 			entity->AddWaterwalkSpell(luaspell);
 
@@ -1845,6 +1852,9 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 			static_cast<Entity*>(spawn)->RemoveTauntSpell(luaspell);
 		} else if (type == CONTROL_EFFECT_TYPE_FORCE_FACE) {
 			static_cast<Entity*>(spawn)->RemoveForceFaceSpell(luaspell);
+			static_cast<Entity*>(spawn)->ApplyControlEffects();
+		} else if (type == CONTROL_EFFECT_TYPE_FEIGNED) {
+			static_cast<Entity*>(spawn)->RemoveFeignDeathSpell(luaspell);
 			static_cast<Entity*>(spawn)->ApplyControlEffects();
 		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER) {
 			static_cast<Entity*>(spawn)->RemoveWaterwalkSpell(luaspell);
@@ -3740,7 +3750,6 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_COMBAT);
 	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
 	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
-	static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
 
 	static_cast<Entity*>(spawn)->SetCombatPet(static_cast<Entity*>(pet));
 
@@ -3756,6 +3765,8 @@ int EQ2Emu_lua_SummonPet(lua_State* state) {
 	spawn->GetZone()->AddSpawn(pet);
 
 	pet->ScalePet();
+
+	static_cast<NPC*>(pet)->SetBrain(new CombatPetBrain(static_cast<NPC*>(pet)));
 
 	if (spawn->IsPlayer()) {
 		Player* player = static_cast<Player*>(spawn);
@@ -5235,29 +5246,39 @@ int EQ2Emu_lua_GetMostHated(lua_State* state){
 }
 
 int EQ2Emu_lua_ClearHate(lua_State* state){
-	if(!lua_interface)
+	if (!lua_interface) {
 		return 0;
+	}
+
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	Spawn* hated = lua_interface->GetSpawn(state, 2);
-	if(!spawn){
+
+	if (!spawn) {
 		lua_interface->LogError("LUA ClearHate command error: spawn is not valid");
 		return 0;
 	}
-	if(!spawn->IsNPC()){
-		lua_interface->LogError("LUA ClearHate command error: spawn is not NPC");
+
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("LUA ClearHate command error: spawn is not an entity");
 		return 0;
 	}
-	if(!hated){
-		static_cast<NPC*>(spawn)->Brain()->ClearHate();
+
+	if (!hated) {
+		if (spawn->IsPlayer()) {
+			spawn->GetZone()->ClearHate(static_cast<Player*>(spawn));
+		} else {
+			static_cast<NPC*>(spawn)->Brain()->ClearHate();
+		}
+
 		return 0;
-	}
-	else
-	{
-		if(!hated->IsEntity()){
+	} else {
+		if (!hated->IsEntity()) {
 			lua_interface->LogError("LUA ClearHate command error: second param is not entity");
 			return 0;
 		}
+
 		static_cast<NPC*>(spawn)->Brain()->ClearHate(static_cast<Entity*>(hated));
+
 		return 0;
 	}
 	return 0;
@@ -5915,9 +5936,8 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 	static_cast<NPC*>(pet)->SetPetType(PET_TYPE_DUMBFIRE);
 	static_cast<NPC*>(pet)->SetPetSpellID(luaspell->spell->GetSpellData()->id);
 	static_cast<NPC*>(pet)->SetPetSpellTier(luaspell->spell->GetSpellData()->tier);
-	static_cast<NPC*>(pet)->SetBrain(new DumbFirePetBrain(static_cast<NPC*>(pet), static_cast<Entity*>(target), luaspell->spell->GetSpellDuration() * 100));
-
 	static_cast<NPC*>(pet)->SetOwner(static_cast<Entity*>(spawn));
+
 	static_cast<Entity*>(spawn)->AddDumbfirePet(static_cast<Entity*>(pet));
 
 	if (strlen(pet->GetSubTitle()) > 0) {
@@ -5929,6 +5949,7 @@ int EQ2Emu_lua_SummonDumbFirePet(lua_State* state) {
 	spawn->GetZone()->AddSpawn(pet);
 
 	pet->ScalePet();
+	static_cast<NPC*>(pet)->SetBrain(new DumbFirePetBrain(static_cast<NPC*>(pet), static_cast<Entity*>(target), luaspell->spell->GetSpellDuration() * 100));
 	
 	lua_interface->SetSpawnValue(state, pet);
 
@@ -8563,6 +8584,20 @@ int EQ2Emu_lua_GetLastDamageTaken(lua_State* state) {
 	}
 
 	lua_interface->SetInt32Value(state, spawn->GetLastDamageTaken());
+
+	return 1;
+}
+
+int EQ2Emu_lua_SetIgnoredByMobs(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	bool value = lua_interface->GetBooleanValue(state, 2);
+
+	if (!spawn || !spawn->IsPlayer()) {
+		lua_interface->LogError("LUA SetIgnoredByMobs command error: spawn is not a player");
+		return 0;
+	}
+
+	static_cast<Player*>(spawn)->SetIgnoredByMobs(value);
 
 	return 1;
 }

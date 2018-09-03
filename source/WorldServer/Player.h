@@ -838,8 +838,11 @@ public:
 	int16 GetFame();
 	void SetFame(sint16 value);
 
-	void SetResendSpawns(bool val) { should_resend_spawns = val; return;  }
+	void SetResendSpawns(bool val) { should_resend_spawns = val; }
 	bool GetResendSpawns() { return should_resend_spawns; }
+
+	void SetIgnoredByMobs(bool val) { ignored_by_mobs = val; }
+	bool GetIgnoredByMobs() { return ignored_by_mobs; }
 
 	void AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked = true);
 	void RemoveFromEncounterList(int32 spawn_id);
@@ -861,7 +864,8 @@ public:
 private:
 	bool range_attack;
 	bool melee_attack;
-	bool pvp_immune = false;
+	bool pvp_immune;
+	bool ignored_by_mobs;
 	int16 last_movement_activity;
 	bool returning_from_ld;
 	PlayerGroup* group;

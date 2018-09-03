@@ -1329,7 +1329,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet){
 			}
 
 			packet->setDataByName("pos_size_ratio", 1);
-			packet->setDataByName("pos_size_multiplier_ratio", 1); // used for growth with players
+			packet->setDataByName("pos_size_multiplier_ratio", (size > 0 ? (static_cast<float>(size) / 32) : 1));
 		} else {
 			packet->setDataByName("pos_size_ratio", (size > 0 ? (static_cast<float>(size) / 32) : 1));
 			packet->setDataByName("pos_size_multiplier_ratio", 1);
