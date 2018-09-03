@@ -7827,25 +7827,87 @@ void Client::AddChangedSpawn(shared_ptr<SpawnUpdate> spawn_update) {
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_update->spawn_id);
 
 	if (spawn && GetPlayer()->WasSentSpawn(spawn_update->spawn_id) && !GetPlayer()->WasSpawnRemoved(spawn)) {
-		auto current_update = spawn_updates.find(spawn_update->spawn_id);
+		if (spawn == GetPlayer() && (!spawn_update->vis_changed && !spawn_update->info_changed)) {
+			return;
+		}
 
-		if (current_update != spawn_updates.end()) {
-			current_update->second->pos_changed |= spawn_update->pos_changed;
-			current_update->second->vis_changed |= spawn_update->vis_changed;
-			current_update->second->info_changed |= spawn_update->info_changed;
-		} else {
-			if (spawn == GetPlayer() && (!spawn_update->vis_changed && !spawn_update->info_changed)) {
-				return;
+		lock_guard<mutex> guard(update_mutex);
+
+		if (spawn_update->info_changed) {
+			bool has_update = false;
+
+			for (int32 spawn_id : info_changes) {
+				if (spawn_update->spawn_id == spawn_id) {
+					has_update = true;
+					break;
+				}
 			}
 
-			spawn_updates[spawn_update->spawn_id] = spawn_update;
+			if (!has_update) {
+				info_changes.push_back(spawn_update->spawn_id);
+			}
+		}
+
+		if (spawn_update->pos_changed) {
+			bool has_update = false;
+
+			for (int32 spawn_id : pos_changes) {
+				if (spawn_update->spawn_id == spawn_id) {
+					has_update = true;
+					break;
+				}
+			}
+
+			if (!has_update) {
+				pos_changes.push_back(spawn_update->spawn_id);
+			}
+		}
+
+		if (spawn_update->vis_changed) {
+			bool has_update = false;
+
+			for (int32 spawn_id : vis_changes) {
+				if (spawn_update->spawn_id == spawn_id) {
+					has_update = true;
+					break;
+				}
+			}
+
+			if (!has_update) {
+				vis_changes.push_back(spawn_update->spawn_id);
+			}
 		}
 	}
 }
 
 void Client::RemoveChangedSpawn(int32 spawn_id) {
-	if (spawn_updates.count(spawn_id) > 0) {
-		spawn_updates.erase(spawn_id);
+	lock_guard<mutex> guard(update_mutex);
+
+	for (auto itr = info_changes.begin(); itr != info_changes.end();) {
+		if (*itr == spawn_id) {
+			info_changes.erase(itr);
+			break;
+		} else {
+			++itr;
+		}
+	}
+
+	for (auto itr = pos_changes.begin(); itr != pos_changes.end();) {
+		if (*itr == spawn_id) {
+			pos_changes.erase(itr);
+			break;
+		} else {
+			++itr;
+		}
+	}
+
+	for (auto itr = vis_changes.begin(); itr != vis_changes.end();) {
+		if (*itr == spawn_id) {
+			vis_changes.erase(itr);
+			break;
+		} else {
+			++itr;
+		}
 	}
 }
 
@@ -7854,65 +7916,66 @@ void Client::SendSpawnChanges(bool only_pos_changes, bool only_players) {
 		return;
 	}
 
-	vector<Spawn*> spawns_to_send;
-	vector<shared_ptr<SpawnUpdate>> updates_to_keep;
-	int total_changes = 0;
+	int8 max_info = 1;
+	int8 max_pos = 10;
+	int8 max_vis = 1;
 
-	for (const auto& kv : spawn_updates) {
-		shared_ptr<SpawnUpdate> spawn_update = kv.second;
+	int8 cur_info = 0;
+	int8 cur_pos = 0;
+	int8 cur_vis = 0;
 
-		Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_update->spawn_id);
+	set<Spawn*> spawns_to_send;
 
-		if (spawn && (!only_players || spawn->IsPlayer())) {
-			if (!only_pos_changes || spawn_update->pos_changed) {
-				spawn->position_changed = spawn_update->pos_changed;
-				spawn->info_changed = spawn_update->info_changed;
-				spawn->vis_changed = spawn_update->vis_changed;
+	lock_guard<mutex> guard(update_mutex);
 
-				if (spawn->position_changed) {
-					++total_changes;
-				}
+	while (!info_changes.empty() && cur_info < max_info) {
+		int32 spawn_id = info_changes.front();
 
-				if (spawn->info_changed) {
-					++total_changes;
-				}
+		Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
 
-				if (spawn->vis_changed) {
-					++total_changes;
-				}
-
-				if (total_changes < 5) {
-					spawns_to_send.push_back(spawn);
-				} else {
-					updates_to_keep.push_back(spawn_update);
-				}
-			} else {
-				updates_to_keep.push_back(spawn_update);
-			}
-
-			if (total_changes >= 5) {
-				SendSpawnChanges(spawns_to_send);
-
-				spawns_to_send.clear();
-				total_changes = 0;
-			}
-		} else if (spawn) {
-			updates_to_keep.push_back(spawn_update);
+		if (spawn) {
+			spawn->info_changed = true;
+			spawns_to_send.insert(spawn);
+			++cur_info;
 		}
+
+		info_changes.pop_front();
 	}
 
-	spawn_updates.clear();
+	while (!pos_changes.empty() && cur_pos < max_pos) {
+		int32 spawn_id = pos_changes.front();
+
+		Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
+
+		if (spawn) {
+			spawn->position_changed = true;
+			spawns_to_send.insert(spawn);
+			++cur_pos;
+		}
+
+		pos_changes.pop_front();
+	}
+
+	while (!vis_changes.empty() && cur_vis < max_vis) {
+		int32 spawn_id = vis_changes.front();
+
+		Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
+
+		if (spawn) {
+			spawn->vis_changed = true;
+			spawns_to_send.insert(spawn);
+			++cur_vis;
+		}
+
+		vis_changes.pop_front();
+	}
 
 	if (spawns_to_send.size() > 0) {
 		SendSpawnChanges(spawns_to_send);
 	}
-
-	for (const auto update : updates_to_keep) {
-		spawn_updates[update->spawn_id] = update;
-	}
 }
 
-void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
+void Client::SendSpawnChanges(set<Spawn*>& spawns) {
 	map<int32, SpawnData> info_changes;
 	map<int32, SpawnData> pos_changes;
 	map<int32, SpawnData> vis_changes;
@@ -7976,9 +8039,11 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
 	}
 
 	static const int8 oversized = 255;
-	static const uchar null_byte = 0;
 	int16 opcode_val = EQOpcodeManager[GetOpcodeVersion(version)]->EmuToEQ(OP_EqUpdateGhostCmd);
-	int32 size = info_size + pos_size + vis_size + 14;
+	int32 size = info_size + pos_size + vis_size + 11;
+	size += CheckOverLoadSize(info_size);
+	size += CheckOverLoadSize(pos_size);
+	size += CheckOverLoadSize(vis_size);
 	uchar* tmp = new uchar[size];
 	uchar* ptr = tmp;
 
@@ -7999,8 +8064,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
 	memcpy(ptr, &current_time, sizeof(int32));
 	ptr += sizeof(int32);
 
-	memcpy(ptr, &info_size, sizeof(int8));
-	ptr += sizeof(int8);
+	ptr += DoOverLoad(info_size, ptr);
 
 	for (const auto& kv : info_changes) {
 		auto info = kv.second;
@@ -8008,8 +8072,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
 		ptr += info.size;
 	}
 
-	memcpy(ptr, &pos_size, sizeof(int8));
-	ptr += sizeof(int8);
+	ptr += DoOverLoad(pos_size, ptr);
 
 	for (const auto& kv : pos_changes) {
 		auto pos = kv.second;
@@ -8017,8 +8080,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
 		ptr += pos.size;
 	}
 
-	memcpy(ptr, &vis_size, sizeof(int8));
-	ptr += sizeof(int8);
+	ptr += DoOverLoad(vis_size, ptr);
 
 	for (const auto& kv : vis_changes) {
 		auto vis = kv.second;
