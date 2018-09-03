@@ -5183,11 +5183,10 @@ void Client::BuyBack(int32 item_id, int8 quantity){
 
 }
 
-void Client::BuyItem(int32 item_id, int8 quantity){
-	// Get the merchant we are buying from
+void Client::BuyItem(int32 item_id, int8 quantity) {
 	Spawn* spawn = GetMerchantTransaction();
-	// Make sure the spawn has a merchant list
-	if(spawn && spawn->GetMerchantID() > 0){
+
+	if (spawn && spawn->GetMerchantID() > 0) {
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
 		Item* master_item = master_item_list.GetItem(item_id);
 
@@ -5203,7 +5202,7 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 			}
 		}
 
-		if(master_item && ItemInfo){
+		if (master_item && ItemInfo) {
 			int32 sell_price = 0;
 			int16 total_available = 0;
 
@@ -5211,21 +5210,29 @@ void Client::BuyItem(int32 item_id, int8 quantity){
 				quantity = 1;
 				total_available = 0xFFFF;
 				sell_price = master_item->sell_price;
-			}
-			else {
+			} else {
 				total_available = world.GetMerchantItemQuantity(spawn->GetMerchantID(), item_id);
 				sell_price = (int32)(master_item->sell_price * multiplier);
-				if(quantity > total_available)
+
+				if (quantity > total_available) {
 					quantity = total_available;
+				}
 			}
+
 			int32 total_buy_price = sell_price * quantity;
+
+			if (master_item->CheckFlag(LORE) && player->HasItem(master_item->details.item_id, true)) {
+				SimpleMessage(CHANNEL_COLOR_WHITE, "You already own this item and cannot have another.");
+				return;
+			}
+
 			Item* item = new Item(master_item);
 			item->details.count = quantity;
-			if(!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item)){
+
+			if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item)) {
 				SimpleMessage(CHANNEL_COLOR_RED, "You do not have any slots available for this item.");
 				safe_delete(item);
-			}
-			else {
+			} else {
 				// Price not set in the merchant_inventory table, use the old method
 				if (ItemInfo->price_item_id == 0 && ItemInfo->price_item2_id == 0 && ItemInfo->price_status == 0 && ItemInfo->price_stationcash == 0 && ItemInfo->price_coins == 0) {
 					if(player->RemoveCoins(total_buy_price)){
