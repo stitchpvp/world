@@ -1475,7 +1475,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 	if (spell->spell->ShouldCancelStealth() && (spell->caster->IsInvis() || spell->caster->IsStealthed()))
 		spell->caster->CancelAllStealth(spell);
 
-	if (!spell->spell->GetSpellData()->friendly_spell) {
+	if (!spell->spell->GetSpellData()->friendly_spell && living_target) {
 		if (spell->caster->IsPlayer()) {
 			static_cast<Player*>(spell->caster)->InCombat(true);
 
