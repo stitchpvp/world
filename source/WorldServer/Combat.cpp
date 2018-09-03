@@ -243,8 +243,12 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		((NPC*)victim)->AddHate(this, 50);
 	}
 
-	if (IsPlayer() && victim->IsPlayer()) {
-		PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
+	if (victim->IsPlayer() && victim->Alive()) {
+		if (IsPlayer()) {
+			PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
+		} else if (IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
+			PVP::HandlePlayerEncounter(static_cast<Player*>(static_cast<NPC*>(this)->GetOwner()), static_cast<Player*>(victim), true);
+		}
 	}
 
 	if (victim->IsEntity() && victim->Alive() && ((Entity*)victim)->HasPet()) {
@@ -326,8 +330,12 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 				((NPC*)victim)->AddHate(this, 50);
 			}
 
-			if (IsPlayer() && victim->IsPlayer()) {
-				PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
+			if (victim->IsPlayer() && victim->Alive()) {
+				if (IsPlayer()) {
+					PVP::HandlePlayerEncounter(static_cast<Player*>(this), static_cast<Player*>(victim), true);
+				} else if (IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
+					PVP::HandlePlayerEncounter(static_cast<Player*>(static_cast<NPC*>(this)->GetOwner()), static_cast<Player*>(victim), true);
+				}
 			}
 
 			if (victim->IsEntity() && victim->Alive() && ((Entity*)victim)->HasPet()) {

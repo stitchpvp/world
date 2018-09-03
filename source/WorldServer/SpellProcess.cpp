@@ -1386,9 +1386,14 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 					if (!living_target && target->Alive())
 						living_target = true;
 
-					if (spell->caster->IsPlayer() && target->IsPlayer() && living_target)
-						PVP::HandlePlayerEncounter(static_cast<Player*>(spell->caster), static_cast<Player*>(target), !spell->spell->GetSpellData()->friendly_spell);
-						
+					if (target->IsPlayer() && target->Alive()) {
+						if (spell->caster->IsPlayer()) {
+							PVP::HandlePlayerEncounter(static_cast<Player*>(spell->caster), static_cast<Player*>(target), true);
+						} else if (spell->caster->IsPet() && static_cast<NPC*>(spell->caster)->GetOwner() && static_cast<NPC*>(spell->caster)->GetOwner()->IsPlayer()) {
+							PVP::HandlePlayerEncounter(static_cast<Player*>(static_cast<NPC*>(spell->caster)->GetOwner()), static_cast<Player*>(target), true);
+						}
+					}
+
 					if (spell->spell->GetSpellData()->success_message.length() > 0) {
 						if (client) {
 							string success_message = spell->spell->GetSpellData()->success_message;
