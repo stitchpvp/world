@@ -1043,7 +1043,7 @@ bool Entity::CheckSpellBonusRemoval(shared_ptr<LuaSpell> spell, int16 type){
 }
 
 void Entity::AddSpellBonus(shared_ptr<LuaSpell> spell, int16 type, sint32 value, int64 class_req) {
-	//CheckSpellBonusRemoval(spell, type);
+	CheckSpellBonusRemoval(spell, type);
 
 	BonusValues* bonus = new BonusValues;
 	bonus->luaspell = spell;

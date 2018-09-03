@@ -190,9 +190,9 @@ public:
 		string name2 = string(name).append(tmp);
 		setData(findStruct(name2.c_str(), index2, index3), data, index3);
 	}
-	template<class Data> void setArrayDataByName(const char* name, Data data, int32 index1 = 0, int32 index2 = 0, bool use_second_type = false){
+	template<class Data> void setArrayDataByName(const char* name, Data data, sint32 index1 = 0, int32 index2 = 0, bool use_second_type = false){
 		char tmp[10] = {0};
-		sprintf(tmp,"_%u",index1);
+		sprintf(tmp,"_%d",index1);
 		string name2 = string(name).append(tmp);
 		setData(findStruct(name2.c_str(), index1, index2), data, index2, use_second_type);
 	}
