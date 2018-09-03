@@ -454,6 +454,7 @@ public:
 	int32  GetStepProgress(int32 quest_id, int32 step_id);
 	bool AddItem(Item* item);
 	bool HasItem(int32 item_id, bool include_bank = false);
+	bool HasEquippedItem(int32 item_id);
 	int16 GetSpellSlotMappingCount();
 	int16 GetSpellPacketCount();
 	Quest* GetQuest(int32 quest_id);

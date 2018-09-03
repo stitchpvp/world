@@ -1231,27 +1231,45 @@ EQ2Packet* Player::SwapEquippedItems(int8 slot1, int8 slot2, int16 version){
 bool Player::CanEquipItem(Item* item) {
 	if (item) {
 		shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
 		if (client) {
 			if (item->IsArmor() || item->IsWeapon() || item->IsFood() || item->IsRanged() || item->IsShield() || item->IsBauble() || item->IsAmmo() || item->IsThrown()) {
-				if ((item->generic_info.skill_req1 == 0 || item->generic_info.skill_req1 == 0xFFFFFFFF || skill_list.HasSkill(item->generic_info.skill_req1)) && (item->generic_info.skill_req2 == 0 || item->generic_info.skill_req2 == 0xFFFFFFFF || skill_list.HasSkill(item->generic_info.skill_req2))) {
-					int16 override_level = item->GetOverrideLevel(GetAdventureClass(), GetTradeskillClass());
-					if (override_level > 0 && override_level <= GetLevel())
-						return true;
-					if (item->CheckClass(GetAdventureClass(), GetTradeskillClass()))
-						if (item->CheckLevel(GetAdventureClass(), GetTradeskillClass(), GetLevel()))
-							return true;
-						else
-							client->Message(CHANNEL_COLOR_RED, "You must be at least level %u to equip \\aITEM %u 0:%s\\/a.", item->generic_info.adventure_default_level, item->details.item_id, item->name.c_str());
-					else
-						client->Message(CHANNEL_COLOR_RED, "Your class may not equip \\aITEM %u 0:%s\\/a.", item->details.item_id, item->name.c_str());
+				if (!item->CheckLevel(GetAdventureClass(), GetTradeskillClass(), GetLevel())) {
+					client->Message(CHANNEL_COLOR_RED, "You must be at least level %u to equip \\aITEM %u 0:%s\\/a.", item->generic_info.adventure_default_level, item->details.item_id, item->name.c_str());
+					return false;
 				}
-				else
-					client->SimpleMessage(0, "You lack the skill required to equip this item.");
-			}
-			else
+
+				if (!item->CheckClass(GetAdventureClass(), GetTradeskillClass())) {
+					client->Message(CHANNEL_COLOR_RED, "Your class may not equip \\aITEM %u 0:%s\\/a.", item->details.item_id, item->name.c_str());
+					return false;
+				}
+
+				int16 override_level = item->GetOverrideLevel(GetAdventureClass(), GetTradeskillClass());
+
+				if (!override_level || override_level > GetLevel()) {
+					if ((item->generic_info.skill_req1 != 0 && item->generic_info.skill_req1 != 0xFFFFFFFF) && !skill_list.HasSkill(item->generic_info.skill_req1)) {
+						client->SimpleMessage(0, "You lack the skill required to equip this item.");
+						return false;
+					}
+
+					if ((item->generic_info.skill_req2 != 0 && item->generic_info.skill_req2 != 0xFFFFFFFF) && !skill_list.HasSkill(item->generic_info.skill_req2)) {
+						client->SimpleMessage(0, "You lack the skill required to equip this item.");
+						return false;
+					}
+				}
+
+				if ((item->CheckFlag(LORE) || item->CheckFlag(LORE_EQUIP)) && HasEquippedItem(item->details.item_id)) {
+					client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot equip two of the same LORE-EQUIP items.");
+					return false;
+				}
+
+				return true;
+			} else {
 				client->Message(0, "Item %s isn't equipable.", item->name.c_str());
+			}
 		}
 	}
+
 	return false;
 }
 
@@ -1370,7 +1388,11 @@ bool Player::AddItem(Item* item) {
 }
 
 bool Player::HasItem(int32 item_id, bool include_bank) {
-	return item_list.HasItem(item_id, include_bank) || GetEquipmentList()->HasItem(item_id);
+	return item_list.HasItem(item_id, include_bank) || HasEquippedItem(item_id);
+}
+
+bool Player::HasEquippedItem(int32 item_id) {
+	return GetEquipmentList()->HasItem(item_id);
 }
 
 EQ2Packet* Player::SendInventoryUpdate(int16 version) {
