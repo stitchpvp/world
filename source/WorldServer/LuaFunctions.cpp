@@ -919,14 +919,14 @@ int EQ2Emu_lua_HasItem(lua_State* state) {
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 item_id = lua_interface->GetInt32Value(state, 2);
 	bool include_bank = lua_interface->GetInt8Value(state, 3);
+
 	if (player && player->IsPlayer()) {
-		bool hasItem = static_cast<Player*>(player)->item_list.HasItem(item_id, include_bank);
-		if (!hasItem)
-			hasItem = static_cast<Player*>(player)->GetEquipmentList()->HasItem(item_id);
-		lua_interface->SetBooleanValue(state, hasItem);
+		lua_interface->SetBooleanValue(state, static_cast<Player*>(player)->HasItem(item_id, include_bank));
 		return 1;
 	}
+
 	lua_interface->SetBooleanValue(state, false);
+
 	return 1;
 }
 

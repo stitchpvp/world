@@ -7415,6 +7415,8 @@ void Commands::Command_TradeAddItem(const shared_ptr<Client>& client, Seperator*
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade NO-TRADE items.");
 			else if (result == 3)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade HEIRLOOM items.");
+			else if (result == 4)
+				client->SimpleMessage(CHANNEL_COLOR_WHITE, "Target already has this item and cannot have another.");
 			else if (result == 255)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Unknown error trying to add the item to the trade...");
 		}

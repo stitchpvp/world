@@ -4901,33 +4901,43 @@ bool Client::AddItem(int32 item_id, int8 quantity){
 	return false;
 }
 
-bool Client::AddItem(Item* item){
-	if(!item) {
+bool Client::AddItem(Item* item) {
+	if (!item) {
 			return false;
 	}
-	if(item->IsBag())
+
+	if (item->IsBag()) {
 		item->details.bag_id = item->details.unique_id;
-	if(player->AddItem(item)){
-		EQ2Packet* outapp = player->SendInventoryUpdate(GetVersion());
-		if(outapp){
-			QueuePacket(outapp);
-			//resend bag desc with new item name added	
-			outapp = player->SendBagUpdate(item->details.inv_slot_id, GetVersion());
-			if(outapp)
-				QueuePacket(outapp);
-			/*EQ2Packet* app = item->serialize(client->GetVersion(), false);
-			DumpPacket(app);
-			client->QueuePacket(app);
-			*/
-		}
-		CheckPlayerQuestsItemUpdate(item);
-		if(item->GetItemScript() && lua_interface)
-			lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player);
 	}
-	else{
+
+	if (item->CheckFlag(LORE) && player->HasItem(item->details.item_id, true)) {
+		SimpleMessage(CHANNEL_COLOR_WHITE, "You already own this item and cannot have another.");
+		safe_delete(item);
+		return false;
+	}
+
+	if (player->AddItem(item)) {
+		EQ2Packet* outapp = player->SendInventoryUpdate(GetVersion());
+
+		if (outapp) {
+			QueuePacket(outapp);
+
+			outapp = player->SendBagUpdate(item->details.inv_slot_id, GetVersion());
+
+			if (outapp) {
+				QueuePacket(outapp);
+			}
+		}
+
+		CheckPlayerQuestsItemUpdate(item);
+
+		if (item->GetItemScript() && lua_interface) {
+			lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player);
+		}
+	} else {
 		SimpleMessage(CHANNEL_COLOR_RED, "Could not find free slot to place item.");
 		safe_delete(item);
-			return false;
+		return false;
 	}
 
 	return true;

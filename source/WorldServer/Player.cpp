@@ -1356,20 +1356,27 @@ void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
 	}
 }
 
-bool Player::AddItem(Item* item){
-	if(item && item->details.item_id > 0){
-		if(item_list.AssignItemToFreeSlot(item)){
+bool Player::AddItem(Item* item) {
+	if (item && item->details.item_id > 0) {
+		if (item_list.AssignItemToFreeSlot(item)) {
 			item->save_needed = true;
 			return true;	
-		}
-		else if (item_list.AddOverflowItem(item))
+		} else if (item_list.AddOverflowItem(item)) {
 			return true;
+		}
 	}
+
 	return false;
 }
-EQ2Packet*	Player::SendInventoryUpdate(int16 version){
+
+bool Player::HasItem(int32 item_id, bool include_bank) {
+	return item_list.HasItem(item_id, include_bank) || GetEquipmentList()->HasItem(item_id);
+}
+
+EQ2Packet* Player::SendInventoryUpdate(int16 version) {
 	return item_list.serialize(this, version);
 }
+
 EQ2Packet* Player::MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 new_slot, int8 charges, int16 version){
 	Item* item = item_list.GetItemFromIndex(from_index);
 	int8 result = item_list.MoveItem(to_bag_id, from_index, new_slot, charges);

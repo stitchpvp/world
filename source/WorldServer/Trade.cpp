@@ -27,6 +27,7 @@ Trade::~Trade() {
 
 int8 Trade::AddItemToTrade(Entity* character, Item* item, int8 quantity, int8 slot) {
 	LogWrite(PLAYER__ERROR, 0, "Trade", "Player (%s) adding item (%u) to slot %u of the trade window", character->GetName(), item->details.item_id, slot);
+
 	if (slot == 255)
 		slot = GetNextFreeSlot(character);
 
@@ -64,6 +65,8 @@ int8 Trade::CheckItem(Entity* trader, Item* item, bool other_is_bot) {
 	map<int8, TradeItemInfo>* list = 0;
 	map<int8, TradeItemInfo>::iterator itr;
 
+	Entity* other = GetTradee(trader);
+
 	if (trader == trader1)
 		list = &trader1_items;
 	else if (trader == trader2)
@@ -85,6 +88,8 @@ int8 Trade::CheckItem(Entity* trader, Item* item, bool other_is_bot) {
 					ret = 2;
 				if (item->CheckFlag2(HEIRLOOM))
 					ret = 3;
+				if (item->CheckFlag(LORE) && other->IsPlayer() && static_cast<Player*>(other)->HasItem(item->details.item_id, true))
+					ret = 4;
 			}
 		}
 	}
