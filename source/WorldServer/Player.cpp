@@ -2593,13 +2593,8 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
 	encounter_list_mutex.lock();
 	if (encounter_list.count(spawn_id) > 0) {
 		HostileEntity* entity = encounter_list.at(spawn_id);
-
-		if (has_attacked) {
-			entity->last_activity = last_activity;
-
-			if (!entity->has_attacked)
-				entity->has_attacked = has_attacked;
-		}
+		entity->last_activity = last_activity;
+		entity->has_attacked = has_attacked;
 	} else {
 		HostileEntity* entity = new HostileEntity;
 		entity->last_activity = last_activity;
@@ -2609,8 +2604,9 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
 	}
 	encounter_list_mutex.unlock();
 
-	if (has_attacked)
+	if (has_attacked) {
 		InCombat(true);
+	}
 }
 
 void Player::RemoveFromEncounterList(int32 spawn_id) {

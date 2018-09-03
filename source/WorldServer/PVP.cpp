@@ -126,10 +126,21 @@ void PVP::HandleFameChange(Player* victim) {
 
 		for (const auto& kv : victim->encounter_list) {
 			Spawn* spawn = zone->GetSpawnByID(kv.first);
-			HostileEntity* hostile_entity = kv.second;
 
 			if (spawn->IsPlayer()) {
-				fame_recipients.push_back(static_cast<Player*>(spawn));
+				lock_guard<mutex> guard(static_cast<Player*>(spawn)->encounter_list_mutex);
+
+				for (const auto& kv : static_cast<Player*>(spawn)->encounter_list) {
+					if (kv.first == victim->GetID()) {
+						HostileEntity* hostile_entity = kv.second;
+
+						if (hostile_entity->has_attacked) {
+							fame_recipients.push_back(static_cast<Player*>(spawn));
+						}
+
+						break;
+					}
+				}
 			}
 		}
 	}

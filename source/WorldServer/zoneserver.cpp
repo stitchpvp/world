@@ -4044,8 +4044,6 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 		dead->SetInitialState(16512, false); // This will make aerial npc's fall after death
 		dead->SetSpawnType(1);
 
-		ClearHate(dead_entity);
-
 		if (dead->IsPlayer()) {
 			shared_ptr<Client> client = GetClientBySpawn(dead);
 
@@ -4071,6 +4069,8 @@ void ZoneServer::KillSpawn(Spawn* dead, Spawn* killer, bool send_packet, int8 da
 
 			static_cast<Player*>(dead)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_DEATHS, 1);
 		}
+
+		ClearHate(dead_entity);
 
 		if (dead->IsPet() && static_cast<NPC*>(dead)->GetOwner()) {
 			static_cast<NPC*>(dead)->GetOwner()->DismissPet(static_cast<NPC*>(dead), true);
