@@ -1480,12 +1480,25 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
 			static_cast<Player*>(spell->caster)->InCombat(true);
 
 			if (static_cast<Player*>(spell->caster)->GetTarget()) {
-				if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
+				int8 auto_attack_mode = static_cast<Player*>(spell->caster)->GetAutoAttackMode();
+
+				if (auto_attack_mode == 0) {
+					if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
+						static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
+						static_cast<Player*>(spell->caster)->SetRangeAttack(false);
+					} else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+						static_cast<Player*>(spell->caster)->SetRangeAttack(true);
+						static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+					}
+				} else if (auto_attack_mode == 1) {
 					static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
 					static_cast<Player*>(spell->caster)->SetRangeAttack(false);
-				} else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+				} else if (auto_attack_mode == 2) {
 					static_cast<Player*>(spell->caster)->SetRangeAttack(true);
 					static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+				} else if (auto_attack_mode == 3) {
+					static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+					static_cast<Player*>(spell->caster)->SetRangeAttack(false);
 				}
 			}
 		} else {

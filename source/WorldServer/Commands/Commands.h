@@ -482,6 +482,7 @@ public:
 	void Command_Target(const shared_ptr<Client>& client, Seperator* sep);
 	void Command_Assist(const shared_ptr<Client>& client, Seperator* sep);
 	void Command_Debug(const shared_ptr<Client>& client, Seperator* sep);
+	void Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seperator* sep);
 
 private:
 	RemoteCommands* remote_commands;
@@ -866,6 +867,8 @@ private:
 
 #define COMMAND_TARGET					315
 #define COMMAND_ASSIST					316
+
+#define COMMAND_SET_AUTO_ATTACK_MODE	317
 
 #define COMMAND_BOT						500
 #define COMMAND_BOT_CREATE				501

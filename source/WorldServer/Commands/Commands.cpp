@@ -3717,6 +3717,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		case COMMAND_TARGET				: { Command_Target(client, sep); break; }
 		case COMMAND_ASSIST				: { Command_Assist(client, sep); break; }
 		case COMMAND_DEBUG				: { Command_Debug(client, sep); break; }
+		case COMMAND_SET_AUTO_ATTACK_MODE: { Command_SetAutoAttackMode(client, sep); break; }
 
 		case COMMAND_BOT				: { Command_Bot(client, sep); break; }
 		case COMMAND_BOT_CREATE			: { Command_Bot_Create(client, sep); break; }
@@ -8516,6 +8517,21 @@ void Commands::Command_Debug(const shared_ptr<Client>& client, Seperator* sep) {
 		if (strncasecmp(action, "spawns", strlen(action)) == 0) {
 			client->debug_spawns ^= 1;
 			client->GetPlayer()->SetResendSpawns(true);
+		}
+	}
+}
+
+void Commands::Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seperator* sep) {
+	if (sep && sep->IsNumber(0)) {
+		int type = atoi(sep->arg[0]);
+
+		if (type <= 3) {
+			int8 current_type = client->GetPlayer()->GetAutoAttackMode();
+
+			if (current_type != type) {
+				client->GetPlayer()->SetAutoAttackMode(type);
+				client->GetPlayer()->SetCharSheetChanged(true);
+			}
 		}
 	}
 }

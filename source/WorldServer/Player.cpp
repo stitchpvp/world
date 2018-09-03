@@ -47,7 +47,7 @@ extern RuleManager rule_manager;
 extern MasterTitlesList master_titles_list;
 extern MasterLanguagesList master_languages_list;
 
-Player::Player() : ignored_by_mobs(false), pvp_immune(false) {
+Player::Player() : auto_attack_mode(0), ignored_by_mobs(false), pvp_immune(false) {
 	group = 0;
 	appearance.pos.grid_id = 0;
 	spawn_index = 0;
@@ -526,113 +526,42 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("unassigned_tradeskill_points", player->GetUnassignedTradeskillAA());
 		packet->setDataByName("total_tradeskill_prestige_points", player->GetTradeskillPrestigeAA());
 		packet->setDataByName("unassigned_tradeskill_prestige_points", player->GetUnassignedTradeskillPrestigeAA());
-		/*packet->setDataByName("unknown13", 201, 0);
-		packet->setDataByName("unknown13", 201, 1);
-		packet->setDataByName("unknown13", 234, 2);
-		packet->setDataByName("unknown13", 201, 3);
-		packet->setDataByName("unknown13", 214, 4);
-		packet->setDataByName("unknown13", 234, 5);
-		packet->setDataByName("unknown13", 234, 6);
-
-		packet->setDataByName("unknown14", 78);
-		*/
-
-		//packet->setDataByName("unknown23", 1, 146);
-
-		//packet->setDataByName("unknown24", 0xFF, 42);
-		//packet->setDataByName("unknown24", 0xFF, 46);
-
-		// unknown14c = percent aa exp to next level
 		packet->setDataByName("unknown14d", 100, 0);
 		packet->setDataByName("unknown20", 1084227584, 72);
-		//packet->setDataByName("unknown16", 0xFFFFFFFF, 4);
 		
 		packet->setDataByName("adventure_vitality", (int16)(player->GetXPVitality() *10));
-		//packet->setDataByName("unknown15b", 9911);
 		packet->setDataByName("xp_yellow_vitality_bar", info_struct->xp_yellow_vitality_bar);
 		packet->setDataByName("xp_blue_vitality_bar", info_struct->xp_blue_vitality_bar);
 		packet->setDataByName("tradeskill_vitality", 100);
+
 		packet->setDataByName("unknown15c", 200);
 
-		//packet->setDataByName("unknown15", 100, 10);
 		packet->setDataByName("breath", 30);
 		packet->setDataByName("unknown18", 16880);
-		/*packet->setDataByName("unknown19", 1);
-		packet->setDataByName("unknown19", 3, 1);
-		packet->setDataByName("unknown19", 1074301064, 2);
-		packet->setDataByName("unknown19", 1, 3);
-		packet->setDataByName("unknown19", 3, 4);
-		packet->setDataByName("unknown19", 1074301064, 5);
-		packet->setDataByName("unknown19", 6, 6);
-		packet->setDataByName("unknown19", 14, 7);
-		packet->setDataByName("unknown19", 1083179008, 8);*/
-		player->SetGroupInformation(packet);
-		//packet->setDataByName("unknown20", 1, 107);
-		//packet->setDataByName("unknown20", 1, 108);
-		//packet->setDataByName("unknown20", 1, 109);
-		//packet->setDataByName("unknown20", 1, 110);
-		//packet->setDataByName("unknown20", 1, 111);
-		//packet->setDataByName("unknown20b", 255);
-		//packet->setDataByName("unknown20b", 255, 1);
-		//packet->setDataByName("unknown20b", 255, 2);
-		//packet->setDataByName("in_combat", 32768);	
-		//make name flash red
-		/*packet->setDataByName("unknown20", 8);
-		packet->setDataByName("unknown20", 38, 70);
-		packet->setDataByName("unknown20", 17, 77);
-		packet->setDataByName("unknown20", 1, 112); //melee stats and such
-		packet->setDataByName("unknown20", 1, 113);
-		packet->setDataByName("unknown20", 1, 114);
-		packet->setDataByName("unknown20", 1, 115);
 
-		packet->setDataByName("unknown20", 4294967295, 309);
-		packet->setDataByName("unknown22", 2, 4);
-		packet->setDataByName("unknown23", 2, 29);
-		*/
-	//packet->setDataByName("unknown20b", 1, i); // pet bar in here
-	//	for(int i=0;i<19;i++)
-	//		packet->setDataByName("unknown7", 257, i);
-		//packet->setDataByName("unknown21", info_struct->rain, 2);
+		player->SetGroupInformation(packet);
+
 		packet->setDataByName("rain", info_struct->rain);
 		packet->setDataByName("rain2", info_struct->wind); //-102.24);
-		/*packet->setDataByName("unknown22", 3, 4);
-		packet->setDataByName("unknown23", 3, 161);
-		packet->setDataByName("unknown20", 103);
-		packet->setDataByName("unknown20", 1280, 70);
-		packet->setDataByName("unknown20", 9, 71);
-		packet->setDataByName("unknown20", 5, 72);
-		packet->setDataByName("unknown20", 4294967271, 73);
-		packet->setDataByName("unknown20", 5, 75);
-		packet->setDataByName("unknown20", 1051, 77);
-		packet->setDataByName("unknown20", 3, 78);
-		packet->setDataByName("unknown20", 6, 104);
-		packet->setDataByName("unknown20", 1, 105);
-		packet->setDataByName("unknown20", 20, 106);
-		packet->setDataByName("unknown20", 3, 107);
-		packet->setDataByName("unknown20", 1, 108);
-		packet->setDataByName("unknown20", 1, 109);
-		packet->setDataByName("unknown20", 4278190080, 494);
-		packet->setDataByName("unknown20b", 255);
-		packet->setDataByName("unknown20b", 255, 1);
-		packet->setDataByName("unknown20b", 255, 2);
-		packet->setDataByName("unknown20", 50, 75);
-		*/
+
+		packet->setDataByName("auto_attack_mode", player->GetAutoAttackMode());
 		packet->setDataByName("melee_pri_dmg_min", player->GetPrimaryWeaponMinDamage());
 		packet->setDataByName("melee_pri_dmg_max", player->GetPrimaryWeaponMaxDamage());
 		packet->setDataByName("melee_sec_dmg_min", player->GetSecondaryWeaponMinDamage());
 		packet->setDataByName("melee_sec_dmg_max", player->GetSecondaryWeaponMaxDamage());
 		packet->setDataByName("ranged_dmg_min", player->GetRangedWeaponMinDamage());
 		packet->setDataByName("ranged_dmg_max", player->GetRangedWeaponMaxDamage());
-		if(info_struct->attackspeed > 0){
+
+		if (info_struct->attackspeed > 0) {
 			packet->setDataByName("melee_pri_delay", (((float)player->GetPrimaryWeaponDelay() * 1.33) / player->CalculateAttackSpeedMod()) * .001);
 			packet->setDataByName("melee_sec_delay", (((float)player->GetSecondaryWeaponDelay() * 1.33) / player->CalculateAttackSpeedMod()) *.001);
 			packet->setDataByName("ranged_delay", (((float)player->GetRangeWeaponDelay() * 1.33) / player->CalculateAttackSpeedMod()) *.001);
-		}
-		else{
+		} else {
 			packet->setDataByName("melee_pri_delay", (float)player->GetPrimaryWeaponDelay() * .001);
 			packet->setDataByName("melee_sec_delay", (float)player->GetSecondaryWeaponDelay() * .001);
 			packet->setDataByName("ranged_delay", (float)player->GetRangeWeaponDelay() * .001);
 		}
+
 		packet->setDataByName("crit_success_mod", 9.5);
 
 		if (version >= 1193) {
@@ -682,8 +611,6 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("ex_progress_mod", player->stats[ITEM_STAT_EX_PROGRESS_MOD]);
 		packet->setDataByName("ex_progress_add", player->stats[ITEM_STAT_EX_PROGRESS_ADD]);
 		packet->setDataByName("ex_success_mod", player->stats[ITEM_STAT_EX_SUCCESS_MOD]);
-
-
 
 		packet->setDataByName("vision", info_struct->vision);
 		packet->setDataByName("breathe_underwater", info_struct->breathe_underwater);
@@ -2745,12 +2672,23 @@ void Player::set_character_flag(int flag){
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flag: %u", flag);
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flags before: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 
-	if (flag > CF_MAXIMUM_FLAG) return;
-	if (flag < 32) GetInfoStruct()->flags |= (1 << flag);
-	else GetInfoStruct()->flags2 |= (1 << (flag - 32));
+	if (flag > CF_MAXIMUM_FLAG) {
+		return;
+	}
 
-	SetCharSheetChanged(true);
-	AddSpawnUpdate(true, false, false);
+	int prev_flags = GetInfoStruct()->flags;
+	int prev_flags2 = GetInfoStruct()->flags2;
+
+	if (flag < 32) {
+		GetInfoStruct()->flags |= (1 << flag);
+	} else {
+		GetInfoStruct()->flags2 |= (1 << (flag - 32));
+	}
+
+	if (GetInfoStruct()->flags != prev_flags || GetInfoStruct()->flags2 != prev_flags2) {
+		SetCharSheetChanged(true);
+		AddSpawnUpdate(true, false, false);
+	}
 
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flags after: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 }
@@ -2759,12 +2697,23 @@ void Player::reset_character_flag(int flag){
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flag: %u", flag);
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flags before: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 
-	if (flag > CF_MAXIMUM_FLAG) return;
-	if (flag < 32) GetInfoStruct()->flags &= ~(1 << flag);
-	else GetInfoStruct()->flags2 &= ~(1 << (flag - 32));
+	if (flag > CF_MAXIMUM_FLAG) {
+		return;
+	}
 
-	SetCharSheetChanged(true);
-	AddSpawnUpdate(true, false, false);
+	int prev_flags = GetInfoStruct()->flags;
+	int prev_flags2 = GetInfoStruct()->flags2;
+
+	if (flag < 32) {
+		GetInfoStruct()->flags &= ~(1 << flag);
+	} else {
+		GetInfoStruct()->flags2 &= ~(1 << (flag - 32));
+	}
+
+	if (GetInfoStruct()->flags != prev_flags || GetInfoStruct()->flags2 != prev_flags2) {
+		SetCharSheetChanged(true);
+		AddSpawnUpdate(true, false, false);
+	}
 
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Flags after: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 }

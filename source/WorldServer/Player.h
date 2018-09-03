@@ -823,13 +823,6 @@ public:
 	void UpdateLUAHistory(int32 event_id, int32 value, int32 value2);
 	LUAHistory* GetLUAHistory(int32 event_id);
 
-
-
-
-
-
-
-
 	AppearanceData SavedApp;
 	CharFeatures SavedFeatures;
 	bool custNPC = false;
@@ -845,6 +838,9 @@ public:
 
 	void SetIgnoredByMobs(bool val) { ignored_by_mobs = val; }
 	bool GetIgnoredByMobs() { return ignored_by_mobs; }
+
+	void SetAutoAttackMode(int8 val) { auto_attack_mode = val; }
+	int8 GetAutoAttackMode() { return auto_attack_mode; }
 
 	void AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked = true);
 	void RemoveFromEncounterList(int32 spawn_id);
@@ -868,6 +864,7 @@ private:
 	bool melee_attack;
 	bool pvp_immune;
 	bool ignored_by_mobs;
+	int8 auto_attack_mode;
 	int16 last_movement_activity;
 	bool returning_from_ld;
 	PlayerGroup* group;

@@ -5285,7 +5285,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -6006,7 +6007,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -6732,7 +6734,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -7460,7 +7463,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -8189,7 +8193,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -8918,7 +8923,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -9647,7 +9653,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -10376,7 +10383,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -11105,7 +11113,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -11934,7 +11943,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -12763,7 +12773,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -13594,7 +13605,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -14426,7 +14438,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -15272,7 +15285,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -16133,7 +16147,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -16998,7 +17013,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
