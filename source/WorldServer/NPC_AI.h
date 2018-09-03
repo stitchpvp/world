@@ -109,6 +109,7 @@ public:
 	/// <summary>Checks to see if a player is in the encounter</summary>
 	/// <returns>True if the encounter list contains a player</returns>
 	bool PlayerInEncounter() { return m_playerInEncounter; }
+	void SetOverrideTarget(int32 spawn_id) { override_target = spawn_id; }
 
 	/* Helper functions*/
 
@@ -144,6 +145,8 @@ private:
 	Mutex					MEncounter;
 	//m_playerInEncounter = true if a player is added to the encounter
 	bool					m_playerInEncounter;
+
+	int32 override_target;
 };
 
 // Extension of the default brain for combat pets

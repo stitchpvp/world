@@ -1057,7 +1057,7 @@ void Entity::AddHate(Entity* attacker, sint32 hate, bool unprovoked) {
 	}
 
 	// If a players pet and protect self is off
-	if (IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer() && !(static_cast<Player*>(static_cast<NPC*>(this)->GetOwner())->GetInfoStruct()->pet_behavior & 2)) {
+	if (!unprovoked && IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer() && !(static_cast<Player*>(static_cast<NPC*>(this)->GetOwner())->GetInfoStruct()->pet_behavior & 2)) {
 		return;
 	}
 

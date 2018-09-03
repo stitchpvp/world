@@ -5899,11 +5899,10 @@ void Commands::Command_MOTD(const shared_ptr<Client>& client)
 	Dev		: 
 	Example	: /pet preserve_master
 */ 
-void Commands::Command_Pet(const shared_ptr<Client>& client, Seperator* sep)
-{
-	PrintSep(sep, "COMMAND_PET");
-	//LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Pet Commands");
-	//client->Message(CHANNEL_COLOR_YELLOW, "Pets are not yet implemented.");
+void Commands::Command_Pet(const shared_ptr<Client>& client, Seperator* sep) {
+	if (!sep) {
+		return;
+	}
 
 	if (strcmp(sep->arg[0], "hide") == 0) {
 		// doing /pet hide will toggle the hide status on all the pets that can be hidden
@@ -5976,22 +5975,26 @@ void Commands::Command_Pet(const shared_ptr<Client>& client, Seperator* sep)
 			((NPC*)client->GetPlayer()->GetCharmedPet())->Brain()->ClearHate();
 		client->GetPlayer()->GetInfoStruct()->pet_behavior = 0;
 		client->GetPlayer()->SetCharSheetChanged(true);
-	}
-	else if (strcmp(sep->arg[0], "attack") == 0) {
+	} else if (strcmp(sep->arg[0], "attack") == 0) {
 		if (client->GetPlayer()->HasTarget() && client->GetPlayer()->GetTarget()->IsEntity()) {
 			if (client->GetPlayer()->AttackAllowed((Entity*)client->GetPlayer()->GetTarget())){
 				client->Message(CHANNEL_COLOR_YELLOW, "You command your pet to attack your target.");
-				if (client->GetPlayer()->GetPet())
-					client->GetPlayer()->GetPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
-				if (client->GetPlayer()->GetCharmedPet())
-					client->GetPlayer()->GetCharmedPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
-			}
-			else
-				client->Message(CHANNEL_COLOR_YELLOW, "You can not attack that.");
-		}
-		else
-			client->Message(CHANNEL_COLOR_YELLOW, "You do not have a target.");
 
+				if (client->GetPlayer()->GetPet()) {
+					static_cast<NPC*>(client->GetPlayer()->GetPet())->Brain()->SetOverrideTarget(client->GetPlayer()->GetTarget()->GetID());
+					client->GetPlayer()->GetPet()->AddHate(static_cast<Entity*>(client->GetPlayer()->GetTarget()), 1, true);
+				}
+
+				if (client->GetPlayer()->GetCharmedPet()) {
+					static_cast<NPC*>(client->GetPlayer()->GetCharmedPet())->Brain()->SetOverrideTarget(client->GetPlayer()->GetTarget()->GetID());
+					client->GetPlayer()->GetCharmedPet()->AddHate(static_cast<Entity*>(client->GetPlayer()->GetTarget()), 1, true);
+				}
+			} else {
+				client->Message(CHANNEL_COLOR_YELLOW, "You can not attack that.");
+			}
+		} else {
+			client->Message(CHANNEL_COLOR_YELLOW, "You do not have a target.");
+		}
 	}
 	else if (strcmp(sep->arg[0], "getlost") == 0) {
 		client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetPet());

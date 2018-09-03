@@ -31,7 +31,7 @@ extern World world;
 
 /*  The NEW AI code  */
 
-Brain::Brain(NPC* npc) {
+Brain::Brain(NPC* npc) : override_target(0) {
 	// Set the npc this brain will controll
 	m_body = npc;
 	// Set the default time between calls to think to 250 miliseconds (1/4 a second)
@@ -174,8 +174,9 @@ void Brain::AddHate(Entity* entity, sint32 hate, bool unprovoked) {
 }
 
 void Brain::ClearHate() {
-	MHateList.writelock(__FUNCTION__, __LINE__);
+	override_target = 0;
 
+	MHateList.writelock(__FUNCTION__, __LINE__);
 	for (auto& kv : m_hatelist) {
 		ZoneServer* zone = m_body->GetZone();
 		Spawn* spawn = zone->GetSpawnByID(kv.first);
@@ -183,59 +184,53 @@ void Brain::ClearHate() {
 		if (spawn && spawn->IsEntity()) {
 			static_cast<Entity*>(spawn)->HatedBy.erase(m_body->GetID());
 
-			if (spawn->IsPlayer())
+			if (spawn->IsPlayer()) {
 				static_cast<Player*>(spawn)->RemoveFromEncounterList(m_body->GetID());
+			}
 		}
 	}
 
 	m_hatelist.clear();
-
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Brain::ClearHate(Entity* entity) {
-	// Lock the hate list, we could potentially modify the list so use write lock
-	MHateList.writelock(__FUNCTION__, __LINE__);
+	if (override_target == entity->GetID()) {
+		override_target = 0;
+	}
 
-	// Check to see if the given entity is in the hate list
-	if (m_hatelist.count(entity->GetID()) > 0)
-		// Erase the entity from the hate list
+	MHateList.writelock(__FUNCTION__, __LINE__);
+	if (m_hatelist.count(entity->GetID()) > 0) {
 		m_hatelist.erase(entity->GetID());
+	}
 
 	entity->HatedBy.erase(m_body->GetID());
-
-	// Unlock the hate list
 	MHateList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 Entity* Brain::GetMostHated() {
 	map<int32, sint32>::iterator itr;
-	int32 ret = 0;
-	sint32 hate = 0;
+	int32 ret = override_target;
 
-	// Lock the hate list, not going to alter it so use a read lock
-	MHateList.readlock(__FUNCTION__, __LINE__);
+	if (!ret) {
+		sint32 hate = 0;
 
-	if (m_hatelist.size() > 0) {
-		// Loop through the list looking for the entity that this NPC hates the most
-		for(itr = m_hatelist.begin(); itr != m_hatelist.end(); itr++) {
-			// Compare the hate value for the current iteration to our stored highest value
-			if(!hate || itr->second > hate) {
-				// New high value store the entity
-				ret = itr->first;
-				// Store the value to compare with the rest of the entities
-				hate = itr->second;
+		MHateList.readlock(__FUNCTION__, __LINE__);
+		if (m_hatelist.size() > 0) {
+			for (itr = m_hatelist.begin(); itr != m_hatelist.end(); itr++) {
+				if (!hate || itr->second > hate) {
+					ret = itr->first;
+					hate = itr->second;
+				}
 			}
 		}
+		MHateList.releasereadlock(__FUNCTION__, __LINE__);
 	}
-	// Unlock the list
-	MHateList.releasereadlock(__FUNCTION__, __LINE__);
-	Entity* hated = (Entity*)GetBody()->GetZone()->GetSpawnByID(ret);
-	// Check the reult to see if it is still alive
-	if(hated && hated->GetHP() <= 0) {
-		// Entity we got was dead so remove it from the list
+
+	Entity* hated = static_cast<Entity*>(GetBody()->GetZone()->GetSpawnByID(ret));
+
+	if (hated && !hated->Alive()) {
 		ClearHate(hated);
-		// Call this function again now that we removed the dead entity
 		hated = GetMostHated();
 	}
 
