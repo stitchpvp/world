@@ -8587,6 +8587,19 @@ int EQ2Emu_lua_GetLastDamageTaken(lua_State* state) {
 	return 1;
 }
 
+int EQ2Emu_lua_GetLastDamageWarded(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+
+	if (!spawn) {
+		lua_interface->LogError("LUA GetLastDamageWarded command error: spawn is not valid");
+		return 0;
+	}
+
+	lua_interface->SetInt32Value(state, spawn->GetLastDamageWarded());
+
+	return 1;
+}
+
 int EQ2Emu_lua_SetIgnoredByMobs(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	bool value = lua_interface->GetBooleanValue(state, 2);

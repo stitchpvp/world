@@ -1557,6 +1557,8 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 	WardInfo* ward = 0;
 	shared_ptr<LuaSpell> spell = 0;
 
+	int amount_warded = 0;
+
 	while (m_wardList.size() > 0 && damage > 0) {
 		// Get the ward with the lowest base damage
 		for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
@@ -1576,6 +1578,7 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 
 		if (damage >= ward->DamageLeft) {
 			// Damage is greater than or equal to the amount left on the ward
+			amount_warded += ward->DamageLeft;
 			damage -= ward->DamageLeft;
 
 			GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
@@ -1592,6 +1595,7 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 			ward->DamageLeft -= damage;
 			spell->damage_remaining = ward->DamageLeft;
 			GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
+			amount_warded += damage;
 			damage = 0;
 		}
 
@@ -1601,6 +1605,8 @@ int32 Entity::CheckWards(int32 damage, int8 damage_type) {
 		// Reset ward pointer
 		ward = 0;
 	}
+
+	SetLastDamageWarded(amount_warded);
 
 	return damage;
 }

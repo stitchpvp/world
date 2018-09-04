@@ -100,6 +100,7 @@ Spawn::Spawn(){
 	size_shrink_multiplier = 0;
 	size_mod_unknown = 0;
 	last_damage_taken = 0;
+	last_damage_warded = 0;
 }
 
 Spawn::~Spawn(){

@@ -995,6 +995,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "SendSkillUpdate", EQ2Emu_lua_SendSkillUpdate);
 	lua_register(state, "SetPlayerAlignment", EQ2Emu_lua_SetPlayerAlignment);
 	lua_register(state, "GetLastDamageTaken", EQ2Emu_lua_GetLastDamageTaken);
+	lua_register(state, "GetLastDamageWarded", EQ2Emu_lua_GetLastDamageWarded);
 	lua_register(state, "SetIgnoredByMobs", EQ2Emu_lua_SetIgnoredByMobs);
 }
 

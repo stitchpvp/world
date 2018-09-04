@@ -804,6 +804,8 @@ public:
 	void			SetLastAttacker(Spawn* spawn);
 	void SetLastDamageTaken(int32 damage);
 	int32 GetLastDamageTaken();
+	void SetLastDamageWarded(int32 damage) { last_damage_warded = damage; }
+	int32 GetLastDamageWarded() { return last_damage_warded; }
 	bool			TakeDamage(int32 damage);
 	void			TakeDamage(Spawn* attacker, int32 damage);
 	ZoneServer*		GetZone();
@@ -993,6 +995,7 @@ protected:
 	int8			spawn_type;
 	int32			last_attacker;
 	int32			last_damage_taken;
+	int32			last_damage_warded;
 	int32			merchant_id;
 	int8			merchant_type;
 	int32			transporter_id;
