@@ -593,31 +593,41 @@ bool Entity::CheckDodge(float hit_chance) {
 }
 
 bool Entity::CheckParry(float hit_chance) {
-	double chance = 0.0;
-	int8 roll = (rand() % 100) + 1;
-
 	Skill* skill = GetSkillByName("Parry", true);
-	if (skill) {
-		chance += (skill->current_val / GetLevel()) / 1.5;
+	double chance = 0.0;
+
+	if (!skill) {
+		return false;
 	}
+
+	int8 roll = (rand() % 100) + 1;
+	chance += (skill->current_val / GetLevel()) / 1.5;
 
 	return roll >= (hit_chance - chance);
 }
 
 bool Entity::CheckRiposte(float hit_chance) {
-	double chance = 0.0;
-	int8 roll = (rand() % 100) + 1;
-
 	Skill* skill = GetSkillByName("Parry", true);
-	if (skill) {
-		chance += ((skill->current_val / GetLevel()) / 1.5) * 0.2;
+	double chance = 0.0;
+
+	if (!skill) {
+		return false;
 	}
+
+	int8 roll = (rand() % 100) + 1;
+	chance += ((skill->current_val / GetLevel()) / 1.5) * 0.2;
 
 	return roll >= (hit_chance - chance);
 }
 
 bool Entity::CheckDeflect(float hit_chance) {
+	Skill* skill = GetSkillByName("Deflection", true);
 	double chance = GetInfoStruct()->minimum_deflection_chance;
+
+	if (!skill) {
+		return false;
+	}
+
 	int8 roll = (rand() % 100) + 1;
 
 	return roll >= (hit_chance - chance);
