@@ -1244,7 +1244,12 @@ void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
 				int8 slot = equipment_list.GetFreeSlot(item, slot_id);
 
 				if (slot == 255) {
-					slot = item->slot_data.at(0);
+					if (slot_id == 255) {
+						slot = item->slot_data.at(0);
+					} else {
+						slot = slot_id;
+					}
+
 					UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
 				}
 
