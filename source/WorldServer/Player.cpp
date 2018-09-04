@@ -1214,8 +1214,6 @@ void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
 			return;
 		}
 
-		int8 slot = equipment_list.GetFreeSlot(item, slot_id);
-
 		if (CanEquipItem(item)) {
 			if (item->CheckFlag(ATTUNEABLE)) {
 				PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", version);
@@ -1239,16 +1237,22 @@ void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
 			} else {
 				item_list.RemoveItem(item);
 
+				if ((item->IsWeapon() || item->IsShield()) && equipment_list.GetItem(EQ2_PRIMARY_SLOT) && equipment_list.GetItem(EQ2_PRIMARY_SLOT)->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND) {
+					UnequipItem(EQ2_PRIMARY_SLOT, -999, 255, version);
+				}
+
+				int8 slot = equipment_list.GetFreeSlot(item, slot_id);
+
 				if (slot == 255) {
 					slot = item->slot_data.at(0);
 					UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
 				}
 
-				equipment_list.SetItem(slot, item);
-
 				if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT)) {
-					UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
+					UnequipItem(EQ2_SECONDARY_SLOT, -999, 255, version);
 				}
+
+				equipment_list.SetItem(slot, item);
 
 				SetEquipment(item);
 
