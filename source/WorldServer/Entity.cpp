@@ -861,6 +861,7 @@ void Entity::CalculateBonuses() {
 	info->offensivespeed = 0;
 	info->base_avoidance_bonus = 0;
 	info->minimum_deflection_chance = 0;
+	info->riposte_chance = 0;
 	info->physical_damage_reduction = 0;
 
 	stats.clear();
@@ -1002,6 +1003,7 @@ void Entity::CalculateBonuses() {
 	info->offensivespeed += values->offensivespeed;
 	info->base_avoidance_bonus += values->base_avoidance_bonus;
 	info->minimum_deflection_chance += values->minimum_deflection_chance;
+	info->riposte_chance += values->riposte_chance;
 	info->physical_damage_reduction += values->physical_damage_reduction;
 	safe_delete(values);
 }

@@ -567,6 +567,7 @@ struct ItemStatsValues {
 	sint16			mitigation_increase;
 	sint8			physical_damage_reduction;
 	float			minimum_deflection_chance;
+	float			riposte_chance;
 	float			base_avoidance_bonus;
 };
 struct ItemCore {

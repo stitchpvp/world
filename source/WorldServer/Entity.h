@@ -234,6 +234,7 @@ struct InfoStruct{
 	float			offensivespeed;
 	float			base_avoidance_bonus;
 	float			minimum_deflection_chance;
+	float			riposte_chance;
 	float			rain;
 	float			wind;
 	sint8			physical_damage_reduction;

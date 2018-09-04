@@ -1705,6 +1705,11 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
 				break;
 			}
 
+			case ITEM_STAT_RIPOSTECHANCE: {
+				values->riposte_chance += value;
+				break;
+		    }
+
 			default: {
 				if (entity) {
 					entity->stats[type] += value;

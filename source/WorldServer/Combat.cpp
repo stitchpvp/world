@@ -594,7 +594,7 @@ bool Entity::CheckDodge(float hit_chance) {
 
 bool Entity::CheckParry(float hit_chance) {
 	Skill* skill = GetSkillByName("Parry", true);
-	double chance = 0.0;
+	double chance = GetInfoStruct()->riposte_chance;
 
 	if (!skill) {
 		return false;
@@ -608,7 +608,7 @@ bool Entity::CheckParry(float hit_chance) {
 
 bool Entity::CheckRiposte(float hit_chance) {
 	Skill* skill = GetSkillByName("Parry", true);
-	double chance = 0.0;
+	double chance = GetInfoStruct()->riposte_chance;
 
 	if (!skill) {
 		return false;
@@ -687,7 +687,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 		return DAMAGE_PACKET_RESULT_INVULNERABLE;
 	}
 
-	if (!spell && BehindTarget(victim)) {
+	if (!spell && BehindTarget(victim) && classes.GetSecondaryBaseClass(victim->GetAdventureClass()) != BRAWLER) {
 		return DAMAGE_PACKET_RESULT_SUCCESSFUL;
 	}
 
@@ -721,7 +721,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 damage_type, float ToHitBonus, boo
 		}
 
 		if (entity_victim->CheckParry(chance)) {
-		    if (entity_victim->CheckRiposte(chance)) {
+		    if (!BehindTarget(victim) && entity_victim->CheckRiposte(chance)) {
 				entity_victim->CheckProcs(PROC_TYPE_RIPOSTE, this);
 				return DAMAGE_PACKET_RESULT_RIPOSTE;
 		    }
