@@ -132,6 +132,9 @@
 #define HISTORY_SUBTYPE_ITEM		5
 #define HISTORY_SUBTYPE_LOCATION	6
 
+#define RESEND_AGGRO 1
+#define RESEND_ALL 2
+
 
 /// <summary>Character history data, should match the `character_history` table in the DB</summary>
 struct HistoryData {
@@ -833,8 +836,8 @@ public:
 	int16 GetFame();
 	void SetFame(sint16 value);
 
-	void SetResendSpawns(bool val) { should_resend_spawns = val; }
-	bool GetResendSpawns() { return should_resend_spawns; }
+	void SetResendSpawns(int8 type) { resend_spawns = type; }
+	int8 GetResendSpawns() { return resend_spawns; }
 
 	void SetIgnoredByMobs(bool val) { ignored_by_mobs = val; }
 	bool GetIgnoredByMobs() { return ignored_by_mobs; }
@@ -882,7 +885,7 @@ private:
 	map<int32, Quest*>	completed_quests;
 	map<Spawn*, int8>	player_removed_spawns;
 	bool				charsheet_changed;
-	bool				should_resend_spawns;
+	int8				resend_spawns;
 	map<int32, string>	spawn_vis_packet_list;
 	map<int32, string>	spawn_info_packet_list;
 	map<int32, string>	spawn_pos_packet_list;

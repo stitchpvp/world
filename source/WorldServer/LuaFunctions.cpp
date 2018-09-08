@@ -8567,7 +8567,7 @@ int EQ2Emu_lua_SetPlayerAlignment(lua_State* state) {
 	}
 
 	static_cast<Player*>(spawn)->SetAlignment(alignment);
-	static_cast<Player*>(spawn)->SetResendSpawns(true);
+	static_cast<Player*>(spawn)->SetResendSpawns(RESEND_AGGRO);
 
 	spawn->AddSpawnUpdate(true, false, true);
 

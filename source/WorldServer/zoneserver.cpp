@@ -1857,7 +1857,7 @@ void ZoneServer::ResendSpawns(const shared_ptr<Client>& client) {
 			if (spawn) {
 				sint8 npc_con = client->GetPlayer()->GetFactions()->GetCon(spawn->faction_id);
 
-				if (npc_con == -4) {
+				if (client->GetPlayer()->GetResendSpawns() == RESEND_ALL || spawn->IsPlayer() || npc_con == -4) {
 					AddSpawnUpdate(kv.first, true, false, true, client);
 				}
 			}

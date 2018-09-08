@@ -8180,7 +8180,7 @@ void Commands::Command_Player_Set(const shared_ptr<Client>& client, Seperator* s
 				value = atoi(sep->arg[1]);
 				player->SetAlignment(value);
 				player->AddSpawnUpdate(true, false, true);
-				player->SetResendSpawns(true);
+				player->SetResendSpawns(RESEND_AGGRO);
 
 				return;
 			}
@@ -8519,7 +8519,7 @@ void Commands::Command_Debug(const shared_ptr<Client>& client, Seperator* sep) {
 
 		if (strncasecmp(action, "spawns", strlen(action)) == 0) {
 			client->debug_spawns ^= 1;
-			client->GetPlayer()->SetResendSpawns(true);
+			client->GetPlayer()->SetResendSpawns(RESEND_ALL);
 		}
 	}
 }

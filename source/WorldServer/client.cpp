@@ -2384,7 +2384,7 @@ bool Client::Process(bool zone_process) {
 
 	if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
 		GetCurrentZone()->ResendSpawns(shared_from_this());
-		GetPlayer()->SetResendSpawns(false);
+		GetPlayer()->SetResendSpawns(0);
 	}
 
 	if (lua_interface && lua_debug && lua_debug_timer.Check()) {

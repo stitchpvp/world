@@ -61,7 +61,7 @@ Player::Player() : auto_attack_mode(0), ignored_by_mobs(false), pvp_immune(false
 	old_movement_packet = 0;
 	charsheet_changed = false;
 	quickbar_updated = false;
-	should_resend_spawns = false;
+	resend_spawns = 0;
 	spawn_tmp_vis_xor_packet = 0;
 	spawn_tmp_pos_xor_packet = 0;
 	spawn_tmp_info_xor_packet = 0;
@@ -3912,7 +3912,7 @@ void Player::SetPVPImmune(bool val) {
 
 	AddSpawnUpdate(false, false, true);
 	
-	SetResendSpawns(true);
+	SetResendSpawns(RESEND_AGGRO);
 }
 
 void Player::AddCoins(int64 val) {

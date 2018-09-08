@@ -2096,8 +2096,11 @@ void Entity::AddStealthSpell(shared_ptr<LuaSpell> spell) {
 		if (IsPlayer()) {
 			static_cast<Player*>(this)->SetMeleeAttack(false);
 			static_cast<Player*>(this)->SetRangeAttack(false);
-			static_cast<Player*>(this)->SetResendSpawns(true);
 			static_cast<Player*>(this)->SetCharSheetChanged(true);
+
+			if (!EngagedInCombat()) {
+				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+			}
 		}
 	}
 }
@@ -2116,8 +2119,11 @@ void Entity::AddInvisSpell(shared_ptr<LuaSpell> spell) {
 		if (IsPlayer()) {
 			static_cast<Player*>(this)->SetMeleeAttack(false);
 			static_cast<Player*>(this)->SetRangeAttack(false);
-			static_cast<Player*>(this)->SetResendSpawns(true);
 			static_cast<Player*>(this)->SetCharSheetChanged(true);
+
+			if (!EngagedInCombat()) {
+				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+			}
 		}
 	}
 }
@@ -2134,8 +2140,11 @@ void Entity::RemoveInvisSpell(shared_ptr<LuaSpell> spell) {
 		AddSpawnUpdate(true, false, false);
 
 		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetResendSpawns(true);
 			static_cast<Player*>(this)->SetCharSheetChanged(true);
+
+			if (!EngagedInCombat()) {
+				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+			}
 		}
 	}
 }
@@ -2153,8 +2162,11 @@ void Entity::RemoveStealthSpell(shared_ptr<LuaSpell> spell) {
 		AddSpawnUpdate(true, false, false);
 
 		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetResendSpawns(true);
 			static_cast<Player*>(this)->SetCharSheetChanged(true);
+
+			if (!EngagedInCombat()) {
+				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+			}
 		}
 	}
 }
