@@ -8544,7 +8544,7 @@ void Commands::Command_CancelEffect(const shared_ptr<Client>& client, Seperator*
 	if (sep && sep->arg[0] && sep->IsNumber(0)) {
 		SpellEffects* effect = client->GetPlayer()->GetSpellEffect(atoi(sep->arg[0]));
 
-		if (effect->spell->spell->GetSpellData()->friendly_spell) {
+		if (effect && effect->spell->spell->GetSpellData()->friendly_spell) {
 			client->GetCurrentZone()->RemoveTargetFromSpell(effect->spell, client->GetPlayer());
 		}
 	}
