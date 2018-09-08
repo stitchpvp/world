@@ -18449,10 +18449,8 @@ to zero and treated like placeholders." />
 <Data ElementName="display_spell_tier" Type="int8" Size="1" />
 <Data ElementName="uses_remaining" Type="int16" Size="1" />
 <Data ElementName="unknown" Type="int8" Size="1" />
-<Data ElementName="damage_remaining" Type="int16" Size="1" />
-<Data ElementName="unknown2" Type="int8" Size="1" />
-<Data ElementName="unknown3" Type="int16" Size="1" />
-<Data ElementName="unknown4" Type="int16" Size="4" />
+<Data ElementName="damage_remaining" Type="int64" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="5" />
 <Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="unknown5" Type="int8" Size="1" />

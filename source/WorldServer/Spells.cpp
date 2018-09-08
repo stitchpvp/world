@@ -204,7 +204,7 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> c
 	}
 
 	packet->setSubstructDataByName(name, "uses_remaining", 0xFFFF);
-	packet->setSubstructDataByName(name, "damage_remaining", 0xFFFF);
+	packet->setSubstructDataByName(name, "damage_remaining", 0xFFFFFFFFFFFFFFFF);
 
 	packet->setSubstructDataByName(name, "unknown9", 20);
 
