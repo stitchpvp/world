@@ -3718,6 +3718,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
 		case COMMAND_ASSIST				: { Command_Assist(client, sep); break; }
 		case COMMAND_DEBUG				: { Command_Debug(client, sep); break; }
 		case COMMAND_SET_AUTO_ATTACK_MODE: { Command_SetAutoAttackMode(client, sep); break; }
+		case COMMAND_CANCEL_EFFECT		: { Command_CancelEffect(client, sep); break; }
 
 		case COMMAND_BOT				: { Command_Bot(client, sep); break; }
 		case COMMAND_BOT_CREATE			: { Command_Bot_Create(client, sep); break; }
@@ -8535,6 +8536,16 @@ void Commands::Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seper
 				client->GetPlayer()->SetAutoAttackMode(type);
 				client->GetPlayer()->SetCharSheetChanged(true);
 			}
+		}
+	}
+}
+
+void Commands::Command_CancelEffect(const shared_ptr<Client>& client, Seperator* sep) {
+	if (sep && sep->arg[0] && sep->IsNumber(0)) {
+		SpellEffects* effect = client->GetPlayer()->GetSpellEffect(atoi(sep->arg[0]));
+
+		if (effect->spell->spell->GetSpellData()->friendly_spell) {
+			client->GetCurrentZone()->RemoveTargetFromSpell(effect->spell, client->GetPlayer());
 		}
 	}
 }
