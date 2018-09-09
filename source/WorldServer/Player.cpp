@@ -587,7 +587,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version){
 		packet->setDataByName("spell_reuse_speed", info_struct->spell_reuse_speed);
 		packet->setDataByName("spell_multi_attack", info_struct->spell_multi_attack);
 		packet->setDataByName("dps", info_struct->dps);
-		packet->setDataByName("haste", info_struct->haste);
+		packet->setDataByName("haste", info_struct->attackspeed);
 		packet->setDataByName("multi_attack", info_struct->multi_attack);
 		packet->setDataByName("flurry", info_struct->multi_attack);
 		packet->setDataByName("melee_ae", info_struct->melee_ae);

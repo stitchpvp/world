@@ -994,7 +994,7 @@ void Entity::CalculateBonuses() {
 	info->spell_multi_attack += values->spellmultiattackchance;
 	info->dps += values->dps;
 	info->dps_multiplier = CalculateDPSMultiplier();
-	info->haste += values->attackspeed;
+	info->attackspeed += values->attackspeed;
 	info->multi_attack += values->multiattackchance;
 	info->flurry += values->flurry;
 	info->melee_ae += values->aeautoattackchance;
