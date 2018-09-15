@@ -3822,52 +3822,58 @@ void Player::SortSpellBook() {
 	MSpellsBook.releasewritelock();
 }
 
-int8 Player::GetArrowColor(int8 spawn_level){
-	int8 color = 0;
-	sint16 diff = spawn_level - GetLevel();
-	if(GetLevel() < 10)
-		diff *= 3;
-	else if(GetLevel() <= 20)
-		diff *= 2;
-	if(diff >= 9)
-		color = ARROW_COLOR_RED;
-	else if(diff >= 5)
-		color = ARROW_COLOR_ORANGE;
-	else if(diff >= 1)
-		color = ARROW_COLOR_YELLOW;
-	else if(diff == 0)
-		color = ARROW_COLOR_WHITE;	
-	else if(diff <= -11)
-		color = ARROW_COLOR_GRAY;
-	else if(diff <= -6)
-		color = ARROW_COLOR_GREEN;
-	else //if(diff < 0)
-		color = ARROW_COLOR_BLUE;
-	return color;
+int8 Player::GetArrowColor(int8 spawn_level) {
+  int8 color = 0;
+  sint16 diff = spawn_level - GetLevel();
+
+  if (GetLevel() < 10) {
+    diff *= 2;
+  }
+
+  if (diff >= 9) {
+    color = ARROW_COLOR_RED;
+  } else if (diff >= 5) {
+    color = ARROW_COLOR_ORANGE;
+  } else if (diff >= 1) {
+    color = ARROW_COLOR_YELLOW;
+  } else if (diff == 0) {
+    color = ARROW_COLOR_WHITE;
+  } else if (diff <= -9) {
+    color = ARROW_COLOR_GRAY;
+  } else if (diff <= -6) {
+    color = ARROW_COLOR_GREEN;
+  } else {
+    color = ARROW_COLOR_BLUE;
+  }
+
+  return color;
 }
 
-int8 Player::GetTSArrowColor(int8 level){
-	int8 color = 0;
-	sint16 diff = level - GetTSLevel();
-	if(GetLevel() < 10)
-		diff *= 3;
-	else if(GetLevel() <= 20)
-		diff *= 2;
-	if(diff >= 9)
-		color = ARROW_COLOR_RED;
-	else if(diff >= 5)
-		color = ARROW_COLOR_ORANGE;
-	else if(diff >= 1)
-		color = ARROW_COLOR_YELLOW;
-	else if(diff == 0)
-		color = ARROW_COLOR_WHITE;	
-	else if(diff <= -11)
-		color = ARROW_COLOR_GRAY;
-	else if(diff <= -6)
-		color = ARROW_COLOR_GREEN;
-	else //if(diff < 0)
-		color = ARROW_COLOR_BLUE;
-	return color;
+int8 Player::GetTSArrowColor(int8 level) {
+  int8 color = 0;
+  sint16 diff = level - GetTSLevel();
+
+  if (GetLevel() < 10) {
+    diff *= 2;
+  }
+
+  if (diff >= 9) {
+    color = ARROW_COLOR_RED;
+  } else if (diff >= 5) {
+    color = ARROW_COLOR_ORANGE;
+  } else if (diff >= 1) {
+    color = ARROW_COLOR_YELLOW;
+  } else if (diff == 0) {
+    color = ARROW_COLOR_WHITE;
+  } else if (diff <= -9) {
+    color = ARROW_COLOR_GRAY;
+  } else if (diff <= -6) {
+    color = ARROW_COLOR_GREEN;
+  } else {
+    color = ARROW_COLOR_BLUE;
+  }
+
+  return color;
 }
 
 void Player::AddActivityStatus(shared_ptr<ActivityStatus> status) {
