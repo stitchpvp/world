@@ -2104,7 +2104,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		}
 
 		if (spell && sent_spell_details.count(id) == 0) {
-			sent_spell_details[id] = true;
+			//sent_spell_details[id] = true;
 			EQ2Packet* app = spell->SerializeSpell(shared_from_this(), false, trait_display);
 			//DumpPacket(app);
 			QueuePacket(app);
@@ -2197,7 +2197,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 			int8 tier = effect->tier;
 			Spell* spell = master_spell_list.GetSpell(id, tier);
 			if(spell && sent_spell_details.count(id) == 0){
-				sent_spell_details[id] = true;
+				//sent_spell_details[id] = true;
 				EQ2Packet* app = spell->SerializeSpecialSpell(shared_from_this(), false, 0x00, 0x81);
 				//DumpPacket(app);
 				QueuePacket(app);
@@ -2233,7 +2233,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app){
 		spell = master_spell_list.GetSpellByCRC(data->spell_crc);
 		//spell = master_spell_list.GetSpell(id, 1);
 		if (spell && sent_spell_details.count(spell->GetSpellID()) == 0) {
-			sent_spell_details[spell->GetSpellID()] = true;
+			//sent_spell_details[spell->GetSpellID()] = true;
 			EQ2Packet* app = spell->SerializeAASpell(shared_from_this(), data, false, GetItemPacketType(GetVersion()), 0x04);
 			DumpPacket(app);
 			LogWrite(WORLD__INFO, 0, "WORLD", "Examine Info Request-> Spell ID: %u", spell->GetSpellID());

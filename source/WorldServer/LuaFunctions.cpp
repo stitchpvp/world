@@ -4605,6 +4605,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		ward->keepWard = keepWard;
 		ward->WardType = wardType;
 
+		spell->damage_remaining = damage;
+
 		if (wardType == WARD_TYPE_MAGICAL) {
 			ward->DamageType = damageTypes;
 		}

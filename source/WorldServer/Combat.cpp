@@ -607,15 +607,9 @@ bool Entity::CheckParry(float hit_chance) {
 }
 
 bool Entity::CheckRiposte(float hit_chance) {
-	Skill* skill = GetSkillByName("Parry", true);
-	double chance = GetInfoStruct()->riposte_chance;
-
-	if (!skill) {
-		return false;
-	}
+	double chance = 20.0 + GetInfoStruct()->riposte_chance;
 
 	int8 roll = (rand() % 100) + 1;
-	chance += ((skill->current_val / GetLevel()) / 1.5) * 0.2;
 
 	return roll >= (hit_chance - chance);
 }

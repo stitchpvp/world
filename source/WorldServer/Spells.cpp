@@ -23,6 +23,7 @@
 #include "../common/Log.h"
 #include "Traits/Traits.h"
 #include "AltAdvancement/AltAdvancement.h"
+#include "LuaInterface.h"
 #include <sstream>
 #include <iomanip>
 
@@ -215,18 +216,22 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> c
 		hp_req = GetHPRequired(client->GetPlayer());
 		power_req = GetPowerRequired(client->GetPlayer());
 
-		// might need version checks around these?
-		if( client->GetVersion() >= 1193 )
-		{
-			int16 savagery_req = GetSavageryRequired(client->GetPlayer()); // dunno why we need to do this
-			packet->setSubstructDataByName(name, "savagery_req",savagery_req);
-			packet->setSubstructDataByName(name, "savagery_upkeep",spell->savagery_upkeep);
-		}
-		if( client->GetVersion() >= 57048 )
-		{
-			int16 dissonance_req = GetDissonanceRequired(client->GetPlayer()); // dunno why we need to do this
-			packet->setSubstructDataByName(name, "dissonance_req",dissonance_req);
-			packet->setSubstructDataByName(name, "dissonance_upkeep",spell->dissonance_upkeep);
+		packet->setSubstructDataByName(name, "savagery_req", GetSavageryRequired(client->GetPlayer()));
+		packet->setSubstructDataByName(name, "savagery_upkeep", spell->savagery_upkeep);
+
+		packet->setSubstructDataByName(name, "dissonance_req", GetDissonanceRequired(client->GetPlayer()));
+		packet->setSubstructDataByName(name, "dissonance_upkeep", spell->dissonance_upkeep);
+
+		SpellEffects* effect = client->GetPlayer()->GetSpellEffect(spell->id);
+
+		if (effect) {
+			if (effect->spell->num_triggers > 0) {
+				packet->setSubstructDataByName(name, "uses_remaining", effect->spell->num_triggers);
+			}
+
+			if (effect->spell->damage_remaining > 0) {
+				packet->setSubstructDataByName(name, "damage_remaining", effect->spell->damage_remaining);
+			}
 		}
 	}
 
