@@ -18173,6 +18173,24 @@ to zero and treated like placeholders." />
 <Data ElementName="status" Type="int8" Size="1" />
 <Data ElementName="unknown6" Type="int8" Size="3" />
 </Struct>
+<Struct Name="SubStruct_UpdateSpellBook" ClientVersion="64707">
+<Data ElementName="spell_id" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
+<Data ElementName="recast_available" Type="int32" Size="1" />
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="target_type" Type="int8" Size="1" />
+<Data ElementName="recast_time" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int16" Size="4" />
+<Data ElementName="icon" Type="int16" />
+<Data ElementName="icon_type" Type="int16" />
+<Data ElementName="icon2" Type="int16" Size="1" />
+<Data ElementName="charges" Type="int8" Size="1" />
+<Data ElementName="unknown3" Type="int8" Size="20" />
+<Data ElementName="distance" Type="int16" Size="1" />
+<Data ElementName="unknown4" Type="int16" Size="1" />
+<Data ElementName="status" Type="int8" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="3" />
+</Struct>
 <Struct Name="WS_UpdateSpellBook" ClientVersion="1" OpcodeName="OP_UpdateSpellBookMsg" >
 <Data ElementName="spell_count" Type="int16" />
 <Data ElementName="packed_size" Type="int32" />
@@ -18216,6 +18234,13 @@ to zero and treated like placeholders." />
 </Data>
 </Struct>
 <Struct Name="WS_UpdateSpellBook" ClientVersion="58647" OpcodeName="OP_UpdateSpellBookMsg" >
+<Data ElementName="spell_count" Type="int16" />
+<Data ElementName="packed_size" Type="int32" />
+<Data ElementName="spell_array" Type="Array" ArraySizeVariable="spell_count">
+  <Data ElementName="spells" Substruct="SubStruct_UpdateSpellBook" Size="1" />
+</Data>
+</Struct>
+<Struct Name="WS_UpdateSpellBook" ClientVersion="64707" OpcodeName="OP_UpdateSpellBookMsg" >
 <Data ElementName="spell_count" Type="int16" />
 <Data ElementName="packed_size" Type="int32" />
 <Data ElementName="spell_array" Type="Array" ArraySizeVariable="spell_count">
@@ -19515,6 +19540,79 @@ to zero and treated like placeholders." />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="unknown13" Type="int8" Size="1" />
 </Struct>
+<Struct Name="WS_SpellInfo" ClientVersion="64707">
+<Data ElementName="id" Type="int32" />
+<Data ElementName="icon" Type="int16" Size = "1" />
+<Data ElementName="icon2" Type="int16" Size = "1" />
+<Data ElementName="icontype" Type="int16" Size = "1" />
+<Data ElementName="version" Type="int16" Size = "1" />
+<Data ElementName="sub_version" Type="int16" Size = "1" />
+<Data ElementName="unknown_MJ3" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1a" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1b" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1c" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1d" Type="int8" Size = "1" />
+<Data ElementName="type" Type="int8" Size = "1" />
+<Data ElementName="class_skill" Type="int32" Size = "1" />
+<Data ElementName="mastery_skill" Type="int32" Size = "1" />
+<Data ElementName="min_class_skill_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="spell_text_color" Type="int32" Size = "1" />
+<Data ElementName="num_levels" Type="int8" Size = "1" />
+<Data ElementName="level_array" Type="Array" ArraySizeVariable="num_levels">
+  <Data ElementName="adventure_class" Type="int8" Size="1" />
+  <Data ElementName="tradeskill_class" Type="int8" Size="1" />
+  <Data ElementName="spell_level" Type="int16" Size = "1" />
+</Data>
+<Data ElementName="tier" Type="int8" Size = "1" />
+<Data ElementName="health_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="health_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="unknown_mj2" Type="int8" Size = "6" />
+<Data ElementName="power_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="power_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="savagery_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="savagery_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="dissonance_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="dissonance_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="unknown_req" Type="int8" Size = "3" />
+<Data ElementName="req_concentration" Type="int16" Size = "1" />
+<Data ElementName="cast_time" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="recovery" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="recast" Type="float" Size = "1" />
+<Data ElementName="radius" Type="float" Size = "1" />
+<Data ElementName="max_aoe_targets" Type="int16" Size = "1" />
+<Data ElementName="friendly_spell" Type="int8" Size = "1" />
+<Data ElementName="num_reagents" Type="int8" />
+<Data ElementName="reagent_array" Type="Array" ArraySizeVariable="num_reagents">
+  <Data ElementName="reagent" Type="EQ2_8Bit_String" Size="1" />
+  <Data ElementName="consumed" Type="int8" Size="1" />
+  <Data ElementName="qty_required" Type="int32" Size="1" />
+</Data>
+<Data ElementName="num_effects" Type="int8" />
+<Data ElementName="effect_array" Type="Array" ArraySizeVariable="num_effects">
+  <Data ElementName="subbulletflag" Type="int8" Size = "1" />
+  <Data ElementName="effect" Type="EQ2_16Bit_String" Size="1" />
+  <Data ElementName="percentage" Type="int8" Size = "1" />
+</Data>
+<Data ElementName="display_spell_tier" Type="int8" Size = "1" />
+<Data ElementName="unknown1" Type="int8" Size = "1" />
+<Data ElementName="minimum_range" Type="float" Size = "1" />
+<Data ElementName="range" Type="float" Size = "1" />
+<Data ElementName="duration1" Type="int32" Size = "1" />
+<Data ElementName="duration2" Type="int32" Size = "1" />
+<Data ElementName="unknown9" Type="int8" Size = "1" />
+<Data ElementName="duration_flag" Type="int8" Size = "1" />
+<Data ElementName="target" Type="int8" Size = "1" />
+<Data ElementName="can_effect_raid" Type="int8" Size = "1" />
+<Data ElementName="affect_only_group_members" Type="int8" Size = "1" />
+<Data ElementName="group_spell" Type="int8" Size = "1" />
+<Data ElementName="resistibility" Type="float" Size = "1" />
+<Data ElementName="unknown11" Type="int8" Size = "13" />
+<Data ElementName="hit_bonus" Type="float" Size = "1" />
+<Data ElementName="unknown_mj4" Type="int8" Size = "2" />
+<Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
+<Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown13" Type="int8" Size="1" />
+</Struct>
 <Struct Name="WS_RecipeInfo" ClientVersion="1" >
 <Data ElementName="id" Type="int32" Size="1" />
 <Data ElementName="unknown" Type="int8" Size="1" />
@@ -20020,6 +20118,10 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
 </Struct>
 <Struct Name="WS_ExamineSpellInfo" ClientVersion="63119" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
+<Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
+<Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
+</Struct>
+<Struct Name="WS_ExamineSpellInfo" ClientVersion="64707" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
 <Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
 </Struct>

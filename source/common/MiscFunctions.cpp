@@ -836,41 +836,44 @@ bool INIReadBool(FILE *f, const char *section, const char *property, bool *out) 
 }
 
 int16 GetItemPacketType(int32 version) {
-	int16 item_version;
-	if (version >= 63119)
-		item_version = 0x56FE;
-	else if (version >= 60024)
-		item_version = 0x51FE;
-	else if (version >= 57107)
-		item_version = 0x4CFE;
-	else if (version >= 57048)
-		item_version = 0x48FE;
-	else if (version >= 1199)
-		item_version = 0x44FE;
-	else if (version >= 1195)
-		item_version = 0x40FE;
-	else if (version >= 1193)
-		item_version = 0x3FFE;
-	else if (version >= 1190)
-		item_version = 0x3EFE;
-	else if (version >= 1188)
-		item_version = 0x3DFE;
-	else if(version >= 1096)
-		item_version = 0x35FE;
-	else if(version >= 1027)
-		item_version = 0x31FE;
-	else if(version >= 1008)
-		item_version = 0x2CFE;
-	else if(version >= 927)
-		item_version = 0x23FE;
-	else if(version >= 893)
-		item_version = 0x22FE;
-	else if(version >= 860)
-		item_version = 0x20FE;
-	else
-		item_version = 0x1CFE;
+  int16 item_version;
 
-	return item_version;
+  if (version >= 64707)
+    item_version = 0x5CFE;
+  else if (version >= 63119)
+    item_version = 0x56FE;
+  else if (version >= 60024)
+    item_version = 0x51FE;
+  else if (version >= 57107)
+    item_version = 0x4CFE;
+  else if (version >= 57048)
+    item_version = 0x48FE;
+  else if (version >= 1199)
+    item_version = 0x44FE;
+  else if (version >= 1195)
+    item_version = 0x40FE;
+  else if (version >= 1193)
+    item_version = 0x3FFE;
+  else if (version >= 1190)
+    item_version = 0x3EFE;
+  else if (version >= 1188)
+    item_version = 0x3DFE;
+  else if (version >= 1096)
+    item_version = 0x35FE;
+  else if (version >= 1027)
+    item_version = 0x31FE;
+  else if (version >= 1008)
+    item_version = 0x2CFE;
+  else if (version >= 927)
+    item_version = 0x23FE;
+  else if (version >= 893)
+    item_version = 0x22FE;
+  else if (version >= 860)
+    item_version = 0x20FE;
+  else
+    item_version = 0x1CFE;
+
+  return item_version;
 }
 
 #ifndef PATCHER
