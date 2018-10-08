@@ -17,16 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef CLIENT_H
-#define CLIENT_H
+#pragma once
 
-#include "../common/EQStream.h"
-#include "../common/timer.h"
-#include "zoneserver.h"
-#include "Player.h"
-#include "Quests.h"
 #include <atomic>
-#include <list>
+#include <mutex>
+#include <set>
+#include "Player.h"
+
+class Collection;
+class Guild;
+struct LuaSpell;
 
 using namespace std;
 #define CLIENT_TIMEOUT 60000
@@ -514,4 +514,3 @@ private:
 	Mutex	MClients;
 	list<shared_ptr<Client>> client_list;
 };
-#endif

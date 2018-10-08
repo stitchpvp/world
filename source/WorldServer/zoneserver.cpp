@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "zoneserver.h"
 #include "../common/debug.h"
 #include <iostream>
 using namespace std;
@@ -61,7 +62,6 @@ extern int errno;
 #include "../common/EQStream.h"
 #include "../common/EQStreamFactory.h"
 #include "../common/opcodemgr.h"
-#include "zoneserver.h"
 #include "client.h"
 #include "LoginServer.h"
 #include "World.h"

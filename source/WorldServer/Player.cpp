@@ -895,9 +895,6 @@ bool Player::DamageEquippedItems(const shared_ptr<Client>& client, int8 amount) 
 	return ret;
 }
 
-// Index is really the equipment slot
-// Bag id is the item id of the bag
-// Slot is the inventory slot
 void Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version) {
 	vector<EQ2Packet*> packets;
 

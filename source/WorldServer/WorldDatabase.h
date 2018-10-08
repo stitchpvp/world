@@ -52,6 +52,10 @@
 
 using namespace std;
 
+struct GuildEvent;
+struct GuildMember;
+struct PointHistory;
+
 #define APPEARANCE_SOGA_HFHC	0
 #define APPEARANCE_SOGA_HTHC	1
 #define APPEARANCE_SOGA_HFC		2

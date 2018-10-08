@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __NPC_AI_H__
-#define __NPC_AI_H__
-#include "NPC.h"
-#include <vector>
+#pragma once
+
 #include <map>
+#include <vector>
+#include "NPC.h"
 
 using namespace std;
 
@@ -187,4 +187,3 @@ public:
 private:
 	int32 m_expireTime;
 };
-#endif

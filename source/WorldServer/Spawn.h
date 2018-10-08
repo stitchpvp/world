@@ -17,22 +17,22 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_SPAWN__
-#define __EQ2_SPAWN__
+#pragma once
 
-#include "../common/types.h"
+#include <deque>
+#include <vector>
+#include "../common/ConfigReader.h"
 #include "../common/EQPacket.h"
 #include "../common/EQ2_Common_Structs.h"
 #include "../common/MiscFunctions.h"
+#include "../common/Mutex.h"
 #include "../common/opcodemgr.h"
 #include "../common/timer.h"
+#include "../common/types.h"
 #include "Commands/Commands.h"
-#include "SpawnLists.h"
-#include <vector>
-#include "../common/ConfigReader.h"
 #include "Items/Items.h"
-#include "../common/Mutex.h"
-#include <deque>
+#include "Quests.h"
+#include "SpawnLists.h"
 
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL		0x41
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL_CRIT_DMG	0x45
@@ -1048,6 +1048,3 @@ private:
 
 	Mutex m_Update;
 };
-
-#endif
-

@@ -1,7 +1,8 @@
 #include "BotBrain.h"
+#include "../../common/Log.h"
 #include "../Combat.h"
 #include "../Spells.h"
-#include "../../common/Log.h"
+#include "../zoneserver.h"
 
 BotBrain::BotBrain(Bot* body) : Brain(body) {
 	Body = body;

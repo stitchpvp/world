@@ -17,25 +17,20 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_PLAYER__
-#define __EQ2_PLAYER__
+#pragma once
 
-#include "Entity.h"
-#include "Items/Items.h"
-#include "Factions.h"
-#include "Skills.h"
-#include "Quests.h"
-#include "MutexMap.h"
-#include "Guilds/Guild.h"
+#include <mutex>
+#include <set>
+#include "Achievements/Achievements.h"
 #include "Collections/Collections.h"
 #include "Recipes/Recipe.h"
-#include "Titles.h"
+#include "Entity.h"
+#include "Factions.h"
 #include "Languages.h"
-#include "Achievements/Achievements.h"
-#include <algorithm>
-#include <set>
-#include <mutex>
-#include <memory>
+#include "Skills.h"
+#include "Titles.h"
+
+class Guild;
 
 #define CF_COMBAT_EXPERIENCE_ENABLED  0
 #define CF_ENABLE_CHANGE_LASTNAME  1
@@ -978,4 +973,3 @@ private:
 	EQ2_Color tmp_mount_saddle_color;
 };
 #pragma pack()
-#endif

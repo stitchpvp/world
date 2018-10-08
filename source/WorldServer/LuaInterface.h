@@ -17,17 +17,24 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef LUA_INTERFACE_H
-#define LUA_INTERFACE_H
+#pragma once
 
-#include "Spawn.h"
-#include "Spells.h"
+#include <memory>
+#include <vector>
 #include "../common/Mutex.h"
-#include "Quests.h"
-#include "zoneserver.h"
-#include "client.h"
+#include "../common/timer.h"
 
 #include "../LUA/lua.hpp"
+
+class Client;
+class Entity;
+class Item;
+class Quest;
+class Skill;
+class Spawn;
+class Spell;
+class ZoneServer;
+struct SpellScriptTimer;
 
 using namespace std;
 
@@ -279,4 +286,3 @@ private:
 	Mutex			MLUAMain;
 	Mutex			MSpellDelete;
 };
-#endif

@@ -18,6 +18,7 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+
 #include "client.h"
 
 struct HouseZone;

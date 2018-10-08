@@ -17,8 +17,9 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_SPELL_PROCESS__
-#define __EQ2_SPELL_PROCESS__
+#pragma once
+
+#include <algorithm>
 #include "client.h"
 #include "Spells.h"
 #include "zoneserver.h"
@@ -404,6 +405,3 @@ private:
 	map<shared_ptr<Client>, HeroicOP*> m_soloHO;
 	map<int32, HeroicOP*> m_groupHO;
 };
-
-#endif
-

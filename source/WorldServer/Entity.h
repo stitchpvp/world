@@ -17,22 +17,19 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_ENTITY__
-#define __EQ2_ENTITY__
-#include "Spawn.h"
-#include "../common/Mutex.h"
-#include "Skills.h"
-#include "MutexList.h"
-#include "MutexVector.h"
-#include <set>
+#pragma once
 
+#include <mutex>
+#include <set>
+#include "LuaInterface.h"
+#include "MutexList.h"
+#include "Spawn.h"
 
 using namespace std;
 
-class Entity;
 class NPC;
 class Trade;
-struct LuaSpell;
+class Skill;
 struct GroupMemberInfo;
 
 struct BonusValues{
@@ -940,5 +937,3 @@ private:
 
 	GroupMemberInfo* group_member_info;
 };
-
-#endif

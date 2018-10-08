@@ -17,20 +17,14 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../common/MiscFunctions.h"
+
 #include "Entity.h"
-#include <math.h>
-#include "Items/Items.h"
-#include "zoneserver.h"
-#include "World.h"
-#include "../common/Log.h"
-#include "Rules/Rules.h"
-#include "Spells.h"
-#include "SpellProcess.h"
 #include "classes.h"
-#include "LuaInterface.h"
 #include "ClientPacketFunctions.h"
 #include "PVP.h"
+#include "Spells.h"
+#include "SpellProcess.h"
+#include "World.h"
 
 extern World world;
 extern MasterItemList master_item_list;

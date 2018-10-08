@@ -17,10 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_NPC__
-#define __EQ2_NPC__
+#pragma once
+
 #include "Entity.h"
 #include "MutexMap.h"
+
+struct SkillBonus;
 
 #define AI_STRATEGY_BALANCED	1
 #define AI_STRATEGY_OFFENSIVE	2
@@ -175,5 +177,3 @@ private:
 	::Brain*	m_brain;
 	Mutex		MBrain;
 };
-#endif
-

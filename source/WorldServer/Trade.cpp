@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Bots/Bot.h"
 #include "../common/Log.h"
+#include "zoneserver.h"
 
 extern ConfigReader configReader;
 extern MasterItemList master_item_list;

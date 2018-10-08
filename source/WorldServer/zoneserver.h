@@ -45,10 +45,15 @@
 #include "GroundSpawn.h"
 #include "Sign.h"
 
+#include "Guilds/Guild.h"
+
 extern NetConnection net;		// needs to be here or compile errors in commands.cpp
+
+class Bot;
 class SpellProcess;
 class TradeskillMgr;
-class Bot;
+struct Location;
+struct Title;
 
 #define EXPANSION_UNKNOWN	1
 #define EXPANSION_UNKNOWN2	64
