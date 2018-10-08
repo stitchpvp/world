@@ -950,32 +950,7 @@ void Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version) {
 
 			if (to_item) {
 				if (GetEquipmentList()->CanItemBeEquippedInSlot(to_item, item->details.slot_id)) {
-					equipment_list.RemoveItem(index);
-
 					EquipItem(item_list.GetItemIndex(to_item), version, index);
-
-					if (!to_item->CheckFlag(ATTUNEABLE)) {
-						item->details.inv_slot_id = bag_id;
-						item->details.slot_id = slot;
-
-						item_list.AddItem(item);
-
-						item->save_needed = true;
-
-						database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-
-						if (lua_interface) {
-							if (item->GetItemScript()) {
-								lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-							}
-						}
-
-						packets.push_back(item->serialize(version, false));
-						packets.push_back(equipment_list.serialize(version));
-						packets.push_back(item_list.serialize(this, version));
-					} else {
-						equipment_list.AddItem(index, item);
-					}
 				} else if (to_item->IsBag() && to_item->details.num_slots > 0) {
 					bool free_slot = false;
 
