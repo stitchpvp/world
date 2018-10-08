@@ -10206,7 +10206,7 @@ to zero and treated like placeholders." />
 <Data ElementName="bind_zone" Type="char" Size="32" />
 <Data ElementName="unknown188" Type="int8" Size="52" />
 </Struct>
-<Struct Name="WS_CharacterSheet" ClientVersion="60115" OpcodeName="OP_UpdateCharacterSheetMsg">
+<Struct Name="WS_CharacterSheet" ClientVersion="60114" OpcodeName="OP_UpdateCharacterSheetMsg">
 <Data ElementName="character_name" Type="char" Size="40" />
 <Data ElementName="unknown1" Type="int16" Size="1" />
 <Data ElementName="race" Type="int8" Size="1" />
