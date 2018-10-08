@@ -362,7 +362,7 @@ const map<int8, int8> control_effect_immunities = {
   { CONTROL_EFFECT_TYPE_FEAR, IMMUNITY_TYPE_FEAR },
 };
 
-const map<int8, int8> control_effect_flags = {
+const map<int8, int32> control_effect_flags = {
   { CONTROL_EFFECT_TYPE_MEZ, EFFECT_FLAG_MEZ },
   { CONTROL_EFFECT_TYPE_STIFLE, EFFECT_FLAG_STIFLE },
   { CONTROL_EFFECT_TYPE_DAZE, EFFECT_FLAG_DAZE },
