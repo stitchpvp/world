@@ -31,70 +31,85 @@ extern MasterItemList master_item_list;
 extern MasterSpellList master_spell_list;
 extern Classes classes;
 
-Entity::Entity(){
-	max_speed = 6.0;
-	last_x = -1;
-	last_y = -1;
-	last_z = -1;
-	last_heading = -1;
-	regen_hp_rate = 0;
-	regen_power_rate = 0;
-	in_combat = false;
-	casting = false;
-	memset(&melee_combat_data, 0, sizeof(CombatData));
-	memset(&ranged_combat_data, 0, sizeof(CombatData));
-	memset(&info_struct, 0, sizeof(InfoStruct));
-	loot_coins = 0;
-	memset(&features, 0, sizeof(CharFeatures));
-	memset(&equipment, 0, sizeof(EQ2_Equipment));
-	pet = 0;
-	charmedPet = 0;
-	deityPet = 0;
-	cosmeticPet = 0;
-	speed = 0;
-	speed_multiplier = 1.0f;
-	m_threatTransfer = 0;
-	group_member_info = 0;
-	trade = 0;
-	deity = 0;
-	MProcList.SetName("Entity::m_procList");
-	MDetriments.SetName("Entity::MDetriments");
-	MMaintainedSpells.SetName("Entity::MMaintainedSpells");
-	MSpellEffects.SetName("Entity::MSpellEffects");
-	m_procList.clear();
-	control_effects.clear();
-	immunities.clear();
-	has_secondary_weapon = false;
+Entity::Entity() {
+  max_speed = 6.0;
+  last_x = -1;
+  last_y = -1;
+  last_z = -1;
+  last_heading = -1;
+  regen_hp_rate = 0;
+  regen_power_rate = 0;
+  in_combat = false;
+  casting = false;
+  memset(&melee_combat_data, 0, sizeof(CombatData));
+  memset(&ranged_combat_data, 0, sizeof(CombatData));
+  memset(&info_struct, 0, sizeof(InfoStruct));
+  loot_coins = 0;
+  memset(&features, 0, sizeof(CharFeatures));
+  memset(&equipment, 0, sizeof(EQ2_Equipment));
+  pet = 0;
+  charmedPet = 0;
+  deityPet = 0;
+  cosmeticPet = 0;
+  speed = 0;
+  speed_multiplier = 1.0f;
+  m_threatTransfer = 0;
+  group_member_info = 0;
+  trade = 0;
+  deity = 0;
+  MProcList.SetName("Entity::m_procList");
+  MDetriments.SetName("Entity::MDetriments");
+  MMaintainedSpells.SetName("Entity::MMaintainedSpells");
+  MSpellEffects.SetName("Entity::MSpellEffects");
+  m_procList.clear();
 
-	for(int i=0;i<NUM_SPELL_EFFECTS;i++){
-		info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;
-		if (IsPlayer())
-			info_struct.spell_effects[i].icon = 0xFFFF;
-	}
-	for(int i=0;i<NUM_MAINTAINED_EFFECTS;i++) {
-		info_struct.maintained_effects[i].spell_id = 0xFFFFFFFF;
-		if (IsPlayer())
-			info_struct.maintained_effects[i].icon = 0xFFFF;
-	}
+  {
+    lock_guard<mutex> guard(control_effects_mutex);
+    control_effects.clear();
+  }
+
+  immunities.clear();
+  has_secondary_weapon = false;
+
+  for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
+    info_struct.spell_effects[i].spell_id = 0xFFFFFFFF;
+    if (IsPlayer()) {
+      info_struct.spell_effects[i].icon = 0xFFFF;
+    }
+  }
+
+  for (int i = 0; i < NUM_MAINTAINED_EFFECTS; i++) {
+    info_struct.maintained_effects[i].spell_id = 0xFFFFFFFF;
+    if (IsPlayer()) {
+      info_struct.maintained_effects[i].icon = 0xFFFF;
+    }
+  }
 }
 
-Entity::~Entity(){
-	vector<Item*>::iterator itr;
-	for(itr = loot_items.begin(); itr != loot_items.end(); itr++)
-		safe_delete(*itr);
-	MutexList<BonusValues*>::iterator itr2 = bonus_list.begin();
-	while(itr2.Next())
-		safe_delete(itr2.value);
-	ClearProcs();
-	safe_delete(m_threatTransfer);
-	map<int8, MutexList<shared_ptr<LuaSpell>>*>::iterator itr3;
-	for (itr3 = control_effects.begin(); itr3 != control_effects.end(); itr3++)
-		safe_delete(itr3->second);
-	control_effects.clear();
-	map<int8, MutexList<shared_ptr<LuaSpell>>*>::iterator itr4;
-	for (itr4 = immunities.begin(); itr4 != immunities.end(); itr4++)
-		safe_delete(itr4->second);
-	immunities.clear();
+Entity::~Entity() {
+  for (auto item : loot_items) {
+    safe_delete(item);
+  }
+  loot_items.clear();
+
+  MutexList<BonusValues*>::iterator itr2 = bonus_list.begin();
+  while (itr2.Next()) {
+    safe_delete(itr2.value);
+  }
+
+  ClearProcs();
+  safe_delete(m_threatTransfer);
+
+  {
+    lock_guard<mutex> guard(control_effects_mutex);
+    control_effects.clear();
+  }
+
+  map<int8, MutexList<shared_ptr<LuaSpell>>*>::iterator itr4;
+  for (itr4 = immunities.begin(); itr4 != immunities.end(); itr4++) {
+    safe_delete(itr4->second);
+  }
+  immunities.clear();
 }
 
 bool Entity::HasMoved(bool include_heading){
@@ -1126,243 +1141,155 @@ void Entity::CalculateSpellBonuses(ItemStatsValues* stats){
 	}
 }
 
-void Entity::AddMezSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
+void Entity::AddControlEffect(shared_ptr<LuaSpell> luaspell, int8 type) {
+  if (!luaspell) {
+    return;
+  }
+
+  if (IsImmuneToControlEffect(type)) {
+		GetZone()->SendDamagePacket(luaspell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
 		return;
+  }
 
-	if (!control_effects[CONTROL_EFFECT_TYPE_MEZ])
-		control_effects[CONTROL_EFFECT_TYPE_MEZ] = new MutexList<shared_ptr<LuaSpell>>;
+  auto control_effect = make_unique<ControlEffect>();
+  control_effect->luaspell = luaspell;
+  control_effect->type = type;
+  control_effects[type].push_back(move(control_effect));
 
-	MutexList<shared_ptr<LuaSpell>>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
+  auto effect_flag = control_effect_flags.find(type);
 
-	if (IsMezImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	mez_spells->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(198606554, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-}
-
-void Entity::RemoveMezSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
-
-	if (!mez_spells || mez_spells->size(true) == 0)
-		return;
-
-	mez_spells->Remove(spell);
-}
-
-void Entity::RemoveAllMezSpells() {
-	MutexList<shared_ptr<LuaSpell>>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
-	if (!mez_spells)
-		return;
-
-	MutexList<shared_ptr<LuaSpell>>::iterator itr = mez_spells->begin();
-	while (itr.Next()){
-		shared_ptr<LuaSpell> spell = itr.value;
-		if (!spell)
-			continue;
-		GetZone()->RemoveTargetFromSpell(spell, this);
-		RemoveDetrimentalSpell(spell);
-		RemoveSpellEffect(spell);
-		if (IsPlayer())
-			((Player*)this)->RemoveSkillBonus(spell->spell->GetSpellID());
-	}
-
-	mez_spells->clear();
-	if (IsPlayer() && !IsMezImmune() && !IsStunned()){
-		if (!IsStifled() && !IsFeared())
-			GetZone()->UnlockAllSpells((Player*)this);
-		((Player*)this)->SetPlayerControlFlag(1, 16, false);
-		if (!IsRooted())
-			((Player*)this)->SetPlayerControlFlag(1, 8, false);
-	}
-}
-
-void Entity::AddStifleSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_STIFLE])
-		control_effects[CONTROL_EFFECT_TYPE_STIFLE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsStifleImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_STIFLE]->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(115537460, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-}
-
-void Entity::RemoveStifleSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* stifle_list = control_effects[CONTROL_EFFECT_TYPE_STIFLE];
-	if (!stifle_list || stifle_list->size(true) == 0)
-		return;
-
-	stifle_list->Remove(spell);
-}
-
-void Entity::AddDazeSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_DAZE])
-		control_effects[CONTROL_EFFECT_TYPE_DAZE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsDazeImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_DAZE]->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(84058492, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-}
-
-void Entity::RemoveDazeSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* daze_list = control_effects[CONTROL_EFFECT_TYPE_DAZE];
-
-	if (!daze_list || daze_list->size(true) == 0)
-		return;
-
-	daze_list->Remove(spell);
-}
-
-void Entity::AddStunSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_STUN])
-		control_effects[CONTROL_EFFECT_TYPE_STUN] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsStunImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_STUN]->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(72388327, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-}
-
-void Entity::RemoveStunSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* stun_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
-
-	if (!stun_list || stun_list->size(true) == 0)
-		return;
-
-	stun_list->Remove(spell);
-}
-
-void Entity::AddForceFaceSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell) {
-		return;
-	}
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE]) {
-		control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE] = new MutexList<shared_ptr<LuaSpell>>;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE]->Add(spell);
-}
-
-void Entity::RemoveForceFaceSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE];
-
-	if (!force_face_list || !force_face_list->size(true)) {
-		return;
-	}
-
-	force_face_list->Remove(spell);
-}
-
-void Entity::AddTauntSpell(shared_ptr<LuaSpell> spell) {
-    if (!spell) {
-        return;
+  if (effect_flag != control_effect_flags.end()) {
+    if (!(luaspell->effect_bitmask & effect_flag->second)) {
+      luaspell->effect_bitmask += effect_flag->second;
     }
+  }
 
-    if (!control_effects[CONTROL_EFFECT_TYPE_TAUNT]) {
-        control_effects[CONTROL_EFFECT_TYPE_TAUNT] = new MutexList<shared_ptr<LuaSpell>>;
+  if (luaspell->caster != this && luaspell->caster->IsPlayer() && IsPlayer()) {
+    auto spell_id = control_effect_immunity_spells.find(type);
+
+    if (spell_id != control_effect_immunity_spells.end()) {
+      GetZone()->GetSpellProcess()->CastSpell(spell_id->second, 1, this, this->GetID(), luaspell->spell->GetSpellData()->duration1 * 2.5);
     }
-
-    control_effects[CONTROL_EFFECT_TYPE_TAUNT]->Add(spell);
+	}
 }
 
-void Entity::RemoveTauntSpell(shared_ptr<LuaSpell> spell) {
-    MutexList<shared_ptr<LuaSpell>>* taunt_list = control_effects[CONTROL_EFFECT_TYPE_TAUNT];
+void Entity::RemoveControlEffect(shared_ptr<LuaSpell> luaspell, int8 type) {
+  lock_guard<mutex> guard(control_effects_mutex);
 
-    if (!taunt_list || !taunt_list->size(true)) {
-        return;
+  for (auto itr = control_effects[type].begin(); itr != control_effects[type].end();) {
+    if (!luaspell || (*itr)->luaspell == luaspell) {
+      itr = control_effects[type].erase(itr);
+
+      if (luaspell) {
+        break;
+      }
+    } else {
+      ++itr;
     }
+  }
+}
 
-    taunt_list->Remove(spell);
+bool Entity::HasControlEffect(int8 type) {
+  lock_guard<mutex> guard(control_effects_mutex);
+
+  auto effects = control_effects.find(type);
+
+  if (effects != control_effects.end()) {
+    return !effects->second.empty();
+  } else {
+    return false;
+  }
+}
+
+bool Entity::IsImmuneToControlEffect(int8 type) {
+  auto immunity_type = control_effect_immunities.find(type);
+
+  if (immunity_type != control_effect_immunities.end()) {
+    return (immunities[immunity_type->second] && immunities[immunity_type->second]->size(true) > 0);
+  } else {
+    return false;
+  }
 }
 
 void Entity::ApplyControlEffects() {
-	if (IsPlayer()) {
-		Player* player = static_cast<Player*>(this);
-		bool is_stunned = IsStunned();
-		bool is_stifled = IsStifled();
-		bool is_mezzed = IsMezzed();
-		bool is_feared = IsFeared();
-		bool is_rooted = IsRooted();
-		bool is_force_faced = IsForceFaced();
-		bool is_feigned = IsFeigned();
+  if (IsPlayer()) {
+    Player* player = static_cast<Player*>(this);
+    bool is_stunned = IsStunned();
+    bool is_stifled = IsStifled();
+    bool is_mezzed = IsMezzed();
+    bool is_feared = IsFeared();
+    bool is_rooted = IsRooted();
+    bool is_force_faced = IsForceFaced();
+    bool is_feigned = IsFeigned();
 
-		if (is_stunned || is_stifled || is_mezzed || is_feared || is_feigned) {
-			GetZone()->LockAllSpells(player);
-		} else {
-			GetZone()->UnlockAllSpells(player);
-		}
+    if (is_stunned || is_stifled || is_mezzed || is_feared || is_feigned) {
+      GetZone()->LockAllSpells(player);
+    } else {
+      GetZone()->UnlockAllSpells(player);
+    }
 
-		if (is_stunned || is_rooted || is_mezzed) {
-			player->SetPlayerControlFlag(1, 8, true);
-		} else {
-			player->SetPlayerControlFlag(1, 8, false);
-		}
+    if (is_stunned || is_rooted || is_mezzed) {
+      player->SetPlayerControlFlag(1, 8, true);
+    } else {
+      player->SetPlayerControlFlag(1, 8, false);
+    }
 
-		if (is_stunned || is_mezzed) {
-			player->SetPlayerControlFlag(1, 16, true);
-		} else {
-			player->SetPlayerControlFlag(1, 16, false);
-		}
+    if (is_stunned || is_mezzed || is_force_faced) {
+      player->SetPlayerControlFlag(1, 16, true);
+    } else {
+      player->SetPlayerControlFlag(1, 16, false);
+    }
 
-		if (is_feared) {
-			player->SetPlayerControlFlag(4, 4, true);
-		} else {
-			player->SetPlayerControlFlag(4, 4, false);
-		}
+    if (HasControlEffect(CONTROL_EFFECT_TYPE_WALKUNDERWATER)) {
+      player->SetPlayerControlFlag(3, 128, true);
+    } else {
+      player->SetPlayerControlFlag(3, 128, false);
+    }
 
-		if (is_force_faced) {
-			player->SetPlayerControlFlag(1, 16, true);
-		} else {
-			player->SetPlayerControlFlag(1, 16, false);
-		}
+    if (HasControlEffect(CONTROL_EFFECT_TYPE_JUMPUNDERWATER)) {
+      player->SetPlayerControlFlag(4, 1, true);
+    } else {
+      player->SetPlayerControlFlag(4, 1, false);
+    }
 
-		if (is_feigned) {
-			player->SetPlayerControlFlag(5, 1, true);
-		} else {
-			player->SetPlayerControlFlag(5, 1, false);
-		}
-	} else {
-		if (IsRooted()) {
-			SetSpeedMultiplier(0.0f);
-		} else {
-			SetSpeedMultiplier(1.0f);
-		}
-	}
+    if (is_feared) {
+      player->SetPlayerControlFlag(4, 4, true);
+    } else {
+      player->SetPlayerControlFlag(4, 4, false);
+    }
+
+    if (HasControlEffect(CONTROL_EFFECT_TYPE_GLIDE)) {
+      player->SetPlayerControlFlag(4, 16, true);
+    } else {
+      player->SetPlayerControlFlag(4, 16, false);
+    }
+
+    if (HasControlEffect(CONTROL_EFFECT_TYPE_SAFEFALL)) {
+      player->SetPlayerControlFlag(4, 32, true);
+    } else {
+      player->SetPlayerControlFlag(4, 32, false);
+    }
+
+    if (is_feigned) {
+      player->SetPlayerControlFlag(5, 1, true);
+      SetTempActionState(228);
+    } else {
+      player->SetPlayerControlFlag(5, 1, false);
+      SetTempActionState(-1);
+    }
+
+    if (HasControlEffect(CONTROL_EFFECT_TYPE_FLIGHT)) {
+      player->SetPlayerControlFlag(5, 32, true);
+    } else {
+      player->SetPlayerControlFlag(5, 32, false);
+    }
+  } else {
+    if (IsRooted()) {
+      SetSpeedMultiplier(0.0f);
+    } else {
+      SetSpeedMultiplier(1.0f);
+    }
+  }
 }
 
 void Entity::HideDeityPet(bool val) {
@@ -1814,71 +1741,51 @@ void Entity::CureDetrimentByType(int8 cure_level, int8 det_type, string cure_nam
 			if (total_cure_level + it->first > cure_level) break;
 
 			GetZone()->SendDispellPacket(caster, this, cure_name, (string)spell->spell->GetName(), DISPELL_TYPE_CURE);
-
-			if (GetZone())
-				GetZone()->RemoveTargetFromSpell(spell, this);
-
-			RemoveSpellEffect(spell);
-			RemoveDetrimentalSpell(spell);
+      GetZone()->RemoveTargetFromSpell(spell, this);
 
 			total_cure_level += it->first;
 		}
 	}
 }
 
-void Entity::CureDetrimentByControlEffect(int8 cure_count, int8 control_type, string cure_name, Entity* caster, int8 cure_level) {
-	if (cure_count <= 0 || GetDetCount() <= 0)
-		return;
+void Entity::CureDetrimentByControlEffect(int8 cure_level, int8 cc_type, string cure_name, Entity* caster) {
+  if (cure_level <= 0 || GetDetCount() <= 0) {
+    return;
+  }
 
-	vector<DetrimentalEffects>* det_list = &detrimental_spell_effects;
-	DetrimentalEffects* det;
-	vector<shared_ptr<LuaSpell>> remove_list;
-	shared_ptr<LuaSpell> spell = 0;
-	vector<LevelArray*>* levels;
-	int8 caster_class1 = 0;
-	int8 caster_class2 = 0;
-	int8 caster_class3 = 0;
-	int8 level_class = 0;
-	InfoStruct* info_struct = 0;
-	bool pass_level_check = false;
+  map<int8, vector<shared_ptr<LuaSpell>>> remove_list;
+  int8 total_cure_level = 0;
 
-	MDetriments.readlock(__FUNCTION__, __LINE__);
-	for (int32 i = 0; i<det_list->size(); i++){
-		det = &det_list->at(i);
-		if (det && det->control_effect == control_type && !det->incurable){
-			levels = det->spell->spell->GetSpellLevels();
-			info_struct = det->caster->GetInfoStruct();
-			caster_class1 = info_struct->class1;
-			caster_class2 = info_struct->class2;
-			caster_class3 = info_struct->class3;
-			pass_level_check = false;
-			for (int32 x = 0; x < levels->size(); x++){
-				level_class = levels->at(x)->adventure_class;
-				if (!cure_level || ((caster_class1 == level_class || caster_class2 == level_class || caster_class3 == level_class)
-					&& cure_level >= (levels->at(x)->spell_level / 10))){
-					pass_level_check = true;
-					break;
-				}
-			}
-			if (pass_level_check){
-				remove_list.push_back(det->spell);
-				cure_count--;
-				if (cure_count == 0)
-					break;
-			}
-		}
-	}
-	MDetriments.releasereadlock(__FUNCTION__, __LINE__);
+  for (const auto& effect : control_effects[cc_type]) {
+    vector<LevelArray*>* levels = effect->luaspell->spell->GetSpellLevels();
 
-	for (int32 i = 0; i<remove_list.size(); i++){
-		spell = remove_list.at(i);
-		GetZone()->SendDispellPacket(caster, this, cure_name, (string)remove_list.at(i)->spell->GetName(), DISPELL_TYPE_CURE);
-		if (GetZone())
-			GetZone()->RemoveTargetFromSpell(spell, this);
-		RemoveSpellEffect(spell);
-		RemoveDetrimentalSpell(spell);
-	}
-	remove_list.clear();
+    if (levels->size() > 0) {
+      for (const auto x : *levels) {
+        int8 level = x->spell_level / 10;
+        effect->luaspell->was_cured = true;
+        remove_list[level].push_back(effect->luaspell);
+        break;
+      }
+    } else if (cure_level >= effect->luaspell->caster->GetLevel()) {
+      effect->luaspell->was_cured = true;
+      remove_list[effect->luaspell->caster->GetLevel()].push_back(effect->luaspell);
+    }
+  }
+
+  for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
+    if (total_cure_level + it->first > cure_level)
+      break;
+
+    for (const auto spell : it->second) {
+      if (total_cure_level + it->first > cure_level)
+        break;
+
+      GetZone()->SendDispellPacket(caster, this, cure_name, (string)spell->spell->GetName(), DISPELL_TYPE_CURE);
+      GetZone()->RemoveTargetFromSpell(spell, this);
+
+      total_cure_level += it->first;
+    }
+  }
 }
 
 void Entity::RemoveDetrimentalSpell(shared_ptr<LuaSpell> spell) {
@@ -1966,62 +1873,58 @@ DetrimentalEffects* Entity::GetDetrimentalEffect(int32 spell_id, Entity* caster)
 }
 
 void Entity::CancelAllStealth(shared_ptr<LuaSpell> exclude_spell) {
-	bool did_change = false;
-	MutexList<shared_ptr<LuaSpell>>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
-	if (stealth_list){
-		MutexList<shared_ptr<LuaSpell>>::iterator itr = stealth_list->begin();
-		while (itr.Next()){
-			if (exclude_spell == itr.value) continue;
-			itr.value->cancelled = true;
-			if (itr.value->caster == this)
-				GetZone()->GetSpellProcess()->AddSpellCancel(itr.value);
-			else{
-				GetZone()->RemoveTargetFromSpell(itr.value, this);
-				RemoveSpellEffect(itr.value);
-			}
-			did_change = true;
-		}
-	}
-	MutexList<shared_ptr<LuaSpell>>* invis_list = control_effects[CONTROL_EFFECT_TYPE_INVIS];
-	if (invis_list){
-		MutexList<shared_ptr<LuaSpell>>::iterator invis_itr = invis_list->begin();
-		while (invis_itr.Next()){
-			if (exclude_spell == invis_itr.value) continue;
-			invis_itr.value->cancelled = true;
-			if (invis_itr.value->caster == this)
-				GetZone()->GetSpellProcess()->AddSpellCancel(invis_itr.value);
-			else{
-				GetZone()->RemoveTargetFromSpell(invis_itr.value, this);
-				RemoveSpellEffect(invis_itr.value);
-			}
-			did_change = true;
-		}
-	}
+  lock_guard<mutex> guard(control_effects_mutex);
 
-	if (did_change) {
-		AddSpawnUpdate(true, false, false);
+  auto& stealth_effects = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
+  auto& invis_effects = control_effects[CONTROL_EFFECT_TYPE_INVIS];
 
-		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetCharSheetChanged(true);
-		}
-	}
+  for (auto itr = stealth_effects.begin(); itr != stealth_effects.end(); ++itr) {
+    if (exclude_spell != (*itr)->luaspell) {
+      if ((*itr)->luaspell->caster == this) {
+        GetZone()->GetSpellProcess()->AddSpellCancel((*itr)->luaspell);
+      } else {
+        GetZone()->RemoveTargetFromSpell((*itr)->luaspell, this);
+      }
+    }
+  }
+
+  for (auto itr = invis_effects.begin(); itr != invis_effects.end(); ++itr) {
+    if (exclude_spell != (*itr)->luaspell) {
+      if ((*itr)->luaspell->caster == this) {
+        GetZone()->GetSpellProcess()->AddSpellCancel((*itr)->luaspell);
+      } else {
+        GetZone()->RemoveTargetFromSpell((*itr)->luaspell, this);
+      }
+    }
+  }
 }
 
 void Entity::RemoveAllFeignEffects() {
-	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
+  lock_guard<mutex> guard(control_effects_mutex);
 
-	if (feign_list) {
-		auto itr = feign_list->begin();
+  auto& feign_effects = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
 
-		while (itr.Next()) {
-			if (itr.value->caster == this) {
-				GetZone()->GetSpellProcess()->AddSpellCancel(itr.value);
-			} else {
-				GetZone()->RemoveTargetFromSpell(itr.value, this);
-				RemoveSpellEffect(itr.value);
-			}
-		}
-	}
+  for (auto itr = feign_effects.begin(); itr != feign_effects.end(); ++itr) {
+    if ((*itr)->luaspell->caster == this) {
+      GetZone()->GetSpellProcess()->AddSpellCancel((*itr)->luaspell);
+    } else {
+      GetZone()->RemoveTargetFromSpell((*itr)->luaspell, this);
+    }
+  }
+}
+
+void Entity::RemoveAllMezSpells() {
+  lock_guard<mutex> guard(control_effects_mutex);
+
+  auto& mez_effects = control_effects[CONTROL_EFFECT_TYPE_MEZ];
+
+  for (auto itr = mez_effects.begin(); itr != mez_effects.end(); ++itr) {
+    if ((*itr)->luaspell->caster == this) {
+      GetZone()->GetSpellProcess()->AddSpellCancel((*itr)->luaspell);
+    } else {
+      GetZone()->RemoveTargetFromSpell((*itr)->luaspell, this);
+    }
+  }
 }
 
 bool Entity::CanAttackTarget(Spawn* target) {
@@ -2055,227 +1958,47 @@ bool Entity::IsHostile(Spawn* target) {
 }
 
 bool Entity::IsStealthed(){
-	MutexList<shared_ptr<LuaSpell>>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
-
-	if (!stealth_list || stealth_list->size(true) == 0)
-		return false;
-
-	MutexList<shared_ptr<LuaSpell>>::iterator itr = stealth_list->begin();
-
-	while (itr.Next()) {
-		if (!itr.value->cancelled) {
-			return true;
-		}
-	}
-	
-	return false;
+  return HasControlEffect(CONTROL_EFFECT_TYPE_STEALTH);
 }
 
 bool Entity::IsInvis(){
-	MutexList<shared_ptr<LuaSpell>>* invis_list = control_effects[CONTROL_EFFECT_TYPE_INVIS];
-	return  (!invis_list || invis_list->size(true) == 0) == false;
-}
-
-void Entity::AddStealthSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_STEALTH])
-		control_effects[CONTROL_EFFECT_TYPE_STEALTH] = new MutexList<shared_ptr<LuaSpell>>;
-
-	control_effects[CONTROL_EFFECT_TYPE_STEALTH]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_STEALTH]->size(true) > 0) {
-		AddSpawnUpdate(true, false, false);
-
-		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetMeleeAttack(false);
-			static_cast<Player*>(this)->SetRangeAttack(false);
-			static_cast<Player*>(this)->SetCharSheetChanged(true);
-
-			if (!EngagedInCombat()) {
-				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
-			}
-		}
-	}
-}
-
-void Entity::AddInvisSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_INVIS])
-		control_effects[CONTROL_EFFECT_TYPE_INVIS] = new MutexList<shared_ptr<LuaSpell>>;
-
-	control_effects[CONTROL_EFFECT_TYPE_INVIS]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_INVIS]->size(true) > 0) {
-		AddSpawnUpdate(true, false, false);
-
-		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetMeleeAttack(false);
-			static_cast<Player*>(this)->SetRangeAttack(false);
-			static_cast<Player*>(this)->SetCharSheetChanged(true);
-
-			if (!EngagedInCombat()) {
-				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
-			}
-		}
-	}
+  return HasControlEffect(CONTROL_EFFECT_TYPE_INVIS);
 }
 
 void Entity::RemoveInvisSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* invis_list = control_effects[CONTROL_EFFECT_TYPE_INVIS];
-	if (!invis_list || invis_list->size(true) == 0)
-		return;
+  RemoveControlEffect(spell, CONTROL_EFFECT_TYPE_INVIS);
 
-	invis_list->Remove(spell);
-	RemoveSpellEffect(spell);
+  AddSpawnUpdate(true, false, false);
 
-	if (invis_list->size(true) == 0) {
-		AddSpawnUpdate(true, false, false);
+  if (IsPlayer()) {
+    static_cast<Player*>(this)->SetCharSheetChanged(true);
 
-		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetCharSheetChanged(true);
-
-			if (!EngagedInCombat()) {
-				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
-			}
-		}
-	}
+    if (!EngagedInCombat()) {
+      static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+    }
+  }
 }
 
 void Entity::RemoveStealthSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* stealth_list = control_effects[CONTROL_EFFECT_TYPE_STEALTH];
+  RemoveControlEffect(spell, CONTROL_EFFECT_TYPE_STEALTH);
 
-	if (!stealth_list || stealth_list->size(true) == 0)
-		return;
+  AddSpawnUpdate(true, false, false);
 
-	stealth_list->Remove(spell);
-	RemoveSpellEffect(spell);
+  if (IsPlayer()) {
+    static_cast<Player*>(this)->SetCharSheetChanged(true);
 
-	if (stealth_list->size() == 0) {
-		AddSpawnUpdate(true, false, false);
-
-		if (IsPlayer()) {
-			static_cast<Player*>(this)->SetCharSheetChanged(true);
-
-			if (!EngagedInCombat()) {
-				static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
-			}
-		}
-	}
-}
-
-void Entity::AddRootSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_ROOT])
-		control_effects[CONTROL_EFFECT_TYPE_ROOT] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsRootImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_ROOT]->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(56998827, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-
-}
-
-void Entity::RemoveRootSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
-
-	if (!root_list || root_list->size(true) == 0)
-		return;
-
-	root_list->Remove(spell);
-}
-
-void Entity::AddFearSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_FEAR])
-		control_effects[CONTROL_EFFECT_TYPE_FEAR] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsFearImmune()) {
-		GetZone()->SendDamagePacket(spell->caster, this, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, DAMAGE_PACKET_RESULT_IMMUNE, 0, 0, 0);
-		return;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_FEAR]->Add(spell);
-
-	if (spell->caster->IsPlayer() && IsPlayer() && spell->caster != this) {
-		GetZone()->GetSpellProcess()->CastSpell(154756066, 1, this, this->GetID(), spell->spell->GetSpellData()->duration1 * 2.5);
-	}
-}
-
-void Entity::RemoveFearSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
-
-	if (!fear_list || fear_list->size(true) == 0)
-		return;
-
-	fear_list->Remove(spell);
-}
-
-void Entity::AddFeignDeathSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell) {
-		return;
-	}
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_FEIGNED]) {
-		control_effects[CONTROL_EFFECT_TYPE_FEIGNED] = new MutexList<shared_ptr<LuaSpell>>;
-	}
-
-	control_effects[CONTROL_EFFECT_TYPE_FEIGNED]->Add(spell);
-
-	SetTempActionState(228);
-}
-
-void Entity::RemoveFeignDeathSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell) {
-		return;
-	}
-
-	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
-
-	if (!feign_list || feign_list->size(true) == 0) {
-		return;
-	}
-
-	feign_list->Remove(spell);
-
-	SetTempActionState(0);
-}
-
-void Entity::AddSnareSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_SNARE])
-		control_effects[CONTROL_EFFECT_TYPE_SNARE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	control_effects[CONTROL_EFFECT_TYPE_SNARE]->Add(spell);
-}
-
-void Entity::RemoveSnareSpell(shared_ptr<LuaSpell> spell) {
-	MutexList<shared_ptr<LuaSpell>>* snare_list = control_effects[CONTROL_EFFECT_TYPE_SNARE];
-	if (!snare_list || snare_list->size(true) == 0)
-		return;
-
-	snare_list->Remove(spell);
-	snare_values.erase(spell);
+    if (!EngagedInCombat()) {
+      static_cast<Player*>(this)->SetResendSpawns(RESEND_AGGRO);
+    }
+  }
 }
 
 void Entity::SetSnareValue(shared_ptr<LuaSpell> spell, float snare_val) {
-	if (!spell)
-		return;
+  if (!spell) {
+    return;
+  }
 
-	snare_values[spell] = snare_val;
+  snare_values[spell] = snare_val;
 }
 
 float Entity::GetHighestSnare() {
@@ -2295,53 +2018,43 @@ float Entity::GetHighestSnare() {
 }
 
 bool Entity::IsSnared() {
-	MutexList<shared_ptr<LuaSpell>>* snare_list = control_effects[CONTROL_EFFECT_TYPE_SNARE];
-	return (!snare_list || snare_list->size(true) == 0) == false;
+  return HasControlEffect(CONTROL_EFFECT_TYPE_SNARE);
 }
 
 bool Entity::IsMezzed(){
-	MutexList<shared_ptr<LuaSpell>>* mez_spells = control_effects[CONTROL_EFFECT_TYPE_MEZ];
-	return  (mez_spells && mez_spells->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_MEZ);
 }
 
 bool Entity::IsStifled(){
-	MutexList<shared_ptr<LuaSpell>>* stifle_list = control_effects[CONTROL_EFFECT_TYPE_STIFLE];
-	return  (stifle_list && stifle_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_STIFLE);
 }
 
 bool Entity::IsDazed(){
-	MutexList<shared_ptr<LuaSpell>>* daze_list = control_effects[CONTROL_EFFECT_TYPE_DAZE];
-	return  (daze_list && daze_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_DAZE);
 }
 
 bool Entity::IsStunned(){
-	MutexList<shared_ptr<LuaSpell>>* stun_list = control_effects[CONTROL_EFFECT_TYPE_STUN];
-	return (stun_list && stun_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_STUN);
 }
 
 bool Entity::IsForceFaced() {
-	MutexList<shared_ptr<LuaSpell>>* force_face_list = control_effects[CONTROL_EFFECT_TYPE_FORCE_FACE];
-	return (force_face_list && force_face_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_FORCE_FACE);
 }
 
 bool Entity::IsTaunted() {
-	MutexList<shared_ptr<LuaSpell>>* taunt_list = control_effects[CONTROL_EFFECT_TYPE_TAUNT];
-	return (taunt_list && taunt_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_TAUNT);
 }
 
 bool Entity::IsRooted(){
-	MutexList<shared_ptr<LuaSpell>>* root_list = control_effects[CONTROL_EFFECT_TYPE_ROOT];
-	return (root_list && root_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_ROOT);
 }
 
 bool Entity::IsFeared(){
-	MutexList<shared_ptr<LuaSpell>>* fear_list = control_effects[CONTROL_EFFECT_TYPE_FEAR];
-	return (fear_list && fear_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_FEAR);
 }
 
 bool Entity::IsFeigned() {
-	MutexList<shared_ptr<LuaSpell>>* feign_list = control_effects[CONTROL_EFFECT_TYPE_FEIGNED];
-	return (feign_list && feign_list->size(true) > 0);
+  return HasControlEffect(CONTROL_EFFECT_TYPE_FEIGNED);
 }
 
 bool Entity::IsWarded() {
@@ -2353,50 +2066,6 @@ bool Entity::IsWarded() {
 	}
 	
 	return false;
-}
-
-void Entity::AddWaterwalkSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_WALKUNDERWATER])
-		control_effects[CONTROL_EFFECT_TYPE_WALKUNDERWATER] = new MutexList<shared_ptr<LuaSpell>>;
-
-	control_effects[CONTROL_EFFECT_TYPE_WALKUNDERWATER]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_WALKUNDERWATER]->size(true) == 1 && IsPlayer())
-		((Player*)this)->SetPlayerControlFlag(3, 128, true); // enable walking underwater
-}
-
-void Entity::RemoveWaterwalkSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* waterwalk_list = control_effects[CONTROL_EFFECT_TYPE_WALKUNDERWATER];
-	if (!waterwalk_list || waterwalk_list->size(true) == 0)
-		return;
-
-	waterwalk_list->Remove(spell);
-	if (waterwalk_list->size(true) == 0 && IsPlayer())
-		((Player*)this)->SetPlayerControlFlag(3, 128, false); // disable walking underwater
-}
-
-void Entity::AddWaterjumpSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_JUMPUNDERWATER])
-		control_effects[CONTROL_EFFECT_TYPE_JUMPUNDERWATER] = new MutexList<shared_ptr<LuaSpell>>;
-
-	control_effects[CONTROL_EFFECT_TYPE_JUMPUNDERWATER]->Add(spell);
-	if (control_effects[CONTROL_EFFECT_TYPE_JUMPUNDERWATER]->size(true) == 1 && IsPlayer())
-		((Player*)this)->SetPlayerControlFlag(4, 1, true); // enable moonjumps underwater
-}
-
-void Entity::RemoveWaterjumpSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* waterjump_list = control_effects[CONTROL_EFFECT_TYPE_JUMPUNDERWATER];
-	if (!waterjump_list || waterjump_list->size(true) == 0)
-		return;
-
-	waterjump_list->Remove(spell);
-	if (waterjump_list->size(true) == 0 && IsPlayer())
-		((Player*)this)->SetPlayerControlFlag(4, 1, false); // disable moonjumps underwater
 }
 
 void Entity::AddAOEImmunity(shared_ptr<LuaSpell> spell){
@@ -2553,180 +2222,73 @@ bool Entity::IsDazeImmune(){
 }
 
 void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
-	if (!spell) {
-		return;
-	}
+  if (!spell) {
+    return;
+  }
 
-	//Attempt to remove all applied effects from this spell when spell has been removed from just this target. Should improve performance/easier maitenance
-	int32 effect_bitmask = spell->effect_bitmask;
+  int32 effect_bitmask = spell->effect_bitmask;
 
-	if (effect_bitmask == 0) {
-		return;
-	}
+  if (effect_bitmask == 0) {
+    return;
+  }
 
-	if (effect_bitmask & EFFECT_FLAG_STUN) {
-		RemoveStunSpell(spell);
-		ApplyControlEffects();
-	}
+  bool has_cc = false;
+  for (const auto control_effect_flag : control_effect_flags) {
+    if (effect_bitmask & control_effect_flag.second) {
+      RemoveControlEffect(spell, control_effect_flag.first);
+      has_cc = true;
 
-	if (effect_bitmask & EFFECT_FLAG_FORCE_FACE) {
-		RemoveForceFaceSpell(spell);
-		ApplyControlEffects();
-	}
+      if (control_effect_flag.first == CONTROL_EFFECT_TYPE_SNARE) {
+        snare_values.erase(spell);
+      }
+    }
+  }
 
-	if (effect_bitmask & EFFECT_FLAG_TAUNT) {
-		RemoveTauntSpell(spell);
-	}
+  if (has_cc) {
+    ApplyControlEffects();
+  }
 
-	if (effect_bitmask & EFFECT_FLAG_ROOT) {
-		RemoveRootSpell(spell);
-		ApplyControlEffects();
-	}
+  if (effect_bitmask & EFFECT_FLAG_SKILLBONUS) {
+    RemoveSkillBonus(spell->spell->GetSpellID());
 
-	if (effect_bitmask & EFFECT_FLAG_MEZ) {
-		RemoveMezSpell(spell);
-		ApplyControlEffects();
-	}
+    if (IsPlayer()) {
+      shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 
-	if (effect_bitmask & EFFECT_FLAG_STIFLE) {
-		RemoveStifleSpell(spell);
-		ApplyControlEffects();
-	}
+      if (client) {
+        EQ2Packet* packet = static_cast<Player*>(this)->GetSkills()->GetSkillPacket(client->GetVersion());
 
-	if (effect_bitmask & EFFECT_FLAG_DAZE) {
-		RemoveDazeSpell(spell);
-	}
+        if (packet) {
+          client->QueuePacket(packet);
+        }
+      }
+    }
+  }
 
-	if (effect_bitmask & EFFECT_FLAG_FEAR) {
-		RemoveFearSpell(spell);
-		ApplyControlEffects();
-	}
-
-	if (effect_bitmask & EFFECT_FLAG_FEIGNED) {
-		RemoveFeignDeathSpell(spell);
-		ApplyControlEffects();
-	}
-
-	if (effect_bitmask & EFFECT_FLAG_SKILLBONUS) {
-		RemoveSkillBonus(spell->spell->GetSpellID());
-
-		if (IsPlayer()) {
-			shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
-
-			if (client) {
-				EQ2Packet* packet = static_cast<Player*>(this)->GetSkills()->GetSkillPacket(client->GetVersion());
-				if (packet)
-					client->QueuePacket(packet);
-			}
-		}
-	}
-
-	if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
-		RemoveSpellBonus(spell);
-	if (effect_bitmask & EFFECT_FLAG_STEALTH)
-		RemoveStealthSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_INVIS)
-		RemoveInvisSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_SNARE)
-		RemoveSnareSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_WATERWALK)
-		RemoveWaterwalkSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_WATERJUMP)
-		RemoveWaterjumpSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_FLIGHT)
-		RemoveFlightSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_GLIDE)
-		RemoveGlideSpell(spell);
-	if (effect_bitmask & EFFECT_FLAG_AOE_IMMUNE)
-		RemoveAOEImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_STUN_IMMUNE)
-		RemoveStunImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_MEZ_IMMUNE)
-		RemoveMezImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_DAZE_IMMUNE)
-		RemoveDazeImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_ROOT_IMMUNE)
-		RemoveRootImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_STIFLE_IMMUNE)
-		RemoveStifleImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_FEAR_IMMUNE)
-		RemoveFearImmunity(spell);
-	if (effect_bitmask & EFFECT_FLAG_SAFEFALL)
-		RemoveSafefallSpell(spell);
+  if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
+    RemoveSpellBonus(spell);
+  if (effect_bitmask & EFFECT_FLAG_STEALTH)
+    RemoveStealthSpell(spell);
+  if (effect_bitmask & EFFECT_FLAG_INVIS)
+    RemoveInvisSpell(spell);
+  if (effect_bitmask & EFFECT_FLAG_AOE_IMMUNE)
+    RemoveAOEImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_STUN_IMMUNE)
+    RemoveStunImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_MEZ_IMMUNE)
+    RemoveMezImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_DAZE_IMMUNE)
+    RemoveDazeImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_ROOT_IMMUNE)
+    RemoveRootImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_STIFLE_IMMUNE)
+    RemoveStifleImmunity(spell);
+  if (effect_bitmask & EFFECT_FLAG_FEAR_IMMUNE)
+    RemoveFearImmunity(spell);
 }
 
 void Entity::RemoveSkillBonus(int32 spell_id){
 	//This is a virtual, just making it so we don't have to do extra checks for player/npcs
 	return;
-}
-
-void Entity::AddFlightSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_FLIGHT])
-		control_effects[CONTROL_EFFECT_TYPE_FLIGHT] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_FLIGHT]->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(5, 32, true);
-
-	control_effects[CONTROL_EFFECT_TYPE_FLIGHT]->Add(spell);
-}
-
-void Entity::RemoveFlightSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* flight_list = control_effects[CONTROL_EFFECT_TYPE_FLIGHT];
-	if (!flight_list || flight_list->size(true) == 0)
-		return;
-
-	flight_list->Remove(spell);
-	if (IsPlayer() && flight_list->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(5, 32, false);
-}
-
-void Entity::AddGlideSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_GLIDE])
-		control_effects[CONTROL_EFFECT_TYPE_GLIDE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_GLIDE]->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(4, 16, true);
-
-	control_effects[CONTROL_EFFECT_TYPE_GLIDE]->Add(spell);
-}
-
-void Entity::RemoveGlideSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* glide_list = control_effects[CONTROL_EFFECT_TYPE_GLIDE];
-	if (!glide_list || glide_list->size(true) == 0)
-		return;
-
-	glide_list->Remove(spell);
-	if (IsPlayer() && glide_list->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(4, 16, false);
-}
-
-void Entity::AddSafefallSpell(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!control_effects[CONTROL_EFFECT_TYPE_SAFEFALL])
-		control_effects[CONTROL_EFFECT_TYPE_SAFEFALL] = new MutexList<shared_ptr<LuaSpell>>;
-
-	if (IsPlayer() && control_effects[CONTROL_EFFECT_TYPE_SAFEFALL]->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(4, 32, true);
-
-	control_effects[CONTROL_EFFECT_TYPE_SAFEFALL]->Add(spell);
-}
-
-void Entity::RemoveSafefallSpell(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* safe_list = control_effects[CONTROL_EFFECT_TYPE_SAFEFALL];
-	if (!safe_list || safe_list->size(true) == 0)
-		return;
-
-	safe_list->Remove(spell);
-	if (IsPlayer() && safe_list->size(true) == 0)
-		((Player*)this)->SetPlayerControlFlag(4, 32, false);
 }
 
 void Entity::UpdateGroupMemberInfo() {

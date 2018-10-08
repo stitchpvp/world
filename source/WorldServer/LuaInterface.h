@@ -80,29 +80,30 @@ struct OptionWindowOption {
 #define EFFECT_FLAG_FEIGNED 16777216
 #define EFFECT_FLAG_TAUNT 33554432
 
-struct LuaSpell{
-	Entity*			caster;
-	int32			initial_target;
-	vector<int32>	targets;
-	Spell*			spell;
-	lua_State*		state;
-	string			file_name;
-	Timer			timer;
-	int16			num_calls;
-	int16           num_triggers;
-	int8            slot_pos;
-	int32           damage_remaining;
-	bool			resisted;
-	bool			interrupted;
-	bool            crit;
-	bool            last_spellattack_hit;
-	bool            cancel_after_all_triggers;
-	bool            had_triggers;
-	bool            had_dmg_remaining;
-	bool			was_cured;
-	bool			cancelled;
-	Mutex           MSpellTargets;
-	int32           effect_bitmask;
+struct LuaSpell {
+  Entity* caster;
+  int32 initial_target;
+  vector<int32> targets;
+  Spell* spell;
+  int8 spell_level;
+  lua_State* state;
+  string file_name;
+  Timer timer;
+  int16 num_calls;
+  int16 num_triggers;
+  int8 slot_pos;
+  int32 damage_remaining;
+  bool resisted;
+  bool interrupted;
+  bool crit;
+  bool last_spellattack_hit;
+  bool cancel_after_all_triggers;
+  bool had_triggers;
+  bool had_dmg_remaining;
+  bool was_cured;
+  bool cancelled;
+  Mutex MSpellTargets;
+  int32 effect_bitmask;
 };
 
 class LUAUserData{

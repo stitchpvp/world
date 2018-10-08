@@ -1671,208 +1671,47 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 }
 
 int EQ2Emu_lua_AddControlEffect(lua_State* state) {
-	if(!lua_interface)
-		return 0;
+  if (!lua_interface) {
+    return 0;
+  }
 
-	Spawn* spawn = lua_interface->GetSpawn(state);
-	int8 type = lua_interface->GetInt32Value(state, 2);
+  Spawn* spawn = lua_interface->GetSpawn(state);
+  int8 type = lua_interface->GetInt32Value(state, 2);
 
-	shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
-	
-	if (spawn && spawn->IsEntity()) {
-		Entity* entity = static_cast<Entity*>(spawn);
+  shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
 
-		if (type == CONTROL_EFFECT_TYPE_MEZ) {
-			entity->AddMezSpell(luaspell);
-			entity->ApplyControlEffects();
+  if (spawn && spawn->IsEntity()) {
+    Entity* entity = static_cast<Entity*>(spawn);
 
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
-			}
+    entity->AddControlEffect(luaspell, type);
+    entity->ApplyControlEffects();
 
-			if (entity->IsCasting()) {
-				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
+    // TODO: Does this belong in ApplyControlEffects?
+    if (entity->IsCasting()) {
+      // entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+    }
+  } else {
+    lua_interface->LogError("Error applying control effect on non entity '%s'.", spawn->GetName());
+  }
 
-				if (!entity_spell || !entity_spell->CastWhileMezzed()) {
-					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
-				}
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
-			entity->AddStifleSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
-			}
-
-			if (entity->IsCasting()) {
-				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
-
-				if (!entity_spell || !entity_spell->CastWhileStifled()) {
-					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
-				}
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_DAZE) {
-			entity->AddDazeSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_DAZE;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_STUN) {
-			entity->AddStunSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_STUN;
-			}
-
-			if (entity->IsCasting()) {
-				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
-
-				if (!entity_spell || !entity_spell->CastWhileStunned()) {
-					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
-				}
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_ROOT) {
-			entity->AddRootSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_FEAR) {
-			entity->AddFearSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
-			}
-
-			if (entity->IsCasting()) {
-				Spell* entity_spell = entity->GetZone()->GetSpellProcess()->GetSpell(entity);
-
-				if (!entity_spell || !entity_spell->CastWhileFeared()) {
-					entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
-				}
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_FORCE_FACE) {
-			entity->AddForceFaceSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FORCE_FACE)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_FORCE_FACE;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_TAUNT) {
-			entity->AddTauntSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_TAUNT)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_TAUNT;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_FEIGNED) {
-			entity->AddFeignDeathSpell(luaspell);
-			entity->ApplyControlEffects();
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEIGNED)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_FEIGNED;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER){
-			entity->AddWaterwalkSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_WATERWALK;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER){
-			entity->AddWaterjumpSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_WATERJUMP;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_SNARE){
-			entity->AddSnareSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_SNARE;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_FLIGHT){
-			entity->AddFlightSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_FLIGHT;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_GLIDE){
-			entity->AddGlideSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_GLIDE;
-			}
-		} else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
-			entity->AddSafefallSpell(luaspell);
-
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL)) {
-				luaspell->effect_bitmask += EFFECT_FLAG_SAFEFALL;
-			}
-		} else {
-			lua_interface->LogError("Unhandled control effect type of %u.", type);
-		}
-	} else {
-		lua_interface->LogError("Error applying control effect on non entity '%s'.", spawn->GetName());
-	}
-
-	return 0;
+  return 0;
 }
 
 int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
-	if (!lua_interface)
-		return 0;
+  if (!lua_interface) {
+    return 0;
+  }
 
-	Spawn* spawn = lua_interface->GetSpawn(state);
-	int8 type = lua_interface->GetInt8Value(state, 2);
-	shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
+  Spawn* spawn = lua_interface->GetSpawn(state);
+  int8 type = lua_interface->GetInt8Value(state, 2);
+  shared_ptr<LuaSpell> luaspell = lua_interface->GetCurrentSpell(state);
 
-	if (spawn && spawn->IsEntity()) {
-		if (type == CONTROL_EFFECT_TYPE_MEZ) {
-			static_cast<Entity*>(spawn)->RemoveMezSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
-			static_cast<Entity*>(spawn)->RemoveStifleSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_DAZE) {
-			static_cast<Entity*>(spawn)->RemoveDazeSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_STUN) {
-			static_cast<Entity*>(spawn)->RemoveStunSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_ROOT) {
-			static_cast<Entity*>(spawn)->RemoveRootSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_FEAR) {
-			static_cast<Entity*>(spawn)->RemoveFearSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_TAUNT) {
-			static_cast<Entity*>(spawn)->RemoveTauntSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_FORCE_FACE) {
-			static_cast<Entity*>(spawn)->RemoveForceFaceSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_FEIGNED) {
-			static_cast<Entity*>(spawn)->RemoveFeignDeathSpell(luaspell);
-			static_cast<Entity*>(spawn)->ApplyControlEffects();
-		} else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER) {
-			static_cast<Entity*>(spawn)->RemoveWaterwalkSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER) {
-			static_cast<Entity*>(spawn)->RemoveWaterjumpSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_SNARE) {
-			static_cast<Entity*>(spawn)->RemoveSnareSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_FLIGHT) {
-			static_cast<Entity*>(spawn)->RemoveFlightSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_GLIDE) {
-			static_cast<Entity*>(spawn)->RemoveGlideSpell(luaspell);
-		} else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
-			static_cast<Entity*>(spawn)->RemoveSafefallSpell(luaspell);
-		} else {
-			lua_interface->LogError("Unhandled control effect type of %u.", type);
-		}
-	}
+  if (spawn && spawn->IsEntity()) {
+    static_cast<Entity*>(spawn)->RemoveControlEffect(luaspell, type);
+    static_cast<Entity*>(spawn)->ApplyControlEffects();
+  }
 
-	return 0;
+  return 0;
 }
 
 int EQ2Emu_lua_SetIntBase(lua_State* state){
@@ -4744,65 +4583,42 @@ int EQ2Emu_lua_Interrupt(lua_State* state)
 	return 0;
 }
 
-int EQ2Emu_lua_Stealth(lua_State* state){
-	if(!lua_interface)
-		return 0;
+int EQ2Emu_lua_Stealth(lua_State* state) {
+  if (!lua_interface)
+    return 0;
 
-	int8 type = lua_interface->GetInt8Value(state);
-	Spawn* spawn = lua_interface->GetSpawn(state, 2);
-	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
+  int8 type = lua_interface->GetInt8Value(state);
+  Spawn* spawn = lua_interface->GetSpawn(state, 2);
+  shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
-	if (!spell){
-		lua_interface->LogError("LUA Stealth command error: must be used from spell script");
-		return 0;
-	}
+  if (!spell) {
+    lua_interface->LogError("LUA Stealth command error: must be used from spell script");
+    return 0;
+  }
 
-	ZoneServer* zone = spell->caster->GetZone();
+  if (!spawn || !spawn->IsEntity()) {
+    lua_interface->LogError("LUA Stealth command error: target is not an Entity");
+    return 0;
+  }
 
-	if (spawn){
-		if (spawn->IsEntity()){
-			if (type == 1){
-				static_cast<Entity*>(spawn)->AddStealthSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
-					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
-				}
-			else if (type == 2){
-				static_cast<Entity*>(spawn)->AddInvisSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
-					spell->effect_bitmask += EFFECT_FLAG_INVIS;
-			}
-			return 0;
-		}
-		else{
-			lua_interface->LogError("LUA Stealth command error: target override is not Entity");
-			return 0;
-		}
-	}
-	else{
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < spell->targets.size(); i++){
-			spawn = zone->GetSpawnByID(spell->targets.at(i));
-			if (!spawn || !spawn->IsEntity())
-				continue;
+  if (type == 1) {
+    static_cast<Entity*>(spawn)->AddControlEffect(spell, CONTROL_EFFECT_TYPE_STEALTH);
+  } else if (type == 2) {
+    static_cast<Entity*>(spawn)->AddControlEffect(spell, CONTROL_EFFECT_TYPE_INVIS);
+  }
 
-			if (type == 1){
-				static_cast<Entity*>(spawn)->AddStealthSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
-					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
-			}
-			else if (type == 2){
-				static_cast<Entity*>(spawn)->AddInvisSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
-					spell->effect_bitmask += EFFECT_FLAG_INVIS;
-			}
-			else{
-				lua_interface->LogError("LUA Stealth command error: invalid stealth type given");
-				break;
-			}
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-	}
-	return 0;
+  static_cast<Entity*>(spawn)->AddSpawnUpdate(true, false, false);
+
+  if (spawn->IsPlayer()) {
+    static_cast<Player*>(spawn)->SetMeleeAttack(false);
+    static_cast<Player*>(spawn)->SetRangeAttack(false);
+
+    if (!spawn->EngagedInCombat()) {
+      static_cast<Player*>(spawn)->SetResendSpawns(RESEND_AGGRO);
+    }
+  }
+
+  return 0;
 }
 
 int EQ2Emu_lua_IsStealthed(lua_State* state){
@@ -6915,74 +6731,61 @@ int EQ2Emu_lua_RemoveThreatTransfer(lua_State* state) {
 }
 
 int EQ2Emu_lua_CureByType(lua_State* state) {
-	if(!lua_interface)
-		return 0;
+  if (!lua_interface) {
+    return 0;
+  }
 
-	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
+  shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
-	if(!spell){
-		lua_interface->LogError("LUA CureByType command error: can only be used in a spell script");
-		return 0;
-	}
+  if (!spell) {
+    lua_interface->LogError("LUA CureByType command error: can only be used in a spell script");
+    return 0;
+  }
 
-	Spawn* target = lua_interface->GetSpawn(state);
-	int8 cure_level = static_cast<int8>(lua_interface->GetFloatValue(state, 2));
-	int8 cure_type = lua_interface->GetInt8Value(state, 3);
-	string cure_name = lua_interface->GetStringValue(state, 4);
+  Spawn* target = lua_interface->GetSpawn(state);
+  int8 cure_level = static_cast<int8>(lua_interface->GetFloatValue(state, 2));
+  int8 cure_type = lua_interface->GetInt8Value(state, 3);
+  string cure_name = lua_interface->GetStringValue(state, 4);
 
-	if(!target->IsEntity()){
-		lua_interface->LogError("LUA CureByType command error: spawn override must be entity if used");
-		return 0;
-	}
+  if (!target || !target->IsEntity()) {
+    lua_interface->LogError("LUA CureByType command error: spawn must be entity");
+    return 0;
+  }
 
-	if ((cure_type == DET_TYPE_ALL && static_cast<Entity*>(target)->GetDetCount() > 0) || static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0)
-		static_cast<Entity*>(target)->CureDetrimentByType(cure_level, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster);
-	
-	return 0;
+  if ((cure_type == DET_TYPE_ALL && static_cast<Entity*>(target)->GetDetCount() > 0) || static_cast<Entity*>(target)->GetDetTypeCount(cure_type) > 0) {
+    static_cast<Entity*>(target)->CureDetrimentByType(cure_level, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster);
+  }
+
+  return 0;
 }
 
 int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
-	if(!lua_interface)
-		return 0;
+  if (!lua_interface) {
+    return 0;
+  }
 
-	shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
-	if(!spell){
-		lua_interface->LogError("LUA CureByControlEffect command error: can only be used in a spell script");
-		return 0;
-	}
+  shared_ptr<LuaSpell> spell = lua_interface->GetCurrentSpell(state);
 
-	int8 cure_count = lua_interface->GetInt8Value(state);
-	int8 cure_type = lua_interface->GetInt8Value(state, 2);
-	string cure_name = lua_interface->GetStringValue(state, 3);
-	int8 cure_level = lua_interface->GetInt8Value(state, 4);
-	Spawn* target = lua_interface->GetSpawn(state, 5);
+  if (!spell) {
+    lua_interface->LogError("LUA CureByControlEffect command error: can only be used in a spell script");
+    return 0;
+  }
 
-	if(target){
-		if(!target->IsEntity()){
-			lua_interface->LogError("LUA CureByControlEffect command error: spawn override must be entity if used");
-			return 0;
-		}
+  Spawn* target = lua_interface->GetSpawn(state);
+  int8 cure_level = lua_interface->GetInt8Value(state, 2);
+  int8 cc_type = lua_interface->GetInt8Value(state, 3);
+  string cure_name = lua_interface->GetStringValue(state, 4);
 
-		if(static_cast<Entity*>(target)->GetDetCount() > 0)
-			static_cast<Entity*>(target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
-	}
-	else {
-		ZoneServer* zone = spell->caster->GetZone();
-		vector<int32> targets = spell->targets;
-		
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for(int8 i=0; i<targets.size(); i++){
-			target = zone->GetSpawnByID(targets.at(i));
+  if (!target || !target->IsEntity()) {
+    lua_interface->LogError("LUA CureByControlEffect command error: spawn must be entity");
+    return 0;
+  }
 
-			if(!target || !target->IsEntity())
-				continue;
+  if (static_cast<Entity*>(target)->GetDetCount() > 0) {
+    static_cast<Entity*>(target)->CureDetrimentByControlEffect(cure_level, cc_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster);
+  }
 
-			if(static_cast<Entity*>(target)->GetDetCount() > 0)
-				static_cast<Entity*>(target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : static_cast<string>(spell->spell->GetName()), spell->caster, cure_level);
-		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-	}
-	return 0;
+  return 0;
 }
 
 int EQ2Emu_lua_CancelSpell(lua_State* state) {

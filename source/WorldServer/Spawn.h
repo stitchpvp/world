@@ -854,7 +854,7 @@ public:
 	Spawn*	GetRunningTo();
 	void	SetTempVisualState(int val, bool update = true) { SetInfo(&tmp_visual_state, val, update); }
 	int  	GetTempVisualState(){ return tmp_visual_state; }
-	void	SetTempActionState(int val, bool update = true) { SetInfo(&tmp_action_state, val, update); }
+	void	SetTempActionState(int val, bool update = true) { if (tmp_action_state != val) { SetInfo(&tmp_action_state, val, update); } }
 	int  	GetTempActionState(){ return tmp_action_state; }
 	void	AddAllowAccessSpawn(Spawn* spawn){ allowed_access[spawn->GetID()] = 1; }
 	void	RemoveSpawnAccess(Spawn* spawn);
