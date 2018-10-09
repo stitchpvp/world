@@ -1164,6 +1164,19 @@ void Entity::AddControlEffect(shared_ptr<LuaSpell> luaspell, int8 type) {
     }
   }
 
+  if (IsCasting()) {
+    Spell* spell = GetZone()->GetSpellProcess()->GetSpell(this);
+
+    if (spell) {
+      if ((IsStunned() && !IsStunImmune() && !spell->CastWhileStunned()) ||
+          (IsStifled() && !IsStifleImmune() && !spell->CastWhileStifled()) ||
+          (IsMezzed() && !IsMezImmune() && !spell->CastWhileMezzed()) ||
+          (IsFeared() && !IsFearImmune() && !spell->CastWhileFeared())) {
+        GetZone()->GetSpellProcess()->Interrupted(this, luaspell->caster, SPELL_ERROR_INTERRUPTED);
+      }
+    }
+  }
+
   if (luaspell->caster != this && luaspell->caster->IsPlayer() && IsPlayer()) {
     auto spell_id = control_effect_immunity_spells.find(type);
 

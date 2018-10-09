@@ -1685,11 +1685,6 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 
     entity->AddControlEffect(luaspell, type);
     entity->ApplyControlEffects();
-
-    // TODO: Does this belong in ApplyControlEffects?
-    if (entity->IsCasting()) {
-      // entity->GetZone()->GetSpellProcess()->Interrupted(entity, luaspell->caster, SPELL_ERROR_INTERRUPTED);
-    }
   } else {
     lua_interface->LogError("Error applying control effect on non entity '%s'.", spawn->GetName());
   }
