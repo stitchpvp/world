@@ -68,7 +68,8 @@ Entity::Entity() {
     control_effects.clear();
   }
 
-  immunities.clear();
+  immunity_effects.clear();
+
   has_secondary_weapon = false;
 
   for (int i = 0; i < NUM_SPELL_EFFECTS; i++) {
@@ -105,11 +106,7 @@ Entity::~Entity() {
     control_effects.clear();
   }
 
-  map<int8, MutexList<shared_ptr<LuaSpell>>*>::iterator itr4;
-  for (itr4 = immunities.begin(); itr4 != immunities.end(); itr4++) {
-    safe_delete(itr4->second);
-  }
-  immunities.clear();
+  immunity_effects.clear();
 }
 
 bool Entity::HasMoved(bool include_heading){
@@ -1154,7 +1151,11 @@ void Entity::AddControlEffect(shared_ptr<LuaSpell> luaspell, int8 type) {
   auto control_effect = make_unique<ControlEffect>();
   control_effect->luaspell = luaspell;
   control_effect->type = type;
-  control_effects[type].push_back(move(control_effect));
+
+  {
+    lock_guard<mutex> guard(control_effects_mutex);
+    control_effects[type].push_back(move(control_effect));
+  }
 
   auto effect_flag = control_effect_flags.find(type);
 
@@ -1214,11 +1215,11 @@ bool Entity::HasControlEffect(int8 type) {
   }
 }
 
-bool Entity::IsImmuneToControlEffect(int8 type) {
+bool Entity::IsImmuneToControlEffect(int8 type, bool active) {
   auto immunity_type = control_effect_immunities.find(type);
 
   if (immunity_type != control_effect_immunities.end()) {
-    return (immunities[immunity_type->second] && immunities[immunity_type->second]->size(true) > 0);
+    return HasImmunityEffect(immunity_type->second, active);
   } else {
     return false;
   }
@@ -1227,11 +1228,11 @@ bool Entity::IsImmuneToControlEffect(int8 type) {
 void Entity::ApplyControlEffects() {
   if (IsPlayer()) {
     Player* player = static_cast<Player*>(this);
-    bool is_stunned = IsStunned();
-    bool is_stifled = IsStifled();
-    bool is_mezzed = IsMezzed();
-    bool is_feared = IsFeared();
-    bool is_rooted = IsRooted();
+    bool is_stunned = IsStunned() && !IsStunImmune(true);
+    bool is_stifled = IsStifled() && !IsStifleImmune(true);
+    bool is_mezzed = IsMezzed() && !IsMezImmune(true);
+    bool is_feared = IsFeared() && !IsFearImmune(true);
+    bool is_rooted = IsRooted() && !IsRootImmune(true);
     bool is_force_faced = IsForceFaced();
     bool is_feigned = IsFeigned();
 
@@ -2081,157 +2082,86 @@ bool Entity::IsWarded() {
 	return false;
 }
 
-void Entity::AddAOEImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
+void Entity::AddImmunityEffect(shared_ptr<LuaSpell> luaspell, int8 type, bool active) {
+  if (!luaspell) {
+    return;
+  }
 
-	if (!immunities[IMMUNITY_TYPE_AOE])
-		immunities[IMMUNITY_TYPE_AOE] = new MutexList<shared_ptr<LuaSpell>>;
+  auto immunity_effect = make_unique<ImmunityEffect>();
+  immunity_effect->active = active;
+  immunity_effect->luaspell = luaspell;
+  immunity_effect->type = type;
 
-	immunities[IMMUNITY_TYPE_AOE]->Add(spell);
+  {
+    lock_guard<mutex> guard(immunity_effects_mutex);
+    immunity_effects[type].push_back(move(immunity_effect));
+  }
+
+  auto effect_flag = immunity_effect_flags.find(type);
+
+  if (effect_flag != immunity_effect_flags.end()) {
+    if (!(luaspell->effect_bitmask & effect_flag->second)) {
+      luaspell->effect_bitmask += effect_flag->second;
+    }
+  }
 }
 
-void Entity::RemoveAOEImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* aoe_list = immunities[IMMUNITY_TYPE_AOE];
-	if (!aoe_list || aoe_list->size(true) == 0)
-		return;
-	aoe_list->Remove(spell);
+bool Entity::HasImmunityEffect(int8 type, bool active) {
+  lock_guard<mutex> guard(immunity_effects_mutex);
+
+  if (active) {
+    for (const auto& immunity : immunity_effects[type]) {
+      if (immunity->active) {
+        return true;
+      }
+    }
+  } else {
+    return !immunity_effects[type].empty();
+  }
 }
 
-bool Entity::IsAOEImmune(){
-	return (immunities[IMMUNITY_TYPE_AOE] && immunities[IMMUNITY_TYPE_AOE]->size(true));
+void Entity::RemoveImmunityEffect(shared_ptr<LuaSpell> luaspell, int8 type) {
+  lock_guard<mutex> guard(immunity_effects_mutex);
+
+  for (auto itr = immunity_effects[type].begin(); itr != immunity_effects[type].end();) {
+    if (!luaspell || (*itr)->luaspell == luaspell) {
+      itr = immunity_effects[type].erase(itr);
+
+      if (luaspell) {
+        break;
+      }
+    } else {
+      ++itr;
+    }
+  }
 }
 
-void Entity::AddStunImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_STUN])
-		immunities[IMMUNITY_TYPE_STUN] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_STUN]->Add(spell);
+bool Entity::IsAOEImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_AOE, active);
 }
 
-void Entity::RemoveStunImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* stun_list = immunities[IMMUNITY_TYPE_STUN];
-	if (!stun_list || stun_list->size(true) == 0)
-		return;
-
-	stun_list->Remove(spell);
+bool Entity::IsStunImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_STUN, active);
 }
 
-bool Entity::IsStunImmune(){
-	return (immunities[IMMUNITY_TYPE_STUN] && immunities[IMMUNITY_TYPE_STUN]->size(true) > 0);
+bool Entity::IsStifleImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_STIFLE, active);
 }
 
-void Entity::AddStifleImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_STIFLE])
-		immunities[IMMUNITY_TYPE_STIFLE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_STIFLE]->Add(spell);
+bool Entity::IsMezImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_MEZ, active);
 }
 
-void Entity::RemoveStifleImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* stifle_list = immunities[IMMUNITY_TYPE_STIFLE];
-	if (!stifle_list || stifle_list->size(true) == 0)
-		return;
-
-	stifle_list->Remove(spell);
+bool Entity::IsRootImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_ROOT, active);
 }
 
-bool Entity::IsStifleImmune(){
-	return (immunities[IMMUNITY_TYPE_STIFLE] && immunities[IMMUNITY_TYPE_STIFLE]->size(true) > 0);
+bool Entity::IsFearImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_FEAR, active);
 }
 
-void Entity::AddMezImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_MEZ])
-		immunities[IMMUNITY_TYPE_MEZ] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_MEZ]->Add(spell);
-}
-
-void Entity::RemoveMezImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* mez_list = immunities[IMMUNITY_TYPE_MEZ];
-	if (!mez_list || mez_list->size(true) == 0)
-		return;
-
-	mez_list->Remove(spell);
-}
-
-bool Entity::IsMezImmune(){
-	return (immunities[IMMUNITY_TYPE_MEZ] && immunities[IMMUNITY_TYPE_MEZ]->size(true) > 0);
-}
-
-void Entity::AddRootImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_ROOT])
-		immunities[IMMUNITY_TYPE_ROOT] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_ROOT]->Add(spell);
-}
-
-void Entity::RemoveRootImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* root_list = immunities[IMMUNITY_TYPE_ROOT];
-	if (!root_list || root_list->size(true) == 0)
-		return;
-
-	root_list->Remove(spell);
-}
-
-bool Entity::IsRootImmune(){
-	return (immunities[IMMUNITY_TYPE_ROOT] && immunities[IMMUNITY_TYPE_ROOT]->size(true) > 0);
-}
-
-void Entity::AddFearImmunity(shared_ptr<LuaSpell> spell) {
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_FEAR])
-		immunities[IMMUNITY_TYPE_FEAR] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_FEAR]->Add(spell);
-}
-
-void Entity::RemoveFearImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* fear_list = immunities[IMMUNITY_TYPE_FEAR];
-	if (!fear_list || fear_list->size(true) == 0)
-		return;
-
-	fear_list->Remove(spell);
-}
-
-bool Entity::IsFearImmune(){
-	return (immunities[IMMUNITY_TYPE_FEAR] && immunities[IMMUNITY_TYPE_FEAR]->size(true) > 0);
-}
-
-void Entity::AddDazeImmunity(shared_ptr<LuaSpell> spell){
-	if (!spell)
-		return;
-
-	if (!immunities[IMMUNITY_TYPE_DAZE])
-		immunities[IMMUNITY_TYPE_DAZE] = new MutexList<shared_ptr<LuaSpell>>;
-
-	immunities[IMMUNITY_TYPE_DAZE]->Add(spell);
-}
-
-void Entity::RemoveDazeImmunity(shared_ptr<LuaSpell> spell){
-	MutexList<shared_ptr<LuaSpell>>* daze_list = immunities[IMMUNITY_TYPE_DAZE];
-	if (!daze_list || daze_list->size(true) == 0)
-		return;
-
-	daze_list->Remove(spell);
-}
-
-bool Entity::IsDazeImmune(){
-	return (immunities[IMMUNITY_TYPE_DAZE] && immunities[IMMUNITY_TYPE_DAZE]->size(true) > 0);
+bool Entity::IsDazeImmune(bool active) {
+  return HasImmunityEffect(IMMUNITY_TYPE_DAZE, active);
 }
 
 void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
@@ -2257,6 +2187,13 @@ void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
     }
   }
 
+  for (const auto immunity_effect_flag : immunity_effect_flags) {
+    if (effect_bitmask & immunity_effect_flag.second) {
+      RemoveImmunityEffect(spell, immunity_effect_flag.first);
+      has_cc = true;
+    }
+  }
+
   if (has_cc) {
     ApplyControlEffects();
   }
@@ -2277,26 +2214,17 @@ void Entity::RemoveEffectsFromLuaSpell(shared_ptr<LuaSpell> spell) {
     }
   }
 
-  if (effect_bitmask & EFFECT_FLAG_SPELLBONUS)
+  if (effect_bitmask & EFFECT_FLAG_SPELLBONUS) {
     RemoveSpellBonus(spell);
-  if (effect_bitmask & EFFECT_FLAG_STEALTH)
+  }
+
+  if (effect_bitmask & EFFECT_FLAG_STEALTH) {
     RemoveStealthSpell(spell);
-  if (effect_bitmask & EFFECT_FLAG_INVIS)
+  }
+
+  if (effect_bitmask & EFFECT_FLAG_INVIS) {
     RemoveInvisSpell(spell);
-  if (effect_bitmask & EFFECT_FLAG_AOE_IMMUNE)
-    RemoveAOEImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_STUN_IMMUNE)
-    RemoveStunImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_MEZ_IMMUNE)
-    RemoveMezImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_DAZE_IMMUNE)
-    RemoveDazeImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_ROOT_IMMUNE)
-    RemoveRootImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_STIFLE_IMMUNE)
-    RemoveStifleImmunity(spell);
-  if (effect_bitmask & EFFECT_FLAG_FEAR_IMMUNE)
-    RemoveFearImmunity(spell);
+  }
 }
 
 void Entity::RemoveSkillBonus(int32 spell_id){

@@ -345,6 +345,13 @@ struct ControlEffect {
 #define CONTROL_EFFECT_TYPE_FEIGNED 16
 #define CONTROL_EFFECT_TYPE_FORCE_FACE 17
 
+struct ImmunityEffect {
+  ImmunityEffect() : active(false), luaspell(nullptr), type(0) {}
+  bool active;
+  shared_ptr<LuaSpell> luaspell;
+  int8 type;
+};
+
 #define IMMUNITY_TYPE_MEZ 1
 #define IMMUNITY_TYPE_STIFLE 2
 #define IMMUNITY_TYPE_DAZE 3
@@ -352,6 +359,16 @@ struct ControlEffect {
 #define IMMUNITY_TYPE_ROOT 5
 #define IMMUNITY_TYPE_FEAR 6
 #define IMMUNITY_TYPE_AOE 7
+
+const map<int8, int32> immunity_effect_flags = {
+  { IMMUNITY_TYPE_MEZ, EFFECT_FLAG_MEZ_IMMUNE },
+  { IMMUNITY_TYPE_STIFLE, EFFECT_FLAG_STIFLE_IMMUNE },
+  { IMMUNITY_TYPE_DAZE, EFFECT_FLAG_DAZE_IMMUNE },
+  { IMMUNITY_TYPE_STUN, EFFECT_FLAG_STUN_IMMUNE },
+  { IMMUNITY_TYPE_ROOT, EFFECT_FLAG_ROOT_IMMUNE },
+  { IMMUNITY_TYPE_FEAR, EFFECT_FLAG_FEAR_IMMUNE },
+  { IMMUNITY_TYPE_AOE, EFFECT_FLAG_AOE_IMMUNE }
+};
 
 const map<int8, int8> control_effect_immunities = {
   { CONTROL_EFFECT_TYPE_MEZ, IMMUNITY_TYPE_MEZ },
@@ -728,7 +745,7 @@ public:
 	bool IsFeared();
 	bool IsFeigned();
   bool IsForceFaced();
-  bool IsImmuneToControlEffect(int8 type);
+  bool IsImmuneToControlEffect(int8 type, bool active = false);
 	bool IsMezzed();
   bool IsMezzedOrStunned() { return IsMezzed() || IsStunned(); }
 	bool IsRooted();
@@ -846,29 +863,18 @@ public:
 	bool IsInvis();
 	void RemoveStealthSpell(shared_ptr<LuaSpell> spell);
 	void RemoveInvisSpell(shared_ptr<LuaSpell> spell);
-	void AddAOEImmunity(shared_ptr<LuaSpell> spell);
-	bool IsAOEImmune();
-	void RemoveAOEImmunity(shared_ptr<LuaSpell> spell);
-	void AddStunImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveStunImmunity(shared_ptr<LuaSpell> spell);
-	bool IsStunImmune();
-	void AddStifleImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveStifleImmunity(shared_ptr<LuaSpell> spell);
-	bool IsStifleImmune();
-	void AddMezImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveMezImmunity(shared_ptr<LuaSpell> spell);
-	bool IsMezImmune();
-	void AddRootImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveRootImmunity(shared_ptr<LuaSpell> spell);
-	bool IsRootImmune();
-	void AddFearImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveFearImmunity(shared_ptr<LuaSpell> spell);
-	bool IsFearImmune();
-	void AddDazeImmunity(shared_ptr<LuaSpell> spell);
-	void RemoveDazeImmunity(shared_ptr<LuaSpell> spell);
-	bool IsDazeImmune();
+  void AddImmunityEffect(shared_ptr<LuaSpell> luaspell, int8 type, bool active = false);
+  bool HasImmunityEffect(int8 type, bool active = false);
+  void RemoveImmunityEffect(shared_ptr<LuaSpell> spell, int8 type);
+  bool IsAOEImmune(bool active = false);
+  bool IsStunImmune(bool active = false);
+  bool IsStifleImmune(bool active = false);
+  bool IsMezImmune(bool active = false);
+  bool IsRootImmune(bool active = false);
+  bool IsFearImmune(bool active = false);
+  bool IsDazeImmune(bool active = false);
 
-	GroupMemberInfo* GetGroupMemberInfo() { return group_member_info; }
+  GroupMemberInfo* GetGroupMemberInfo() { return group_member_info; }
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
 	void UpdateGroupMemberInfo();
 
@@ -897,7 +903,7 @@ protected:
 private:
 	MutexList<BonusValues*> bonus_list;
   map<int8, vector<unique_ptr<ControlEffect>>> control_effects;
-	map<int8, MutexList<shared_ptr<LuaSpell>>*> immunities;
+  map<int8, vector<unique_ptr<ImmunityEffect>>> immunity_effects;
 	float	max_speed;
 	vector<Item*>	loot_items;
 	int32			loot_coins;
@@ -927,6 +933,7 @@ private:
 	vector<Entity*> dumbfire_pets;
 
   mutex control_effects_mutex;
+  mutex immunity_effects_mutex;
 
 	map<shared_ptr<LuaSpell>, WardInfo*> m_wardList;
 	map<shared_ptr<LuaSpell>, StoneskinInfo*> m_stoneskinList;
