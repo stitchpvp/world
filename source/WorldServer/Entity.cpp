@@ -68,7 +68,10 @@ Entity::Entity() {
     control_effects.clear();
   }
 
-  immunity_effects.clear();
+  {
+    lock_guard<mutex> guard(immunity_effects_mutex);
+    immunity_effects.clear();
+  }
 
   has_secondary_weapon = false;
 
@@ -106,7 +109,10 @@ Entity::~Entity() {
     control_effects.clear();
   }
 
-  immunity_effects.clear();
+  {
+    lock_guard<mutex> guard(immunity_effects_mutex);
+    immunity_effects.clear();
+  }
 }
 
 bool Entity::HasMoved(bool include_heading){
