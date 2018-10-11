@@ -10320,7 +10320,6 @@ to zero and treated like placeholders." />
 <Data ElementName="current_trade_xp" Type="float" Size="1" />
 <Data ElementName="needed_trade_xp" Type="float" Size="1" />
 <Data ElementName="debt_trade_xp" Type="float" Size="1" />	
-<Data ElementName="unknown18" Type="int16" Size="6" />
 <Data ElementName="server_bonus" Type="int16" Size="1" />
 <Data ElementName="adventure_vet_bonus" Type="int16" Size="1" />
 <Data ElementName="tradeskill_vet_bonus" Type="int16" Size="1" />
@@ -10374,7 +10373,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
 <Data ElementName="detrimental_spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
 <Data ElementName="passive_spell_effects" Substruct="Substruct_PassiveEffects" Size="100" />
-<Data ElementName="unknown35" Type="int8" Size="474" />
+<Data ElementName="unknown35" Type="int8" Size="486" />
 <Data ElementName="trauma_count" Type="int8" Size="1" />
 <Data ElementName="arcane_count" Type="int8" Size="1" />
 <Data ElementName="noxious_count" Type="int8" Size="1" />
@@ -10899,9 +10898,12 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown522" Type ="float" Size="1" />
 <Data ElementName="unknown523" Type ="float" Size="1" />
 <Data ElementName="unknown550" Type ="int8" Size="1" />
-<Data ElementName="vision" Type ="int16" Size="1" />
-<Data ElementName="unknown551" Type ="int8" Size="1" />
-<Data ElementName="unknown525" Type ="int8" Size="1062" />
+<Data ElementName="unknown551" Type="int8" Size="3" />
+<Data ElementName="unknown525a" Type="int8" Size="72" />
+<Data ElementName="vision" Type="int8" Size="1" />
+<Data ElementName="unknown525b" Type="int8" Size="2" />
+<Data ElementName="unknown_flags" Type="int8" Size="1" />
+<Data ElementName="unknown525c" Type="int8" Size="986" />
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" />
 <Data ElementName="unknown182" Type="int16" Size="1" />
 <Data ElementName="unknown183" Type="int8" Size="462" />
@@ -17922,6 +17924,15 @@ to zero and treated like placeholders." />
 <!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
 <Data ElementName="unknown2" Type="int8" Size="5" />
 </Struct>
+<Struct Name="WS_HearSpellDamage" ClientVersion="60114" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
+<Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
+<Data ElementName="damage_type" Type="int8" />
+<Data ElementName="damage" Type="int64" />
+<Data ElementName="unknown" Type="int8" />
+<Data ElementName="spell_name" Type="EQ2_8Bit_String" Size="1" />
+<!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
+<Data ElementName="unknown2" Type="int8" Size="5" />
+</Struct>
 <Struct Name="WS_HearSpellDamage" ClientVersion="63120" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
 <Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
 <Data ElementName="damage_type" Type="int8" />
@@ -20323,23 +20334,32 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
--<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >		
- -<Data ElementName="type" Type="int8" Size="1" />		
- -<Data ElementName="trait_tier" Type="int32" />		
- -<Data ElementName="unknown2" Type="int32" />		
- -<Data ElementName="tier" Type="int32" />		
- -<Data ElementName="id" Type="int32" />		
- -<Data ElementName="unknown5" Type="int8" Size="1" />		
- -</Struct>		
- -<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >		
- -<Data ElementName="type" Type="int8" Size="1" />		
- -<Data ElementName="trait_tier" Type="int32" />		
- -<Data ElementName="unknown2" Type="int32" />		
- -<Data ElementName="tier" Type="int32" />		
- -<Data ElementName="unknown1" Type="int32" />		
- -<Data ElementName="id" Type="int32" />		
- -<Data ElementName="unknown6" Type="int32" />		
- -</Struct>
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown5" Type="int8" Size="1" />		
+</Struct>		
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="60114" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="unknown1" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown6" Type="int32" />		
+</Struct>
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="unknown1" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown6" Type="int32" />		
+</Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="3" />
@@ -20873,7 +20893,7 @@ to zero and treated like placeholders." />
 <Data ElementName="verify_text" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="unknown4b" Type="int8" Size="1" />
 </Struct>
-<Struct Name="WS_OfferQuest" ClientVersion="60115" OpcodeName="OP_OfferQuestMsg" >
+<Struct Name="WS_OfferQuest" ClientVersion="60114" OpcodeName="OP_OfferQuestMsg" >
 <Data ElementName="reward" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="title" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
