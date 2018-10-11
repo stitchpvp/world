@@ -1704,6 +1704,10 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
   if (spawn && spawn->IsEntity()) {
     static_cast<Entity*>(spawn)->RemoveControlEffect(luaspell, type);
     static_cast<Entity*>(spawn)->ApplyControlEffects();
+
+    if (type == CONTROL_EFFECT_TYPE_TAUNT && spawn->IsPlayer()) {
+      static_cast<Player*>(spawn)->SetCharSheetChanged(true);
+    }
   }
 
   return 0;

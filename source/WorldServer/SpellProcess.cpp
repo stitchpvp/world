@@ -1990,21 +1990,27 @@ void SpellProcess::RemoveSpellScriptTimer(SpellScriptTimer* timer) {
 }
 
 void SpellProcess::CheckSpellScriptTimers() {
-	vector<SpellScriptTimer*>::iterator itr;
-	vector<SpellScriptTimer*> temp_list;
-	
-	MSpellScriptTimers.readlock(__FUNCTION__, __LINE__);
-	for (itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
-		if (Timer::GetCurrentTime2() >= (*itr)->time) {
-			temp_list.push_back((*itr));
-		}
-	}
-	MSpellScriptTimers.releasereadlock(__FUNCTION__, __LINE__);
+  vector<SpellScriptTimer*>::iterator itr;
+  vector<SpellScriptTimer*> temp_list;
 
-	for (itr = temp_list.begin(); itr != temp_list.end(); itr++) {
-		RemoveSpellScriptTimer(*itr);
-		safe_delete(*itr);
-	}
+  MSpellScriptTimers.readlock(__FUNCTION__, __LINE__);
+  for (itr = m_spellScriptList.begin(); itr != m_spellScriptList.end(); itr++) {
+    if (Timer::GetCurrentTime2() >= (*itr)->time) {
+      temp_list.push_back((*itr));
+    }
+  }
+  MSpellScriptTimers.releasereadlock(__FUNCTION__, __LINE__);
+
+  for (itr = temp_list.begin(); itr != temp_list.end(); itr++) {
+    Spawn* target = (*itr)->spell->caster->GetZone()->GetSpawnByID((*itr)->target);
+
+    if (target) {
+      ProcessSpell((*itr)->spell, target, false, (*itr)->customFunction.c_str(), (*itr));
+    }
+
+    RemoveSpellScriptTimer(*itr);
+    safe_delete(*itr);
+  }
 }
 
 void SpellProcess::ClearSpellScriptTimerList() {
