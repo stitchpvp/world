@@ -1498,226 +1498,230 @@ void World::RejoinGroup(const shared_ptr<Client>& client){
 	}*/
 }
 
+void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity* entity) {
+  if (values) {
+    switch (type) {
+    case ITEM_STAT_STR: {
+      values->str += value;
+      break;
+    }
 
-void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity* entity){
-	if (values) {
-		switch(type) {
-			case ITEM_STAT_STR: {
-				values->str += value;
-				break;
-			}
+    case ITEM_STAT_STA: {
+      values->sta += value;
+      break;
+    }
 
-			case ITEM_STAT_STA: {
-				values->sta += value;
-				break;
-			}
+    case ITEM_STAT_AGI: {
+      values->agi += value;
+      break;
+    }
 
-			case ITEM_STAT_AGI: {
-				values->agi += value;
-				break;
-			}
+    case ITEM_STAT_WIS: {
+      values->wis += value;
+      break;
+    }
 
-			case ITEM_STAT_WIS: {
-				values->wis += value;
-				break;
-			}
+    case ITEM_STAT_INT: {
+      values->int_ += value;
+      break;
+    }
 
-			case ITEM_STAT_INT: {
-				values->int_ += value;
-				break;
-			}
+    case ITEM_STAT_VS_SLASH: {
+      values->vs_slash += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_SLASH: {
-				values->vs_slash += value;
-				break;
-			}
+    case ITEM_STAT_VS_CRUSH: {
+      values->vs_crush += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_CRUSH: {
-				values->vs_crush += value;
-				break;
-			}
+    case ITEM_STAT_VS_PIERCE: {
+      values->vs_pierce += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_PIERCE: {
-				values->vs_pierce += value;
-				break;
-			}
+    case ITEM_STAT_VS_PHYSICAL: {
+      values->vs_physical += value;
+    }
 
-			case ITEM_STAT_VS_PHYSICAL: {
-			    values->vs_physical += value;
-			}
+    case ITEM_STAT_VS_ELEMENTAL: {
+      values->vs_heat += value;
+      values->vs_cold += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_ELEMENTAL: {
-				values->vs_heat += value;
-				values->vs_cold += value;
-				break;
-			}
+    case ITEM_STAT_VS_COLD: {
+      values->vs_cold += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_COLD: {
-				values->vs_cold += value;
-				break;
-			}
+    case ITEM_STAT_VS_ARCANE: {
+      values->vs_magic += value;
+      values->vs_mental += value;
+      values->vs_divine += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_ARCANE: {
-				values->vs_magic += value;
-				values->vs_mental += value;
-				values->vs_divine += value;
-				break;
-			}
+    case ITEM_STAT_VS_MENTAL: {
+      values->vs_mental += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_MENTAL: {
-				values->vs_mental += value;
-				break;
-			}
+    case ITEM_STAT_VS_DIVINE: {
+      values->vs_divine += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_DIVINE: {
-				values->vs_divine += value;
-				break;
-			}
+    case ITEM_STAT_VS_DISEASE: {
+      values->vs_disease += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_DISEASE: {
-				values->vs_disease += value;
-				break;
-			}
+    case ITEM_STAT_VS_NOXIOUS: {
+      values->vs_poison += value;
+      values->vs_disease += value;
+      break;
+    }
 
-			case ITEM_STAT_VS_NOXIOUS: {
-				values->vs_poison += value;
-				values->vs_disease += value;
-				break;
-			}
+    case ITEM_STAT_HEALTH: {
+      values->health += value;
+      break;
+    }
 
-			case ITEM_STAT_HEALTH: {
-				values->health += value;
-				break;
-			}
+    case ITEM_STAT_POWER: {
+      values->power += value;
+      break;
+    }
 
-			case ITEM_STAT_POWER: {
-				values->power += value;
-				break;
-			}
+    case ITEM_STAT_CONCENTRATION: {
+      values->concentration += value;
+      break;
+    }
 
-			case ITEM_STAT_CONCENTRATION: {
-				values->concentration += value;
-				break;
-			}
+    case ITEM_STAT_ABILITY_MODIFIER: {
+      values->ability_modifier += value;
+      break;
+    }
 
-			case ITEM_STAT_ABILITY_MODIFIER: {
-				values->ability_modifier += value;
-				break;
-			}
+    case ITEM_STAT_CRITICALMITIGATION: {
+      values->criticalmitigation += value;
+      break;
+    }
 
-			case ITEM_STAT_CRITICALMITIGATION: {
-				values->criticalmitigation += value;
-				break;
-			}
+    case ITEM_STAT_EXTRASHIELDBLOCKCHANCE: {
+      values->extrashieldblockchance += value;
+      break;
+    }
 
-			case ITEM_STAT_EXTRASHIELDBLOCKCHANCE: {
-				values->extrashieldblockchance += value;
-				break;
-			}
+    case ITEM_STAT_BENEFICIALCRITCHANCE: {
+      values->beneficialcritchance += value;
+      break;
+    }
 
-			case ITEM_STAT_BENEFICIALCRITCHANCE: {
-				values->beneficialcritchance += value;
-				break;
-			}
+    case ITEM_STAT_CRITBONUS: {
+      values->critbonus += value;
+      break;
+    }
 
-			case ITEM_STAT_CRITBONUS: {
-				values->critbonus += value;
-				break;
-			}
+    case ITEM_STAT_HATEGAINMOD: {
+      values->hategainmod += value;
+      break;
+    }
 
-			case ITEM_STAT_HATEGAINMOD: {
-				values->hategainmod += value;
-				break;
-			}
+    case ITEM_STAT_ABILITYREUSESPEED: {
+      values->abilityreusespeed += value;
+      break;
+    }
 
-			case ITEM_STAT_ABILITYREUSESPEED: {
-				values->abilityreusespeed += value;
-				break;
-			}
+    case ITEM_STAT_ABILITYCASTINGSPEED: {
+      values->abilitycastingspeed += value;
+      break;
+    }
 
-       		case ITEM_STAT_ABILITYCASTINGSPEED: {
-				values->abilitycastingspeed += value;
-				break;
-			}
+    case ITEM_STAT_ABILITYRECOVERYSPEED: {
+      values->abilityrecoveryspeed += value;
+      break;
+    }
 
-			case ITEM_STAT_ABILITYRECOVERYSPEED: {
-				values->abilityrecoveryspeed += value;
-				break;
-			}
+    case ITEM_STAT_SPELLREUSESPEED: {
+      values->spellreusespeed += value;
+      break;
+    }
 
-			case ITEM_STAT_SPELLREUSESPEED: {
-				values->spellreusespeed += value;
-				break;
-			}
+    case ITEM_STAT_SPELLMULTIATTACKCHANCE: {
+      values->spellmultiattackchance += value;
+      break;
+    }
 
-			case ITEM_STAT_SPELLMULTIATTACKCHANCE: {
-				values->spellmultiattackchance += value;
-				break;
-			}
+    case ITEM_STAT_DPS: {
+      values->dps += value;
+      break;
+    }
 
-			case ITEM_STAT_DPS: {
-				values->dps += value;
-				break;
-			}
+    case ITEM_STAT_ATTACKSPEED: {
+      values->attackspeed += value;
+      break;
+    }
 
-			case ITEM_STAT_ATTACKSPEED: {
-				values->attackspeed += value;
-				break;
-			}
+    case ITEM_STAT_MULTIATTACKCHANCE: {
+      values->multiattackchance += value;
+      break;
+    }
 
-		    case ITEM_STAT_MULTIATTACKCHANCE: {
-				values->multiattackchance += value;
-				break;
-			}
+    case ITEM_STAT_AEAUTOATTACKCHANCE: {
+      values->aeautoattackchance += value;
+      break;
+    }
 
-			case ITEM_STAT_AEAUTOATTACKCHANCE: {
-				values->aeautoattackchance += value;
-				break;
-			}
+    case ITEM_STAT_STRIKETHROUGH: {
+      values->strikethrough += value;
+      break;
+    }
 
-			case ITEM_STAT_STRIKETHROUGH: {
-				values->strikethrough += value;
-				break;
-			}
+    case ITEM_STAT_ACCURACY: {
+      values->accuracy += value;
+      break;
+    }
 
-			case ITEM_STAT_ACCURACY: {
-				values->accuracy += value;
-				break;
-			}
+    case ITEM_STAT_ARMORMITIGATIONINCREASE: {
+      values->mitigation_increase += value;
+      break;
+    }
 
-			case ITEM_STAT_ARMORMITIGATIONINCREASE: {
-				values->mitigation_increase += value;
-				break;
-			}
+    case ITEM_STAT_PHYSICAL_DAMAGE_REDUCTION: {
+      values->physical_damage_reduction += value;
+      break;
+    }
 
-			case ITEM_STAT_PHYSICAL_DAMAGE_REDUCTION: {
-				values->physical_damage_reduction += value;
-				break;
-			}
+    case ITEM_STAT_BASEAVOIDANCEBONUS: {
+      values->base_avoidance_bonus += value;
+      break;
+    }
 
-			case ITEM_STAT_BASEAVOIDANCEBONUS: {
-				values->base_avoidance_bonus += value;
-				break;
-			}
+    case ITEM_STAT_MINIMUMDEFLECTIONCHANCE: {
+      values->minimum_deflection_chance += value;
+      break;
+    }
 
-			case ITEM_STAT_MINIMUMDEFLECTIONCHANCE: {
-				values->minimum_deflection_chance += value;
-				break;
-			}
+    case ITEM_STAT_RIPOSTECHANCE: {
+      values->riposte_chance += value;
+      break;
+    }
 
-			case ITEM_STAT_RIPOSTECHANCE: {
-				values->riposte_chance += value;
-				break;
-		    }
+    case ITEM_STAT_ABILITY_COST_MODIFIER: {
+      values->ability_cost_modifier += value;
+      break;
+    }
 
-			default: {
-				if (entity) {
-					entity->stats[type] += value;
-				}
-				break;
-			}
-		}
-	}
+    default: {
+      if (entity) {
+        entity->stats[type] += value;
+      }
+      break;
+    }
+    }
+  }
 }
 
 void World::CreateGuild(const char* guild_name, shared_ptr<Client> leader, int32 group_id) {

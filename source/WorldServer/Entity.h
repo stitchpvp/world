@@ -237,8 +237,9 @@ struct InfoStruct{
 	sint8			physical_damage_reduction;
 	sint8			alignment;
 	int16			fame;
+  float ability_cost_multiplier;
 
-	int32			pet_id;
+  int32			pet_id;
 	char			pet_name[32];
 	float			pet_health_pct;
 	float			pet_power_pct;

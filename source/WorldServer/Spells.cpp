@@ -431,34 +431,38 @@ void Spell::AddSpellEffect(int8 percentage, int8 subbullet, string description){
 	MSpellInfo.unlock();
 }
 
-int16 Spell::GetHPRequired(Spawn* spawn){
-	int16 hp_req = spell->hp_req;
+int16 Spell::GetHPRequired(Spawn* spawn) {
+  int16 hp_req = spell->hp_req;
 
-	if (spawn && spell->hp_req_percent > 0) {
-		double result = ((double)spell->hp_req_percent/100)*spawn->GetTotalHPBase();
+  if (spawn && spell->hp_req_percent > 0) {
+    double result = ((double)spell->hp_req_percent / 100) * spawn->GetTotalHPBase();
 
-		if (result >= (((int16)result) + .5))
-			result++;
+    if (result >= (((int16)result) + .5))
+      result++;
 
-		hp_req = (int16)result;
-	}
+    hp_req = (int16)result;
+  }
 
-	return hp_req;
+  return hp_req;
 }
 
-int16 Spell::GetPowerRequired(Spawn* spawn){
-	int16 power_req = spell->power_req;
+int16 Spell::GetPowerRequired(Spawn* spawn) {
+  int16 power_req = spell->power_req;
 
-	if (spawn && spell->power_req_percent > 0) {
-		double result = ((double)spell->power_req_percent/100)*spawn->GetTotalPowerBase();
+  if (spawn && spell->power_req_percent > 0) {
+    double result = ((double)spell->power_req_percent / 100) * spawn->GetTotalPowerBase();
 
-		if (result >= (((int16)result) + .5))
-			result++;
+    if (result >= (((int16)result) + .5))
+      result++;
 
-		power_req = (int16)result;
-	}
+    power_req = (int16)result;
+  }
 
-	return power_req;
+  if (spawn->IsEntity()) {
+    power_req *= static_cast<Entity*>(spawn)->GetInfoStruct()->ability_cost_multiplier;
+  }
+
+  return power_req;
 }
 
 int16 Spell::GetSavageryRequired(Spawn* spawn){

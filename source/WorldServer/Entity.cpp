@@ -875,6 +875,7 @@ void Entity::CalculateBonuses() {
 	info->minimum_deflection_chance = 0;
 	info->riposte_chance = 0;
 	info->physical_damage_reduction = 0;
+  info->ability_cost_multiplier = 1.0;
 
 	stats.clear();
 	ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
@@ -1017,6 +1018,7 @@ void Entity::CalculateBonuses() {
 	info->minimum_deflection_chance += values->minimum_deflection_chance;
 	info->riposte_chance += values->riposte_chance;
 	info->physical_damage_reduction += values->physical_damage_reduction;
+  info->ability_cost_multiplier += (values->ability_cost_modifier / 100.0);
 	safe_delete(values);
 }
 

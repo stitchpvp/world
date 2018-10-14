@@ -521,6 +521,7 @@ extern MasterItemList master_item_list;
 #define ITEM_STAT_COMPONENT_REFUND		815
 #define ITEM_STAT_BOUNTIFUL_HARVEST		816
 #define ITEM_STAT_PHYSICAL_DAMAGE_REDUCTION 817
+#define ITEM_STAT_ABILITY_COST_MODIFIER 818
 
 
 #pragma pack(1)
@@ -569,6 +570,7 @@ struct ItemStatsValues {
 	float			minimum_deflection_chance;
 	float			riposte_chance;
 	float			base_avoidance_bonus;
+  sint8 ability_cost_modifier;
 };
 struct ItemCore {
 	int32	item_id;
