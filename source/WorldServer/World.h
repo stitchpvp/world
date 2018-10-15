@@ -32,7 +32,6 @@
 #include "GroundSpawn.h"
 #include "Sign.h"
 #include "Variables.h"
-#include "MutexList.h"
 
 #include "PlayerGroups.h"
 #include "../common/Log.h"

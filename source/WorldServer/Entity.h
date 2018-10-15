@@ -228,7 +228,9 @@ struct InfoStruct{
 	float			melee_ae;
 	float			strikethrough;
 	float			accuracy;
-	float			offensivespeed;
+  sint16 speed;
+	sint16 offensive_speed;
+  sint16 mount_speed;
 	float			base_avoidance_bonus;
 	float			minimum_deflection_chance;
 	float			riposte_chance;

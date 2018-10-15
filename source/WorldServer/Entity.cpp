@@ -823,203 +823,207 @@ void Entity::SetMaxSpeed(float val){
 }
 
 void Entity::CalculateBonuses() {
-	InfoStruct* info = &info_struct;
+  InfoStruct* info = &info_struct;
 
-	info->block = info->block_base;
-	info->cur_attack = info->attack_base;
-	info->cur_mitigation = info->mitigation_base;
-	info->base_avoidance_pct = info->avoidance_base;
-	info->parry = info->parry_base;
-	info->deflection = info->deflection_base;
+  info->block = info->block_base;
+  info->cur_attack = info->attack_base;
+  info->cur_mitigation = info->mitigation_base;
+  info->base_avoidance_pct = info->avoidance_base;
+  info->parry = info->parry_base;
+  info->deflection = info->deflection_base;
 
-	info->disease = info->disease_base;
-	info->divine = info->divine_base;
-	info->heat = info->heat_base;
-	info->magic = info->magic_base;
-	info->mental = info->mental_base;
-	info->cold = info->cold_base;
-	info->poison = info->poison_base;
-	info->elemental_base = info->heat;
-	info->noxious_base = info->poison;
-	info->arcane_base = info->magic;
+  info->disease = info->disease_base;
+  info->divine = info->divine_base;
+  info->heat = info->heat_base;
+  info->magic = info->magic_base;
+  info->mental = info->mental_base;
+  info->cold = info->cold_base;
+  info->poison = info->poison_base;
+  info->elemental_base = info->heat;
+  info->noxious_base = info->poison;
+  info->arcane_base = info->magic;
 
-	info->sta = info->sta_base + info->sta_temp;
-	info->agi = info->agi_base + info->agi_temp;
-	info->str = info->str_base + info->str_temp;
-	info->wis = info->wis_base + info->wis_temp;
-	info->intel = info->intel_base + info->intel_temp;
+  info->sta = info->sta_base + info->sta_temp;
+  info->agi = info->agi_base + info->agi_temp;
+  info->str = info->str_base + info->str_temp;
+  info->wis = info->wis_base + info->wis_temp;
+  info->intel = info->intel_base + info->intel_temp;
 
-	info->ability_modifier = 0;
-	info->critical_mitigation = 0;
-	info->block_chance = 0;
-	info->crit_chance = info->crit_chance_temp;
-	info->crit_bonus = 0;
-	info->potency = 0;
-	info->hate_mod = 0;
-	info->reuse_speed = info->reuse_speed_temp;
-	info->casting_speed = info->casting_speed_temp;
-	info->recovery_speed = 0;
-	info->spell_reuse_speed = 0;
-	info->spell_multi_attack = 0;
-	info->dps = 0;
-	info->dps_multiplier = 0;
-	info->haste = 0;
-	info->attackspeed = 0;
-	info->multi_attack = 0;
-	info->flurry = 0;
-	info->melee_ae = 0;
-	info->strikethrough = 0;
-	info->accuracy = 0;
-	info->offensivespeed = 0;
-	info->base_avoidance_bonus = 0;
-	info->minimum_deflection_chance = 0;
-	info->riposte_chance = 0;
-	info->physical_damage_reduction = 0;
+  info->ability_modifier = 0;
+  info->critical_mitigation = 0;
+  info->block_chance = 0;
+  info->crit_chance = info->crit_chance_temp;
+  info->crit_bonus = 0;
+  info->potency = 0;
+  info->hate_mod = 0;
+  info->reuse_speed = info->reuse_speed_temp;
+  info->casting_speed = info->casting_speed_temp;
+  info->recovery_speed = 0;
+  info->spell_reuse_speed = 0;
+  info->spell_multi_attack = 0;
+  info->dps = 0;
+  info->dps_multiplier = 0;
+  info->haste = 0;
+  info->attackspeed = 0;
+  info->multi_attack = 0;
+  info->flurry = 0;
+  info->melee_ae = 0;
+  info->strikethrough = 0;
+  info->accuracy = 0;
+  info->offensive_speed = 0;
+  info->mount_speed = 0;
+  info->base_avoidance_bonus = 0;
+  info->minimum_deflection_chance = 0;
+  info->riposte_chance = 0;
+  info->physical_damage_reduction = 0;
   info->ability_cost_multiplier = 1.0;
 
-	stats.clear();
-	ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
-	CalculateSpellBonuses(values);
+  stats.clear();
+  ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
+  CalculateSpellBonuses(values);
 
-	info->sta += values->sta;
-	if (info->sta < 0) {
-		info->sta = 0;
-	}
+  info->sta += values->sta;
+  if (info->sta < 0) {
+    info->sta = 0;
+  }
 
-	info->str += values->str;
-	if (info->str < 0) {
-		info->str = 0;
-	}
+  info->str += values->str;
+  if (info->str < 0) {
+    info->str = 0;
+  }
 
-	info->agi += values->agi;
-	if (info->agi < 0) {
-		info->agi = 0;
-	}
+  info->agi += values->agi;
+  if (info->agi < 0) {
+    info->agi = 0;
+  }
 
-	info->wis += values->wis;
-	if (info->wis < 0) {
-		info->wis = 0;
-	}
+  info->wis += values->wis;
+  if (info->wis < 0) {
+    info->wis = 0;
+  }
 
-	info->intel += values->int_;
-	if (info->intel < 0)
-		info->intel = 0;
+  info->intel += values->int_;
+  if (info->intel < 0)
+    info->intel = 0;
 
-	info->disease += values->vs_disease;
-	if (info->disease < 0) {
-		info->disease = 0;
-	}
+  info->disease += values->vs_disease;
+  if (info->disease < 0) {
+    info->disease = 0;
+  }
 
-	info->divine += values->vs_divine;
-	if (info->divine < 0) {
-		info->divine = 0;
-	}
+  info->divine += values->vs_divine;
+  if (info->divine < 0) {
+    info->divine = 0;
+  }
 
-	info->heat += values->vs_heat;
-	if (info->heat < 0) {
-		info->heat = 0;
-	}
+  info->heat += values->vs_heat;
+  if (info->heat < 0) {
+    info->heat = 0;
+  }
 
-	info->magic += values->vs_magic;
-	if (info->magic < 0) {
-		info->magic = 0;
-	}
+  info->magic += values->vs_magic;
+  if (info->magic < 0) {
+    info->magic = 0;
+  }
 
-	info->mental += values->vs_mental;
-	if (info->mental < 0) {
-		info->mental = 0;
-	}
+  info->mental += values->vs_mental;
+  if (info->mental < 0) {
+    info->mental = 0;
+  }
 
-	info->poison += values->vs_poison;
-	if (info->poison < 0) {
-		info->poison = 0;
-	}
+  info->poison += values->vs_poison;
+  if (info->poison < 0) {
+    info->poison = 0;
+  }
 
-	info->cold += values->vs_cold;
-	if (info->cold < 0) {
-		info->cold = 0;
-	}
+  info->cold += values->vs_cold;
+  if (info->cold < 0) {
+    info->cold = 0;
+  }
 
-	info->cur_mitigation += values->vs_slash;
-	info->cur_mitigation += values->vs_pierce;
-	info->cur_mitigation += values->vs_crush;
-	info->cur_mitigation += values->vs_physical;
-	info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
+  info->cur_mitigation += values->vs_slash;
+  info->cur_mitigation += values->vs_pierce;
+  info->cur_mitigation += values->vs_crush;
+  info->cur_mitigation += values->vs_physical;
+  info->cur_mitigation += info->cur_mitigation * (values->mitigation_increase / 100.0);
 
-	if (info->cur_mitigation < 0) {
-		info->cur_mitigation = 0;
-	}
+  if (info->cur_mitigation < 0) {
+    info->cur_mitigation = 0;
+  }
 
-	int32 sta_hp_bonus = 0.0;
-	int32 prim_power_bonus = 0.0;
+  info->speed += values->speed;
+  info->offensive_speed += values->offensive_speed;
+  info->mount_speed += values->mount_speed;
 
-	if (IsPlayer()) {
-		float bonus_mod = CalculateBonusMod();
-		info->base_ability_modifier = CalculateBaseSpellIncrease();
+  int32 sta_hp_bonus = 0.0;
+  int32 prim_power_bonus = 0.0;
 
-		sta_hp_bonus = info->sta * bonus_mod;
-		prim_power_bonus = GetPrimaryStat() * bonus_mod;
-	}
+  if (IsPlayer()) {
+    float bonus_mod = CalculateBonusMod();
+    info->base_ability_modifier = CalculateBaseSpellIncrease();
 
-	int16 base_regen = static_cast<int16>(GetLevel() * 1.6);
-	SetHPRegen(base_regen);
-	SetPowerRegen(base_regen);
+    sta_hp_bonus = info->sta * bonus_mod;
+    prim_power_bonus = GetPrimaryStat() * bonus_mod;
+  }
 
-	prim_power_bonus = floor(float(prim_power_bonus));
-	sta_hp_bonus = floor(float(sta_hp_bonus));
+  int16 base_regen = static_cast<int16>(GetLevel() * 1.6);
+  SetHPRegen(base_regen);
+  SetPowerRegen(base_regen);
 
-	sint32 total_hp = GetTotalHP();
-	sint32 total_power = GetTotalPower();
+  prim_power_bonus = floor(float(prim_power_bonus));
+  sta_hp_bonus = floor(float(sta_hp_bonus));
 
-	SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
-	SetTotalPower(GetTotalPowerBase() + values->power + prim_power_bonus);
+  sint32 total_hp = GetTotalHP();
+  sint32 total_power = GetTotalPower();
 
-	sint32 hp_difference = GetTotalHP() - total_hp;
-	sint32 power_difference = GetTotalPower() - total_power;
+  SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
+  SetTotalPower(GetTotalPowerBase() + values->power + prim_power_bonus);
 
-	if (GetHP() > GetTotalHP()) {
-		SetHP(GetTotalHP());
-	} else if (hp_difference > 0) {
-		SetHP(GetHP() + hp_difference);
-	}
+  sint32 hp_difference = GetTotalHP() - total_hp;
+  sint32 power_difference = GetTotalPower() - total_power;
 
-	if (GetPower() > GetTotalPower()) {
-		SetPower(GetTotalPower());
-	} else if (power_difference > 0) {
-		SetPower(GetPower() + power_difference);
-	}
+  if (GetHP() > GetTotalHP()) {
+    SetHP(GetTotalHP());
+  } else if (hp_difference > 0) {
+    SetHP(GetHP() + hp_difference);
+  }
 
-	info->max_concentration += values->concentration;
-	info->mitigation_skill1 += values->vs_slash;
-	info->mitigation_skill2 += values->vs_pierce;
-	info->mitigation_skill3 += values->vs_crush;
-	info->ability_modifier += values->ability_modifier;
-	info->critical_mitigation += values->criticalmitigation;
-	info->block_chance += values->extrashieldblockchance;
-	info->crit_chance += values->beneficialcritchance;
-	info->crit_bonus += values->critbonus;
-	info->potency += values->potency;
-	info->hate_mod += values->hategainmod;
-	info->reuse_speed += values->abilityreusespeed;
-	info->casting_speed += values->abilitycastingspeed;
-	info->recovery_speed += values->abilityrecoveryspeed;
-	info->spell_reuse_speed += values->spellreusespeed;
-	info->spell_multi_attack += values->spellmultiattackchance;
-	info->dps += values->dps;
-	info->dps_multiplier = CalculateDPSMultiplier();
-	info->attackspeed += values->attackspeed;
-	info->multi_attack += values->multiattackchance;
-	info->flurry += values->flurry;
-	info->melee_ae += values->aeautoattackchance;
-	info->strikethrough += values->strikethrough;
-	info->accuracy += values->accuracy;
-	info->offensivespeed += values->offensivespeed;
-	info->base_avoidance_bonus += values->base_avoidance_bonus;
-	info->minimum_deflection_chance += values->minimum_deflection_chance;
-	info->riposte_chance += values->riposte_chance;
-	info->physical_damage_reduction += values->physical_damage_reduction;
+  if (GetPower() > GetTotalPower()) {
+    SetPower(GetTotalPower());
+  } else if (power_difference > 0) {
+    SetPower(GetPower() + power_difference);
+  }
+
+  info->max_concentration += values->concentration;
+  info->mitigation_skill1 += values->vs_slash;
+  info->mitigation_skill2 += values->vs_pierce;
+  info->mitigation_skill3 += values->vs_crush;
+  info->ability_modifier += values->ability_modifier;
+  info->critical_mitigation += values->criticalmitigation;
+  info->block_chance += values->extrashieldblockchance;
+  info->crit_chance += values->beneficialcritchance;
+  info->crit_bonus += values->critbonus;
+  info->potency += values->potency;
+  info->hate_mod += values->hategainmod;
+  info->reuse_speed += values->abilityreusespeed;
+  info->casting_speed += values->abilitycastingspeed;
+  info->recovery_speed += values->abilityrecoveryspeed;
+  info->spell_reuse_speed += values->spellreusespeed;
+  info->spell_multi_attack += values->spellmultiattackchance;
+  info->dps += values->dps;
+  info->dps_multiplier = CalculateDPSMultiplier();
+  info->attackspeed += values->attackspeed;
+  info->multi_attack += values->multiattackchance;
+  info->flurry += values->flurry;
+  info->melee_ae += values->aeautoattackchance;
+  info->strikethrough += values->strikethrough;
+  info->accuracy += values->accuracy;
+  info->base_avoidance_bonus += values->base_avoidance_bonus;
+  info->minimum_deflection_chance += values->minimum_deflection_chance;
+  info->riposte_chance += values->riposte_chance;
+  info->physical_damage_reduction += values->physical_damage_reduction;
   info->ability_cost_multiplier += (values->ability_cost_modifier / 100.0);
-	safe_delete(values);
+  safe_delete(values);
 }
 
 EquipmentItemList* Entity::GetEquipmentList(){
@@ -1644,9 +1648,9 @@ float Entity::GetSpeed() {
 	if (IsStealthed() || IsInvis()) {
 		ret += stats[ITEM_STAT_STEALTHINVISSPEEDMOD];
 	} else if (EngagedInCombat()) {
-		ret += stats[ITEM_STAT_OFFENSIVESPEED];
+		ret += GetInfoStruct()->offensive_speed;
 	} else {
-		ret += max(stats[ITEM_STAT_SPEED], stats[ITEM_STAT_MOUNTSPEED]);
+		ret += max(GetInfoStruct()->offensive_speed, max(GetInfoStruct()->speed, GetInfoStruct()->mount_speed));
 	}
 
 	ret *= speed_multiplier;

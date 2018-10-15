@@ -22,7 +22,6 @@
 #include "Player.h"
 #include "../common/timer.h"
 #include "NPC_AI.h"
-#include "MutexList.h"
 
 #define COMBAT_NORMAL_FIGHTER	0
 #define COMBAT_ADD_FIGHTER		1

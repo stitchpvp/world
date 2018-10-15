@@ -1714,6 +1714,24 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
       break;
     }
 
+    case ITEM_STAT_SPEED: {
+      if (value > values->speed) {
+        values->speed = value;
+      }
+
+      break;
+    }
+
+    case ITEM_STAT_OFFENSIVESPEED: {
+      values->offensive_speed += value;
+      break;
+    }
+
+    case ITEM_STAT_MOUNTSPEED: {
+      values->mount_speed += value;
+      break;
+    }
+
     default: {
       if (entity) {
         entity->stats[type] += value;

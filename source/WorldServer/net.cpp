@@ -82,7 +82,6 @@ EQStreamFactory eqsf(LoginStream);
 LoginServer loginserver;
 MasterServer master_server;
 LuaInterface* lua_interface = new LuaInterface();
-#include "MutexList.h"
 
 #include "Rules/Rules.h"
 #include "Titles.h"
