@@ -426,9 +426,9 @@ bool Entity::SpellAttack(Spawn* victim, float distance, shared_ptr<LuaSpell> lua
 
 	if (is_tick) {
 		if (luaspell->crit) {
-			crit_mod = 1;
+			crit_mod = CRIT_MOD_FORCE_CRIT;
 		} else {
-			crit_mod = 2;
+			crit_mod = CRIT_MOD_NO_CRIT;
 		}
 	}
 
@@ -561,9 +561,9 @@ bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luasp
     CheckProcs(PROC_TYPE_BENEFICIAL, target);
   } else {
     if (luaspell->crit) {
-      crit_mod = 1;
+      crit_mod = CRIT_MOD_FORCE_CRIT;
     } else {
-      crit_mod = 2;
+      crit_mod = CRIT_MOD_NO_CRIT;
     }
   }
 
@@ -853,7 +853,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		}
 
 
-		if (crit_mod == 1) {
+		if (crit_mod == CRIT_MOD_FORCE_CRIT) {
 			crit = true;
 		} else {
 			float chance = max((float)0, (info_struct.crit_chance - victim->stats[ITEM_STAT_CRITAVOIDANCE]));
@@ -991,8 +991,8 @@ bool Entity::HealSpawn(Spawn* target, string heal_type, int32 low_heal, int32 hi
 			heal_amt = ApplyAbilityMod(heal_amt);
 		}
 
-		if (!crit_mod || crit_mod == 1) {
-			if (crit_mod == 1) {
+		if (crit_mod != CRIT_MOD_NO_CRIT) {
+			if (crit_mod == CRIT_MOD_FORCE_CRIT) {
 				crit = true;
 			} else {
 				float chance = max(0.0f, info_struct.crit_chance);

@@ -2428,7 +2428,7 @@ bool Client::Process(bool zone_process) {
 		current_rez.active = false;
 		current_rez.caster = 0;
 		current_rez.crit = false;
-		current_rez.crit_mod = 0;
+		current_rez.crit_mod = CRIT_MOD_NONE;
 		current_rez.expire_timer = 0;
 		current_rez.heal_name = "";
 		current_rez.hp_perc = 0;

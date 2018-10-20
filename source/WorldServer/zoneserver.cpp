@@ -5956,8 +5956,8 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client) 
 		heal_amt = caster->ApplyAbilityMod(heal_amt);
 		power_amt = caster->ApplyAbilityMod(power_amt);
 
-		if (!crit_mod || crit_mod == 1) {
-			if (crit_mod == 1) {
+		if (crit_mod != CRIT_MOD_NO_CRIT) {
+			if (crit_mod == CRIT_MOD_FORCE_CRIT) {
 				crit = true;
 			} else {
 				float chance = (float)max((float)0, (float)info->crit_chance);

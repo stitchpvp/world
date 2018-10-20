@@ -204,6 +204,10 @@
 #define SPELL_STATUS_READY		64
 #define SPELL_STATUS_UNKNOWN7	128
 
+#define CRIT_MOD_NONE 0
+#define CRIT_MOD_FORCE_CRIT 1
+#define CRIT_MOD_NO_CRIT 2
+
 struct LUAData{
 	int8	type;
 	sint32	int_value;
