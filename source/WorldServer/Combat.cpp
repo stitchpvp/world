@@ -550,26 +550,26 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 }
 
 bool Entity::SpellHeal(Spawn* target, float distance, shared_ptr<LuaSpell> luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod, bool no_calcs) {
-	if (!target || !luaspell || !luaspell->spell) {
-		return false;
-	}
+  if (!target || !luaspell || !luaspell->spell) {
+    return false;
+  }
 
-	bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
+  bool is_tick = GetZone()->GetSpellProcess()->HasActiveSpell(luaspell, false);
 
-	if (!is_tick) {
-		if (luaspell->crit) {
-			crit_mod = 1;
-		} else {
-			crit_mod = 2;
-		}
+  if (!is_tick) {
+    CheckProcs(PROC_TYPE_HEALING, target);
+    CheckProcs(PROC_TYPE_BENEFICIAL, target);
+  } else {
+    if (luaspell->crit) {
+      crit_mod = 1;
+    } else {
+      crit_mod = 2;
+    }
+  }
 
-		CheckProcs(PROC_TYPE_HEALING, target);
-		CheckProcs(PROC_TYPE_BENEFICIAL, target);
-	}
+  luaspell->crit = HealSpawn(target, heal_type, low_heal, high_heal, luaspell->spell->GetName(), crit_mod, is_tick, !no_calcs);
 
-	luaspell->crit = HealSpawn(target, heal_type, low_heal, high_heal, luaspell->spell->GetName(), crit_mod, is_tick, !no_calcs);
-
-	return true;
+  return true;
 }
 
 bool Entity::ProcHeal(Spawn* target, string heal_type, int32 low_heal, int32 high_heal, string name, bool perform_calcs) {
