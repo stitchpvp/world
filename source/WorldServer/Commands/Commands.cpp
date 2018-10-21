@@ -1739,45 +1739,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
   case COMMAND_FLYMODE: {
     PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", client->GetVersion());
     if (packet && sep && sep->arg[0] && sep->IsNumber(0)) {
-      PrintSep(sep, "COMMAND_FLYMODE");
       int8 val = atoi(sep->arg[0]);
-      packet->setDataByName("parameter5", 32);
-      packet->setDataByName("value", val);
-      client->QueuePacket(packet->serialize());
 
+      client->GetPlayer()->SetPlayerControlFlag(5, 32, val);
       client->Message(CHANNEL_STATUS, "Flymode %s", val == 1 ? "on" : "off");
-      /*
-				Some other values for this packet
-				first param:
-				01 flymode
-				02 collisons off
-				04 unknown
-				08 forward movement
-				16 heading movement
-				32 low gravity
-				64 sit
-
-				second
-				2 crouch
-
-
-				third:
-				04 float when trying to jump, no movement
-				08 jump high, no movement
-
-				fourth:
-				04 autorun (fear?)
-				16 moon jumps
-				32 safe fall (float to ground)
-				64 cant move
-
-				fifth:
-				01 die
-				08 hover (fae)
-				32 flymode2?
-
-				*/
-      safe_delete(packet);
     } else {
       client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage ON: /flymode 1");
       client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage OFF: /flymode 0");
