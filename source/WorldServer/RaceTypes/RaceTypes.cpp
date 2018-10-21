@@ -21,54 +21,52 @@
 #include "RaceTypes.h"
 
 MasterRaceTypeList::MasterRaceTypeList() {
-
 }
 
 MasterRaceTypeList::~MasterRaceTypeList() {
-
 }
 
 void MasterRaceTypeList::AddRaceType(int16 model_id, int16 raceType_id) {
-	if (m_raceList.count(model_id) == 0)
-		m_raceList[model_id] = raceType_id;
+  if (m_raceList.count(model_id) == 0)
+    m_raceList[model_id] = raceType_id;
 }
 
 int16 MasterRaceTypeList::GetRaceType(int16 model_id) {
-	int16 ret = 0;
+  int16 ret = 0;
 
-	if (m_raceList.count(model_id) > 0)
-		ret = m_raceList[model_id];
+  if (m_raceList.count(model_id) > 0)
+    ret = m_raceList[model_id];
 
-	return ret;
+  return ret;
 }
 
 int16 MasterRaceTypeList::GetRaceBaseType(int16 model_id) {
-	int16 ret = 0;
+  int16 ret = 0;
 
-	if (m_raceList.count(model_id) == 0)
-		return ret;
+  if (m_raceList.count(model_id) == 0)
+    return ret;
 
-	int16 race = m_raceList[model_id];
-	if (race >= DRAGONKIND && race < FAY)
-		ret = DRAGONKIND;
-	else if (race >= FAY && race < MAGICAL)
-		ret = FAY;
-	else if (race >= MAGICAL && race < MECHANIMAGICAL)
-		ret = MAGICAL;
-	else if (race >= MECHANIMAGICAL && race < NATURAL)
-		ret = MECHANIMAGICAL;
-	else if (race >= NATURAL && race < PLANAR)
-		ret = NATURAL;
-	else if (race >= PLANAR && race < PLANT)
-		ret = PLANAR;
-	else if (race >= PLANT && race < SENTIENT)
-		ret = PLANT;
-	else if (race >= SENTIENT && race < UNDEAD)
-		ret = SENTIENT;
-	else if (race >= UNDEAD && race < WERE)
-		ret = UNDEAD;
-	else if (race >= WERE)
-		ret = WERE;
+  int16 race = m_raceList[model_id];
+  if (race >= DRAGONKIND && race < FAY)
+    ret = DRAGONKIND;
+  else if (race >= FAY && race < MAGICAL)
+    ret = FAY;
+  else if (race >= MAGICAL && race < MECHANIMAGICAL)
+    ret = MAGICAL;
+  else if (race >= MECHANIMAGICAL && race < NATURAL)
+    ret = MECHANIMAGICAL;
+  else if (race >= NATURAL && race < PLANAR)
+    ret = NATURAL;
+  else if (race >= PLANAR && race < PLANT)
+    ret = PLANAR;
+  else if (race >= PLANT && race < SENTIENT)
+    ret = PLANT;
+  else if (race >= SENTIENT && race < UNDEAD)
+    ret = SENTIENT;
+  else if (race >= UNDEAD && race < WERE)
+    ret = UNDEAD;
+  else if (race >= WERE)
+    ret = WERE;
 
-	return ret;
+  return ret;
 }

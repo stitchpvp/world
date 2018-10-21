@@ -30,49 +30,50 @@ using namespace std;
 
 class Title {
 public:
-	Title();
-	Title(Title* title);
-	~Title();
-	void			SetID(int32 id) {this->id = id;}
-	void			SetName(const char *name) {strncpy(this->name, name, sizeof(this->name));}
-	void			SetPrefix(int8 prefix) {this->prefix = prefix;}
-	void			SetSaveNeeded(bool save_needed) {this->save_needed = save_needed;}
+  Title();
+  Title(Title* title);
+  ~Title();
+  void SetID(int32 id) { this->id = id; }
+  void SetName(const char* name) { strncpy(this->name, name, sizeof(this->name)); }
+  void SetPrefix(int8 prefix) { this->prefix = prefix; }
+  void SetSaveNeeded(bool save_needed) { this->save_needed = save_needed; }
 
-	int32			GetID() {return id;}
-	const char*		GetName() {return name;}
-	int8			GetPrefix() {return prefix;}
-	bool			GetSaveNeeded() {return save_needed;}
-	
+  int32 GetID() { return id; }
+  const char* GetName() { return name; }
+  int8 GetPrefix() { return prefix; }
+  bool GetSaveNeeded() { return save_needed; }
+
 private:
-	int32	id;
-	int8	prefix;
-	char	name[256];
-	bool	save_needed;
+  int32 id;
+  int8 prefix;
+  char name[256];
+  bool save_needed;
 };
 
 class MasterTitlesList {
 public:
-	MasterTitlesList();
-	~MasterTitlesList();
-	void Clear();
-	int32 Size();
-	void AddTitle(Title* title);
-	Title* GetTitle(int32 id);
-	Title* GetTitleByName(const char* title_name);
-	map<int32, Title*>* GetAllTitles();
+  MasterTitlesList();
+  ~MasterTitlesList();
+  void Clear();
+  int32 Size();
+  void AddTitle(Title* title);
+  Title* GetTitle(int32 id);
+  Title* GetTitleByName(const char* title_name);
+  map<int32, Title*>* GetAllTitles();
 
 private:
-	map<int32,Title*> titles_list;
+  map<int32, Title*> titles_list;
 };
 
 class PlayerTitlesList {
 public:
-	PlayerTitlesList();
-	~PlayerTitlesList();
-	Title* GetTitle(int32 index);
-	list<Title*>* GetAllTitles();
-	void Add(Title* title);
+  PlayerTitlesList();
+  ~PlayerTitlesList();
+  Title* GetTitle(int32 index);
+  list<Title*>* GetAllTitles();
+  void Add(Title* title);
+
 private:
-	list<Title*> player_titles_list;
+  list<Title*> player_titles_list;
 };
 #endif

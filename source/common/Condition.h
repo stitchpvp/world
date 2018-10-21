@@ -27,22 +27,19 @@
 //Sombody, someday needs to figure out how to implement a condition
 //system on windows...
 
-
 class Condition {
-	private:
+private:
 #ifndef WIN32
-		pthread_cond_t cond;
-		pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  pthread_mutex_t mutex;
 #endif
-	public:
-		Condition();
-		void Signal();
-		void SignalAll();
-		void Wait();
-//		bool TimedWait(unsigned long usec);
-		~Condition();
+public:
+  Condition();
+  void Signal();
+  void SignalAll();
+  void Wait();
+  //		bool TimedWait(unsigned long usec);
+  ~Condition();
 };
 
 #endif
-
-

@@ -20,19 +20,17 @@
 #ifndef _EQ2_RC4_H
 #define _EQ2_RC4_H
 #include "../common/types.h"
-class RC4
-{
+class RC4 {
 public:
-	RC4(int64 nKey);
-	~RC4();
+  RC4(int64 nKey);
+  ~RC4();
 
-	void Init(int64 nKey);
-	void Cypher(uchar* pData, int32 nLen);
+  void Init(int64 nKey);
+  void Cypher(uchar* pData, int32 nLen);
 
 private:
-	uchar	m_state[256];
-	uchar	m_x;
-	uchar	m_y;
+  uchar m_state[256];
+  uchar m_x;
+  uchar m_y;
 };
 #endif
-

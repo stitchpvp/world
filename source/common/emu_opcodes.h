@@ -34,23 +34,21 @@ so we know the enum type for the opcode defines must be at least
 */
 
 typedef enum { //EQEmu internal opcodes list
-	OP_Unknown=0,
+  OP_Unknown = 0,
 
 //a preprocessor hack so we dont have to maintain two lists
 #define N(x) x
 #if !defined(LOGIN)
-	#include "emu_oplist.h"
+#include "emu_oplist.h"
 #endif
 #ifdef LOGIN
-	#include "login_oplist.h"
+#include "login_oplist.h"
 #endif
 #undef N
 
-	_maxEmuOpcode
+  _maxEmuOpcode
 } EmuOpcode;
 
-extern const char *OpcodeNames[_maxEmuOpcode+1];
+extern const char* OpcodeNames[_maxEmuOpcode + 1];
 
 #endif
-
-

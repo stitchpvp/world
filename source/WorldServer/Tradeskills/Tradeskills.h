@@ -29,117 +29,114 @@ class Spawn;
 class Recipe;
 class Client;
 
-struct TradeskillEvent
-{
-	char		Name[250];
-	int16		Icon;
-	int32		Technique;
-	int16		SuccessProgress;
-	int16		SuccessDurability;
-	int16		SuccessHP;
-	int16		SuccessPower;
-	int32		SuccessSpellID;
-	int32		SuccessItemID;
-	sint16		FailProgress;
-	sint16		FailDurability;
-	sint16		FailHP;
-	sint16		FailPower;
+struct TradeskillEvent {
+  char Name[250];
+  int16 Icon;
+  int32 Technique;
+  int16 SuccessProgress;
+  int16 SuccessDurability;
+  int16 SuccessHP;
+  int16 SuccessPower;
+  int32 SuccessSpellID;
+  int32 SuccessItemID;
+  sint16 FailProgress;
+  sint16 FailDurability;
+  sint16 FailHP;
+  sint16 FailPower;
 };
 
-struct Tradeskill
-{
-	Player*			player;
-	Spawn*			table;
-	Recipe*			recipe;
-	int32			currentProgress;
-	int32			currentDurability;
-	int32			nextUpdateTime;
-	vector<int32>	usedComponents;
-	TradeskillEvent* CurrentEvent;
-	bool			eventChecked;
-	bool			eventCountered;
+struct Tradeskill {
+  Player* player;
+  Spawn* table;
+  Recipe* recipe;
+  int32 currentProgress;
+  int32 currentDurability;
+  int32 nextUpdateTime;
+  vector<int32> usedComponents;
+  TradeskillEvent* CurrentEvent;
+  bool eventChecked;
+  bool eventCountered;
 };
 
-class TradeskillMgr
-{
+class TradeskillMgr {
 public:
-	TradeskillMgr();
-	~TradeskillMgr();
+  TradeskillMgr();
+  ~TradeskillMgr();
 
-	/// <summary>Determines if an update is needed if so send one and stop crafting if finished</summary>
-	void Process();
+  /// <summary>Determines if an update is needed if so send one and stop crafting if finished</summary>
+  void Process();
 
-	/// <summary>Starts the actual crafting process</summary>
-	/// <param name='client'>Client that is crafting</param>
-	/// <param name='components'>List of items the player is using to craft</param>
-	void BeginCrafting(shared_ptr<Client> client, vector<int32> components);
+  /// <summary>Starts the actual crafting process</summary>
+  /// <param name='client'>Client that is crafting</param>
+  /// <param name='components'>List of items the player is using to craft</param>
+  void BeginCrafting(shared_ptr<Client> client, vector<int32> components);
 
-	/// <summary>Stops the crafting process</summary>
-	/// <param name='client'>Client that stopped crafting</param>
-	/// <param name='lock'>Does the list need a mutex lock? default = true</param>
-	void StopCrafting(shared_ptr<Client> client, bool lock = true);
+  /// <summary>Stops the crafting process</summary>
+  /// <param name='client'>Client that stopped crafting</param>
+  /// <param name='lock'>Does the list need a mutex lock? default = true</param>
+  void StopCrafting(shared_ptr<Client> client, bool lock = true);
 
-	/// <summary>Checks to see if the given client is crafting</summary>
-	/// <param name='client'>The client to check</param>
-	/// <returns>True if the client is crafting</returns>
-	bool IsClientCrafting(shared_ptr<Client> client);
+  /// <summary>Checks to see if the given client is crafting</summary>
+  /// <param name='client'>The client to check</param>
+  /// <returns>True if the client is crafting</returns>
+  bool IsClientCrafting(shared_ptr<Client> client);
 
-	/// <summary>Get the tradeskill struct for the given client</summary>
-	/// <param name='client'>The client to get the tradeskill struct for</param>
-	/// <returns>Pointer to the clients tradeskill struct, or 0 if they don't have one</returns>
-	Tradeskill* GetTradeskill(shared_ptr<Client> client);
+  /// <summary>Get the tradeskill struct for the given client</summary>
+  /// <param name='client'>The client to get the tradeskill struct for</param>
+  /// <returns>Pointer to the clients tradeskill struct, or 0 if they don't have one</returns>
+  Tradeskill* GetTradeskill(shared_ptr<Client> client);
 
-	/// <summary>Check to see if we countered the tradeskill event</summary>
-	/// <param name='client'>The client to check for</param>
-	/// <param name='icon'>The icon of the spell we casted</param>
-	void CheckTradeskillEvent(shared_ptr<Client> client, int16 icon);
+  /// <summary>Check to see if we countered the tradeskill event</summary>
+  /// <param name='client'>The client to check for</param>
+  /// <param name='icon'>The icon of the spell we casted</param>
+  void CheckTradeskillEvent(shared_ptr<Client> client, int16 icon);
 
-	/// <summary>Lock the tradeskill list for reading, should never need to write to the tradeskill list outside of the TradeskillMgr class</summary>
-	/// <param name='function'>Function name that called this lock</param>
-	/// <param name='line'>Line number this lock was called from</param>
-	void ReadLock(const char* function = (const char*)0, int32 line = 0) { m_tradeskills.readlock(function, line); }
+  /// <summary>Lock the tradeskill list for reading, should never need to write to the tradeskill list outside of the TradeskillMgr class</summary>
+  /// <param name='function'>Function name that called this lock</param>
+  /// <param name='line'>Line number this lock was called from</param>
+  void ReadLock(const char* function = (const char*)0, int32 line = 0) { m_tradeskills.readlock(function, line); }
 
-	/// <summary>Releases the red lock on the tradeskill list</summary>
-	/// <param name='function'>Function name that is releasing the lock</param>
-	/// <param name='line'>Line number that is releasing the lock</param>
-	void ReleaseReadLock(const char* function = (const char*)0, int32 line = 0) { m_tradeskills.releasereadlock(function, line); }
-private:
-	/// <summary>Sends the creation window</summary>
-	/// <param name='client'>Client to send the window to</param>
-	/// <param name='recipe'>The recipe being crafted</param>
-	void SendItemCreationUI(shared_ptr<Client> client, Recipe* recipe);
-	map<shared_ptr<Client>, Tradeskill*>	tradeskillList;
-	Mutex m_tradeskills;
-
-	float m_critFail;
-	float m_critSuccess;
-	float m_fail;
-	float m_success;
-	float m_eventChance;
-};
-
-class MasterTradeskillEventsList
-{
-public:
-	MasterTradeskillEventsList();
-	~MasterTradeskillEventsList();
-
-	/// <summary>Adds a tradeskill event to the master list</summery>
-	/// <param name='tradeskillEvent'>The event to add</param>
-	void AddEvent(TradeskillEvent* tradeskillEvent);
-
-	/// <summary>Gets a list of tradeskill events for the given technique</summery>
-	/// <param name='technique'>The skill id of the technique</param>
-	/// <returns>Vector of TradeskillEvent* for the given technique</returns>
-	vector<TradeskillEvent*>* GetEventByTechnique(int32 technique);
-
-	/// <summary>Get the size of the event list</summary>
-	/// <returns>int32 containing the size of the list</returns>
-	int32 Size();
+  /// <summary>Releases the red lock on the tradeskill list</summary>
+  /// <param name='function'>Function name that is releasing the lock</param>
+  /// <param name='line'>Line number that is releasing the lock</param>
+  void ReleaseReadLock(const char* function = (const char*)0, int32 line = 0) { m_tradeskills.releasereadlock(function, line); }
 
 private:
-	Mutex m_eventList;
-	map<int32, vector<TradeskillEvent*> > eventList;
+  /// <summary>Sends the creation window</summary>
+  /// <param name='client'>Client to send the window to</param>
+  /// <param name='recipe'>The recipe being crafted</param>
+  void SendItemCreationUI(shared_ptr<Client> client, Recipe* recipe);
+  map<shared_ptr<Client>, Tradeskill*> tradeskillList;
+  Mutex m_tradeskills;
+
+  float m_critFail;
+  float m_critSuccess;
+  float m_fail;
+  float m_success;
+  float m_eventChance;
+};
+
+class MasterTradeskillEventsList {
+public:
+  MasterTradeskillEventsList();
+  ~MasterTradeskillEventsList();
+
+  /// <summary>Adds a tradeskill event to the master list</summery>
+  /// <param name='tradeskillEvent'>The event to add</param>
+  void AddEvent(TradeskillEvent* tradeskillEvent);
+
+  /// <summary>Gets a list of tradeskill events for the given technique</summery>
+  /// <param name='technique'>The skill id of the technique</param>
+  /// <returns>Vector of TradeskillEvent* for the given technique</returns>
+  vector<TradeskillEvent*>* GetEventByTechnique(int32 technique);
+
+  /// <summary>Get the size of the event list</summary>
+  /// <returns>int32 containing the size of the list</returns>
+  int32 Size();
+
+private:
+  Mutex m_eventList;
+  map<int32, vector<TradeskillEvent*>> eventList;
 };
 
 #endif

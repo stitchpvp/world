@@ -36,7 +36,6 @@ extern ConfigReader configReader;
 extern MasterSkillList master_skill_list;
 extern RuleManager rule_manager;
 
-
 // JA: storing loot-related functions here til I find them all :/
 
 /*
@@ -417,72 +416,66 @@ void Player::AddPendingLootItems(int32 id, vector<Item*>* items){
 	}
 }*/
 
-
 NPC* Entity::DropChest() {
-	// Check to see if treasure chests are disabled in the rules
-	if (rule_manager.GetGlobalRule(R_World, TreasureChestDisabled)->GetBool())
-		return 0;
+  // Check to see if treasure chests are disabled in the rules
+  if (rule_manager.GetGlobalRule(R_World, TreasureChestDisabled)->GetBool())
+    return 0;
 
-	NPC* chest = 0;
+  NPC* chest = 0;
 
-	chest = new NPC();
-	chest->SetAttackable(0);
-	chest->SetShowLevel(0);
-	chest->SetShowName(1);
-	chest->SetTargetable(1);
+  chest = new NPC();
+  chest->SetAttackable(0);
+  chest->SetShowLevel(0);
+  chest->SetShowName(1);
+  chest->SetTargetable(1);
 
-	// Set the brain to a blank brain so it does nothing
-	chest->SetBrain(new BlankBrain(chest));
-	// Set the x, y, z, heading, location (grid id) to that of the dead spawn
-	chest->SetX(GetX());
-	chest->SetY(GetY());
-	chest->SetZ(GetZ());
-	// heading needs to be GetHeading() - 180 so the chest faces the proper way
-	chest->SetHeading(GetHeading() - 180);
-	chest->SetLocation(GetLocation());
-	// Set the primary command to loot and the secondary to disarm
-	chest->AddPrimaryEntityCommand("loot", 10.0f, "loot", "", 0, 0);
-	chest->AddSecondaryEntityCommand("Disarm", 10.0f, "Disarm", "", 0, 0);
-	// 32 = loot icon for the mouse
-	chest->SetIcon(32);
-	// 1 = show the right click menu
-	chest->SetShowCommandIcon(1);
+  // Set the brain to a blank brain so it does nothing
+  chest->SetBrain(new BlankBrain(chest));
+  // Set the x, y, z, heading, location (grid id) to that of the dead spawn
+  chest->SetX(GetX());
+  chest->SetY(GetY());
+  chest->SetZ(GetZ());
+  // heading needs to be GetHeading() - 180 so the chest faces the proper way
+  chest->SetHeading(GetHeading() - 180);
+  chest->SetLocation(GetLocation());
+  // Set the primary command to loot and the secondary to disarm
+  chest->AddPrimaryEntityCommand("loot", 10.0f, "loot", "", 0, 0);
+  chest->AddSecondaryEntityCommand("Disarm", 10.0f, "Disarm", "", 0, 0);
+  // 32 = loot icon for the mouse
+  chest->SetIcon(32);
+  // 1 = show the right click menu
+  chest->SetShowCommandIcon(1);
 
-	int8 highest_tier = 0;
-	vector<Item*>::iterator itr;	
-	for (itr = GetLootItems()->begin(); itr != GetLootItems()->end(); ) {
-		if ((*itr)->details.tier >= ITEM_TAG_UNCOMMON) {
-			if ((*itr)->details.tier > highest_tier)
-				highest_tier = (*itr)->details.tier;
+  int8 highest_tier = 0;
+  vector<Item*>::iterator itr;
+  for (itr = GetLootItems()->begin(); itr != GetLootItems()->end();) {
+    if ((*itr)->details.tier >= ITEM_TAG_UNCOMMON) {
+      if ((*itr)->details.tier > highest_tier)
+        highest_tier = (*itr)->details.tier;
 
-			// Add the item to the chest
-			chest->AddLootItem((*itr)->details.item_id, (*itr)->details.count);
-			// Remove the item from the corpse
-			itr = GetLootItems()->erase(itr);
-		}
-		else
-			itr++;
-	}
+      // Add the item to the chest
+      chest->AddLootItem((*itr)->details.item_id, (*itr)->details.count);
+      // Remove the item from the corpse
+      itr = GetLootItems()->erase(itr);
+    } else
+      itr++;
+  }
 
-	/*4034 = small chest | 5864 = treasure chest | 5865 = ornate treasure chest | 4015 = exquisite chest*/
-	if (highest_tier >= ITEM_TAG_FABLED) {
-		chest->SetModelType(4015); 
-		chest->SetName("Exquisite Chest");
-	}
-	else if (highest_tier >= ITEM_TAG_LEGENDARY) {
-		chest->SetModelType(5865);
-		chest->SetName("Ornate Chest");
-	}
-	else if (highest_tier >= ITEM_TAG_TREASURED) {
-		chest->SetModelType(5864);
-		chest->SetName("Treasure Chest");
-	}
-	else if (highest_tier >= ITEM_TAG_UNCOMMON) {
-		chest->SetModelType(4034);
-		chest->SetName("Small Chest");
-	}
-	else
-		safe_delete(chest);	
+  /*4034 = small chest | 5864 = treasure chest | 5865 = ornate treasure chest | 4015 = exquisite chest*/
+  if (highest_tier >= ITEM_TAG_FABLED) {
+    chest->SetModelType(4015);
+    chest->SetName("Exquisite Chest");
+  } else if (highest_tier >= ITEM_TAG_LEGENDARY) {
+    chest->SetModelType(5865);
+    chest->SetName("Ornate Chest");
+  } else if (highest_tier >= ITEM_TAG_TREASURED) {
+    chest->SetModelType(5864);
+    chest->SetName("Treasure Chest");
+  } else if (highest_tier >= ITEM_TAG_UNCOMMON) {
+    chest->SetModelType(4034);
+    chest->SetName("Small Chest");
+  } else
+    safe_delete(chest);
 
-	return chest;
+  return chest;
 }

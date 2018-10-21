@@ -23,15 +23,13 @@
 #include "../common/timer.h"
 #include "NPC_AI.h"
 
-#define COMBAT_NORMAL_FIGHTER	0
-#define COMBAT_ADD_FIGHTER		1
-#define COMBAT_REMOVE_FIGHTER	2
-#define MAX_COMBAT_RANGE		5
+#define COMBAT_NORMAL_FIGHTER 0
+#define COMBAT_ADD_FIGHTER 1
+#define COMBAT_REMOVE_FIGHTER 2
+#define MAX_COMBAT_RANGE 5
 
 class ZoneServer;
 class SpellProcess;
 class LuaSpell;
 
-
 #endif
-

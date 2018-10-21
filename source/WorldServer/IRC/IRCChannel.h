@@ -20,21 +20,21 @@
 #ifndef IRC_IRCCHANNEL_H_
 #define IRC_IRCCHANNEL_H_
 
-#define IRC_CHANNEL_LEN_MAX	32
+#define IRC_CHANNEL_LEN_MAX 32
 
 class IRCChannel {
 public:
-	IRCChannel(const char *name);
-	virtual ~IRCChannel();
+  IRCChannel(const char* name);
+  virtual ~IRCChannel();
 
-	void SetJoining(bool joining) {this->joining = joining;}
+  void SetJoining(bool joining) { this->joining = joining; }
 
-	const char * GetName() {return name;}
-	bool IsJoining() {return joining;}
+  const char* GetName() { return name; }
+  bool IsJoining() { return joining; }
 
 private:
-	char name[IRC_CHANNEL_LEN_MAX + 1];
-	bool joining;
+  char name[IRC_CHANNEL_LEN_MAX + 1];
+  bool joining;
 };
 
 #endif

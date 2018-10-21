@@ -20,9 +20,9 @@
 #include "../common/debug.h"
 // Disgrace: for windows compile
 #ifndef WIN32
-	#include <sys/time.h>
+#include <sys/time.h>
 #else
-	#include <sys/timeb.h>
+#include <sys/timeb.h>
 #endif
 
 #include <iostream>
@@ -34,174 +34,161 @@ int32 started_unix_timestamp = 0;
 int32 current_time = 0;
 int32 last_time = 0;
 
-Timer::Timer(){
-	timer_time = 30000; //default to 30 seconds
-	start_time = current_time;
-	set_at_trigger = timer_time;
-	pUseAcurateTiming = false;
-	enabled = false;
+Timer::Timer() {
+  timer_time = 30000; //default to 30 seconds
+  start_time = current_time;
+  set_at_trigger = timer_time;
+  pUseAcurateTiming = false;
+  enabled = false;
 }
 Timer::Timer(int32 in_timer_time, bool iUseAcurateTiming) {
-	timer_time = in_timer_time;
-	start_time = current_time;
-	set_at_trigger = timer_time;
-	pUseAcurateTiming = iUseAcurateTiming;
-	if (timer_time == 0) {
-		enabled = false;
-	}
-	else {
-		enabled = true;
-	}
+  timer_time = in_timer_time;
+  start_time = current_time;
+  set_at_trigger = timer_time;
+  pUseAcurateTiming = iUseAcurateTiming;
+  if (timer_time == 0) {
+    enabled = false;
+  } else {
+    enabled = true;
+  }
 }
 
 Timer::Timer(int32 start, int32 timer, bool iUseAcurateTiming = false) {
-	timer_time = timer;
-	start_time = start;
-	set_at_trigger = timer_time;
-	pUseAcurateTiming = iUseAcurateTiming;
-	if (timer_time == 0) {
-		enabled = false;
-	}
-	else {
-		enabled = true;
-	}
+  timer_time = timer;
+  start_time = start;
+  set_at_trigger = timer_time;
+  pUseAcurateTiming = iUseAcurateTiming;
+  if (timer_time == 0) {
+    enabled = false;
+  } else {
+    enabled = true;
+  }
 }
 
 /* Reimplemented for MSVC - Bounce */
 #ifdef WIN32
-int gettimeofday (timeval *tp, ...)
-{
-	timeb tb;
+int gettimeofday(timeval* tp, ...) {
+  timeb tb;
 
-	ftime (&tb);
+  ftime(&tb);
 
-	tp->tv_sec  = tb.time;
-	tp->tv_usec = tb.millitm * 1000;
+  tp->tv_sec = tb.time;
+  tp->tv_usec = tb.millitm * 1000;
 
-	return 0;
+  return 0;
 }
 #endif
 
 /* This function checks if the timer triggered */
-bool Timer::Check(bool iReset)
-{
-    if (enabled && current_time-start_time > timer_time) {
-		if (iReset) {
-			if (pUseAcurateTiming)
-				start_time += timer_time;
-			else
-				start_time = current_time; // Reset timer
-			timer_time = set_at_trigger;
-		}
-		return true;
+bool Timer::Check(bool iReset) {
+  if (enabled && current_time - start_time > timer_time) {
+    if (iReset) {
+      if (pUseAcurateTiming)
+        start_time += timer_time;
+      else
+        start_time = current_time; // Reset timer
+      timer_time = set_at_trigger;
     }
-	
-    return false;
+    return true;
+  }
+
+  return false;
 }
 
 /* This function disables the timer */
 void Timer::Disable() {
-	enabled = false;
+  enabled = false;
 }
 
 void Timer::Enable() {
-	enabled = true;
+  enabled = true;
 }
 
 /* This function set the timer and restart it */
-void Timer::Start(int32 set_timer_time, bool ChangeResetTimer) {	
-    start_time = current_time;
-	enabled = true;
-    if (set_timer_time != 0)
-    {	
-		timer_time = set_timer_time;
-		if (ChangeResetTimer)
-			set_at_trigger = set_timer_time;
-    }
+void Timer::Start(int32 set_timer_time, bool ChangeResetTimer) {
+  start_time = current_time;
+  enabled = true;
+  if (set_timer_time != 0) {
+    timer_time = set_timer_time;
+    if (ChangeResetTimer)
+      set_at_trigger = set_timer_time;
+  }
 }
 
 /* This timer updates the timer without restarting it */
 void Timer::SetTimer(int32 set_timer_time) {
-    /* If we were disabled before => restart the timer */
-    if (!enabled) {
-		start_time = current_time;
-		enabled = true;
-    }
-    if (set_timer_time != 0) {
-		timer_time = set_timer_time;
-		set_at_trigger = set_timer_time;
-    }
+  /* If we were disabled before => restart the timer */
+  if (!enabled) {
+    start_time = current_time;
+    enabled = true;
+  }
+  if (set_timer_time != 0) {
+    timer_time = set_timer_time;
+    set_at_trigger = set_timer_time;
+  }
 }
 
-int32 Timer::GetElapsedTime(){
-	if (enabled) {
-	    return current_time - start_time;
-    }
-	else {
-		return 0xFFFFFFFF;
-	}
+int32 Timer::GetElapsedTime() {
+  if (enabled) {
+    return current_time - start_time;
+  } else {
+    return 0xFFFFFFFF;
+  }
 }
 
 int32 Timer::GetRemainingTime() {
-    if (enabled) {
-	    if (current_time-start_time > timer_time)
-			return 0;
-		else
-			return (start_time + timer_time) - current_time;
-    }
-	else {
-		return 0xFFFFFFFF;
-	}
+  if (enabled) {
+    if (current_time - start_time > timer_time)
+      return 0;
+    else
+      return (start_time + timer_time) - current_time;
+  } else {
+    return 0xFFFFFFFF;
+  }
 }
 
 void Timer::SetAtTrigger(int32 in_set_at_trigger, bool iEnableIfDisabled) {
-	set_at_trigger = in_set_at_trigger;
-	if (!Enabled() && iEnableIfDisabled) {
-		Enable();
-	}
+  set_at_trigger = in_set_at_trigger;
+  if (!Enabled() && iEnableIfDisabled) {
+    Enable();
+  }
 }
 
-void Timer::Trigger()
-{
-	enabled = true;
+void Timer::Trigger() {
+  enabled = true;
 
-	timer_time = set_at_trigger;
-	start_time = current_time-timer_time-1;
+  timer_time = set_at_trigger;
+  start_time = current_time - timer_time - 1;
 }
 
-const int32& Timer::GetCurrentTime2()
-{	
-    return current_time;
+const int32& Timer::GetCurrentTime2() {
+  return current_time;
 }
 
-const int32& Timer::SetCurrentTime()
-{
-    struct timeval read_time;	
-    int32 this_time;
+const int32& Timer::SetCurrentTime() {
+  struct timeval read_time;
+  int32 this_time;
 
-    gettimeofday(&read_time,0);
-	if(started_unix_timestamp == 0)
-		started_unix_timestamp = read_time.tv_sec;
+  gettimeofday(&read_time, 0);
+  if (started_unix_timestamp == 0)
+    started_unix_timestamp = read_time.tv_sec;
 
-    this_time = (read_time.tv_sec - started_unix_timestamp) * 1000 + read_time.tv_usec / 1000;
+  this_time = (read_time.tv_sec - started_unix_timestamp) * 1000 + read_time.tv_usec / 1000;
 
-    if (last_time == 0)
-    {
-		current_time = 0;
-    }
-    else
-    {
-		current_time += this_time - last_time;
-    }
-    
-	last_time = this_time;
+  if (last_time == 0) {
+    current_time = 0;
+  } else {
+    current_time += this_time - last_time;
+  }
 
-//	cerr << "Current time:" << current_time << endl;
-	return current_time;
+  last_time = this_time;
+
+  //	cerr << "Current time:" << current_time << endl;
+  return current_time;
 }
 
-int32 Timer::GetUnixTimeStamp(){
-	struct timeval read_time;	
-    gettimeofday(&read_time,0);
-	return read_time.tv_sec;
+int32 Timer::GetUnixTimeStamp() {
+  struct timeval read_time;
+  gettimeofday(&read_time, 0);
+  return read_time.tv_sec;
 }

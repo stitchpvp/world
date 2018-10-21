@@ -78,33 +78,32 @@ unknown=2 unknown2=player	join/leave?
 unknown=3 unknown2=player	join/leave?
 */
 
-
-class Chat{
+class Chat {
 public:
-	Chat();
-	virtual ~Chat();
+  Chat();
+  virtual ~Chat();
 
-	void AddChannel(ChatChannel *channel);
-	unsigned int GetNumChannels();
+  void AddChannel(ChatChannel* channel);
+  unsigned int GetNumChannels();
 
-	EQ2Packet * GetWorldChannelList(const shared_ptr<Client>& client);
+  EQ2Packet* GetWorldChannelList(const shared_ptr<Client>& client);
 
-	bool ChannelExists(const char *channel_name);
-	bool HasPassword(const char *channel_name);
-	bool PasswordMatches(const char *channel_name, const char *password);
-	bool CreateChannel(const char *channel_name);
-	bool CreateChannel(const char *channel_name, const char *password);
-	bool IsInChannel(const shared_ptr<Client>& client, const char *channel_name);
-	bool JoinChannel(const shared_ptr<Client>& client, const char *channel_name);
-	bool LeaveChannel(const shared_ptr<Client>& client, const char *channel_name);
-	bool LeaveAllChannels(const shared_ptr<Client>& client);
-	bool TellChannel(const shared_ptr<Client>& client, const char *channel_name, const char *message, const char* name = 0);
-	bool SendChannelUserList(const shared_ptr<Client>& client, const char *channel_name);
-	ChatChannel* GetChannel(const char* channel_name);
+  bool ChannelExists(const char* channel_name);
+  bool HasPassword(const char* channel_name);
+  bool PasswordMatches(const char* channel_name, const char* password);
+  bool CreateChannel(const char* channel_name);
+  bool CreateChannel(const char* channel_name, const char* password);
+  bool IsInChannel(const shared_ptr<Client>& client, const char* channel_name);
+  bool JoinChannel(const shared_ptr<Client>& client, const char* channel_name);
+  bool LeaveChannel(const shared_ptr<Client>& client, const char* channel_name);
+  bool LeaveAllChannels(const shared_ptr<Client>& client);
+  bool TellChannel(const shared_ptr<Client>& client, const char* channel_name, const char* message, const char* name = 0);
+  bool SendChannelUserList(const shared_ptr<Client>& client, const char* channel_name);
+  ChatChannel* GetChannel(const char* channel_name);
 
 private:
-	Mutex m_channels;
-	vector<ChatChannel *> channels;
+  Mutex m_channels;
+  vector<ChatChannel*> channels;
 };
 
 #endif
