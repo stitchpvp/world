@@ -1737,8 +1737,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     break;
   }
   case COMMAND_FLYMODE: {
-    PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", client->GetVersion());
-    if (packet && sep && sep->arg[0] && sep->IsNumber(0)) {
+    if (sep && sep->arg[0] && sep->IsNumber(0)) {
       int8 val = atoi(sep->arg[0]);
 
       client->GetPlayer()->SetPlayerControlFlag(5, 32, val);
