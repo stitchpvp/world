@@ -695,7 +695,9 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 		switch(opcode){
 		case OP_LoginByNumRequestMsg:{
       if (version) {
-        return;
+        LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
+        Disconnect(true);
+        return false;
       }
 
 			LogWrite(OPCODE__DEBUG, 0, "Opcode", "Opcode 0x%X (%i): OP_LoginByNumRequestMsg", opcode, opcode);
