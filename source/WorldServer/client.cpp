@@ -694,6 +694,10 @@ bool Client::HandlePacket(EQApplicationPacket *app) {
 
 		switch(opcode){
 		case OP_LoginByNumRequestMsg:{
+      if (version) {
+        return;
+      }
+
 			LogWrite(OPCODE__DEBUG, 0, "Opcode", "Opcode 0x%X (%i): OP_LoginByNumRequestMsg", opcode, opcode);
 			
 			PacketStruct* request;
