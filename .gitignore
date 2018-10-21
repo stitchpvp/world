@@ -15,3 +15,13 @@ win/VC10Projects/EQ2World__*/
 win/worldserver
 
 tags
+
+Makefile
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commnads.json
+CTestTestfile.cmake
