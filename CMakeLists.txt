@@ -22,4 +22,4 @@ execute_process(COMMAND mysql_config --libs
 target_compile_definitions(world PRIVATE WORLD)
 target_compile_options(world PUBLIC ${MYSQL_CFLAGS})
 target_include_directories(world PUBLIC source/depends/mariadb-10.1.19/include)
-target_link_libraries(world ${CPR_LIBRARIES} ${MYSQL_LIBS})
+target_link_libraries(world ${MYSQL_LIBS})
