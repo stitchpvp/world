@@ -753,10 +753,6 @@ void Spawn::SetHP(sint32 new_val, bool setUpdateFlags) {
     CalculateRunningLocation(true);
   }
 
-  if (new_val > basic_info.max_hp) {
-    SetInfo(&basic_info.max_hp, new_val, setUpdateFlags);
-  }
-
   SetInfo(&basic_info.cur_hp, new_val, setUpdateFlags);
 
   if (GetZone() && basic_info.cur_hp > 0 && basic_info.cur_hp < basic_info.max_hp) {
@@ -843,10 +839,6 @@ sint32 Spawn::GetTotalHPBase() {
 
 /*** POWER ***/
 void Spawn::SetPower(sint32 power, bool setUpdateFlags) {
-  if (power > basic_info.max_power) {
-    SetInfo(&basic_info.max_power, power, setUpdateFlags);
-  }
-
   SetInfo(&basic_info.cur_power, power, setUpdateFlags);
 
   if (GetZone() && basic_info.cur_power < basic_info.max_power) {

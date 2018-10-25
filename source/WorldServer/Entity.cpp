@@ -976,19 +976,23 @@ void Entity::CalculateBonuses() {
   SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
   SetTotalPower(GetTotalPowerBase() + values->power + prim_power_bonus);
 
-  sint32 hp_difference = GetTotalHP() - total_hp;
-  sint32 power_difference = GetTotalPower() - total_power;
+  sint32 hp_difference = GetTotalHP() - GetTotalHPBase();
+  sint32 power_difference = GetTotalPower() - GetTotalPowerBase();
+
+  if (hp_difference > 0) {
+    SetHP(GetHP() + hp_difference);
+  }
+
+  if (power_difference > 0) {
+    SetPower(GetPower() + power_difference);
+  }
 
   if (GetHP() > GetTotalHP()) {
     SetHP(GetTotalHP());
-  } else if (hp_difference > 0) {
-    SetHP(GetHP() + hp_difference);
   }
 
   if (GetPower() > GetTotalPower()) {
     SetPower(GetTotalPower());
-  } else if (power_difference > 0) {
-    SetPower(GetPower() + power_difference);
   }
 
   info->max_concentration += values->concentration;
