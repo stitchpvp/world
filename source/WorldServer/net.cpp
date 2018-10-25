@@ -332,10 +332,10 @@ int main(int argc, char** argv) {
       }
 
       if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
-        auto client = make_unique<Client>(eqs);
+        auto client = make_shared<Client>(eqs);
         client->SetCurrentZone(zs);
-        client_list.Add(client.get());
-        zs->AddIncomingClient(move(client));
+        client_list.Add(client);
+        zs->AddIncomingClient(client);
       } else if (eqs && !client_list.ContainsStream(eqs)) {
         connecting_clients[eqs] = Timer::GetCurrentTime2();
       }
@@ -346,9 +346,9 @@ int main(int argc, char** argv) {
         if (cc_itr->first && cc_itr->first->CheckActive() && !client_list.ContainsStream(cc_itr->first)) {
           LogWrite(NET__DEBUG, 0, "Net", "Removing client from waiting list...");
 
-          auto client = make_unique<Client>(cc_itr->first);
-          client_list.Add(client.get());
-          zs->AddIncomingClient(move(client));
+          auto client = make_shared<Client>(cc_itr->first);
+          client_list.Add(client);
+          zs->AddIncomingClient(client);
 
           connecting_clients.erase(cc_itr);
           break;

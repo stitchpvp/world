@@ -48,7 +48,7 @@ bool MasterServer::Process() {
     case ServerOP_MSKickPlayer: {
       auto data = reinterpret_cast<ServerMSKickPlayer_Struct*>(pack->pBuffer);
 
-      Client* client = zone_list.GetClientByCharID(data->char_id);
+      shared_ptr<Client> client = zone_list.GetClientByCharID(data->char_id);
 
       if (client && client->getConnection()) {
         client->getConnection()->SendDisconnect();
