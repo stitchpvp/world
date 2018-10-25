@@ -5285,7 +5285,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -6006,7 +6007,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -6732,7 +6734,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -7460,7 +7463,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -8189,7 +8193,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -8918,7 +8923,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -9647,7 +9653,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -10199,7 +10206,7 @@ to zero and treated like placeholders." />
 <Data ElementName="bind_zone" Type="char" Size="32" />
 <Data ElementName="unknown188" Type="int8" Size="52" />
 </Struct>
-<Struct Name="WS_CharacterSheet" ClientVersion="60115" OpcodeName="OP_UpdateCharacterSheetMsg">
+<Struct Name="WS_CharacterSheet" ClientVersion="60114" OpcodeName="OP_UpdateCharacterSheetMsg">
 <Data ElementName="character_name" Type="char" Size="40" />
 <Data ElementName="unknown1" Type="int16" Size="1" />
 <Data ElementName="race" Type="int8" Size="1" />
@@ -10313,7 +10320,6 @@ to zero and treated like placeholders." />
 <Data ElementName="current_trade_xp" Type="float" Size="1" />
 <Data ElementName="needed_trade_xp" Type="float" Size="1" />
 <Data ElementName="debt_trade_xp" Type="float" Size="1" />	
-<Data ElementName="unknown18" Type="int16" Size="6" />
 <Data ElementName="server_bonus" Type="int16" Size="1" />
 <Data ElementName="adventure_vet_bonus" Type="int16" Size="1" />
 <Data ElementName="tradeskill_vet_bonus" Type="int16" Size="1" />
@@ -10367,7 +10373,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
 <Data ElementName="detrimental_spell_effects" Substruct="Substruct_SpellEffects" Size="45" />
 <Data ElementName="passive_spell_effects" Substruct="Substruct_PassiveEffects" Size="100" />
-<Data ElementName="unknown35" Type="int8" Size="474" />
+<Data ElementName="unknown35" Type="int8" Size="486" />
 <Data ElementName="trauma_count" Type="int8" Size="1" />
 <Data ElementName="arcane_count" Type="int8" Size="1" />
 <Data ElementName="noxious_count" Type="int8" Size="1" />
@@ -10376,7 +10382,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -10891,9 +10898,12 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown522" Type ="float" Size="1" />
 <Data ElementName="unknown523" Type ="float" Size="1" />
 <Data ElementName="unknown550" Type ="int8" Size="1" />
-<Data ElementName="vision" Type ="int16" Size="1" />
-<Data ElementName="unknown551" Type ="int8" Size="1" />
-<Data ElementName="unknown525" Type ="int8" Size="1062" />
+<Data ElementName="unknown551" Type="int8" Size="3" />
+<Data ElementName="unknown525a" Type="int8" Size="72" />
+<Data ElementName="vision" Type="int8" Size="1" />
+<Data ElementName="unknown525b" Type="int8" Size="2" />
+<Data ElementName="unknown_flags" Type="int8" Size="1" />
+<Data ElementName="unknown525c" Type="int8" Size="986" />
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" />
 <Data ElementName="unknown182" Type="int16" Size="1" />
 <Data ElementName="unknown183" Type="int8" Size="462" />
@@ -11105,7 +11115,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -11934,7 +11945,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -12763,7 +12775,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -13594,7 +13607,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -14426,7 +14440,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -15272,7 +15287,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -16133,7 +16149,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -16998,7 +17015,8 @@ to zero and treated like placeholders." />
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" />
 <Data ElementName="breath" Type="float" Size="1" />
 <Data ElementName="breathe_underwater" Type="int8" Size="1" />
-<Data ElementName="unknown36" Type="float" Size="1" />
+<Data ElementName="unknown36" Type="int8" Size="3" />
+<Data ElementName="auto_attack_mode" Type="int8" Size="1" />
 <Data ElementName="melee_pri_dmg_min" Type="int32" Size="1" />
 <Data ElementName="melee_pri_dmg_max" Type="int32" Size="1" />
 <Data ElementName="melee_pri_delay" Type="float" Size="1" />
@@ -17906,6 +17924,15 @@ to zero and treated like placeholders." />
 <!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
 <Data ElementName="unknown2" Type="int8" Size="5" />
 </Struct>
+<Struct Name="WS_HearSpellDamage" ClientVersion="60114" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
+<Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
+<Data ElementName="damage_type" Type="int8" />
+<Data ElementName="damage" Type="int64" />
+<Data ElementName="unknown" Type="int8" />
+<Data ElementName="spell_name" Type="EQ2_8Bit_String" Size="1" />
+<!-- All Hear spell damages so far seem to have new bytes at the end (who knows for how long) -->
+<Data ElementName="unknown2" Type="int8" Size="5" />
+</Struct>
 <Struct Name="WS_HearSpellDamage" ClientVersion="63120" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
 <Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
 <Data ElementName="damage_type" Type="int8" />
@@ -18157,6 +18184,24 @@ to zero and treated like placeholders." />
 <Data ElementName="status" Type="int8" Size="1" />
 <Data ElementName="unknown6" Type="int8" Size="3" />
 </Struct>
+<Struct Name="SubStruct_UpdateSpellBook" ClientVersion="64707">
+<Data ElementName="spell_id" Type="int32" />
+<Data ElementName="unique_id" Type="int32" />
+<Data ElementName="recast_available" Type="int32" Size="1" />
+<Data ElementName="type" Type="int8" Size="1" />
+<Data ElementName="target_type" Type="int8" Size="1" />
+<Data ElementName="recast_time" Type="int16" Size="1" />
+<Data ElementName="unknown2" Type="int16" Size="4" />
+<Data ElementName="icon" Type="int16" />
+<Data ElementName="icon_type" Type="int16" />
+<Data ElementName="icon2" Type="int16" Size="1" />
+<Data ElementName="charges" Type="int8" Size="1" />
+<Data ElementName="unknown3" Type="int8" Size="20" />
+<Data ElementName="distance" Type="int16" Size="1" />
+<Data ElementName="unknown4" Type="int16" Size="1" />
+<Data ElementName="status" Type="int8" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="3" />
+</Struct>
 <Struct Name="WS_UpdateSpellBook" ClientVersion="1" OpcodeName="OP_UpdateSpellBookMsg" >
 <Data ElementName="spell_count" Type="int16" />
 <Data ElementName="packed_size" Type="int32" />
@@ -18200,6 +18245,13 @@ to zero and treated like placeholders." />
 </Data>
 </Struct>
 <Struct Name="WS_UpdateSpellBook" ClientVersion="58647" OpcodeName="OP_UpdateSpellBookMsg" >
+<Data ElementName="spell_count" Type="int16" />
+<Data ElementName="packed_size" Type="int32" />
+<Data ElementName="spell_array" Type="Array" ArraySizeVariable="spell_count">
+  <Data ElementName="spells" Substruct="SubStruct_UpdateSpellBook" Size="1" />
+</Data>
+</Struct>
+<Struct Name="WS_UpdateSpellBook" ClientVersion="64707" OpcodeName="OP_UpdateSpellBookMsg" >
 <Data ElementName="spell_count" Type="int16" />
 <Data ElementName="packed_size" Type="int32" />
 <Data ElementName="spell_array" Type="Array" ArraySizeVariable="spell_count">
@@ -18433,10 +18485,8 @@ to zero and treated like placeholders." />
 <Data ElementName="display_spell_tier" Type="int8" Size="1" />
 <Data ElementName="uses_remaining" Type="int16" Size="1" />
 <Data ElementName="unknown" Type="int8" Size="1" />
-<Data ElementName="damage_remaining" Type="int16" Size="1" />
-<Data ElementName="unknown2" Type="int8" Size="1" />
-<Data ElementName="unknown3" Type="int16" Size="1" />
-<Data ElementName="unknown4" Type="int16" Size="4" />
+<Data ElementName="damage_remaining" Type="int64" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="5" />
 <Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="unknown5" Type="int8" Size="1" />
@@ -19501,6 +19551,79 @@ to zero and treated like placeholders." />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="unknown13" Type="int8" Size="1" />
 </Struct>
+<Struct Name="WS_SpellInfo" ClientVersion="64707">
+<Data ElementName="id" Type="int32" />
+<Data ElementName="icon" Type="int16" Size = "1" />
+<Data ElementName="icon2" Type="int16" Size = "1" />
+<Data ElementName="icontype" Type="int16" Size = "1" />
+<Data ElementName="version" Type="int16" Size = "1" />
+<Data ElementName="sub_version" Type="int16" Size = "1" />
+<Data ElementName="unknown_MJ3" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1a" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1b" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1c" Type="int8" Size = "1" />
+<Data ElementName="unknown_MJ1d" Type="int8" Size = "1" />
+<Data ElementName="type" Type="int8" Size = "1" />
+<Data ElementName="class_skill" Type="int32" Size = "1" />
+<Data ElementName="mastery_skill" Type="int32" Size = "1" />
+<Data ElementName="min_class_skill_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="spell_text_color" Type="int32" Size = "1" />
+<Data ElementName="num_levels" Type="int8" Size = "1" />
+<Data ElementName="level_array" Type="Array" ArraySizeVariable="num_levels">
+  <Data ElementName="adventure_class" Type="int8" Size="1" />
+  <Data ElementName="tradeskill_class" Type="int8" Size="1" />
+  <Data ElementName="spell_level" Type="int16" Size = "1" />
+</Data>
+<Data ElementName="tier" Type="int8" Size = "1" />
+<Data ElementName="health_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="health_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="unknown_mj2" Type="int8" Size = "6" />
+<Data ElementName="power_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="power_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="savagery_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="savagery_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="dissonance_req" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="dissonance_upkeep" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="unknown_req" Type="int8" Size = "3" />
+<Data ElementName="req_concentration" Type="int16" Size = "1" />
+<Data ElementName="cast_time" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="recovery" Type="int16" Size = "1" OversizedValue="127" OversizedByte="127" />
+<Data ElementName="recast" Type="float" Size = "1" />
+<Data ElementName="radius" Type="float" Size = "1" />
+<Data ElementName="max_aoe_targets" Type="int16" Size = "1" />
+<Data ElementName="friendly_spell" Type="int8" Size = "1" />
+<Data ElementName="num_reagents" Type="int8" />
+<Data ElementName="reagent_array" Type="Array" ArraySizeVariable="num_reagents">
+  <Data ElementName="reagent" Type="EQ2_8Bit_String" Size="1" />
+  <Data ElementName="consumed" Type="int8" Size="1" />
+  <Data ElementName="qty_required" Type="int32" Size="1" />
+</Data>
+<Data ElementName="num_effects" Type="int8" />
+<Data ElementName="effect_array" Type="Array" ArraySizeVariable="num_effects">
+  <Data ElementName="subbulletflag" Type="int8" Size = "1" />
+  <Data ElementName="effect" Type="EQ2_16Bit_String" Size="1" />
+  <Data ElementName="percentage" Type="int8" Size = "1" />
+</Data>
+<Data ElementName="display_spell_tier" Type="int8" Size = "1" />
+<Data ElementName="unknown1" Type="int8" Size = "1" />
+<Data ElementName="minimum_range" Type="float" Size = "1" />
+<Data ElementName="range" Type="float" Size = "1" />
+<Data ElementName="duration1" Type="int32" Size = "1" />
+<Data ElementName="duration2" Type="int32" Size = "1" />
+<Data ElementName="unknown9" Type="int8" Size = "1" />
+<Data ElementName="duration_flag" Type="int8" Size = "1" />
+<Data ElementName="target" Type="int8" Size = "1" />
+<Data ElementName="can_effect_raid" Type="int8" Size = "1" />
+<Data ElementName="affect_only_group_members" Type="int8" Size = "1" />
+<Data ElementName="group_spell" Type="int8" Size = "1" />
+<Data ElementName="resistibility" Type="float" Size = "1" />
+<Data ElementName="unknown11" Type="int8" Size = "13" />
+<Data ElementName="hit_bonus" Type="float" Size = "1" />
+<Data ElementName="unknown_mj4" Type="int8" Size = "2" />
+<Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
+<Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown13" Type="int8" Size="1" />
+</Struct>
 <Struct Name="WS_RecipeInfo" ClientVersion="1" >
 <Data ElementName="id" Type="int32" Size="1" />
 <Data ElementName="unknown" Type="int8" Size="1" />
@@ -20009,6 +20132,10 @@ to zero and treated like placeholders." />
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
 <Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
 </Struct>
+<Struct Name="WS_ExamineSpellInfo" ClientVersion="64707" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
+<Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
+<Data ElementName="spell_info" Substruct="WS_SpellInfo" Size="1" />
+</Struct>
 <Struct Name="WS_ExamineSpecialSpellInfo" ClientVersion="57048" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="info_header" Substruct="WS_ExamineInfoHeader" Size="1" />
 <Data ElementName="spell_info" Substruct="WS_SpecialSpellInfo" Size="1" />
@@ -20207,23 +20334,32 @@ to zero and treated like placeholders." />
 <Data ElementName="unique_id" Type="int32" />
 <Data ElementName="unknown5" Type="int16" />
 </Struct>
--<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >		
- -<Data ElementName="type" Type="int8" Size="1" />		
- -<Data ElementName="trait_tier" Type="int32" />		
- -<Data ElementName="unknown2" Type="int32" />		
- -<Data ElementName="tier" Type="int32" />		
- -<Data ElementName="id" Type="int32" />		
- -<Data ElementName="unknown5" Type="int8" Size="1" />		
- -</Struct>		
- -<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >		
- -<Data ElementName="type" Type="int8" Size="1" />		
- -<Data ElementName="trait_tier" Type="int32" />		
- -<Data ElementName="unknown2" Type="int32" />		
- -<Data ElementName="tier" Type="int32" />		
- -<Data ElementName="unknown1" Type="int32" />		
- -<Data ElementName="id" Type="int32" />		
- -<Data ElementName="unknown6" Type="int32" />		
- -</Struct>
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="1096" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown5" Type="int8" Size="1" />		
+</Struct>		
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="60114" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="unknown1" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown6" Type="int32" />		
+</Struct>
+<Struct Name="WS_ExamineInfoRequest_type3" ClientVersion="63119" >		
+<Data ElementName="type" Type="int8" Size="1" />		
+<Data ElementName="trait_tier" Type="int32" />		
+<Data ElementName="unknown2" Type="int32" />		
+<Data ElementName="tier" Type="int32" />		
+<Data ElementName="unknown1" Type="int32" />		
+<Data ElementName="id" Type="int32" />		
+<Data ElementName="unknown6" Type="int32" />		
+</Struct>
 <Struct Name="WS_ExamineInfoItemLinkRequest" ClientVersion="1" >
 <Data ElementName="type" Type="int8" Size="1" />
 <Data ElementName="unknown" Type="int32" Size="3" />
@@ -20757,7 +20893,7 @@ to zero and treated like placeholders." />
 <Data ElementName="verify_text" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="unknown4b" Type="int8" Size="1" />
 </Struct>
-<Struct Name="WS_OfferQuest" ClientVersion="60115" OpcodeName="OP_OfferQuestMsg" >
+<Struct Name="WS_OfferQuest" ClientVersion="60114" OpcodeName="OP_OfferQuestMsg" >
 <Data ElementName="reward" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="title" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
