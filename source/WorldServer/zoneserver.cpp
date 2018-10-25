@@ -4353,29 +4353,20 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int16 cast
 
     if (packet) {
       packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(caster));
-
-      int8 num_targets = 0;
-      for (int32 i = 0; i < spell->targets.size(); i++) {
-        Spawn* spawn = GetSpawnByID(spell->targets[i]);
-
-        if (!spawn || !client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->WasSpawnRemoved(spawn)) {
-          continue;
-        }
-
-        packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(spawn), i);
-        ++num_targets;
-      }
-      packet->setArrayLengthByName("num_targets", num_targets);
-
-      packet->setDataByName("spell_visual", spell->spell->GetSpellData()->spell_visual); //result
-      packet->setDataByName("cast_time", cast_time * .01);                               //delay
+      packet->setDataByName("spell_visual", spell->spell->GetSpellData()->spell_visual);
+      packet->setDataByName("cast_time", cast_time * .01);
       packet->setDataByName("spell_id", spell->spell->GetSpellID());
       packet->setDataByName("spell_level", 1);
       packet->setDataByName("spell_tier", spell->spell->GetSpellData()->tier);
 
+      packet->setArrayLengthByName("num_targets", spell->targets.size());
+      for (int32 i = 0; i < spell->targets.size(); i++) {
+        Spawn* spawn = GetSpawnByID(spell->targets[i]);
+        packet->setArrayDataByName("target", client->GetPlayer()->GetIDWithPlayerSpawn(spawn), i);
+      }
+
       EQ2Packet* outapp = packet->serialize();
       client->QueuePacket(outapp);
-
       safe_delete(packet);
     }
   }

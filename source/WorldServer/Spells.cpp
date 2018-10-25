@@ -26,6 +26,7 @@
 #include "LuaInterface.h"
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 extern ConfigReader configReader;
 extern WorldDatabase database;
@@ -773,7 +774,10 @@ void MasterSpellList::DestroySpells() {
 void MasterSpellList::AddSpell(int32 id, int8 tier, Spell* spell) {
   MMasterSpellList.lock();
   spell_list[id][tier] = spell;
-  spell_name_map[spell->GetName()] = spell;
+  string name = spell->GetName();
+  transform(name.begin(), name.end(), name.begin(), ::tolower);
+  name.erase(remove_if(name.begin(), name.end(), ::isspace), name.end());
+  spell_name_map[name] = spell;
   MMasterSpellList.unlock();
 }
 
@@ -784,8 +788,14 @@ Spell* MasterSpellList::GetSpell(int32 id, int8 tier) {
 }
 
 Spell* MasterSpellList::GetSpellByName(const char* name) {
-  if (spell_name_map.count(name) > 0)
-    return spell_name_map[name];
+  string transformed_name = name;
+  transform(transformed_name.begin(), transformed_name.end(), transformed_name.begin(), ::tolower);
+  transformed_name.erase(remove_if(transformed_name.begin(), transformed_name.end(), ::isspace), transformed_name.end());
+
+  if (spell_name_map.count(transformed_name) > 0) {
+    return spell_name_map[transformed_name];
+  }
+
   return 0;
 }
 
