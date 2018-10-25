@@ -29,24 +29,24 @@
 
 using namespace std;
 
-class ConfigReader{
+class ConfigReader {
 public:
-	~ConfigReader();
+  ~ConfigReader();
 
-	void addStruct(const char* name, int16 version, PacketStruct* new_struct);
-	PacketStruct* getStruct(const char* name, int16 version);
-	PacketStruct* getStructByVersion(const char* name, int16 version);
-	void loadDataStruct(PacketStruct* packet, XMLNode parentNode, bool array_packet = false);
-	bool processXML_Elements(const char* fileName);
-	int16 GetStructVersion(const char* name, int16 version);
-	void DestroyStructs();
-	void ReloadStructs();
-	bool LoadFile(const char* name);
+  void addStruct(const char* name, int16 version, PacketStruct* new_struct);
+  PacketStruct* getStruct(const char* name, int16 version);
+  PacketStruct* getStructByVersion(const char* name, int16 version);
+  void loadDataStruct(PacketStruct* packet, XMLNode parentNode, bool array_packet = false);
+  bool processXML_Elements(const char* fileName);
+  int16 GetStructVersion(const char* name, int16 version);
+  void DestroyStructs();
+  void ReloadStructs();
+  bool LoadFile(const char* name);
+
 private:
-	Mutex MStructs;
-	vector<string> load_files;
-	map<string, vector<PacketStruct*>*> structs;  
-	//vector<PacketStruct*> structs;
+  Mutex MStructs;
+  vector<string> load_files;
+  map<string, vector<PacketStruct*>*> structs;
+  //vector<PacketStruct*> structs;
 };
 #endif
-

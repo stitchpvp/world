@@ -28,8 +28,8 @@ using namespace std;
 
 class ServerPacket;
 
-void DumpPacketAscii(const uchar* buf, int32 size, int32 cols=16, int32 skip=0);
-void DumpPacketHex(const uchar* buf, int32 size, int32 cols=16, int32 skip=0);
+void DumpPacketAscii(const uchar* buf, int32 size, int32 cols = 16, int32 skip = 0);
+void DumpPacketHex(const uchar* buf, int32 size, int32 cols = 16, int32 skip = 0);
 void DumpPacketBin(const void* data, int32 len);
 void DumpPacket(const uchar* buf, int32 size);
 void DumpPacket(const ServerPacket* pack, bool iShowInfo = false);

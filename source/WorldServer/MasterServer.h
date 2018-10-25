@@ -4,14 +4,14 @@
 
 class MasterServer {
 public:
-	MasterServer();
-	~MasterServer();
+  MasterServer();
+  ~MasterServer();
 
-	bool Connect();
-	bool Connected() { return tcpc->Connected(); }
-	bool Process();
-	void SayHello();
+  bool Connect();
+  bool Connected() { return tcpc->Connected(); }
+  bool Process();
+  void SayHello();
 
 private:
-	TCPConnection* tcpc;
+  TCPConnection* tcpc;
 };

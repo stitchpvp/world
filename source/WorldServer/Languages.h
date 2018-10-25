@@ -29,47 +29,47 @@ using namespace std;
 
 class Language {
 public:
-	Language();
-	Language(Language* language);
-	void		SetID(int32 id) {this->id = id;}
-	void		SetName(const char *name) {strncpy(this->name, name, sizeof(this->name));}
-	void		SetSaveNeeded(bool save_needed) {this->save_needed = save_needed;}
+  Language();
+  Language(Language* language);
+  void SetID(int32 id) { this->id = id; }
+  void SetName(const char* name) { strncpy(this->name, name, sizeof(this->name)); }
+  void SetSaveNeeded(bool save_needed) { this->save_needed = save_needed; }
 
-	int32		GetID() {return id;}
-	const char*	GetName() {return name;}
-	bool		GetSaveNeeded() {return save_needed;}
+  int32 GetID() { return id; }
+  const char* GetName() { return name; }
+  bool GetSaveNeeded() { return save_needed; }
 
 private:
-	int32	id;
-	char	name[50];
-	bool	save_needed;
+  int32 id;
+  char name[50];
+  bool save_needed;
 };
 
 class MasterLanguagesList {
 public:
-	MasterLanguagesList();
-	~MasterLanguagesList();
-	void	Clear();
-	int32	Size();
-	void	AddLanguage(Language* language);
-	Language*	GetLanguage(int32 id);
-	Language*	GetLanguageByName(const char* name);
-	list<Language*>*	GetAllLanguages();
+  MasterLanguagesList();
+  ~MasterLanguagesList();
+  void Clear();
+  int32 Size();
+  void AddLanguage(Language* language);
+  Language* GetLanguage(int32 id);
+  Language* GetLanguageByName(const char* name);
+  list<Language*>* GetAllLanguages();
 
 private:
-	list<Language*> languages_list;
+  list<Language*> languages_list;
 };
 
 class PlayerLanguagesList {
 public:
-	PlayerLanguagesList();
-	~PlayerLanguagesList();
-	void Add(Language* language);
-	Language*	GetLanguage(int32 id);
-	Language*	GetLanguageByName(const char* name);
-	list<Language*>* GetAllLanguages();
+  PlayerLanguagesList();
+  ~PlayerLanguagesList();
+  void Add(Language* language);
+  Language* GetLanguage(int32 id);
+  Language* GetLanguageByName(const char* name);
+  list<Language*>* GetAllLanguages();
 
 private:
-	list<Language*> player_languages_list;
+  list<Language*> player_languages_list;
 };
 #endif

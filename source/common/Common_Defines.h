@@ -17,20 +17,20 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define BASEDIR			"./"
+#define BASEDIR "./"
 
 #ifndef DB_INI_FILE
-	#ifdef LOGIN
-		#define DB_INI_FILE		BASEDIR "login_db.ini"
-	#else
-		#define DB_INI_FILE		BASEDIR "world_db.ini"
-	#endif
+#ifdef LOGIN
+#define DB_INI_FILE BASEDIR "login_db.ini"
+#else
+#define DB_INI_FILE BASEDIR "world_db.ini"
+#endif
 #endif
 
 #ifndef MAIN_INI_FILE
-  #define MAIN_INI_FILE		BASEDIR "LoginServer.ini"
+#define MAIN_INI_FILE BASEDIR "LoginServer.ini"
 #endif
 
 #ifndef OPCODES_FILE
-  #define OPCODES_FILE	BASEDIR "opcodes.conf"
+#define OPCODES_FILE BASEDIR "opcodes.conf"
 #endif

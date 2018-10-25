@@ -22,28 +22,27 @@
 
 #include "Spawn.h"
 
-class Object : public Spawn{
+class Object : public Spawn {
 public:
-	Object();
-	virtual ~Object();
-	void SetClickable(bool click){
-		clickable = click;
-	}
-	void SetZone(char* zone){
-		zone_name = zone;
-	}
-	Object*	Copy();
-	bool IsObject(){ return true; }
-	void	HandleUse(const unique_ptr<Client>& client, string command);
-	bool clickable;
-	char* zone_name;
-	EQ2Packet* serialize(Player* player, int16 version);
+  Object();
+  virtual ~Object();
+  void SetClickable(bool click) {
+    clickable = click;
+  }
+  void SetZone(char* zone) {
+    zone_name = zone;
+  }
+  Object* Copy();
+  bool IsObject() { return true; }
+  void HandleUse(const unique_ptr<Client>& client, string command);
+  bool clickable;
+  char* zone_name;
+  EQ2Packet* serialize(Player* player, int16 version);
 
-	void SetDeviceID(int8 val) { m_deviceID = val; }
-	int8 GetDeviceID() { return m_deviceID; }
+  void SetDeviceID(int8 val) { m_deviceID = val; }
+  int8 GetDeviceID() { return m_deviceID; }
 
 private:
-	int8 m_deviceID;
+  int8 m_deviceID;
 };
 #endif
-

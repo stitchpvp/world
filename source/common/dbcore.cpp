@@ -33,245 +33,233 @@ using namespace std;
 #include "Log.h"
 
 #ifdef WIN32
-	#define snprintf	_snprintf
-	#define strncasecmp	_strnicmp
-	#define strcasecmp	_stricmp
-	#include <process.h>
+#define snprintf _snprintf
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#include <process.h>
 #else
-	#include "unix.h"
-	#include <pthread.h>
+#include "unix.h"
+#include <pthread.h>
 #endif
 
 #ifdef _EQDEBUG
-	#define DEBUG_MYSQL_QUERIES 0
+#define DEBUG_MYSQL_QUERIES 0
 #else
-	#define DEBUG_MYSQL_QUERIES 0
+#define DEBUG_MYSQL_QUERIES 0
 #endif
 
 DBcore::DBcore() {
-	mysql_init(&mysql);
-	pHost = 0;
-	pPort = 0;
-	pUser = 0;
-	pPassword = 0;
-	pDatabase = 0;
-	pCompress = false;
-	pSSL = false;
-	pStatus = Closed;
+  mysql_init(&mysql);
+  pHost = 0;
+  pPort = 0;
+  pUser = 0;
+  pPassword = 0;
+  pDatabase = 0;
+  pCompress = false;
+  pSSL = false;
+  pStatus = Closed;
 }
 
 DBcore::~DBcore() {
-	pStatus = Closed;
-	mysql_close(&mysql);
+  pStatus = Closed;
+  mysql_close(&mysql);
 #if MYSQL_VERSION_ID >= 50003
-	mysql_library_end();
+  mysql_library_end();
 #else
-	mysql_server_end();
+  mysql_server_end();
 #endif
-	safe_delete_array(pHost);
-	safe_delete_array(pUser);
-	safe_delete_array(pPassword);
-	safe_delete_array(pDatabase);
+  safe_delete_array(pHost);
+  safe_delete_array(pUser);
+  safe_delete_array(pPassword);
+  safe_delete_array(pDatabase);
 }
 
+bool DBcore::ReadDBINI(char* host, char* user, char* passwd, char* database, int32& port, bool& compress, bool* items) {
+  host = getenv("DATABASE_HOST");
+  user = getenv("DATABASE_USERNAME");
+  passwd = getenv("DATABASE_PASSWORD");
+  database = getenv("DATABASE_NAME");
 
-bool DBcore::ReadDBINI(char *host, char *user, char *passwd, char *database, int32 &port, bool &compress, bool *items) {
-	host = getenv("DATABASE_HOST");
-	user = getenv("DATABASE_USERNAME");
-	passwd = getenv("DATABASE_PASSWORD");
-	database = getenv("DATABASE_NAME");
-
-	return true;
+  return true;
 }
-
 
 // Sends the MySQL server a keepalive
 void DBcore::ping() {
-	if (!MDatabase.trylock()) {
-		// well, if's it's locked, someone's using it. If someone's using it, it doesnt need a keepalive
-		return;
-	}
-	mysql_ping(&mysql);
-	MDatabase.unlock();
+  if (!MDatabase.trylock()) {
+    // well, if's it's locked, someone's using it. If someone's using it, it doesnt need a keepalive
+    return;
+  }
+  mysql_ping(&mysql);
+  MDatabase.unlock();
 }
 
 bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES** result, int32* affected_rows, int32* last_insert_id, int32* errnum, bool retry) {
-	if (errnum)
-		*errnum = 0;
-	if (errbuf)
-		errbuf[0] = 0;
-	bool ret = false;
-	LockMutex lock(&MDatabase);
-	if (pStatus != Connected)
-		Open();
+  if (errnum)
+    *errnum = 0;
+  if (errbuf)
+    errbuf[0] = 0;
+  bool ret = false;
+  LockMutex lock(&MDatabase);
+  if (pStatus != Connected)
+    Open();
 
-	LogWrite(DATABASE__QUERY, 0, "DBCore", query);
-	if (mysql_real_query(&mysql, query, querylen)) {
-		if (mysql_errno(&mysql) == CR_SERVER_GONE_ERROR)
-			pStatus = Error;
-		if (mysql_errno(&mysql) == CR_SERVER_LOST || mysql_errno(&mysql) == CR_SERVER_GONE_ERROR) {
-			if (retry) {
-				LogWrite(DATABASE__ERROR, 0, "DBCore", "Lost connection, attempting to recover...");
-				ret = RunQuery(query, querylen, errbuf, result, affected_rows, last_insert_id, errnum, false);
-			}
-			else {
-				pStatus = Error;
-				if (errnum)
-					*errnum = mysql_errno(&mysql);
-				if (errbuf)
-					snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
-				LogWrite(DATABASE__ERROR, 0, "DBCore", "#%i: %s\nQuery:\n%s", mysql_errno(&mysql), mysql_error(&mysql), query);
-				ret = false;
-			}
-		}
-		else {
-			if (errnum)
-				*errnum = mysql_errno(&mysql);
-			if (errbuf)
-				snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
-			LogWrite(DATABASE__ERROR, 0, "DBCore", "#%i: %s\nQuery:\n%s", mysql_errno(&mysql), mysql_error(&mysql), query);
-			ret = false;
-		}
-	}
-	else {
-		if (result && mysql_field_count(&mysql)) {
-			*result = mysql_store_result(&mysql);
-		}
-		else if (result)
-			*result = 0;
-		if (affected_rows)
-			*affected_rows = mysql_affected_rows(&mysql);
-		if (last_insert_id)
-			*last_insert_id = mysql_insert_id(&mysql);
-		if (result) {
-			if (*result) {
-				ret = true;
-			}
-			else {
-				if (errnum)
-					*errnum = UINT_MAX;
-				if (errbuf){
-					if((!affected_rows || (affected_rows && *affected_rows == 0)) && (!last_insert_id  || (last_insert_id && *last_insert_id == 0)))
-						LogWrite(DATABASE__RESULT, 1, "DBCore", "No Result.");
-				}
-				ret = false;
-			}
-		}
-		else {
-			ret = true;
-		}
-	}
+  LogWrite(DATABASE__QUERY, 0, "DBCore", query);
+  if (mysql_real_query(&mysql, query, querylen)) {
+    if (mysql_errno(&mysql) == CR_SERVER_GONE_ERROR)
+      pStatus = Error;
+    if (mysql_errno(&mysql) == CR_SERVER_LOST || mysql_errno(&mysql) == CR_SERVER_GONE_ERROR) {
+      if (retry) {
+        LogWrite(DATABASE__ERROR, 0, "DBCore", "Lost connection, attempting to recover...");
+        ret = RunQuery(query, querylen, errbuf, result, affected_rows, last_insert_id, errnum, false);
+      } else {
+        pStatus = Error;
+        if (errnum)
+          *errnum = mysql_errno(&mysql);
+        if (errbuf)
+          snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
+        LogWrite(DATABASE__ERROR, 0, "DBCore", "#%i: %s\nQuery:\n%s", mysql_errno(&mysql), mysql_error(&mysql), query);
+        ret = false;
+      }
+    } else {
+      if (errnum)
+        *errnum = mysql_errno(&mysql);
+      if (errbuf)
+        snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
+      LogWrite(DATABASE__ERROR, 0, "DBCore", "#%i: %s\nQuery:\n%s", mysql_errno(&mysql), mysql_error(&mysql), query);
+      ret = false;
+    }
+  } else {
+    if (result && mysql_field_count(&mysql)) {
+      *result = mysql_store_result(&mysql);
+    } else if (result)
+      *result = 0;
+    if (affected_rows)
+      *affected_rows = mysql_affected_rows(&mysql);
+    if (last_insert_id)
+      *last_insert_id = mysql_insert_id(&mysql);
+    if (result) {
+      if (*result) {
+        ret = true;
+      } else {
+        if (errnum)
+          *errnum = UINT_MAX;
+        if (errbuf) {
+          if ((!affected_rows || (affected_rows && *affected_rows == 0)) && (!last_insert_id || (last_insert_id && *last_insert_id == 0)))
+            LogWrite(DATABASE__RESULT, 1, "DBCore", "No Result.");
+        }
+        ret = false;
+      }
+    } else {
+      ret = true;
+    }
+  }
 
-	if (ret) 
-	{
-		char tmp1[200] = {0};
-		char tmp2[200] = {0};
-		if (result && (*result))
-			snprintf(tmp1, sizeof(tmp1), ", %i rows returned", (int) mysql_num_rows(*result));
-		if (affected_rows)
-			snprintf(tmp2, sizeof(tmp2), ", %i rows affected", (*affected_rows));
+  if (ret) {
+    char tmp1[200] = {0};
+    char tmp2[200] = {0};
+    if (result && (*result))
+      snprintf(tmp1, sizeof(tmp1), ", %i rows returned", (int)mysql_num_rows(*result));
+    if (affected_rows)
+      snprintf(tmp2, sizeof(tmp2), ", %i rows affected", (*affected_rows));
 
-		LogWrite(DATABASE__DEBUG, 0, "DBCore", "Query Successful%s%s", tmp1, tmp2);
-	}
-	else
-		LogWrite(DATABASE__DEBUG, 0, "DBCore", "Query returned no results in %s!\n%s", __FUNCTION__, query);
+    LogWrite(DATABASE__DEBUG, 0, "DBCore", "Query Successful%s%s", tmp1, tmp2);
+  } else
+    LogWrite(DATABASE__DEBUG, 0, "DBCore", "Query returned no results in %s!\n%s", __FUNCTION__, query);
 
-	return ret;
+  return ret;
 }
 
 int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen) {
-	LockMutex lock(&MDatabase);
-	return mysql_real_escape_string(&mysql, tobuf, frombuf, fromlen);
+  LockMutex lock(&MDatabase);
+  return mysql_real_escape_string(&mysql, tobuf, frombuf, fromlen);
 }
 
-bool DBcore::Open(const char* iHost, const char* iUser, const char* iPassword, const char* iDatabase,int32 iPort, int32* errnum, char* errbuf, bool iCompress, bool iSSL) {
-	LockMutex lock(&MDatabase);
-	safe_delete_array(pHost);
-	safe_delete_array(pUser);
-	safe_delete_array(pPassword);
-	safe_delete_array(pDatabase);
-	pHost = new char[strlen(iHost) + 1];
-	strcpy(pHost, iHost);
-	pUser = new char[strlen(iUser) + 1];
-	strcpy(pUser, iUser);
-	pPassword = new char[strlen(iPassword) + 1];
-	strcpy(pPassword, iPassword);
-	pDatabase = new char[strlen(iDatabase) + 1];
-	strcpy(pDatabase, iDatabase);
-	pCompress = iCompress;
-	pPort = iPort;
-	pSSL = iSSL;
-	return Open(errnum, errbuf);
+bool DBcore::Open(const char* iHost, const char* iUser, const char* iPassword, const char* iDatabase, int32 iPort, int32* errnum, char* errbuf, bool iCompress, bool iSSL) {
+  LockMutex lock(&MDatabase);
+  safe_delete_array(pHost);
+  safe_delete_array(pUser);
+  safe_delete_array(pPassword);
+  safe_delete_array(pDatabase);
+  pHost = new char[strlen(iHost) + 1];
+  strcpy(pHost, iHost);
+  pUser = new char[strlen(iUser) + 1];
+  strcpy(pUser, iUser);
+  pPassword = new char[strlen(iPassword) + 1];
+  strcpy(pPassword, iPassword);
+  pDatabase = new char[strlen(iDatabase) + 1];
+  strcpy(pDatabase, iDatabase);
+  pCompress = iCompress;
+  pPort = iPort;
+  pSSL = iSSL;
+  return Open(errnum, errbuf);
 }
 
 bool DBcore::Open(int32* errnum, char* errbuf) {
-	if (errbuf)
-		errbuf[0] = 0;
-	LockMutex lock(&MDatabase);
-	if (GetStatus() == Connected)
-		return true;
-	if (GetStatus() == Error)
-		mysql_close(&mysql);
-	if (!pHost)
-		return false;
-	/*
+  if (errbuf)
+    errbuf[0] = 0;
+  LockMutex lock(&MDatabase);
+  if (GetStatus() == Connected)
+    return true;
+  if (GetStatus() == Error)
+    mysql_close(&mysql);
+  if (!pHost)
+    return false;
+  /*
 	Quagmire - added CLIENT_FOUND_ROWS flag to the connect
 	otherwise DB update calls would say 0 rows affected when the value already equalled
 	what the function was tring to set it to, therefore the function would think it failed 
 	*/
-	int32 flags = CLIENT_FOUND_ROWS;
-	if (pCompress)
-		flags |= CLIENT_COMPRESS;
-	if (pSSL)
-		flags |= CLIENT_SSL;
-	if (mysql_real_connect(&mysql, pHost, pUser, pPassword, pDatabase, pPort, 0, flags)) {
-		pStatus = Connected;
-		return true;
-	}
-	else {
-		if (errnum)
-			*errnum = mysql_errno(&mysql);
-		if (errbuf)
-			snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
-		pStatus = Error;
-		return false;
-	}
+  int32 flags = CLIENT_FOUND_ROWS;
+  if (pCompress)
+    flags |= CLIENT_COMPRESS;
+  if (pSSL)
+    flags |= CLIENT_SSL;
+  if (mysql_real_connect(&mysql, pHost, pUser, pPassword, pDatabase, pPort, 0, flags)) {
+    pStatus = Connected;
+    return true;
+  } else {
+    if (errnum)
+      *errnum = mysql_errno(&mysql);
+    if (errbuf)
+      snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
+    pStatus = Error;
+    return false;
+  }
 }
 
-char* DBcore::getEscapeString(const char* from_string){
-	if(!from_string)
-		from_string ="";
-	int orig_size = strlen(from_string);
-	int escape_size = (orig_size * 2) + 1;
-	char* escaped = new char[escape_size];
-	memset(escaped, 0, escape_size);
-	DoEscapeString(escaped, from_string, orig_size);
-	return escaped;
+char* DBcore::getEscapeString(const char* from_string) {
+  if (!from_string)
+    from_string = "";
+  int orig_size = strlen(from_string);
+  int escape_size = (orig_size * 2) + 1;
+  char* escaped = new char[escape_size];
+  memset(escaped, 0, escape_size);
+  DoEscapeString(escaped, from_string, orig_size);
+  return escaped;
 }
 
-string DBcore::getSafeEscapeString(const char* from_string){
-	if(!from_string)
-		from_string ="";
-	int orig_size = strlen(from_string);
-	int escape_size = (orig_size * 2) + 1;
-	char* escaped = new char[escape_size];
-	memset(escaped, 0, escape_size);
-	DoEscapeString(escaped, from_string, orig_size);
-	string ret = string(escaped);
-	safe_delete_array(escaped);
-	return ret;
+string DBcore::getSafeEscapeString(const char* from_string) {
+  if (!from_string)
+    from_string = "";
+  int orig_size = strlen(from_string);
+  int escape_size = (orig_size * 2) + 1;
+  char* escaped = new char[escape_size];
+  memset(escaped, 0, escape_size);
+  DoEscapeString(escaped, from_string, orig_size);
+  string ret = string(escaped);
+  safe_delete_array(escaped);
+  return ret;
 }
 
-string DBcore::getSafeEscapeString(string* from_string){
-	if(!from_string)
-		return "";
-	int orig_size = from_string->length();
-	int escape_size = (orig_size * 2) + 1;
-	char* escaped = new char[escape_size];
-	memset(escaped, 0, escape_size);
-	DoEscapeString(escaped, from_string->c_str(), orig_size);
-	string ret = string(escaped);
-	safe_delete_array(escaped);
-	return ret;
+string DBcore::getSafeEscapeString(string* from_string) {
+  if (!from_string)
+    return "";
+  int orig_size = from_string->length();
+  int escape_size = (orig_size * 2) + 1;
+  char* escaped = new char[escape_size];
+  memset(escaped, 0, escape_size);
+  DoEscapeString(escaped, from_string->c_str(), orig_size);
+  string ret = string(escaped);
+  safe_delete_array(escaped);
+  return ret;
 }
-

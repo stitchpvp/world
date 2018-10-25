@@ -21,23 +21,23 @@
 #define IRC_IRCREPLYCODES_H_
 
 //the following are eq2emu specific irc reply codes
-#define IRC_CONNECT_SUCCESS				0
-#define IRC_CONNECT_ALREADY_CONNECTED	1	//already connected to this server
-#define IRC_CONNECT_NO_NICK				2	//a nick was never given
-#define IRC_CONNECT_WINSOCK_INIT		3	//couldn't initialize winsock
-#define IRC_CONNECT_WINSOCK_VERSION		4	//couldn't find the version of winsock we want
-#define IRC_CONNECT_SOCKET				5	//couldn't create a socket
-#define IRC_CONNECT_NO_HOST				6	//couldn't find the hostname
-#define IRC_CONNECT_FAIL				7	//failure connecting
-#define IRC_CONNECT_SOCKET_OPT			8	//couldn't set socket options
+#define IRC_CONNECT_SUCCESS 0
+#define IRC_CONNECT_ALREADY_CONNECTED 1 //already connected to this server
+#define IRC_CONNECT_NO_NICK 2           //a nick was never given
+#define IRC_CONNECT_WINSOCK_INIT 3      //couldn't initialize winsock
+#define IRC_CONNECT_WINSOCK_VERSION 4   //couldn't find the version of winsock we want
+#define IRC_CONNECT_SOCKET 5            //couldn't create a socket
+#define IRC_CONNECT_NO_HOST 6           //couldn't find the hostname
+#define IRC_CONNECT_FAIL 7              //failure connecting
+#define IRC_CONNECT_SOCKET_OPT 8        //couldn't set socket options
 
-#define IRC_JOIN_CHANNEL_SUCCESS	0
-#define IRC_JOIN_CHANNEL_ALREADY_IN	1	//already in the channel
+#define IRC_JOIN_CHANNEL_SUCCESS 0
+#define IRC_JOIN_CHANNEL_ALREADY_IN 1 //already in the channel
 
-#define IRC_LEAVE_CHANNEL_SUCCESS	0
-#define IRC_LEAVE_CHANNEL_NOT_IN	1	//was never in the channel
+#define IRC_LEAVE_CHANNEL_SUCCESS 0
+#define IRC_LEAVE_CHANNEL_NOT_IN 1 //was never in the channel
 
-#define IRC_SAY_SUCCESS	0
-#define IRC_SAY_NOT_IN	1	//was never the channel
+#define IRC_SAY_SUCCESS 0
+#define IRC_SAY_NOT_IN 1 //was never the channel
 
 #endif

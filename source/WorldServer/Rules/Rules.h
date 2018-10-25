@@ -28,218 +28,218 @@
 using namespace std;
 
 enum RuleCategory {
-	R_Client,
-	R_Faction,
-	R_Guild,
-	R_Player,
-	R_PVP,
-	R_Spawn,
-	R_UI,
-	R_World,
-	R_Zone
+  R_Client,
+  R_Faction,
+  R_Guild,
+  R_Player,
+  R_PVP,
+  R_Spawn,
+  R_UI,
+  R_World,
+  R_Zone
 };
 
 enum RuleType {
-	/* CLIENT */
-	ShowWelcomeScreen,
+  /* CLIENT */
+  ShowWelcomeScreen,
 
-	/* FACTION */
-	AllowFactionBasedCombat,
+  /* FACTION */
+  AllowFactionBasedCombat,
 
-	/* GUILD */
-	/* PLAYER */
-	MaxLevel,
-	MaxLevelOverrideStatus,
-	MaxPlayers,
-	MaxPlayersOverrideStatus,
-	VitalityAmount,
-	VitalityFrequency,
-	MaxAA,
-	MaxClassAA,
-	MaxSubclassAA,
-	MaxShadowsAA,
-	MaxHeroicAA,
-	MaxTradeskillAA,
-	MaxPrestigeAA,
-	MaxTradeskillPrestigeAA,
-	MaxDragonAA,
-	MinLastNameLevel,
-	MaxLastNameLength,
-	MinLastNameLength,
+  /* GUILD */
+  /* PLAYER */
+  MaxLevel,
+  MaxLevelOverrideStatus,
+  MaxPlayers,
+  MaxPlayersOverrideStatus,
+  VitalityAmount,
+  VitalityFrequency,
+  MaxAA,
+  MaxClassAA,
+  MaxSubclassAA,
+  MaxShadowsAA,
+  MaxHeroicAA,
+  MaxTradeskillAA,
+  MaxPrestigeAA,
+  MaxTradeskillPrestigeAA,
+  MaxDragonAA,
+  MinLastNameLevel,
+  MaxLastNameLength,
+  MinLastNameLength,
 
-	/* PVP */
-	AllowPVP,
+  /* PVP */
+  AllowPVP,
 
-	/* SPAWN */
-	SpeedMultiplier,
-	SpeedRatio,
+  /* SPAWN */
+  SpeedMultiplier,
+  SpeedRatio,
 
-	/* UI */
-	MaxWhoResults,
-	MaxWhoOverrideStatus,
+  /* UI */
+  MaxWhoResults,
+  MaxWhoOverrideStatus,
 
-	/* WORLD */
-	DefaultStartingZoneID,
-	EnablePOIDiscovery,
-	GamblingTokenItemID,
-	GuildAutoJoin,
-	GuildAutoJoinID,
-	GuildAutoJoinDefaultRankID,
-	ServerLocked,
-	ServerLockedOverrideStatus,
-	SyncZonesWithLogin,
-	SyncEquipWithLogin,
-	UseBannedIPsTable,
-	LinkDeadTimer,
-	RemoveDisconnectedClientsTimer,
-	PlayerCampTimer,
-	GMCampTimer,
-	AutoAdminPlayers,
-	AutoAdminGMs,
-	AutoAdminStatusValue,
-	DuskTime,
-	DawnTime,
-	ThreadedLoad,
-	TradeskillSuccessChance,
-	TradeskillCritSuccessChance,
-	TradeskillFailChance,
-	TradeskillCritFailChance,
-	TradeskillEventChance,
-	EditorURL,
-	EditorIncludeID,
-	EditorOfficialServer,
-	IRCEnabled,
-	IRCGlobalEnabled,
-	IRCAddress,
-	IRCPort,
-	IRCChan,
-	GroupSpellsTimer,
-	SavePaperdollImage,
-	SaveHeadshotImage,
-	SendPaperdollImagesToLogin,
-	TreasureChestDisabled,
+  /* WORLD */
+  DefaultStartingZoneID,
+  EnablePOIDiscovery,
+  GamblingTokenItemID,
+  GuildAutoJoin,
+  GuildAutoJoinID,
+  GuildAutoJoinDefaultRankID,
+  ServerLocked,
+  ServerLockedOverrideStatus,
+  SyncZonesWithLogin,
+  SyncEquipWithLogin,
+  UseBannedIPsTable,
+  LinkDeadTimer,
+  RemoveDisconnectedClientsTimer,
+  PlayerCampTimer,
+  GMCampTimer,
+  AutoAdminPlayers,
+  AutoAdminGMs,
+  AutoAdminStatusValue,
+  DuskTime,
+  DawnTime,
+  ThreadedLoad,
+  TradeskillSuccessChance,
+  TradeskillCritSuccessChance,
+  TradeskillFailChance,
+  TradeskillCritFailChance,
+  TradeskillEventChance,
+  EditorURL,
+  EditorIncludeID,
+  EditorOfficialServer,
+  IRCEnabled,
+  IRCGlobalEnabled,
+  IRCAddress,
+  IRCPort,
+  IRCChan,
+  GroupSpellsTimer,
+  SavePaperdollImage,
+  SaveHeadshotImage,
+  SendPaperdollImagesToLogin,
+  TreasureChestDisabled,
 
-	/* ZONE */
-	MinZoneLevelOverrideStatus,
-	MinZoneAccessOverrideStatus,
-	XPMultiplier,
-	TSXPMultiplier,
-	WeatherEnabled,
-	WeatherType,
-	MinWeatherSeverity,
-	MaxWeatherSeverity,
-	WeatherChangeFrequency,
-	WeatherChangePerInterval,
-	WeatherDynamicMaxOffset,
-	WeatherChangeChance,
-	SpawnUpdateTimer,
-	CheckAttackPlayer,
-	CheckAttackNPC,
-	HOTime,
+  /* ZONE */
+  MinZoneLevelOverrideStatus,
+  MinZoneAccessOverrideStatus,
+  XPMultiplier,
+  TSXPMultiplier,
+  WeatherEnabled,
+  WeatherType,
+  MinWeatherSeverity,
+  MaxWeatherSeverity,
+  WeatherChangeFrequency,
+  WeatherChangePerInterval,
+  WeatherDynamicMaxOffset,
+  WeatherChangeChance,
+  SpawnUpdateTimer,
+  CheckAttackPlayer,
+  CheckAttackNPC,
+  HOTime,
 
-	/* ZONE TIMERS */
-	RegenTimer,
-	ClientSaveTimer,
-	DefaultZoneShutdownTimer,
-	WeatherTimer,
-	SpawnDeleteTimer
+  /* ZONE TIMERS */
+  RegenTimer,
+  ClientSaveTimer,
+  DefaultZoneShutdownTimer,
+  WeatherTimer,
+  SpawnDeleteTimer
 };
 
 class Rule {
 public:
-	Rule();
-	Rule(int32 category, int32 type, const char *value, const char *combined);
-	Rule (Rule *rule_in);
-	virtual ~Rule();
+  Rule();
+  Rule(int32 category, int32 type, const char* value, const char* combined);
+  Rule(Rule* rule_in);
+  virtual ~Rule();
 
-	void SetValue(const char *value) {strncpy(this->value, value, sizeof(this->value));}
+  void SetValue(const char* value) { strncpy(this->value, value, sizeof(this->value)); }
 
-	int32 GetCategory() {return category;}
-	int32 GetType() {return type;}
-	const char * GetValue() {return value;}
-	const char * GetCombined() {return combined;}
+  int32 GetCategory() { return category; }
+  int32 GetType() { return type; }
+  const char* GetValue() { return value; }
+  const char* GetCombined() { return combined; }
 
-	int8 GetInt8() {return (int8)atoul(value);}
-	int16 GetInt16() {return (int16)atoul(value);}
-	int32 GetInt32() {return (int32)atoul(value);}
-	int64 GetInt64() {return (int64)atoi64(value);}
-	sint8 GetSInt8() {return (sint8)atoi(value);}
-	sint16 GetSInt16() {return (sint16)atoi(value);}
-	sint32 GetSInt32() {return (sint32)atoi(value);}
-	sint64 GetSInt64() {return (sint64)atoi64(value);}
-	bool GetBool() {return atoul(value) > 0 ? true : false;}
-	float GetFloat() {return atof(value);}
-	char GetChar() {return value[0];}
-	const char * GetString() {return value;}
+  int8 GetInt8() { return (int8)atoul(value); }
+  int16 GetInt16() { return (int16)atoul(value); }
+  int32 GetInt32() { return (int32)atoul(value); }
+  int64 GetInt64() { return (int64)atoi64(value); }
+  sint8 GetSInt8() { return (sint8)atoi(value); }
+  sint16 GetSInt16() { return (sint16)atoi(value); }
+  sint32 GetSInt32() { return (sint32)atoi(value); }
+  sint64 GetSInt64() { return (sint64)atoi64(value); }
+  bool GetBool() { return atoul(value) > 0 ? true : false; }
+  float GetFloat() { return atof(value); }
+  char GetChar() { return value[0]; }
+  const char* GetString() { return value; }
 
 private:
-	int32 category;
-	int32 type;
-	char value[64];
-	char combined[256];
+  int32 category;
+  int32 type;
+  char value[64];
+  char combined[256];
 };
 
 class RuleSet {
 public:
-	RuleSet();
-	RuleSet(RuleSet *in_rule_set);
-	virtual ~RuleSet();
+  RuleSet();
+  RuleSet(RuleSet* in_rule_set);
+  virtual ~RuleSet();
 
-	void CopyRulesInto(RuleSet *in_rule_set);
+  void CopyRulesInto(RuleSet* in_rule_set);
 
-	void SetID(int32 id) {this->id = id;}
-	void SetName(const char *name) {strncpy(this->name, name, sizeof(this->name));}
+  void SetID(int32 id) { this->id = id; }
+  void SetName(const char* name) { strncpy(this->name, name, sizeof(this->name)); }
 
-	int32 GetID() {return id;}
-	const char *GetName() {return name;}
+  int32 GetID() { return id; }
+  const char* GetName() { return name; }
 
-	void AddRule(Rule *rule);
-	Rule * GetRule(int32 category, int32 type);
-	Rule * GetRule(const char *category, const char *type);
-	void ClearRules();
+  void AddRule(Rule* rule);
+  Rule* GetRule(int32 category, int32 type);
+  Rule* GetRule(const char* category, const char* type);
+  void ClearRules();
 
-	map<int32, map<int32, Rule *> > * GetRules() {return &rules;}
+  map<int32, map<int32, Rule*>>* GetRules() { return &rules; }
 
 private:
-	int32 id;
-	char name[64];
-	Mutex m_rules;
-	map<int32, map<int32, Rule *> > rules;
+  int32 id;
+  char name[64];
+  Mutex m_rules;
+  map<int32, map<int32, Rule*>> rules;
 };
 
 class RuleManager {
 public:
-	RuleManager();
-	virtual ~RuleManager();
+  RuleManager();
+  virtual ~RuleManager();
 
-	void LoadCodedDefaultsIntoRuleSet(RuleSet *rule_set);
+  void LoadCodedDefaultsIntoRuleSet(RuleSet* rule_set);
 
-	bool AddRuleSet(RuleSet *rule_set);
-	int32 GetNumRuleSets();
-	void ClearRuleSets();
+  bool AddRuleSet(RuleSet* rule_set);
+  int32 GetNumRuleSets();
+  void ClearRuleSets();
 
-	Rule * GetBlankRule() {return &blank_rule;}
+  Rule* GetBlankRule() { return &blank_rule; }
 
-	bool SetGlobalRuleSet(int32 rule_set_id);
-	Rule * GetGlobalRule(int32 category, int32 type);
+  bool SetGlobalRuleSet(int32 rule_set_id);
+  Rule* GetGlobalRule(int32 category, int32 type);
 
-	bool SetZoneRuleSet(int32 zone_id, int32 rule_set_id);
-	Rule * GetZoneRule(int32 zone_id, int32 category, int32 type);
-	void ClearZoneRuleSets();
-	bool HasZoneRuleSet(int32 zone_id);
+  bool SetZoneRuleSet(int32 zone_id, int32 rule_set_id);
+  Rule* GetZoneRule(int32 zone_id, int32 category, int32 type);
+  void ClearZoneRuleSets();
+  bool HasZoneRuleSet(int32 zone_id);
 
-	RuleSet * GetGlobalRuleSet() {return &global_rule_set;}
-	map<int32, map<int32, Rule *> > * GetRules() {return &rules;}
+  RuleSet* GetGlobalRuleSet() { return &global_rule_set; }
+  map<int32, map<int32, Rule*>>* GetRules() { return &rules; }
 
 private:
-	Mutex m_rule_sets;
-	Mutex m_global_rule_set;
-	Mutex m_zone_rule_sets;
-	Rule blank_rule;						/* READ ONLY */
-	map<int32, map<int32, Rule *> > rules;	/* all of the rules loaded with their defaults (FROM THE CODE). map<category, map<type, rule>> */
-	map<int32, RuleSet *> rule_sets;		/* all of the possible rule sets from the database. map<rule set id, rule set> */
-	RuleSet global_rule_set;				/* the global rule set, first fill it the defaults from the code, then over ride from the database */
-	map<int32, RuleSet *> zone_rule_sets;	/* references to a zone's rule set. map<zone id, rule set> */
+  Mutex m_rule_sets;
+  Mutex m_global_rule_set;
+  Mutex m_zone_rule_sets;
+  Rule blank_rule;                     /* READ ONLY */
+  map<int32, map<int32, Rule*>> rules; /* all of the rules loaded with their defaults (FROM THE CODE). map<category, map<type, rule>> */
+  map<int32, RuleSet*> rule_sets;      /* all of the possible rule sets from the database. map<rule set id, rule set> */
+  RuleSet global_rule_set;             /* the global rule set, first fill it the defaults from the code, then over ride from the database */
+  map<int32, RuleSet*> zone_rule_sets; /* references to a zone's rule set. map<zone id, rule set> */
 };
 
 #endif

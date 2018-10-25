@@ -25,67 +25,65 @@ extern World world;
 extern ConfigReader configReader;
 extern MasterSpellList master_spell_list;
 
-Object::Object(){ 
-	clickable = false; 
-	zone_name = 0;
-	packet_num = 0;
-	appearance.activity_status = 64;
-	appearance.pos.state = 1;
-	appearance.encounter_level = 0;
-	spawn_type = 2;
-	m_deviceID = 0;
+Object::Object() {
+  clickable = false;
+  zone_name = 0;
+  packet_num = 0;
+  appearance.activity_status = 64;
+  appearance.pos.state = 1;
+  appearance.encounter_level = 0;
+  spawn_type = 2;
+  m_deviceID = 0;
 }
-Object::~Object(){
-
-}
-
-EQ2Packet* Object::serialize(Player* player, int16 version){
-	opcode = EQOpcodeManager[GetOpcodeVersion(version)]->EmuToEQ(OP_EqCreateGhostCmd);
-	return spawn_serialize(player, version);
+Object::~Object() {
 }
 
-void Object::HandleUse(const unique_ptr<Client>& client, string command){
-	vector<TransportDestination*>* destinations = 0;
-	if(GetTransporterID() > 0)
-		destinations = GetZone()->GetTransporters(GetTransporterID());
-	if(destinations)
-		client->ProcessTeleport(this, destinations, GetTransporterID());
-	else if (client && command.length() > 0 && appearance.show_command_icon == 1 && MeetsSpawnAccessRequirements(client->GetPlayer())){
-		EntityCommand* entity_command = FindEntityCommand(command);
-		if (entity_command)
-			client->GetCurrentZone()->ProcessEntityCommand(entity_command, client->GetPlayer(), client->GetPlayer()->GetTarget());
-	}
+EQ2Packet* Object::serialize(Player* player, int16 version) {
+  opcode = EQOpcodeManager[GetOpcodeVersion(version)]->EmuToEQ(OP_EqCreateGhostCmd);
+  return spawn_serialize(player, version);
 }
 
-Object*	Object::Copy(){
-	Object* new_spawn = new Object();
-	new_spawn->SetMerchantID(merchant_id);
-	new_spawn->SetMerchantType(merchant_type);
-	if(GetSizeOffset() > 0){
-		int8 offset = GetSizeOffset()+1;
-		sint32 tmp_size = size + (rand()%offset - rand()%offset);
-		if(tmp_size < 0)
-			tmp_size = 1;
-		else if(tmp_size >= 0xFFFF)
-			tmp_size = 0xFFFF;
-		new_spawn->size = (int16)tmp_size;
-	}
-	else
-		new_spawn->size = size;
-	new_spawn->SetPrimaryCommands(&primary_command_list);
-	new_spawn->SetSecondaryCommands(&secondary_command_list);
-	new_spawn->database_id = database_id;
-	new_spawn->primary_command_list_id = primary_command_list_id;
-	new_spawn->secondary_command_list_id = secondary_command_list_id;
-	memcpy(&new_spawn->appearance, &appearance, sizeof(AppearanceData));
-	new_spawn->faction_id = faction_id;
-	new_spawn->target = 0;
-	new_spawn->SetTotalHP(GetTotalHP());
-	new_spawn->SetTotalPower(GetTotalPower());
-	new_spawn->SetHP(GetHP());
-	new_spawn->SetPower(GetPower());
-	new_spawn->SetQuestsRequired(GetQuestsRequired());
-	new_spawn->SetTransporterID(GetTransporterID());
-	new_spawn->SetDeviceID(GetDeviceID());
-	return new_spawn;
+void Object::HandleUse(const unique_ptr<Client>& client, string command) {
+  vector<TransportDestination*>* destinations = 0;
+  if (GetTransporterID() > 0)
+    destinations = GetZone()->GetTransporters(GetTransporterID());
+  if (destinations)
+    client->ProcessTeleport(this, destinations, GetTransporterID());
+  else if (client && command.length() > 0 && appearance.show_command_icon == 1 && MeetsSpawnAccessRequirements(client->GetPlayer())) {
+    EntityCommand* entity_command = FindEntityCommand(command);
+    if (entity_command)
+      client->GetCurrentZone()->ProcessEntityCommand(entity_command, client->GetPlayer(), client->GetPlayer()->GetTarget());
+  }
+}
+
+Object* Object::Copy() {
+  Object* new_spawn = new Object();
+  new_spawn->SetMerchantID(merchant_id);
+  new_spawn->SetMerchantType(merchant_type);
+  if (GetSizeOffset() > 0) {
+    int8 offset = GetSizeOffset() + 1;
+    sint32 tmp_size = size + (rand() % offset - rand() % offset);
+    if (tmp_size < 0)
+      tmp_size = 1;
+    else if (tmp_size >= 0xFFFF)
+      tmp_size = 0xFFFF;
+    new_spawn->size = (int16)tmp_size;
+  } else
+    new_spawn->size = size;
+  new_spawn->SetPrimaryCommands(&primary_command_list);
+  new_spawn->SetSecondaryCommands(&secondary_command_list);
+  new_spawn->database_id = database_id;
+  new_spawn->primary_command_list_id = primary_command_list_id;
+  new_spawn->secondary_command_list_id = secondary_command_list_id;
+  memcpy(&new_spawn->appearance, &appearance, sizeof(AppearanceData));
+  new_spawn->faction_id = faction_id;
+  new_spawn->target = 0;
+  new_spawn->SetTotalHP(GetTotalHP());
+  new_spawn->SetTotalPower(GetTotalPower());
+  new_spawn->SetHP(GetHP());
+  new_spawn->SetPower(GetPower());
+  new_spawn->SetQuestsRequired(GetQuestsRequired());
+  new_spawn->SetTransporterID(GetTransporterID());
+  new_spawn->SetDeviceID(GetDeviceID());
+  return new_spawn;
 }

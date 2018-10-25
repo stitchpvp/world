@@ -29,37 +29,37 @@ using namespace std;
 
 class IRC {
 public:
-	IRC();
-	virtual ~IRC();
+  IRC();
+  virtual ~IRC();
 
-	void SetRunning(bool running) {this->running = running;}
-	bool IsRunning() {return running;}
-	int32 GetNumServers();
+  void SetRunning(bool running) { this->running = running; }
+  bool IsRunning() { return running; }
+  int32 GetNumServers();
 
-	static const char * GetSafeChannelName(const char *channel_name);
+  static const char* GetSafeChannelName(const char* channel_name);
 
-	void Start();
-	void Process();
+  void Start();
+  void Process();
 
-	void ConnectToServer(const shared_ptr<Client>& client, const char *host, short port, const char *nick = NULL);
-	void ConnectToGlobalServer(const char *host, short port, const char *nick = NULL);
-	void DisconnectFromServer(const shared_ptr<Client>& client);
-	void DisconnectFromGlobalServer();
-	void JoinChannel(const shared_ptr<Client>& client, const char *channel_name);
-	void LeaveChannel(const shared_ptr<Client>& client, const char *channel_name);
-	void ListChannels(const shared_ptr<Client>& client);
-	void Say(const shared_ptr<Client>& client, const char *channel_name, const char *message);
-	void Say(const shared_ptr<Client>& client, int32 channel_index, const char *message);
+  void ConnectToServer(const shared_ptr<Client>& client, const char* host, short port, const char* nick = NULL);
+  void ConnectToGlobalServer(const char* host, short port, const char* nick = NULL);
+  void DisconnectFromServer(const shared_ptr<Client>& client);
+  void DisconnectFromGlobalServer();
+  void JoinChannel(const shared_ptr<Client>& client, const char* channel_name);
+  void LeaveChannel(const shared_ptr<Client>& client, const char* channel_name);
+  void ListChannels(const shared_ptr<Client>& client);
+  void Say(const shared_ptr<Client>& client, const char* channel_name, const char* message);
+  void Say(const shared_ptr<Client>& client, int32 channel_index, const char* message);
 
-	IRCServer* GetServer(const shared_ptr<Client>& client);
+  IRCServer* GetServer(const shared_ptr<Client>& client);
 
-	IRCServer* GetGlobalServer() { return m_globalServer; }
+  IRCServer* GetGlobalServer() { return m_globalServer; }
 
 private:
-	bool running;
-	Mutex m_servers;
-	map<int32, IRCServer *> servers;
-	IRCServer* m_globalServer;
+  bool running;
+  Mutex m_servers;
+  map<int32, IRCServer*> servers;
+  IRCServer* m_globalServer;
 };
 
 #endif

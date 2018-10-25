@@ -23,35 +23,32 @@
 #include <string.h>
 #include "../WorldServer/client.h"
 
-#define LOG_BUFFER_SIZE	4096
+#define LOG_BUFFER_SIZE 4096
 
-#define LOG_CATEGORY(category) LOG_ ##category ,
-enum LogCategory
-{
-    #include "LogTypes.h"
-    NUMBER_OF_LOG_CATEGORIES
+#define LOG_CATEGORY(category) LOG_##category,
+enum LogCategory {
+#include "LogTypes.h"
+  NUMBER_OF_LOG_CATEGORIES
 };
 
-#define LOG_TYPE(category, type, level, color, enabled, logfile, console, client, str) category##__##type ,
-enum LogType
-{
-    #include "LogTypes.h"
-    NUMBER_OF_LOG_TYPES
+#define LOG_TYPE(category, type, level, color, enabled, logfile, console, client, str) category##__##type,
+enum LogType {
+#include "LogTypes.h"
+  NUMBER_OF_LOG_TYPES
 };
 
 extern const char* log_category_names[NUMBER_OF_LOG_CATEGORIES];
 
-struct LogTypeStatus
-{
-	int8 level;
-	int color;
-    bool enabled;
-	bool logfile;
-	bool console;
-	bool client;
-    LogCategory category;
-    const char *name;
-    const char *display_name;
+struct LogTypeStatus {
+  int8 level;
+  int color;
+  bool enabled;
+  bool logfile;
+  bool console;
+  bool client;
+  LogCategory category;
+  const char* name;
+  const char* display_name;
 };
 
 extern LogTypeStatus* log_type_info;
@@ -59,9 +56,9 @@ extern LogTypeStatus* log_type_info;
 void LogStart();
 void LogStop();
 int8 GetLoggerLevel(LogType type);
-void LogWrite(LogType type, int8 log_level, const char *cat_text, const char *fmt, ...);
+void LogWrite(LogType type, int8 log_level, const char* cat_text, const char* fmt, ...);
 #ifdef PARSER
-	void ColorizeLog(int color, char *date, const char *display_name, const char *category, string buffer);
+void ColorizeLog(int color, char* date, const char* display_name, const char* category, string buffer);
 #endif
 
 bool LogParseConfigs();

@@ -26,52 +26,52 @@
 
 class GroundSpawn : public Spawn {
 public:
-	GroundSpawn();
-	virtual ~GroundSpawn();
-	GroundSpawn*	Copy(){
-		GroundSpawn* new_spawn = new GroundSpawn();
-		new_spawn->size = size;
-		new_spawn->SetPrimaryCommands(&primary_command_list);
-		new_spawn->SetSecondaryCommands(&secondary_command_list);
-		new_spawn->database_id = database_id;
-		new_spawn->primary_command_list_id = primary_command_list_id;
-		new_spawn->secondary_command_list_id = secondary_command_list_id;
-		memcpy(&new_spawn->appearance, &appearance, sizeof(AppearanceData));
-		new_spawn->faction_id = faction_id;
-		new_spawn->target = 0;
-		new_spawn->SetTotalHP(GetTotalHP());
-		new_spawn->SetTotalPower(GetTotalPower());
-		new_spawn->SetHP(GetHP());
-		new_spawn->SetPower(GetPower());
-		new_spawn->SetNumberHarvests(number_harvests);
-		new_spawn->SetAttemptsPerHarvest(num_attempts_per_harvest);
-		new_spawn->SetGroundSpawnEntryID(groundspawn_id);
-		new_spawn->SetCollectionSkill(collection_skill.c_str());
-		new_spawn->SetQuestsRequired(GetQuestsRequired());
-		return new_spawn;
-	}
-	bool IsGroundSpawn(){ return true; }
-	EQ2Packet* serialize(Player* player, int16 version);
-	int8 GetNumberHarvests();
-	void SetNumberHarvests(int8 val);
-	int8 GetAttemptsPerHarvest();
-	void SetAttemptsPerHarvest(int8 val);
-	int32 GetGroundSpawnEntryID();
-	void SetGroundSpawnEntryID(int32 val);
-	void ProcessHarvest(const unique_ptr<Client>& client);
-	void SetCollectionSkill(const char* val);
-	const char* GetCollectionSkill();
-	string GetHarvestMessageName(bool present_tense = false, bool failure = false);
-	string GetHarvestSpellType();
-	string GetHarvestSpellName();
-	void HandleUse(const unique_ptr<Client>& client, string type);
+  GroundSpawn();
+  virtual ~GroundSpawn();
+  GroundSpawn* Copy() {
+    GroundSpawn* new_spawn = new GroundSpawn();
+    new_spawn->size = size;
+    new_spawn->SetPrimaryCommands(&primary_command_list);
+    new_spawn->SetSecondaryCommands(&secondary_command_list);
+    new_spawn->database_id = database_id;
+    new_spawn->primary_command_list_id = primary_command_list_id;
+    new_spawn->secondary_command_list_id = secondary_command_list_id;
+    memcpy(&new_spawn->appearance, &appearance, sizeof(AppearanceData));
+    new_spawn->faction_id = faction_id;
+    new_spawn->target = 0;
+    new_spawn->SetTotalHP(GetTotalHP());
+    new_spawn->SetTotalPower(GetTotalPower());
+    new_spawn->SetHP(GetHP());
+    new_spawn->SetPower(GetPower());
+    new_spawn->SetNumberHarvests(number_harvests);
+    new_spawn->SetAttemptsPerHarvest(num_attempts_per_harvest);
+    new_spawn->SetGroundSpawnEntryID(groundspawn_id);
+    new_spawn->SetCollectionSkill(collection_skill.c_str());
+    new_spawn->SetQuestsRequired(GetQuestsRequired());
+    return new_spawn;
+  }
+  bool IsGroundSpawn() { return true; }
+  EQ2Packet* serialize(Player* player, int16 version);
+  int8 GetNumberHarvests();
+  void SetNumberHarvests(int8 val);
+  int8 GetAttemptsPerHarvest();
+  void SetAttemptsPerHarvest(int8 val);
+  int32 GetGroundSpawnEntryID();
+  void SetGroundSpawnEntryID(int32 val);
+  void ProcessHarvest(const unique_ptr<Client>& client);
+  void SetCollectionSkill(const char* val);
+  const char* GetCollectionSkill();
+  string GetHarvestMessageName(bool present_tense = false, bool failure = false);
+  string GetHarvestSpellType();
+  string GetHarvestSpellName();
+  void HandleUse(const unique_ptr<Client>& client, string type);
+
 private:
-	int8	number_harvests;
-	int8	num_attempts_per_harvest;
-	int32	groundspawn_id;
-	string	collection_skill;
-	Mutex	MHarvest;
-	Mutex	MHarvestUse;
+  int8 number_harvests;
+  int8 num_attempts_per_harvest;
+  int32 groundspawn_id;
+  string collection_skill;
+  Mutex MHarvest;
+  Mutex MHarvestUse;
 };
 #endif
-

@@ -27,21 +27,21 @@
 extern Chat chat;
 
 void WorldDatabase::LoadChannels() {
-	DatabaseResult result;
-	ChatChannel *channel;
+  DatabaseResult result;
+  ChatChannel* channel;
 
-	if (database_new.Select(&result, "SELECT `name`,`password`,`level_restriction`,`classes`,`races` FROM `channels`")) {
-		while (result.Next()) {
-			channel = new ChatChannel();
-			channel->SetName(result.GetString(0));
-			if (!result.IsNull(1))
-				channel->SetPassword(result.GetString(1));
-			channel->SetLevelRestriction(result.GetInt16(2));
-			channel->SetClassesAllowed(result.GetInt64(3));
-			channel->SetRacesAllowed(result.GetInt64(4));
-			channel->SetType(CHAT_CHANNEL_TYPE_WORLD);
+  if (database_new.Select(&result, "SELECT `name`,`password`,`level_restriction`,`classes`,`races` FROM `channels`")) {
+    while (result.Next()) {
+      channel = new ChatChannel();
+      channel->SetName(result.GetString(0));
+      if (!result.IsNull(1))
+        channel->SetPassword(result.GetString(1));
+      channel->SetLevelRestriction(result.GetInt16(2));
+      channel->SetClassesAllowed(result.GetInt64(3));
+      channel->SetRacesAllowed(result.GetInt64(4));
+      channel->SetType(CHAT_CHANNEL_TYPE_WORLD);
 
-			chat.AddChannel(channel);
-		}
-	}
+      chat.AddChannel(channel);
+    }
+  }
 }

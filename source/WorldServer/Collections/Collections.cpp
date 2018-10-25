@@ -25,293 +25,293 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 extern MasterCollectionList master_collection_list;
 
 Collection::Collection() {
-	id = 0;
-	memset(name, 0, sizeof(name));
-	memset(category, 0, sizeof(category));
-	level = 0;
-	reward_coin = 0;
-	reward_xp = 0;
-	completed = false;
-	save_needed = false;
+  id = 0;
+  memset(name, 0, sizeof(name));
+  memset(category, 0, sizeof(category));
+  level = 0;
+  reward_coin = 0;
+  reward_xp = 0;
+  completed = false;
+  save_needed = false;
 }
 
-Collection::Collection(Collection *in) {
-	vector<struct CollectionItem *> *collection_items_in;
-	vector<struct CollectionRewardItem *> *reward_items_in;
-	vector<struct CollectionItem *>::iterator itr;
-	vector<struct CollectionRewardItem *>::iterator itr2;
-	struct CollectionItem *collection_item;
-	struct CollectionRewardItem *reward_item;
+Collection::Collection(Collection* in) {
+  vector<struct CollectionItem*>* collection_items_in;
+  vector<struct CollectionRewardItem*>* reward_items_in;
+  vector<struct CollectionItem*>::iterator itr;
+  vector<struct CollectionRewardItem*>::iterator itr2;
+  struct CollectionItem* collection_item;
+  struct CollectionRewardItem* reward_item;
 
-	assert(in);
+  assert(in);
 
-	id = in->GetID();
-	strncpy(name, in->GetName(), sizeof(name));
-	strncpy(category, in->GetCategory(), sizeof(category));
-	level = in->GetLevel();
-	reward_coin = in->GetRewardCoin();
-	reward_xp = in->GetRewardXP();
-	completed = in->GetCompleted();
-	save_needed = in->GetSaveNeeded();
+  id = in->GetID();
+  strncpy(name, in->GetName(), sizeof(name));
+  strncpy(category, in->GetCategory(), sizeof(category));
+  level = in->GetLevel();
+  reward_coin = in->GetRewardCoin();
+  reward_xp = in->GetRewardXP();
+  completed = in->GetCompleted();
+  save_needed = in->GetSaveNeeded();
 
-	collection_items_in = in->GetCollectionItems();
-	for (itr = collection_items_in->begin(); itr != collection_items_in->end(); itr++) {
-		collection_item = new struct CollectionItem;
-		collection_item->item = (*itr)->item;
-		collection_item->index = (*itr)->index;
-		collection_item->found = (*itr)->found;
-		collection_items.push_back(collection_item);
-	}
+  collection_items_in = in->GetCollectionItems();
+  for (itr = collection_items_in->begin(); itr != collection_items_in->end(); itr++) {
+    collection_item = new struct CollectionItem;
+    collection_item->item = (*itr)->item;
+    collection_item->index = (*itr)->index;
+    collection_item->found = (*itr)->found;
+    collection_items.push_back(collection_item);
+  }
 
-	reward_items_in = in->GetRewardItems();
-	for (itr2 = reward_items_in->begin(); itr2 != reward_items_in->end(); itr2++) {
-		reward_item = new struct CollectionRewardItem;
-		reward_item->item = (*itr2)->item;
-		reward_item->quantity = (*itr2)->quantity;
-		reward_items.push_back(reward_item);
-	}
+  reward_items_in = in->GetRewardItems();
+  for (itr2 = reward_items_in->begin(); itr2 != reward_items_in->end(); itr2++) {
+    reward_item = new struct CollectionRewardItem;
+    reward_item->item = (*itr2)->item;
+    reward_item->quantity = (*itr2)->quantity;
+    reward_items.push_back(reward_item);
+  }
 
-	reward_items_in = in->GetSelectableRewardItems();
-	for (itr2 = reward_items_in->begin(); itr2 != reward_items_in->end(); itr2++) {
-		reward_item = new struct CollectionRewardItem;
-		reward_item->item = (*itr2)->item;
-		reward_item->quantity = (*itr2)->quantity;
-		selectable_reward_items.push_back(reward_item);
-	}
+  reward_items_in = in->GetSelectableRewardItems();
+  for (itr2 = reward_items_in->begin(); itr2 != reward_items_in->end(); itr2++) {
+    reward_item = new struct CollectionRewardItem;
+    reward_item->item = (*itr2)->item;
+    reward_item->quantity = (*itr2)->quantity;
+    selectable_reward_items.push_back(reward_item);
+  }
 }
 
 Collection::~Collection() {
-	vector<struct CollectionItem *>::iterator itr;
-	vector<struct CollectionRewardItem *>::iterator itr2;
+  vector<struct CollectionItem*>::iterator itr;
+  vector<struct CollectionRewardItem*>::iterator itr2;
 
-	for (itr = collection_items.begin(); itr != collection_items.end(); itr++)
-		safe_delete(*itr);
-	for (itr2 = reward_items.begin(); itr2 != reward_items.end(); itr2++)
-		safe_delete(*itr2);
-	for (itr2 = selectable_reward_items.begin(); itr2 != selectable_reward_items.end(); itr2++)
-		safe_delete(*itr2);
+  for (itr = collection_items.begin(); itr != collection_items.end(); itr++)
+    safe_delete(*itr);
+  for (itr2 = reward_items.begin(); itr2 != reward_items.end(); itr2++)
+    safe_delete(*itr2);
+  for (itr2 = selectable_reward_items.begin(); itr2 != selectable_reward_items.end(); itr2++)
+    safe_delete(*itr2);
 }
 
-void Collection::AddCollectionItem(struct CollectionItem *collection_item) {
-	assert(collection_item);
+void Collection::AddCollectionItem(struct CollectionItem* collection_item) {
+  assert(collection_item);
 
-	collection_items.push_back(collection_item);
+  collection_items.push_back(collection_item);
 }
 
-void Collection::AddRewardItem(struct CollectionRewardItem *reward_item) {
-	assert(reward_item);
+void Collection::AddRewardItem(struct CollectionRewardItem* reward_item) {
+  assert(reward_item);
 
-	reward_items.push_back(reward_item);
+  reward_items.push_back(reward_item);
 }
 
-void Collection::AddSelectableRewardItem(struct CollectionRewardItem *reward_item) {
-	assert(reward_item);
+void Collection::AddSelectableRewardItem(struct CollectionRewardItem* reward_item) {
+  assert(reward_item);
 
-	selectable_reward_items.push_back(reward_item);
+  selectable_reward_items.push_back(reward_item);
 }
 
-bool Collection::NeedsItem(Item *item) {
-	vector<struct CollectionItem *>::iterator itr;
-	struct CollectionItem *collection_item;
-	
-	assert(item);
+bool Collection::NeedsItem(Item* item) {
+  vector<struct CollectionItem*>::iterator itr;
+  struct CollectionItem* collection_item;
 
-	if (completed)
-		return false;
+  assert(item);
 
-	for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
-		collection_item = *itr;
-		if (collection_item->item == item->details.item_id) {
-			if (collection_item->found)
-				return false;
-			else
-				return true;
-		}
-	}
+  if (completed)
+    return false;
 
-	/* item is not required by this collection at all */
-	return false;
+  for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
+    collection_item = *itr;
+    if (collection_item->item == item->details.item_id) {
+      if (collection_item->found)
+        return false;
+      else
+        return true;
+    }
+  }
+
+  /* item is not required by this collection at all */
+  return false;
 }
 
-struct CollectionItem * Collection::GetCollectionItemByItemID(int32 item_id) {
-	vector<struct CollectionItem *>::iterator itr;
-	struct CollectionItem *collection_item;
+struct CollectionItem* Collection::GetCollectionItemByItemID(int32 item_id) {
+  vector<struct CollectionItem*>::iterator itr;
+  struct CollectionItem* collection_item;
 
-	for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
-		collection_item = *itr;
-		if (collection_item->item == item_id)
-			return collection_item;
-	}
+  for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
+    collection_item = *itr;
+    if (collection_item->item == item_id)
+      return collection_item;
+  }
 
-	return 0;
+  return 0;
 }
 
 bool Collection::GetIsReadyToTurnIn() {
-	vector<struct CollectionItem *>::iterator itr;
+  vector<struct CollectionItem*>::iterator itr;
 
-	if (completed)
-		return false;
+  if (completed)
+    return false;
 
-	for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
-		if (!(*itr)->found)
-			return false;
-	}
+  for (itr = collection_items.begin(); itr != collection_items.end(); itr++) {
+    if (!(*itr)->found)
+      return false;
+  }
 
-	return true;
+  return true;
 }
 
 MasterCollectionList::MasterCollectionList() {
-	mutex_collections.SetName("MasterCollectionList::collections");
+  mutex_collections.SetName("MasterCollectionList::collections");
 }
 
 MasterCollectionList::~MasterCollectionList() {
-	ClearCollections();
+  ClearCollections();
 }
 
-bool MasterCollectionList::AddCollection(Collection *collection) {
-	bool ret = false;
+bool MasterCollectionList::AddCollection(Collection* collection) {
+  bool ret = false;
 
-	assert(collection);
+  assert(collection);
 
-	mutex_collections.writelock(__FUNCTION__, __LINE__);
-	if (collections.count(collection->GetID()) == 0) {
-		collections[collection->GetID()] = collection;
-		ret = true;
-	}
-	mutex_collections.releasewritelock(__FUNCTION__, __LINE__);
+  mutex_collections.writelock(__FUNCTION__, __LINE__);
+  if (collections.count(collection->GetID()) == 0) {
+    collections[collection->GetID()] = collection;
+    ret = true;
+  }
+  mutex_collections.releasewritelock(__FUNCTION__, __LINE__);
 
-	return ret;
+  return ret;
 }
 
-Collection * MasterCollectionList::GetCollection(int32 collection_id) {
-	Collection *collection = 0;
+Collection* MasterCollectionList::GetCollection(int32 collection_id) {
+  Collection* collection = 0;
 
-	mutex_collections.readlock(__FUNCTION__, __LINE__);
-	if (collections.count(collection_id) > 0)
-		collection = collections[collection_id];
-	mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
+  mutex_collections.readlock(__FUNCTION__, __LINE__);
+  if (collections.count(collection_id) > 0)
+    collection = collections[collection_id];
+  mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
 
-	return collection;
+  return collection;
 }
 
 void MasterCollectionList::ClearCollections() {
-	map<int32, Collection *>::iterator itr;
+  map<int32, Collection*>::iterator itr;
 
-	mutex_collections.writelock(__FUNCTION__, __LINE__);
-	for (itr = collections.begin(); itr != collections.end(); itr++)
-		safe_delete(itr->second);
-	collections.clear();
-	mutex_collections.releasewritelock(__FUNCTION__, __LINE__);
+  mutex_collections.writelock(__FUNCTION__, __LINE__);
+  for (itr = collections.begin(); itr != collections.end(); itr++)
+    safe_delete(itr->second);
+  collections.clear();
+  mutex_collections.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 int32 MasterCollectionList::Size() {
-	int32 size;
+  int32 size;
 
-	mutex_collections.readlock(__FUNCTION__, __LINE__);
-	size = collections.size();
-	mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
+  mutex_collections.readlock(__FUNCTION__, __LINE__);
+  size = collections.size();
+  mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
 
-	return size;
+  return size;
 }
 
-bool MasterCollectionList::NeedsItem(Item *item) {
-	map<int32, Collection *>::iterator itr;
-	bool ret = false;
+bool MasterCollectionList::NeedsItem(Item* item) {
+  map<int32, Collection*>::iterator itr;
+  bool ret = false;
 
-	assert(item);
+  assert(item);
 
-	mutex_collections.readlock(__FUNCTION__, __LINE__);
-	for (itr = collections.begin(); itr != collections.end(); itr++) {
-		if (itr->second->NeedsItem(item)) {
-			ret = true;
-			break;
-		}
-	}
-	mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
+  mutex_collections.readlock(__FUNCTION__, __LINE__);
+  for (itr = collections.begin(); itr != collections.end(); itr++) {
+    if (itr->second->NeedsItem(item)) {
+      ret = true;
+      break;
+    }
+  }
+  mutex_collections.releasereadlock(__FUNCTION__, __LINE__);
 
-	return ret;
+  return ret;
 }
 
 PlayerCollectionList::PlayerCollectionList() {
 }
 
 PlayerCollectionList::~PlayerCollectionList() {
-	ClearCollections();
+  ClearCollections();
 }
 
-bool PlayerCollectionList::AddCollection(Collection *collection) {
-	assert(collection);
+bool PlayerCollectionList::AddCollection(Collection* collection) {
+  assert(collection);
 
-	if (collections.count(collection->GetID()) == 0) {
-		collections[collection->GetID()] = collection;
-		return true;
-	}
+  if (collections.count(collection->GetID()) == 0) {
+    collections[collection->GetID()] = collection;
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
-Collection * PlayerCollectionList::GetCollection(int32 collection_id) {
-	if (collections.count(collection_id) > 0)
-		return collections[collection_id];
+Collection* PlayerCollectionList::GetCollection(int32 collection_id) {
+  if (collections.count(collection_id) > 0)
+    return collections[collection_id];
 
-	return 0;
+  return 0;
 }
 
 void PlayerCollectionList::ClearCollections() {
-	map<int32, Collection *>::iterator itr;
+  map<int32, Collection*>::iterator itr;
 
-	for (itr = collections.begin(); itr != collections.end(); itr++)
-		safe_delete(itr->second);
-	collections.clear();
+  for (itr = collections.begin(); itr != collections.end(); itr++)
+    safe_delete(itr->second);
+  collections.clear();
 }
 
 int32 PlayerCollectionList::Size() {
-	return collections.size();
+  return collections.size();
 }
 
-bool PlayerCollectionList::NeedsItem(Item *item) {
-	map<int32, Collection *> *master_collections;
-	map<int32, Collection *>::iterator itr;
-	Collection *collection;
-	Mutex *master_mutex;
-	bool ret = false;
+bool PlayerCollectionList::NeedsItem(Item* item) {
+  map<int32, Collection*>* master_collections;
+  map<int32, Collection*>::iterator itr;
+  Collection* collection;
+  Mutex* master_mutex;
+  bool ret = false;
 
-	assert(item);
+  assert(item);
 
-	for (itr = collections.begin(); itr != collections.end(); itr++) {
-		if (itr->second->NeedsItem(item)) {
-			ret = true;
-			break;
-		}
-	}
+  for (itr = collections.begin(); itr != collections.end(); itr++) {
+    if (itr->second->NeedsItem(item)) {
+      ret = true;
+      break;
+    }
+  }
 
-	/* if the player doesnt have a collection that needs the item, check the master collection list to see if there's a collection
+  /* if the player doesnt have a collection that needs the item, check the master collection list to see if there's a collection
 	 * in there that needs the item that the player does not have yet */
-	if (!ret) {
-		master_mutex = master_collection_list.GetMutex();
-		master_collections = master_collection_list.GetCollections();
+  if (!ret) {
+    master_mutex = master_collection_list.GetMutex();
+    master_collections = master_collection_list.GetCollections();
 
-		master_mutex->readlock(__FUNCTION__, __LINE__);
-		for (itr = master_collections->begin(); itr != master_collections->end(); itr++) {
-			collection = itr->second;
-			if (collection->NeedsItem(item) && !GetCollection(collection->GetID())) {
-				ret = true;
-				break;
-			}
-		}
-		master_mutex->releasereadlock(__FUNCTION__, __LINE__);
-	}
+    master_mutex->readlock(__FUNCTION__, __LINE__);
+    for (itr = master_collections->begin(); itr != master_collections->end(); itr++) {
+      collection = itr->second;
+      if (collection->NeedsItem(item) && !GetCollection(collection->GetID())) {
+        ret = true;
+        break;
+      }
+    }
+    master_mutex->releasereadlock(__FUNCTION__, __LINE__);
+  }
 
-	return ret;
+  return ret;
 }
 
 bool PlayerCollectionList::HasCollectionsToHandIn() {
-	map<int32, Collection *>::iterator itr;
+  map<int32, Collection*>::iterator itr;
 
-	for (itr = collections.begin(); itr != collections.end(); itr++) {
-		if (itr->second->GetIsReadyToTurnIn())
-			return true;
-	}
+  for (itr = collections.begin(); itr != collections.end(); itr++) {
+    if (itr->second->GetIsReadyToTurnIn())
+      return true;
+  }
 
-	return false;
+  return false;
 }

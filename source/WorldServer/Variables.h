@@ -22,71 +22,67 @@
 #include <vector>
 #include <string>
 
-class Variable{
+class Variable {
 public:
-	Variable (const char* name, const char* value, const char* comment){
-		variableName = string(name);
-		variableValue = string(value);
-		if(comment)
-			variableComment = string(comment);
-	}
+  Variable(const char* name, const char* value, const char* comment) {
+    variableName = string(name);
+    variableValue = string(value);
+    if (comment)
+      variableComment = string(comment);
+  }
 
-	const char* GetName() { return variableName.c_str(); }
-	const char* GetValue() { return variableValue.c_str(); }
-	const char* GetComment() { return variableComment.c_str(); }
-	string GetNameValuePair(){ return string(variableName).append(" ").append(variableValue); }
-	void SetValue(const char* value){
-		if(value)
-			variableValue = string(value);
-	}
+  const char* GetName() { return variableName.c_str(); }
+  const char* GetValue() { return variableValue.c_str(); }
+  const char* GetComment() { return variableComment.c_str(); }
+  string GetNameValuePair() { return string(variableName).append(" ").append(variableValue); }
+  void SetValue(const char* value) {
+    if (value)
+      variableValue = string(value);
+  }
+
 private:
-	string variableName;
-	string variableValue;
-	string variableComment;
+  string variableName;
+  string variableValue;
+  string variableComment;
 };
 
-class Variables
-{
+class Variables {
 public:
-	~Variables(){
-		ClearVariables();
-	}
-	void AddVariable ( Variable* var )
-	{
-		variables[string(var->GetName())] = var;
-	}
+  ~Variables() {
+    ClearVariables();
+  }
+  void AddVariable(Variable* var) {
+    variables[string(var->GetName())] = var;
+  }
 
-	void ClearVariables()
-	{
-		if(variables.size() == 0)
-			return;
+  void ClearVariables() {
+    if (variables.size() == 0)
+      return;
 
-		map<string,Variable*>::iterator map_list;
-		for( map_list = variables.begin(); map_list != variables.end(); map_list++ ) {
-			safe_delete(map_list->second);
-		}
-		variables.clear();
-	}
+    map<string, Variable*>::iterator map_list;
+    for (map_list = variables.begin(); map_list != variables.end(); map_list++) {
+      safe_delete(map_list->second);
+    }
+    variables.clear();
+  }
 
-	Variable* FindVariable ( string name )
-	{
-		if(variables.count(name) > 0)
-			return variables[name];
-		return 0;
-	}
+  Variable* FindVariable(string name) {
+    if (variables.count(name) > 0)
+      return variables[name];
+    return 0;
+  }
 
-	vector<Variable*>* GetVariables(string partial_name){
-		vector<Variable*>* ret = new vector<Variable*>();
-		map<string,Variable*>::iterator itr;
-		for(itr = variables.begin(); itr != variables.end(); itr++){
-			if(itr->first.find(partial_name) < 0xFFFFFFFF)
-				ret->push_back(itr->second);
-		}
-		return ret;
-	}
+  vector<Variable*>* GetVariables(string partial_name) {
+    vector<Variable*>* ret = new vector<Variable*>();
+    map<string, Variable*>::iterator itr;
+    for (itr = variables.begin(); itr != variables.end(); itr++) {
+      if (itr->first.find(partial_name) < 0xFFFFFFFF)
+        ret->push_back(itr->second);
+    }
+    return ret;
+  }
 
 private:
-	map<string,Variable*> variables;
-
+  map<string, Variable*> variables;
 };
 #endif

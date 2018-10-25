@@ -35,9 +35,9 @@ using namespace std;
 #ifdef WIN32
 #include <WinSock2.h>
 #include <windows.h>
-#define snprintf	_snprintf
-#define strncasecmp	_strnicmp
-#define strcasecmp	_stricmp
+#define snprintf _snprintf
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 #else
 #include "unix.h"
 #include <netinet/in.h>
@@ -48,157 +48,151 @@ using namespace std;
 #include "packet_functions.h"
 #include "emu_opcodes.h"
 #ifdef WORLD
-	#include "../WorldServer/WorldDatabase.h"
-	extern WorldDatabase database;
+#include "../WorldServer/WorldDatabase.h"
+extern WorldDatabase database;
 #endif
 #ifdef LOGIN
-	#include "../LoginServer/LoginDatabase.h"
-	extern LoginDatabase database;
+#include "../LoginServer/LoginDatabase.h"
+extern LoginDatabase database;
 #endif
 #ifdef PARSER
-	#include "../PacketParser/ParserDatabase.h"
-	extern ParserDatabase database;
+#include "../PacketParser/ParserDatabase.h"
+extern ParserDatabase database;
 #endif
 
 #ifdef PATCHER
-	#include "../PatchServer/PatcherDatabase.h"
-	extern PatcherDatabase database;
+#include "../PatchServer/PatcherDatabase.h"
+extern PatcherDatabase database;
 #endif
 #include "../common/EQEMuError.h"
 #include "../common/packet_dump.h"
 #include "../common/Log.h"
 
-Database::Database()
-{
-	InitVars();
-	
+Database::Database() {
+  InitVars();
 }
 
 bool Database::Init() {
-	char* host = getenv("DATABASE_HOST");
-	char* user = getenv("DATABASE_USERNAME");
-	char* passwd = getenv("DATABASE_PASSWORD");
-	char* database = getenv("DATABASE_NAME");
-	int32 port = 0;
-	bool compression = false;
-	
-	int32 errnum = 0;
-	char errbuf[MYSQL_ERRMSG_SIZE];
+  char* host = getenv("DATABASE_HOST");
+  char* user = getenv("DATABASE_USERNAME");
+  char* passwd = getenv("DATABASE_PASSWORD");
+  char* database = getenv("DATABASE_NAME");
+  int32 port = 0;
+  bool compression = false;
 
-	if (!Open(host, user, passwd, database, port, &errnum, errbuf)) {
-		LogWrite(DATABASE__ERROR, 0, "DB", "Failed to connect to database: Error: %s", errbuf);
-		HandleMysqlError(errnum);
-		exit(1);
-	} else {
-		LogWrite(DATABASE__INFO, 0, "DB", "Using database '%s' at %s", database, host);
-	}
+  int32 errnum = 0;
+  char errbuf[MYSQL_ERRMSG_SIZE];
 
-	return true;
+  if (!Open(host, user, passwd, database, port, &errnum, errbuf)) {
+    LogWrite(DATABASE__ERROR, 0, "DB", "Failed to connect to database: Error: %s", errbuf);
+    HandleMysqlError(errnum);
+    exit(1);
+  } else {
+    LogWrite(DATABASE__INFO, 0, "DB", "Using database '%s' at %s", database, host);
+  }
+
+  return true;
 }
 
-map<int16, int16> Database::GetVersions(){
-	map<int16, int16> opcodes;
-	Query query;
-	MYSQL_ROW row;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "select distinct version_range1, version_range2 from opcodes");
-	while(result && (row = mysql_fetch_row(result))){
-		if(row[0] && row[1])
-			opcodes[atoi(row[0])] = atoi(row[1]);
-	}
-	return opcodes;
+map<int16, int16> Database::GetVersions() {
+  map<int16, int16> opcodes;
+  Query query;
+  MYSQL_ROW row;
+  MYSQL_RES* result = query.RunQuery2(Q_SELECT, "select distinct version_range1, version_range2 from opcodes");
+  while (result && (row = mysql_fetch_row(result))) {
+    if (row[0] && row[1])
+      opcodes[atoi(row[0])] = atoi(row[1]);
+  }
+  return opcodes;
 }
 
-map<string, uint16> Database::GetOpcodes(int16 version){
-	map<string, uint16> opcodes;
-	Query query;
-	MYSQL_ROW row;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "select name, opcode from opcodes where %i between version_range1 and version_range2 order by version_range1, id", version);
-	while(result && (row = mysql_fetch_row(result))){
-		opcodes[row[0]] = atoi(row[1]);
-	}
-	return opcodes;
+map<string, uint16> Database::GetOpcodes(int16 version) {
+  map<string, uint16> opcodes;
+  Query query;
+  MYSQL_ROW row;
+  MYSQL_RES* result = query.RunQuery2(Q_SELECT, "select name, opcode from opcodes where %i between version_range1 and version_range2 order by version_range1, id", version);
+  while (result && (row = mysql_fetch_row(result))) {
+    opcodes[row[0]] = atoi(row[1]);
+  }
+  return opcodes;
 }
 
 void Database::HandleMysqlError(int32 errnum) {
-	switch(errnum) {
-		case 0:
-			break;
-		case 1045: // Access Denied
-		case 2001: {
-			AddEQEMuError(EQEMuError_Mysql_1405, true);
-			break;
-		}
-		case 2003: { // Unable to connect
-			AddEQEMuError(EQEMuError_Mysql_2003, true);
-			break;
-		}
-		case 2005: { // Unable to connect
-			AddEQEMuError(EQEMuError_Mysql_2005, true);
-			break;
-		}
-		case 2007: { // Unable to connect
-			AddEQEMuError(EQEMuError_Mysql_2007, true);
-			break;
-		}
-	}
+  switch (errnum) {
+  case 0:
+    break;
+  case 1045: // Access Denied
+  case 2001: {
+    AddEQEMuError(EQEMuError_Mysql_1405, true);
+    break;
+  }
+  case 2003: { // Unable to connect
+    AddEQEMuError(EQEMuError_Mysql_2003, true);
+    break;
+  }
+  case 2005: { // Unable to connect
+    AddEQEMuError(EQEMuError_Mysql_2005, true);
+    break;
+  }
+  case 2007: { // Unable to connect
+    AddEQEMuError(EQEMuError_Mysql_2007, true);
+    break;
+  }
+  }
 }
 
 void Database::InitVars() {
-
 }
 
-Database::~Database()
-{
+Database::~Database() {
 }
-MYSQL_RES* Query::RunQuery2(QUERY_TYPE type, const char* format, ...){
-	va_list args;
-	va_start( args, format );
-	#ifdef WIN32
-		char * buffer;
-		int buf_len = _vscprintf( format, args ) + 1;
-		buffer = new char[buf_len];
-		vsprintf( buffer, format, args );
-	#else
-		char* buffer;
-		int buf_len; 
-		va_list argcopy;
-		va_copy(argcopy, args);
-		buf_len = vsnprintf(NULL, 0, format, argcopy) + 1;
-		va_end(argcopy);
-		
-		buffer = new char[buf_len];
-		vsnprintf(buffer, buf_len, format, args);
-	#endif
-	va_end(args);
-	query = string(buffer);
+MYSQL_RES* Query::RunQuery2(QUERY_TYPE type, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+#ifdef WIN32
+  char* buffer;
+  int buf_len = _vscprintf(format, args) + 1;
+  buffer = new char[buf_len];
+  vsprintf(buffer, format, args);
+#else
+  char* buffer;
+  int buf_len;
+  va_list argcopy;
+  va_copy(argcopy, args);
+  buf_len = vsnprintf(NULL, 0, format, argcopy) + 1;
+  va_end(argcopy);
 
-	
-	safe_delete_array( buffer );
-	
+  buffer = new char[buf_len];
+  vsnprintf(buffer, buf_len, format, args);
+#endif
+  va_end(args);
+  query = string(buffer);
 
-	return RunQuery2(query.c_str(), type);
+  safe_delete_array(buffer);
+
+  return RunQuery2(query.c_str(), type);
 }
-MYSQL_RES* Query::RunQuery2(string in_query, QUERY_TYPE type){
-	switch(type){
-		case Q_SELECT:
-			break;
-		case Q_DBMS:
-		case Q_REPLACE:
-		case Q_DELETE:
-		case Q_UPDATE:
-			safe_delete(affected_rows);
-			affected_rows = new int32;
-			break;
-		case Q_INSERT:
-			safe_delete(last_insert_id);
-			last_insert_id = new int32;
-	}
-	if(result){
-		if(!multiple_results)
-			multiple_results = new vector<MYSQL_RES*>();
-		multiple_results->push_back(result);
-	}	
-	query = in_query;
-	database.RunQuery(query.c_str(), query.length(), errbuf, &result, affected_rows, last_insert_id, &errnum, retry); 
-	return result;
+MYSQL_RES* Query::RunQuery2(string in_query, QUERY_TYPE type) {
+  switch (type) {
+  case Q_SELECT:
+    break;
+  case Q_DBMS:
+  case Q_REPLACE:
+  case Q_DELETE:
+  case Q_UPDATE:
+    safe_delete(affected_rows);
+    affected_rows = new int32;
+    break;
+  case Q_INSERT:
+    safe_delete(last_insert_id);
+    last_insert_id = new int32;
+  }
+  if (result) {
+    if (!multiple_results)
+      multiple_results = new vector<MYSQL_RES*>();
+    multiple_results->push_back(result);
+  }
+  query = in_query;
+  database.RunQuery(query.c_str(), query.length(), errbuf, &result, affected_rows, last_insert_id, &errnum, retry);
+  return result;
 }
