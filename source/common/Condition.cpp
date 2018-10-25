@@ -44,56 +44,45 @@
 
 #define CONDITION_HACK_GRANULARITY 4
 
-
-Condition::Condition() 
-{
+Condition::Condition() {
 }
 
-void Condition::Signal()
-{
+void Condition::Signal() {
 }
 
-void Condition::SignalAll()
-{
+void Condition::SignalAll() {
 }
 
-void Condition::Wait()
-{
-	Sleep(CONDITION_HACK_GRANULARITY);
+void Condition::Wait() {
+  Sleep(CONDITION_HACK_GRANULARITY);
 }
 
-Condition::~Condition()
-{
+Condition::~Condition() {
 }
 
+#else //!WIN32
 
-#else	//!WIN32
-
-Condition::Condition() 
-{
-	pthread_cond_init(&cond,NULL);
-	pthread_mutex_init(&mutex,NULL);
+Condition::Condition() {
+  pthread_cond_init(&cond, NULL);
+  pthread_mutex_init(&mutex, NULL);
 }
 
-void Condition::Signal()
-{
-	pthread_mutex_lock(&mutex);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
+void Condition::Signal() {
+  pthread_mutex_lock(&mutex);
+  pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&mutex);
 }
 
-void Condition::SignalAll()
-{
-	pthread_mutex_lock(&mutex);
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&mutex);
+void Condition::SignalAll() {
+  pthread_mutex_lock(&mutex);
+  pthread_cond_broadcast(&cond);
+  pthread_mutex_unlock(&mutex);
 }
 
-void Condition::Wait()
-{
-	pthread_mutex_lock(&mutex);
-	pthread_cond_wait(&cond,&mutex);
-	pthread_mutex_unlock(&mutex);
+void Condition::Wait() {
+  pthread_mutex_lock(&mutex);
+  pthread_cond_wait(&cond, &mutex);
+  pthread_mutex_unlock(&mutex);
 }
 
 /*
@@ -121,12 +110,11 @@ int retcode=0;
 }
 */
 
-Condition::~Condition()
-{
-	pthread_mutex_lock(&mutex);
-	pthread_cond_destroy(&cond);
-	pthread_mutex_unlock(&mutex);
-	pthread_mutex_destroy(&mutex);
+Condition::~Condition() {
+  pthread_mutex_lock(&mutex);
+  pthread_cond_destroy(&cond);
+  pthread_mutex_unlock(&mutex);
+  pthread_mutex_destroy(&mutex);
 }
 
 #endif

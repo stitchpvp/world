@@ -5,16 +5,16 @@
 
 class BotBrain : public Brain {
 public:
-	BotBrain(Bot* body);
-	virtual ~BotBrain();
-	void Think();
-	bool ProcessSpell(Entity* target, float distance);
+  BotBrain(Bot* body);
+  virtual ~BotBrain();
+  void Think();
+  bool ProcessSpell(Entity* target, float distance);
 
-	bool ProcessOutOfCombatSpells();
+  bool ProcessOutOfCombatSpells();
 
 private:
-	Bot* Body;
+  Bot* Body;
 
-	bool ProcessCombat();
-	void SetTarget();
+  bool ProcessCombat();
+  void SetTarget();
 };

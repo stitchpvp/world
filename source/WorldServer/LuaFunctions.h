@@ -109,13 +109,12 @@ int EQ2Emu_lua_GetEquippedItemByID(lua_State* state);
 int EQ2Emu_lua_GetItemByID(lua_State* state);
 int EQ2Emu_lua_GetItemType(lua_State* state);
 int EQ2Emu_lua_GetSpellName(lua_State* state);
-
 int EQ2Emu_lua_GetCaster(lua_State* state);
 int EQ2Emu_lua_SpellWasCured(lua_State* state);
 
 //Misc
 int EQ2Emu_lua_SpawnSet(lua_State* state);
-int EQ2Emu_lua_KillSpawn(lua_State* state); 
+int EQ2Emu_lua_KillSpawn(lua_State* state);
 int EQ2Emu_lua_KillSpawnByDistance(lua_State* state);
 int EQ2Emu_lua_SpawnSetByDistance(lua_State* state);
 int EQ2Emu_lua_SetRequiredQuest(lua_State* state);
@@ -242,8 +241,8 @@ int EQ2Emu_lua_Harvest(lua_State* state);
 int EQ2Emu_lua_SetCompleteFlag(lua_State* state);
 int EQ2Emu_lua_CanReceiveQuest(lua_State* state);
 
-int EQ2Emu_lua_HasCollectionsToHandIn(lua_State *state);
-int EQ2Emu_lua_HandInCollections(lua_State *state);
+int EQ2Emu_lua_HasCollectionsToHandIn(lua_State* state);
+int EQ2Emu_lua_HandInCollections(lua_State* state);
 
 int EQ2Emu_lua_UseWidget(lua_State* state);
 int EQ2Emu_lua_SummonPet(lua_State* state);
@@ -282,7 +281,7 @@ int EQ2Emu_lua_ToggleFollow(lua_State* state);
 int EQ2Emu_lua_IsFollowing(lua_State* state);
 int EQ2Emu_lua_SetTempVariable(lua_State* state);
 int EQ2Emu_lua_GetTempVariable(lua_State* state);
-int EQ2Emu_lua_GiveQuestItem(lua_State*state);
+int EQ2Emu_lua_GiveQuestItem(lua_State* state);
 int EQ2Emu_lua_SetQuestRepeatable(lua_State* state);
 
 int EQ2Emu_lua_AddWard(lua_State* state);
@@ -345,6 +344,7 @@ int EQ2Emu_lua_IsHeroic(lua_State* state);
 int EQ2Emu_lua_ProcDamage(lua_State* state);
 int EQ2Emu_lua_ProcHeal(lua_State* state);
 int EQ2Emu_lua_LastSpellAttackHit(lua_State* state);
+int EQ2Emu_lua_LastProcHit(lua_State* state);
 
 int EQ2Emu_lua_IsBehind(lua_State* state);
 int EQ2Emu_lua_IsFlanking(lua_State* state);
@@ -412,4 +412,7 @@ int EQ2Emu_lua_RemoveSpell(lua_State* state);
 int EQ2Emu_lua_DropChest(lua_State* state);
 int EQ2Emu_lua_SendSkillUpdate(lua_State* state);
 int EQ2Emu_lua_SetPlayerAlignment(lua_State* state);
+int EQ2Emu_lua_GetLastDamageTaken(lua_State* state);
+int EQ2Emu_lua_GetLastDamageWarded(lua_State* state);
+int EQ2Emu_lua_SetIgnoredByMobs(lua_State* state);
 #endif

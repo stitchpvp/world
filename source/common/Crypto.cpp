@@ -23,21 +23,20 @@
 
 using namespace std;
 void test();
-int64 Crypto::RSADecrypt(uchar* text, int16 size){
-	int64 ret = 0;
-	uchar* buffer = new uchar[8];
-	for(int i=7;i>=0;i--)
-		buffer[7-i] = text[i];
-	memcpy(&ret, buffer, 8);
-	safe_delete_array(buffer);
-	return ret;
+int64 Crypto::RSADecrypt(uchar* text, int16 size) {
+  int64 ret = 0;
+  uchar* buffer = new uchar[8];
+  for (int i = 7; i >= 0; i--)
+    buffer[7 - i] = text[i];
+  memcpy(&ret, buffer, 8);
+  safe_delete_array(buffer);
+  return ret;
 }
 
-void Crypto::RC4Decrypt(uchar* text, int32 size){
-	client->Cypher(text, size);
+void Crypto::RC4Decrypt(uchar* text, int32 size) {
+  client->Cypher(text, size);
 }
 
-void Crypto::RC4Encrypt(uchar* text, int32 size){
-	server->Cypher(text, size);
+void Crypto::RC4Encrypt(uchar* text, int32 size) {
+  server->Cypher(text, size);
 }
-

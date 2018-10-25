@@ -24,24 +24,23 @@
 #define CURRENT_DATABASE_MINORVERSION 26
 #define CURRENT_DATABASE_MAJORVERSION 730
 #if defined(LOGIN)
-	#define EQ2EMU_MODULE	"EQ2EMu LoginServer"
+#define EQ2EMU_MODULE "EQ2EMu LoginServer"
 #elif defined(PATCHER)
-	#define EQ2EMU_MODULE	"EQ2EMu PatchServer"
+#define EQ2EMU_MODULE "EQ2EMu PatchServer"
 #elif defined(CHAT)
-	#define EQ2EMU_MODULE	"EQ2EMu ChatServer"
+#define EQ2EMU_MODULE "EQ2EMu ChatServer"
 #elif defined(ZONE)
-	#define EQ2EMU_MODULE	"EQ2EMu ZoneServer"
+#define EQ2EMU_MODULE "EQ2EMu ZoneServer"
 #else
-	#define EQ2EMU_MODULE	"EQ2EMu WorldServer"
+#define EQ2EMU_MODULE "EQ2EMu WorldServer"
 #endif
-#define CURRENT_VERSION	"0.7.3-dev"
-#define COMPILE_DATE	__DATE__
-#define COMPILE_TIME	__TIME__
+#define CURRENT_VERSION "0.7.3-dev"
+#define COMPILE_DATE __DATE__
+#define COMPILE_TIME __TIME__
 #ifndef WIN32
-	#define LAST_MODIFIED	__TIME__
+#define LAST_MODIFIED __TIME__
 #else
-	#define LAST_MODIFIED	__TIMESTAMP__
+#define LAST_MODIFIED __TIMESTAMP__
 #endif
 
 #endif
-

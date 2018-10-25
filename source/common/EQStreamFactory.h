@@ -31,56 +31,77 @@
 #define STREAM_TIMEOUT 45000 //in ms
 
 class EQStreamFactory {
-	private:
-		int sock;
-		int Port;
+private:
+  int sock;
+  int Port;
 
-		bool ReaderRunning;
-		Mutex MReaderRunning;
-		bool WriterRunning;
-		Mutex MWriterRunning;
-		bool CombinePacketRunning;
-		Mutex MCombinePacketRunning;
+  bool ReaderRunning;
+  Mutex MReaderRunning;
+  bool WriterRunning;
+  Mutex MWriterRunning;
+  bool CombinePacketRunning;
+  Mutex MCombinePacketRunning;
 
-		Condition WriterWork;
+  Condition WriterWork;
 
-		EQStreamType StreamType;
-		
-		queue<EQStream *> NewStreams;
-		Mutex MNewStreams;
+  EQStreamType StreamType;
 
-		map<string,EQStream *> Streams;
-		Mutex MStreams;
+  queue<EQStream*> NewStreams;
+  Mutex MNewStreams;
 
-		
+  map<string, EQStream*> Streams;
+  Mutex MStreams;
 
-		Timer *DecayTimer;
+  Timer* DecayTimer;
 
-	public:
-		char*	listen_ip_address;
-		void CheckTimeout(bool remove_all = false);
-		EQStreamFactory(EQStreamType type) { ReaderRunning=false; WriterRunning=false; StreamType=type; }
-		EQStreamFactory(EQStreamType type, int port);
-		~EQStreamFactory(){
-			safe_delete_array(listen_ip_address);
-		}
+public:
+  char* listen_ip_address;
+  void CheckTimeout(bool remove_all = false);
+  EQStreamFactory(EQStreamType type) {
+    ReaderRunning = false;
+    WriterRunning = false;
+    StreamType = type;
+  }
+  EQStreamFactory(EQStreamType type, int port);
+  ~EQStreamFactory() {
+    safe_delete_array(listen_ip_address);
+  }
 
-		EQStream *Pop();
-		void Push(EQStream *s);
+  EQStream* Pop();
+  void Push(EQStream* s);
 
-		bool loadPublicKey();
-		bool Open();
-		bool Open(unsigned long port) { Port=port; return Open(); }
-		void Close();
-		void ReaderLoop();
-		void WriterLoop();
-		void CombinePacketLoop();
-		void Stop() { StopReader(); StopWriter(); StopCombinePacket(); }
-		void StopReader() { MReaderRunning.lock(); ReaderRunning=false; MReaderRunning.unlock(); }
-		void StopWriter() { MWriterRunning.lock(); WriterRunning=false; MWriterRunning.unlock(); WriterWork.Signal(); }
-		void StopCombinePacket() { MCombinePacketRunning.lock(); CombinePacketRunning=false; MCombinePacketRunning.unlock(); }
-		void SignalWriter() { WriterWork.Signal(); }
-
+  bool loadPublicKey();
+  bool Open();
+  bool Open(unsigned long port) {
+    Port = port;
+    return Open();
+  }
+  void Close();
+  void ReaderLoop();
+  void WriterLoop();
+  void CombinePacketLoop();
+  void Stop() {
+    StopReader();
+    StopWriter();
+    StopCombinePacket();
+  }
+  void StopReader() {
+    MReaderRunning.lock();
+    ReaderRunning = false;
+    MReaderRunning.unlock();
+  }
+  void StopWriter() {
+    MWriterRunning.lock();
+    WriterRunning = false;
+    MWriterRunning.unlock();
+    WriterWork.Signal();
+  }
+  void StopCombinePacket() {
+    MCombinePacketRunning.lock();
+    CombinePacketRunning = false;
+    MCombinePacketRunning.unlock();
+  }
+  void SignalWriter() { WriterWork.Signal(); }
 };
 
 #endif

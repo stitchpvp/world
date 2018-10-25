@@ -24,16 +24,16 @@
 
 class IRCMessage {
 public:
-	IRCMessage(const char *message, ...);
-	virtual ~IRCMessage();
+  IRCMessage(const char* message, ...);
+  virtual ~IRCMessage();
 
-	size_t GetLength() {return len;}
-	const char *Serialize();
+  size_t GetLength() { return len; }
+  const char* Serialize();
 
 private:
-	char *message;
-	size_t len;
-	bool serialized;
+  char* message;
+  size_t len;
+  bool serialized;
 };
 
 #endif

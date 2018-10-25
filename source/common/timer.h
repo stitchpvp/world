@@ -24,52 +24,51 @@
 
 // Disgrace: for windows compile
 #ifdef WIN32
-	#include <WinSock2.h>
-	#include <windows.h>
-	int gettimeofday (timeval *tp, ...);
+#include <WinSock2.h>
+#include <windows.h>
+int gettimeofday(timeval* tp, ...);
 #endif
 
-class Timer
-{
+class Timer {
 public:
-	Timer();
-	Timer(int32 timer_time, bool iUseAcurateTiming = false);
-	Timer(int32 start, int32 timer, bool iUseAcurateTiming);
-	~Timer() { }
+  Timer();
+  Timer(int32 timer_time, bool iUseAcurateTiming = false);
+  Timer(int32 start, int32 timer, bool iUseAcurateTiming);
+  ~Timer() {}
 
-	bool Check(bool iReset = true);
-	void Enable();
-	void Disable();
-	void Start(int32 set_timer_time=0, bool ChangeResetTimer = true);
-	void SetTimer(int32 set_timer_time=0);
-	int32 GetRemainingTime();
-	int32 GetElapsedTime();
-	inline const int32& GetTimerTime()		{ return timer_time; }
-	inline const int32& GetSetAtTrigger()	{ return set_at_trigger; }
-	void Trigger();
-	void SetAtTrigger(int32 set_at_trigger, bool iEnableIfDisabled = false);
+  bool Check(bool iReset = true);
+  void Enable();
+  void Disable();
+  void Start(int32 set_timer_time = 0, bool ChangeResetTimer = true);
+  void SetTimer(int32 set_timer_time = 0);
+  int32 GetRemainingTime();
+  int32 GetElapsedTime();
+  inline const int32& GetTimerTime() { return timer_time; }
+  inline const int32& GetSetAtTrigger() { return set_at_trigger; }
+  void Trigger();
+  void SetAtTrigger(int32 set_at_trigger, bool iEnableIfDisabled = false);
 
-	inline bool Enabled() { return enabled; }
-	inline int32 GetStartTime() { return(start_time); }
-	inline int32 GetDuration() { return(timer_time); }
+  inline bool Enabled() { return enabled; }
+  inline int32 GetStartTime() { return (start_time); }
+  inline int32 GetDuration() { return (timer_time); }
 
-	static const int32& SetCurrentTime();
-	static const int32& GetCurrentTime2();
-	static int32 GetUnixTimeStamp();
+  static const int32& SetCurrentTime();
+  static const int32& GetCurrentTime2();
+  static int32 GetUnixTimeStamp();
 
 private:
-	int32	start_time;
-	int32	timer_time;
-	bool	enabled;
-	int32	set_at_trigger;
+  int32 start_time;
+  int32 timer_time;
+  bool enabled;
+  int32 set_at_trigger;
 
-	// Tells the timer to be more acurate about happening every X ms.
-	// Instead of Check() setting the start_time = now,
-	// it it sets it to start_time += timer_time
-	bool	pUseAcurateTiming;
+  // Tells the timer to be more acurate about happening every X ms.
+  // Instead of Check() setting the start_time = now,
+  // it it sets it to start_time += timer_time
+  bool pUseAcurateTiming;
 
-//	static int32 current_time;
-//	static int32 last_time;
+  //	static int32 current_time;
+  //	static int32 last_time;
 };
 
 #endif

@@ -29,99 +29,98 @@ using namespace std;
 // maximum amount of iterations it will attempt to find a entree
 #define HASH_SEARCH_MAX 20
 
-class VisualState
-{
+class VisualState {
 public:
-	VisualState(int inID, char* inName){
-		if(!inName)
-			return;
-		name = string(inName);
-		id = inID;
-	}
+  VisualState(int inID, char* inName) {
+    if (!inName)
+      return;
+    name = string(inName);
+    id = inID;
+  }
 
-	int GetID() { return id; }
-	const char* GetName() { return name.c_str(); }
-	string GetNameString() { return name; }
+  int GetID() { return id; }
+  const char* GetName() { return name.c_str(); }
+  string GetNameString() { return name; }
 
 private:
-	int id;
-	string name;
+  int id;
+  string name;
 };
 
-class Emote{
+class Emote {
 public:
-	Emote(char* in_name, int in_visual_state, char* in_message, char* in_targeted_message){
-		if(!in_name)
-			return;
-		name = string(in_name);
-		visual_state = in_visual_state;
-		if(in_message)
-			message = string(in_message);
-		if(in_targeted_message)
-			targeted_message = string(in_targeted_message);
-	}
-	int GetVisualState() { return visual_state; }
-	const char* GetName() { return name.c_str(); }
-	const char* GetMessage() { return message.c_str(); }
-	const char* GetTargetedMessage() { return targeted_message.c_str(); }
+  Emote(char* in_name, int in_visual_state, char* in_message, char* in_targeted_message) {
+    if (!in_name)
+      return;
+    name = string(in_name);
+    visual_state = in_visual_state;
+    if (in_message)
+      message = string(in_message);
+    if (in_targeted_message)
+      targeted_message = string(in_targeted_message);
+  }
+  int GetVisualState() { return visual_state; }
+  const char* GetName() { return name.c_str(); }
+  const char* GetMessage() { return message.c_str(); }
+  const char* GetTargetedMessage() { return targeted_message.c_str(); }
 
-	string GetNameString() { return name; }
-	string GetMessageString() { return message; }
-	string GetTargetedMessageString() { return targeted_message; }
+  string GetNameString() { return name; }
+  string GetMessageString() { return message; }
+  string GetTargetedMessageString() { return targeted_message; }
+
 private:
-	int visual_state;
-	string name;
-	string message;
-	string targeted_message;
+  int visual_state;
+  string name;
+  string message;
+  string targeted_message;
 };
 
-class VisualStates
-{
+class VisualStates {
 public:
-	~VisualStates(){
-		Reset();
-	}
+  ~VisualStates() {
+    Reset();
+  }
 
-	void Reset(){
-		ClearVisualStates();
-		ClearEmotes();
-	}
+  void Reset() {
+    ClearVisualStates();
+    ClearEmotes();
+  }
 
-	void ClearEmotes(){
-		map<string, Emote*>::iterator map_list;
-		for(map_list = emoteMap.begin(); map_list != emoteMap.end(); map_list++ )
-			safe_delete(map_list->second);
-		emoteMap.clear();
-	}
+  void ClearEmotes() {
+    map<string, Emote*>::iterator map_list;
+    for (map_list = emoteMap.begin(); map_list != emoteMap.end(); map_list++)
+      safe_delete(map_list->second);
+    emoteMap.clear();
+  }
 
-	void ClearVisualStates(){
-		map<string, VisualState*>::iterator map_list;
-		for(map_list = visualStateMap.begin(); map_list != visualStateMap.end(); map_list++ )
-			safe_delete(map_list->second);
-		visualStateMap.clear();
-	}
+  void ClearVisualStates() {
+    map<string, VisualState*>::iterator map_list;
+    for (map_list = visualStateMap.begin(); map_list != visualStateMap.end(); map_list++)
+      safe_delete(map_list->second);
+    visualStateMap.clear();
+  }
 
-	void InsertVisualState(VisualState* vs){
-		visualStateMap[vs->GetNameString()] = vs;
-	}
+  void InsertVisualState(VisualState* vs) {
+    visualStateMap[vs->GetNameString()] = vs;
+  }
 
-	VisualState* FindVisualState(string var){
-		if(visualStateMap.count(var) > 0)
-			return visualStateMap[var];
-		return 0;
-	}
+  VisualState* FindVisualState(string var) {
+    if (visualStateMap.count(var) > 0)
+      return visualStateMap[var];
+    return 0;
+  }
 
-	void InsertEmote(Emote* emote){
-		emoteMap[emote->GetNameString()] = emote;
-	}
+  void InsertEmote(Emote* emote) {
+    emoteMap[emote->GetNameString()] = emote;
+  }
 
-	Emote* FindEmote(string var){
-		if(emoteMap.count(var) > 0)
-			return emoteMap[var];
-		return 0;
-	}
+  Emote* FindEmote(string var) {
+    if (emoteMap.count(var) > 0)
+      return emoteMap[var];
+    return 0;
+  }
+
 private:
-	map<string,VisualState*> visualStateMap;
-	map<string,Emote*> emoteMap;
+  map<string, VisualState*> visualStateMap;
+  map<string, Emote*> emoteMap;
 };
-
