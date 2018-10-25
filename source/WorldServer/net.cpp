@@ -134,21 +134,6 @@ int main(int argc, char** argv) {
   if (!database.ConnectNewDatabase())
     return EXIT_FAILURE;
 
-  if (signal(SIGINT, CatchSignal) == SIG_ERR) {
-    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-    return 0;
-  }
-
-  if (signal(SIGSEGV, CatchSignal) == SIG_ERR) {
-    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-    return 0;
-  }
-
-  if (signal(SIGILL, CatchSignal) == SIG_ERR) {
-    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
-    return 0;
-  }
-
   srand(time(NULL));
 
   net.ReadLoginINI();
@@ -285,10 +270,6 @@ int main(int argc, char** argv) {
       LogWrite(NET__INFO, 0, "Net", "World server listening on port %i", net.GetWorldPort());
     } else {
       LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
-    }
-
-    if (strlen(net.GetInternalWorldAddress()) > 0) {
-      LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
     }
   } else {
     LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());

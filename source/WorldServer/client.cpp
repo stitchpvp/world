@@ -2284,15 +2284,7 @@ bool Client::Process(bool zone_process) {
       player->SetPower(player->GetTotalPower());
     }
 
-    char* new_zone_ip = 0;
-    struct in_addr in;
-    in.s_addr = GetIP();
-
-    if (strncmp(inet_ntoa(in), "192.168", 7) == 0 && strlen(net.GetInternalWorldAddress()) > 0) {
-      new_zone_ip = net.GetInternalWorldAddress();
-    } else {
-      new_zone_ip = net.GetWorldAddress();
-    }
+    char* new_zone_ip = net.GetWorldAddress();
 
     int32 key = Timer::GetUnixTimeStamp();
 
