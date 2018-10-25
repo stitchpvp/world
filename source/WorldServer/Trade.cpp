@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Bots/Bot.h"
 #include "../common/Log.h"
+#include "zoneserver.h"
 
 extern ConfigReader configReader;
 extern MasterItemList master_item_list;
@@ -25,6 +26,7 @@ Trade::~Trade() {
 
 int8 Trade::AddItemToTrade(Entity* character, Item* item, int8 quantity, int8 slot) {
   LogWrite(PLAYER__ERROR, 0, "Trade", "Player (%s) adding item (%u) to slot %u of the trade window", character->GetName(), item->details.item_id, slot);
+
   if (slot == 255)
     slot = GetNextFreeSlot(character);
 
@@ -61,6 +63,8 @@ int8 Trade::CheckItem(Entity* trader, Item* item, bool other_is_bot) {
   map<int8, TradeItemInfo>* list = 0;
   map<int8, TradeItemInfo>::iterator itr;
 
+  Entity* other = GetTradee(trader);
+
   if (trader == trader1)
     list = &trader1_items;
   else if (trader == trader2)
@@ -82,6 +86,8 @@ int8 Trade::CheckItem(Entity* trader, Item* item, bool other_is_bot) {
           ret = 2;
         if (item->CheckFlag2(HEIRLOOM))
           ret = 3;
+        if (item->CheckFlag(LORE) && other->IsPlayer() && static_cast<Player*>(other)->HasItem(item->details.item_id, true))
+          ret = 4;
       }
     }
   }
@@ -156,7 +162,7 @@ bool Trade::SetTradeAccepted(Entity* character) {
   Entity* other = GetTradee(character);
   if (other) {
     if (other->IsPlayer()) {
-      unique_ptr<Client> client = other->GetZone()->GetClientBySpawn(other);
+      shared_ptr<Client> client = other->GetZone()->GetClientBySpawn(other);
       PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
       if (packet) {
         packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(character));
@@ -165,7 +171,7 @@ bool Trade::SetTradeAccepted(Entity* character) {
         safe_delete(packet);
       }
     } else if (other->IsBot()) {
-      unique_ptr<Client> client = character->GetZone()->GetClientBySpawn(character);
+      shared_ptr<Client> client = character->GetZone()->GetClientBySpawn(character);
       if (trader1_coins > 0) {
         CancelTrade(other);
         if (client)
@@ -206,7 +212,7 @@ void Trade::CancelTrade(Entity* character) {
   Entity* other = GetTradee(character);
   if (other) {
     if (other->IsPlayer()) {
-      unique_ptr<Client> client = other->GetZone()->GetClientBySpawn(other);
+      shared_ptr<Client> client = other->GetZone()->GetClientBySpawn(other);
       PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
       if (packet) {
         packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(character));
@@ -240,7 +246,7 @@ void Trade::CompleteTrade() {
 
   if (trader1->IsPlayer()) {
     Player* player = (Player*)trader1;
-    unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+    shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
     if (client) {
       log_string += "Trader1 = ";
       log_string += trader1->GetName();
@@ -273,7 +279,7 @@ void Trade::CompleteTrade() {
 
   if (trader2->IsPlayer()) {
     Player* player = (Player*)trader2;
-    unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+    shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
     if (client) {
       log_string += "Trader2 = ";
       log_string += trader2->GetName();
@@ -320,7 +326,7 @@ void Trade::CompleteTrade() {
 
 void Trade::OpenTradeWindow() {
   if (trader1->IsPlayer()) {
-    unique_ptr<Client> client = trader1->GetZone()->GetClientBySpawn(trader1);
+    shared_ptr<Client> client = trader1->GetZone()->GetClientBySpawn(trader1);
     PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
     if (packet) {
       packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(trader2));
@@ -331,7 +337,7 @@ void Trade::OpenTradeWindow() {
   }
 
   if (trader2->IsPlayer()) {
-    unique_ptr<Client> client = trader2->GetZone()->GetClientBySpawn(trader2);
+    shared_ptr<Client> client = trader2->GetZone()->GetClientBySpawn(trader2);
     PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
     if (packet) {
       packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(trader1));
@@ -344,7 +350,7 @@ void Trade::OpenTradeWindow() {
 
 void Trade::SendTradePacket() {
   if (trader1->IsPlayer()) {
-    unique_ptr<Client> client = trader1->GetZone()->GetClientBySpawn(trader1);
+    shared_ptr<Client> client = trader1->GetZone()->GetClientBySpawn(trader1);
 
     PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
     if (packet) {
@@ -410,7 +416,7 @@ void Trade::SendTradePacket() {
   }
 
   if (trader2->IsPlayer()) {
-    unique_ptr<Client> client = trader2->GetZone()->GetClientBySpawn(trader2);
+    shared_ptr<Client> client = trader2->GetZone()->GetClientBySpawn(trader2);
     PacketStruct* packet = configReader.getStruct("WS_PlayerTrade", client->GetVersion());
     if (packet) {
       packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(trader1));

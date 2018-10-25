@@ -226,11 +226,6 @@ void WorldDatabase::LoadDataFromRow(DatabaseResult* result, Item* item) {
   if (result->GetInt8Str("flags2_256") == 1)
     item->generic_info.item_flags2 += FLAGS2_256;
 
-  // add more Flags/Flags2 here
-
-  if (result->GetInt8Str("lore_equip") == 1)
-    item->generic_info.item_flags += LORE_EQUIP;
-
   if (result->GetInt8Str("flags_16384") == 1)
     item->generic_info.item_flags += FLAGS_16384;
 

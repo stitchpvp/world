@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "../Commands/Commands.h"
 #include "../WorldDatabase.h"
 #include "../classes.h"

@@ -17,34 +17,34 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <sys/types.h>
 #include "Commands.h"
-#include "../ClientPacketFunctions.h"
-#include "../../common/version.h"
-#include "../../common/seperator.h"
-#include "../../common/servertalk.h"
-#include "../WorldDatabase.h"
-#include "../World.h"
 #include "../../common/ConfigReader.h"
-#include "../VisualStates.h"
-#include "../../common/debug.h"
-#include "../LuaInterface.h"
-#include "../Quests.h"
-#include "../client.h"
-#include "../NPC.h"
-#include "../Guilds/Guild.h"
-#include "../SpellProcess.h"
-#include "../Tradeskills/Tradeskills.h"
 #include "../../common/Log.h"
 #include "../../common/MiscFunctions.h"
-#include "../Languages.h"
-#include "../IRC/IRC.h"
-#include "../Traits/Traits.h"
-#include "../Chat/Chat.h"
-#include "../Rules/Rules.h"
+#include "../../common/debug.h"
+#include "../../common/seperator.h"
+#include "../../common/servertalk.h"
+#include "../../common/version.h"
 #include "../AltAdvancement/AltAdvancement.h"
-#include "../RaceTypes/RaceTypes.h"
+#include "../Chat/Chat.h"
+#include "../ClientPacketFunctions.h"
+#include "../Guilds/Guild.h"
+#include "../IRC/IRC.h"
+#include "../Languages.h"
+#include "../LuaInterface.h"
+#include "../NPC.h"
 #include "../PVP.h"
+#include "../Quests.h"
+#include "../RaceTypes/RaceTypes.h"
+#include "../Rules/Rules.h"
+#include "../SpellProcess.h"
+#include "../Tradeskills/Tradeskills.h"
+#include "../Traits/Traits.h"
+#include "../VisualStates.h"
+#include "../World.h"
+#include "../WorldDatabase.h"
+#include "../client.h"
+#include <sys/types.h>
 
 extern WorldDatabase database;
 extern MasterSpellList master_spell_list;
@@ -1737,47 +1737,11 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     break;
   }
   case COMMAND_FLYMODE: {
-    PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", client->GetVersion());
-    if (packet && sep && sep->arg[0] && sep->IsNumber(0)) {
-      PrintSep(sep, "COMMAND_FLYMODE");
+    if (sep && sep->arg[0] && sep->IsNumber(0)) {
       int8 val = atoi(sep->arg[0]);
-      packet->setDataByName("parameter5", 32);
-      packet->setDataByName("value", val);
-      client->QueuePacket(packet->serialize());
 
+      client->GetPlayer()->SetPlayerControlFlag(5, 32, val);
       client->Message(CHANNEL_STATUS, "Flymode %s", val == 1 ? "on" : "off");
-      /*
-				Some other values for this packet
-				first param:
-				01 flymode
-				02 collisons off
-				04 unknown
-				08 forward movement
-				16 heading movement
-				32 low gravity
-				64 sit
-
-				second
-				2 crouch
-
-
-				third:
-				04 float when trying to jump, no movement
-				08 jump high, no movement
-
-				fourth:
-				04 autorun (fear?)
-				16 moon jumps
-				32 safe fall (float to ground)
-				64 cant move
-
-				fifth:
-				01 die
-				08 hover (fae)
-				32 flymode2?
-
-				*/
-      safe_delete(packet);
     } else {
       client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage ON: /flymode 1");
       client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage OFF: /flymode 0");
@@ -3978,6 +3942,18 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     Command_Assist(client, sep);
     break;
   }
+  case COMMAND_DEBUG: {
+    Command_Debug(client, sep);
+    break;
+  }
+  case COMMAND_SET_AUTO_ATTACK_MODE: {
+    Command_SetAutoAttackMode(client, sep);
+    break;
+  }
+  case COMMAND_CANCEL_EFFECT: {
+    Command_CancelEffect(client, sep);
+    break;
+  }
 
   case COMMAND_BOT: {
     Command_Bot(client, sep);
@@ -4950,24 +4926,17 @@ void Commands::Command_Inventory(const shared_ptr<Client>& client, Seperator* se
           client->QueuePacket(outapp);
       }
     } else if (sep->arg[1][0] && strncasecmp("equip", sep->arg[0], 5) == 0 && sep->IsNumber(1)) {
-      if (client->GetPlayer()->EngagedInCombat())
+      if (client->GetPlayer()->EngagedInCombat()) {
         client->SimpleMessage(CHANNEL_COLOR_RED, "You may not equip items while in combat.");
-      else {
+      } else {
         int16 index = atoi(sep->arg[1]);
         int8 slot_id = 255;
 
-        if (sep->arg[2][0] && sep->IsNumber(2))
+        if (sep->arg[2][0] && sep->IsNumber(2)) {
           slot_id = atoi(sep->arg[2]);
-
-        vector<EQ2Packet*> packets = client->GetPlayer()->EquipItem(index, client->GetVersion(), slot_id);
-        EQ2Packet* outapp = 0;
-
-        for (int32 i = 0; i < packets.size(); i++) {
-          outapp = packets[i];
-          if (outapp)
-            client->QueuePacket(outapp);
         }
 
+        client->GetPlayer()->EquipItem(index, client->GetVersion(), slot_id);
         client->GetPlayer()->ChangePrimaryWeapon();
         client->GetPlayer()->ChangeSecondaryWeapon();
         client->GetPlayer()->ChangeRangedWeapon();
@@ -4989,16 +4958,7 @@ void Commands::Command_Inventory(const shared_ptr<Client>& client, Seperator* se
             to_slot = atoi(sep->arg[3]);
         }
 
-        vector<EQ2Packet*> packets = client->GetPlayer()->UnequipItem(index, bag_id, to_slot, client->GetVersion());
-        EQ2Packet* outapp = 0;
-
-        for (int32 i = 0; i < packets.size(); i++) {
-          outapp = packets[i];
-
-          if (outapp)
-            client->QueuePacket(outapp);
-        }
-
+        client->GetPlayer()->UnequipItem(index, bag_id, to_slot, client->GetVersion());
         client->GetPlayer()->ChangePrimaryWeapon();
         client->GetPlayer()->ChangeSecondaryWeapon();
         client->GetPlayer()->ChangeRangedWeapon();
@@ -5873,9 +5833,9 @@ void Commands::Command_MOTD(const shared_ptr<Client>& client) {
 	Example	: /pet preserve_master
 */
 void Commands::Command_Pet(const shared_ptr<Client>& client, Seperator* sep) {
-  PrintSep(sep, "COMMAND_PET");
-  //LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Pet Commands");
-  //client->Message(CHANNEL_COLOR_YELLOW, "Pets are not yet implemented.");
+  if (!sep) {
+    return;
+  }
 
   if (strcmp(sep->arg[0], "hide") == 0) {
     // doing /pet hide will toggle the hide status on all the pets that can be hidden
@@ -5946,15 +5906,22 @@ void Commands::Command_Pet(const shared_ptr<Client>& client, Seperator* sep) {
     if (client->GetPlayer()->HasTarget() && client->GetPlayer()->GetTarget()->IsEntity()) {
       if (client->GetPlayer()->AttackAllowed((Entity*)client->GetPlayer()->GetTarget())) {
         client->Message(CHANNEL_COLOR_YELLOW, "You command your pet to attack your target.");
-        if (client->GetPlayer()->GetPet())
-          client->GetPlayer()->GetPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
-        if (client->GetPlayer()->GetCharmedPet())
-          client->GetPlayer()->GetCharmedPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
-      } else
-        client->Message(CHANNEL_COLOR_YELLOW, "You can not attack that.");
-    } else
-      client->Message(CHANNEL_COLOR_YELLOW, "You do not have a target.");
 
+        if (client->GetPlayer()->GetPet()) {
+          static_cast<NPC*>(client->GetPlayer()->GetPet())->Brain()->SetOverrideTarget(client->GetPlayer()->GetTarget()->GetID());
+          client->GetPlayer()->GetPet()->AddHate(static_cast<Entity*>(client->GetPlayer()->GetTarget()), 1, true);
+        }
+
+        if (client->GetPlayer()->GetCharmedPet()) {
+          static_cast<NPC*>(client->GetPlayer()->GetCharmedPet())->Brain()->SetOverrideTarget(client->GetPlayer()->GetTarget()->GetID());
+          client->GetPlayer()->GetCharmedPet()->AddHate(static_cast<Entity*>(client->GetPlayer()->GetTarget()), 1, true);
+        }
+      } else {
+        client->Message(CHANNEL_COLOR_YELLOW, "You can not attack that.");
+      }
+    } else {
+      client->Message(CHANNEL_COLOR_YELLOW, "You do not have a target.");
+    }
   } else if (strcmp(sep->arg[0], "getlost") == 0) {
     client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetPet());
     client->GetPlayer()->DismissPet((NPC*)client->GetPlayer()->GetCharmedPet());
@@ -7179,6 +7146,8 @@ void Commands::Command_TradeAddItem(const shared_ptr<Client>& client, Seperator*
         client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade NO-TRADE items.");
       else if (result == 3)
         client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade HEIRLOOM items.");
+      else if (result == 4)
+        client->SimpleMessage(CHANNEL_COLOR_WHITE, "Target already has this item and cannot have another.");
       else if (result == 255)
         client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Unknown error trying to add the item to the trade...");
     } else {
@@ -7395,25 +7364,28 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 	if (sep->IsSet(1) && sep->IsNumber(1)) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
-  /*if (sep->IsSet(0) && sep->IsNumber(0)) {
-		client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
-	}
 
-	if (sep->IsSet(1) && sep->IsNumber(1)) {
-		client->GetPlayer()->size_mod_b = atol(sep->arg[1]);
-	}
+  if (sep->IsSet(0) && sep->IsNumber(0)) {
+    client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
+  }
 
-	if (sep->IsSet(2) && sep->IsNumber(2)) {
-		client->GetPlayer()->size_mod_c = atol(sep->arg[2]);
-	}
+  if (sep->IsSet(1) && sep->IsNumber(1)) {
+    client->GetPlayer()->size_mod_b = atol(sep->arg[1]);
+  }
 
-	if (sep->IsSet(3) && sep->IsNumber(3)) {
-		client->GetPlayer()->size_shrink_multiplier = atol(sep->arg[3]);
-	}
+  if (sep->IsSet(2) && sep->IsNumber(2)) {
+    client->GetPlayer()->size_mod_c = atol(sep->arg[2]);
+  }
 
-	if (sep->IsSet(4) && sep->IsNumber(4)) {
-		client->GetPlayer()->size_mod_unknown = atol(sep->arg[3]);
-	}*/
+  if (sep->IsSet(3) && sep->IsNumber(3)) {
+    client->GetPlayer()->size_shrink_multiplier = atol(sep->arg[3]);
+  }
+
+  if (sep->IsSet(4) && sep->IsNumber(4)) {
+    client->GetPlayer()->size_mod_unknown = atol(sep->arg[4]);
+  }
+
+  client->GetPlayer()->AddSpawnUpdate(true, false, false);
 
   //if (sep->IsSet(0) && sep->IsNumber(0) && atoi(sep->arg[0]) == 1) {
   //	shared_ptr<ActivityStatus> status(new ActivityStatus);
@@ -7427,13 +7399,13 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
   //	client->GetPlayer()->AddActivityStatus(status);
   //}
 
-  if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
-    if (sep->IsSet(1) && sep->IsNumber(1)) {
-      client->GetPlayer()->GetTarget()->movement_unknown = atoi(sep->arg[1]);
-    }
+  /*if (sep->IsSet(0) && sep->IsNumber(0) && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
+		if (sep->IsSet(1) && sep->IsNumber(1)) {
+			client->GetPlayer()->GetTarget()->movement_unknown = atoi(sep->arg[1]);
+		}
 
-    client->GetPlayer()->GetTarget()->SetInitialState(atoi(sep->arg[0]));
-  }
+		client->GetPlayer()->GetTarget()->SetInitialState(atoi(sep->arg[0]));
+	}*/
 }
 
 void Commands::Command_LeaveChannel(const shared_ptr<Client>& client, Seperator* sep) {
@@ -7844,14 +7816,7 @@ void Commands::Command_Attune_Inv(const shared_ptr<Client>& client, Seperator* s
 
       client->QueuePacket(item->serialize(client->GetVersion(), false, client->GetPlayer()));
 
-      vector<EQ2Packet*> packets = client->GetPlayer()->EquipItem(index, client->GetVersion(), -1);
-      EQ2Packet* outapp = 0;
-
-      for (int32 i = 0; i < packets.size(); i++) {
-        outapp = packets[i];
-        if (outapp)
-          client->QueuePacket(outapp);
-      }
+      client->GetPlayer()->EquipItem(index, client->GetVersion(), -1);
     }
   }
 }
@@ -7894,7 +7859,7 @@ void Commands::Command_Player_Set(const shared_ptr<Client>& client, Seperator* s
         value = atoi(sep->arg[1]);
         player->SetAlignment(value);
         player->AddSpawnUpdate(true, false, true);
-        player->SetResendSpawns(true);
+        player->SetResendSpawns(RESEND_AGGRO);
 
         return;
       }
@@ -8192,6 +8157,10 @@ void Commands::Command_Heal(const shared_ptr<Client>& client) {
 void Commands::Command_Target(const shared_ptr<Client>& client, Seperator* sep) {
   const char* search_name = nullptr;
 
+  if (client->GetPlayer()->IsTaunted()) {
+    return;
+  }
+
   if (sep && sep->IsSet(0)) {
     search_name = sep->argplus[0];
   }
@@ -8204,9 +8173,49 @@ void Commands::Command_Target(const shared_ptr<Client>& client, Seperator* sep) 
 void Commands::Command_Assist(const shared_ptr<Client>& client, Seperator* sep) {
   const char* search_name = nullptr;
 
+  if (client->GetPlayer()->IsTaunted()) {
+    return;
+  }
+
   if (sep && sep->IsSet(0)) {
     search_name = sep->argplus[0];
   }
 
   client->Assist(search_name);
+}
+
+void Commands::Command_Debug(const shared_ptr<Client>& client, Seperator* sep) {
+  if (sep && sep->arg[0]) {
+    const char* action = sep->arg[0];
+
+    if (strncasecmp(action, "spawns", strlen(action)) == 0) {
+      client->debug_spawns ^= 1;
+      client->GetPlayer()->SetResendSpawns(RESEND_ALL);
+    }
+  }
+}
+
+void Commands::Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seperator* sep) {
+  if (sep && sep->IsNumber(0)) {
+    int type = atoi(sep->arg[0]);
+
+    if (type >= 0 && type <= 3) {
+      int8 current_type = client->GetPlayer()->GetAutoAttackMode();
+
+      if (current_type != type) {
+        client->GetPlayer()->SetAutoAttackMode(type);
+        client->GetPlayer()->SetCharSheetChanged(true);
+      }
+    }
+  }
+}
+
+void Commands::Command_CancelEffect(const shared_ptr<Client>& client, Seperator* sep) {
+  if (sep && sep->arg[0] && sep->IsNumber(0)) {
+    SpellEffects* effect = client->GetPlayer()->GetSpellEffect(atoi(sep->arg[0]));
+
+    if (effect && effect->spell->spell->GetSpellData()->friendly_spell) {
+      client->GetCurrentZone()->RemoveTargetFromSpell(effect->spell, client->GetPlayer());
+    }
+  }
 }

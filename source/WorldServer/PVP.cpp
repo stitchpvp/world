@@ -70,8 +70,11 @@ bool PVP::IsHostile(Player* attacker, Spawn* target) {
 
     // Alignment of 0 is currently "neutral"
     // Not attackable by either - only meant for GM, perhaps.
-    if (attacker->GetAlignment() == 0 || entity_target->GetAlignment() == 0)
+    if (attacker->GetAlignment() == 0 || entity_target->GetAlignment() == 0) {
       return false;
+    } else if (attacker->GetAlignment() == 2 || entity_target->GetAlignment() == 2) {
+      return true;
+    }
 
     return (attacker->GetAlignment() != entity_target->GetAlignment());
   } else {
@@ -110,49 +113,86 @@ int PVP::GetRankIndex(Player* player) {
   }
 }
 
-void PVP::HandleFameChange(Player* attacker, Player* victim) {
-  if (attacker == victim)
-    return;
-
-  ZoneServer* zone = attacker->GetZone();
+void PVP::HandleFameChange(Player* victim) {
+  ZoneServer* zone = victim->GetZone();
   int dead_rank = PVP::GetRankIndex(victim);
-  int killer_rank = PVP::GetRankIndex(attacker);
-  int ranking_difference = dead_rank - killer_rank;
+  bool fame_loss = false;
 
-  if (ranking_difference >= -2 && ranking_difference <= 2) {
-    victim->SetFame(victim->GetFame() - PVP_FAME_AMOUNT_PER_KILL);
-    attacker->SetFame(attacker->GetFame() + PVP_FAME_AMOUNT_PER_KILL);
+  vector<Player*> fame_recipients;
 
-    vector<Player*> fame_recipients;
+  {
+    lock_guard<mutex> guard(victim->encounter_list_mutex);
 
-    zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
-    zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
-  }
+    for (const auto& kv : victim->encounter_list) {
+      Spawn* spawn = zone->GetSpawnByID(kv.first);
 
-  if (dead_rank != PVP::GetRankIndex(victim)) {
-    int rank = PVP::GetRankIndex(victim);
-    if (rank == 0) {
-      zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are no longer ranked.");
-      zone->GetClientBySpawn(victim)->SendPopupMessage(10, "Your are no longer ranked.", "", 2, 0xFF, 0xFF, 0xFF);
-    } else if (rank < dead_rank) {
-      char message[37];
-      sprintf(message, "Your rank has dropped to %s.", PVP::GetRank(victim).c_str());
-      zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
-      zone->GetClientBySpawn(victim)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
+      if (spawn->IsPlayer()) {
+        lock_guard<mutex> guard(static_cast<Player*>(spawn)->encounter_list_mutex);
+
+        for (const auto& kv : static_cast<Player*>(spawn)->encounter_list) {
+          if (kv.first == victim->GetID()) {
+            HostileEntity* hostile_entity = kv.second;
+
+            if (hostile_entity->has_attacked) {
+              fame_recipients.push_back(static_cast<Player*>(spawn));
+            }
+
+            break;
+          }
+        }
+      }
     }
-    zone->GetClientBySpawn(victim)->SendTitleUpdate();
   }
 
-  if (PVP::GetRankIndex(attacker) > killer_rank) {
-    char message[42];
-    sprintf(message, "You have obtained the rank of %s.", PVP::GetRank(attacker).c_str());
-    zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
-    zone->GetClientBySpawn(attacker)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
-    zone->GetClientBySpawn(attacker)->SendTitleUpdate();
+  if (fame_recipients.size() > 0) {
+    int8 amount_gained = max(1, static_cast<int>(PVP_FAME_AMOUNT_PER_KILL / fame_recipients.size()));
+
+    for (const auto attacker : fame_recipients) {
+      int killer_rank = PVP::GetRankIndex(attacker);
+      int ranking_difference = dead_rank - killer_rank;
+
+      if (ranking_difference >= -2 && ranking_difference <= 2) {
+        fame_loss = true;
+
+        attacker->SetFame(attacker->GetFame() + amount_gained);
+        zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your victory has increased your fame.");
+
+        if (PVP::GetRankIndex(attacker) > killer_rank) {
+          char message[42];
+          sprintf(message, "You have obtained the rank of %s.", PVP::GetRank(attacker).c_str());
+
+          zone->GetClientBySpawn(attacker)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
+          zone->GetClientBySpawn(attacker)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
+          zone->GetClientBySpawn(attacker)->SendTitleUpdate();
+        }
+      }
+
+      attacker->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_KILLS, 1);
+    }
+
+    if (fame_loss) {
+      victim->SetFame(victim->GetFame() - PVP_FAME_AMOUNT_PER_KILL);
+      zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "Your death has decreased your fame.");
+
+      if (dead_rank != PVP::GetRankIndex(victim)) {
+        int rank = PVP::GetRankIndex(victim);
+
+        if (rank == 0) {
+          zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are no longer ranked.");
+          zone->GetClientBySpawn(victim)->SendPopupMessage(10, "Your are no longer ranked.", "", 2, 0xFF, 0xFF, 0xFF);
+        } else if (rank < dead_rank) {
+          char message[37];
+          sprintf(message, "Your rank has dropped to %s.", PVP::GetRank(victim).c_str());
+          zone->GetClientBySpawn(victim)->SimpleMessage(CHANNEL_COLOR_YELLOW, message);
+          zone->GetClientBySpawn(victim)->SendPopupMessage(10, message, "", 2, 0xFF, 0xFF, 0xFF);
+        }
+
+        zone->GetClientBySpawn(victim)->SendTitleUpdate();
+      }
+    }
   }
 
   victim->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_DEATHS, 1);
-  attacker->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_PVP_KILLS, 1);
 }
 
 bool PVP::IsEnabled(ZoneServer* zone) {

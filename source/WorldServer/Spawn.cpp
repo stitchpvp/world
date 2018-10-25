@@ -99,6 +99,8 @@ Spawn::Spawn() {
   size_mod_c = 0;
   size_shrink_multiplier = 0;
   size_mod_unknown = 0;
+  last_damage_taken = 0;
+  last_damage_warded = 0;
 }
 
 Spawn::~Spawn() {
@@ -244,18 +246,31 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 
   int8 vis_flags = 0;
   if (MeetsSpawnAccessRequirements(player)) {
-    if (appearance.attackable == 1 || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this))))
+    shared_ptr<Client> client = GetZone()->GetClientBySpawn(player);
+
+    if (client->debug_spawns || appearance.attackable || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this)))) {
       vis_flags += 64;
-    if (appearance.show_level == 1)
+    }
+
+    if (client->debug_spawns || appearance.show_level) {
       vis_flags += 32;
-    if (appearance.display_name == 1)
+    }
+
+    if (client->debug_spawns || appearance.display_name) {
       vis_flags += 16;
-    if (IsPlayer() || appearance.targetable == 1)
+    }
+
+    if (client->debug_spawns || IsPlayer() || appearance.targetable == 1) {
       vis_flags += 4;
-    if (appearance.show_command_icon == 1)
+    }
+
+    if (appearance.show_command_icon == 1) {
       vis_flags += 2;
-    if (this == player)
+    }
+
+    if (this == player) {
       vis_flags += 1;
+    }
   } else if (req_quests_override > 0) {
     vis_flags = req_quests_override & 0xFF;
   }
@@ -455,6 +470,19 @@ uchar* Spawn::spawn_info_changes(Player* player, int16 version) {
     Encode(xor_info_packet, orig_packet, size);
   }
 
+  bool changed = false;
+  for (int i = 0; i < size; ++i) {
+    if (xor_info_packet[i]) {
+      changed = true;
+      break;
+    }
+  }
+
+  if (!changed) {
+    player->info_mutex.releasewritelock(__FUNCTION__, __LINE__);
+    return nullptr;
+  }
+
   uchar* tmp = new uchar[size + 10];
   size = Pack(tmp, xor_info_packet, size, size, version);
 
@@ -500,6 +528,19 @@ uchar* Spawn::spawn_vis_changes(Player* player, int16 version) {
   if (orig_packet) {
     memcpy(xor_vis_packet, (uchar*)data->c_str(), size);
     Encode(xor_vis_packet, orig_packet, size);
+  }
+
+  bool changed = false;
+  for (int i = 0; i < size; ++i) {
+    if (xor_vis_packet[i]) {
+      changed = true;
+      break;
+    }
+  }
+
+  if (!changed) {
+    player->vis_mutex.releasewritelock(__FUNCTION__, __LINE__);
+    return nullptr;
   }
 
   uchar* tmp = new uchar[size + 10];
@@ -550,6 +591,19 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version) {
     Encode(xor_pos_packet, orig_packet, size);
   }
 
+  bool changed = false;
+  for (int i = 0; i < size; ++i) {
+    if (xor_pos_packet[i]) {
+      changed = true;
+      break;
+    }
+  }
+
+  if (!changed) {
+    player->pos_mutex.releasewritelock(__FUNCTION__, __LINE__);
+    return nullptr;
+  }
+
   uchar* tmp = new uchar[size + 10];
 
   size = Pack(tmp, xor_pos_packet, size, size, version);
@@ -578,19 +632,19 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version) {
   // extra byte in coe+ clients, 0 for NPC's 1 for Players
   int8 x = 0;
 
-  if (IsPlayer()) {
-    if (version >= 1188) {
+  if (version >= 1188) {
+    if (IsPlayer()) {
       x = 1;
       memcpy(ptr, &x, sizeof(int8));
       ptr += sizeof(int8);
-    }
 
-    int32 now = Timer::GetCurrentTime2();
-    memcpy(ptr, &now, sizeof(int32));
-    ptr += sizeof(int32);
-  } else if (version >= 1188) {
-    memcpy(ptr, &x, sizeof(int8));
-    ptr += sizeof(int8);
+      int32 now = Timer::GetCurrentTime2();
+      memcpy(ptr, &now, sizeof(int32));
+      ptr += sizeof(int32);
+    } else {
+      memcpy(ptr, &x, sizeof(int8));
+      ptr += sizeof(int8);
+    }
   }
 
   memcpy(ptr, tmp + sizeof(int32), orig_size - sizeof(int32));
@@ -634,6 +688,14 @@ void Spawn::SetLastAttacker(Spawn* spawn) {
   last_attacker = spawn->GetID();
 }
 
+int32 Spawn::GetLastDamageTaken() {
+  return last_damage_taken;
+}
+
+void Spawn::SetLastDamageTaken(int32 damage) {
+  last_damage_taken = damage;
+}
+
 void Spawn::SetInvulnerable(bool val) {
   invulnerable = val;
 }
@@ -643,22 +705,30 @@ bool Spawn::GetInvulnerable() {
 }
 
 bool Spawn::TakeDamage(int32 damage) {
-  if (invulnerable)
+  if (invulnerable) {
     return false;
-  if (IsEntity()) {
-    if (((Entity*)this)->IsMezzed())
-      ((Entity*)this)->RemoveAllMezSpells();
+  }
 
-    if (damage == 0)
+  SetLastDamageTaken(damage);
+
+  if (IsEntity()) {
+    if (static_cast<Entity*>(this)->IsMezzed()) {
+      static_cast<Entity*>(this)->RemoveAllMezSpells();
+    }
+
+    if (damage == 0) {
       return true;
+    }
   }
 
   int32 hp = GetHP();
+
   if (damage >= hp) {
     SetHP(0);
   } else {
     SetHP(hp - damage);
   }
+
   return true;
 }
 
@@ -706,12 +776,7 @@ void Spawn::SetHP(sint32 new_val, bool setUpdateFlags) {
   if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
     Player* player = static_cast<Player*>(static_cast<NPC*>(this)->GetOwner());
 
-    if (player->GetPet() && player->GetCharmedPet()) {
-      if (this == player->GetPet()) {
-        player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
-        player->SetCharSheetChanged(true);
-      }
-    } else {
+    if (this == player->GetPet() || this == player->GetCharmedPet()) {
       player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
       player->SetCharSheetChanged(true);
     }
@@ -745,12 +810,7 @@ void Spawn::SetTotalHP(sint32 new_val) {
   if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
     Player* player = static_cast<Player*>(static_cast<NPC*>(this)->GetOwner());
 
-    if (player->GetPet() && player->GetCharmedPet()) {
-      if (this == player->GetPet()) {
-        player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
-        player->SetCharSheetChanged(true);
-      }
-    } else {
+    if (this == player->GetPet() || this == player->GetCharmedPet()) {
       player->GetInfoStruct()->pet_health_pct = (float)basic_info.cur_hp / (float)basic_info.max_hp;
       player->SetCharSheetChanged(true);
     }
@@ -806,12 +866,7 @@ void Spawn::SetPower(sint32 power, bool setUpdateFlags) {
   if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
     Player* player = (Player*)((NPC*)this)->GetOwner();
 
-    if (player->GetPet() && player->GetCharmedPet()) {
-      if (this == player->GetPet()) {
-        player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
-        player->SetCharSheetChanged(true);
-      }
-    } else {
+    if (this == player->GetPet() || this == player->GetCharmedPet()) {
       player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
       player->SetCharSheetChanged(true);
     }
@@ -846,12 +901,7 @@ void Spawn::SetTotalPower(sint32 new_val) {
   if (IsNPC() && static_cast<NPC*>(this)->IsPet() && static_cast<NPC*>(this)->GetOwner() && static_cast<NPC*>(this)->GetOwner()->IsPlayer()) {
     Player* player = (Player*)((NPC*)this)->GetOwner();
 
-    if (player->GetPet() && player->GetCharmedPet()) {
-      if (this == player->GetPet()) {
-        player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
-        player->SetCharSheetChanged(true);
-      }
-    } else {
+    if (this == player->GetPet() || this == player->GetCharmedPet()) {
       player->GetInfoStruct()->pet_power_pct = (float)basic_info.cur_power / (float)basic_info.max_power;
       player->SetCharSheetChanged(true);
     }
@@ -953,19 +1003,22 @@ sint32 Spawn::GetDissonance() {
 }
 
 void Spawn::ScalePet() {
-  if (!IsPet() || !IsEntity())
+  if (!IsEntity() || !IsPet()) {
     return;
-
-  double base = pow(GetLevel(), 2) * 2 + 40;
-
-  SetTotalHP(static_cast<sint32>(base * 1.5));
-  SetTotalPower(static_cast<sint32>(base * 1.5));
-  SetHP(GetTotalHP());
-  SetPower(GetTotalPower());
+  }
 
   Entity* entity = static_cast<Entity*>(this);
+  double base = pow(GetLevel(), 2) * 2 + 40;
+
+  SetTotalHPBase(static_cast<sint32>(base * 1.5));
+  SetTotalPowerBase(static_cast<sint32>(base * 1.5));
+
+  entity->CalculateBonuses();
   entity->ChangePrimaryWeapon();
   entity->ChangeSecondaryWeapon();
+
+  SetHP(GetTotalHP());
+  SetPower(GetTotalPower());
 }
 
 /* --< Alternate Advancement Points >-- */
@@ -1272,7 +1325,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet) {
       }
 
       packet->setDataByName("pos_size_ratio", 1);
-      packet->setDataByName("pos_size_multiplier_ratio", 1); // used for growth with players
+      packet->setDataByName("pos_size_multiplier_ratio", (size > 0 ? (static_cast<float>(size) / 32) : 1));
     } else {
       packet->setDataByName("pos_size_ratio", (size > 0 ? (static_cast<float>(size) / 32) : 1));
       packet->setDataByName("pos_size_multiplier_ratio", 1);

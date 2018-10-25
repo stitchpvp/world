@@ -91,7 +91,7 @@ void SpellProcess::RemoveAllSpells() {
   remove_target_list.clear();
   MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
 
-  map<unique_ptr<Client>, HeroicOP*>::iterator solo_ho_itr;
+  map<shared_ptr<Client>, HeroicOP*>::iterator solo_ho_itr;
   MSoloHO.writelock(__FUNCTION__, __LINE__);
   for (solo_ho_itr = m_soloHO.begin(); solo_ho_itr != m_soloHO.end(); solo_ho_itr++)
     safe_delete(solo_ho_itr->second);
@@ -240,7 +240,7 @@ void SpellProcess::Process() {
   for (auto cast_timer : finished_casts) {
     if (!cast_timer->delete_timer) {
       if (cast_timer->spell) {
-        unique_ptr<Client> client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
+        shared_ptr<Client> client = cast_timer->zone->GetClientBySpawn(cast_timer->spell->caster);
 
         if (client) {
           PacketStruct* packet = configReader.getStruct("WS_FinishCastSpell", client->GetVersion());
@@ -363,14 +363,17 @@ void SpellProcess::Process() {
 }
 
 bool SpellProcess::IsReady(Spell* spell, Entity* caster) {
-  if (caster->IsCasting())
+  if (caster->IsCasting()) {
     return false;
+  }
 
-  if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE && caster->IsPlayer() && static_cast<Player*>(caster)->HasLinkedSpellEffect(spell))
+  if (spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE && caster->IsPlayer() && static_cast<Player*>(caster)->HasLinkedSpellEffect(spell)) {
     return false;
+  }
 
-  if (OnCooldown(spell, caster))
+  if (OnCooldown(spell, caster)) {
     return false;
+  }
 
   return true;
 }
@@ -429,7 +432,7 @@ void SpellProcess::CheckInterrupt(InterruptStruct* interrupt) {
     return;
 
   auto entity = static_cast<Entity*>(interrupt->interrupted);
-  unique_ptr<Client> client = entity->GetZone()->GetClientBySpawn(entity);
+  shared_ptr<Client> client = entity->GetZone()->GetClientBySpawn(entity);
 
   if (client) {
     auto lua_spell = GetLuaSpell(entity);
@@ -567,7 +570,7 @@ bool SpellProcess::CastPassives(Spell* spell, Entity* caster, bool remove) {
   return true;
 }
 
-void SpellProcess::SendStartCast(LuaSpell* spell, const unique_ptr<Client>& client) {
+void SpellProcess::SendStartCast(LuaSpell* spell, const shared_ptr<Client>& client) {
   if (client) {
     PacketStruct* packet = configReader.getStruct("WS_StartCastSpell", client->GetVersion());
 
@@ -581,7 +584,7 @@ void SpellProcess::SendStartCast(LuaSpell* spell, const unique_ptr<Client>& clie
   }
 }
 
-void SpellProcess::SendFinishedCast(LuaSpell* spell, const unique_ptr<Client>& client) {
+void SpellProcess::SendFinishedCast(LuaSpell* spell, const shared_ptr<Client>& client) {
   if (spell && spell->spell) {
     float recast = spell->spell->GetModifiedRecast(spell->caster);
 
@@ -612,19 +615,19 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, const unique_ptr<Client>& c
   }
 }
 
-void SpellProcess::LockAllSpells(const unique_ptr<Client>& client) {
+void SpellProcess::LockAllSpells(const shared_ptr<Client>& client) {
   if (client) {
     client->GetPlayer()->LockAllSpells();
     SendSpellBookUpdate(client);
   }
 }
 
-void SpellProcess::UnlockAllSpells(const unique_ptr<Client>& client) {
+void SpellProcess::UnlockAllSpells(const shared_ptr<Client>& client) {
   if (client)
     client->GetPlayer()->UnlockAllSpells();
 }
 
-void SpellProcess::UnlockSpell(const unique_ptr<Client>& client, Spell* spell) {
+void SpellProcess::UnlockSpell(const shared_ptr<Client>& client, Spell* spell) {
   if (client && client->GetPlayer() && spell) {
     if (!client->GetPlayer()->IsCasting()) {
       client->GetPlayer()->UnlockSpell(spell);
@@ -761,7 +764,7 @@ void SpellProcess::AddSpellToQueue(Spell* spell, Entity* caster) {
 
     static_cast<Player*>(caster)->QueueSpell(spell);
 
-    unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
+    shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
     if (client) {
       SendSpellBookUpdate(client);
     }
@@ -777,7 +780,7 @@ void SpellProcess::RemoveSpellFromQueue(Spell* spell, Entity* caster) {
 
     static_cast<Player*>(caster)->UnQueueSpell(spell);
 
-    unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
+    shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
     if (client) {
       SendSpellBookUpdate(client);
     }
@@ -802,7 +805,7 @@ void SpellProcess::RemoveSpellFromQueue(Entity* caster, bool hostile_only) {
 
         static_cast<Player*>(caster)->UnQueueSpell(spell);
 
-        unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
+        shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(caster);
         if (client) {
           SendSpellBookUpdate(client);
         }
@@ -837,7 +840,7 @@ void SpellProcess::CheckSpellQueue(Spell* spell, Entity* caster) {
   }
 }
 
-void SpellProcess::SendSpellBookUpdate(const unique_ptr<Client>& client) {
+void SpellProcess::SendSpellBookUpdate(const shared_ptr<Client>& client) {
   if (client) {
     EQ2Packet* app = client->GetPlayer()->GetSpellBookUpdatePacket(client->GetVersion());
     if (app)
@@ -928,7 +931,7 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
   Spell* spell = lua_spell->spell;
 
   if (caster && spell) {
-    unique_ptr<Client> client = nullptr;
+    shared_ptr<Client> client = nullptr;
     ZoneServer* zone = lua_spell->caster->GetZone();
 
     if (zone) {
@@ -975,7 +978,7 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
         }
       }
 
-      if (!IsReady(spell, caster)) {
+      if (caster->IsFeigned() || !IsReady(spell, caster)) {
         CheckSpellQueue(spell, caster);
         return false;
       }
@@ -1034,6 +1037,11 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
 
         if (target_type != SPELL_TARGET_SELF && target_type != SPELL_TARGET_GROUP_AE && target_type != SPELL_TARGET_NONE) {
           if (!target) {
+            zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
+            return false;
+          }
+
+          if (!spell->UsableOnSelf() && caster == target) {
             zone->SendSpellFailedPacket(client, SPELL_ERROR_NO_ELIGIBLE_TARGET);
             return false;
           }
@@ -1148,7 +1156,7 @@ bool SpellProcess::CanCast(shared_ptr<LuaSpell> lua_spell, bool harvest_spell = 
 
 void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target, bool harvest_spell, bool force_cast) {
   if (spell && caster) {
-    unique_ptr<Client> client = nullptr;
+    shared_ptr<Client> client = nullptr;
     shared_ptr<LuaSpell> lua_spell = nullptr;
 
     if (lua_interface)
@@ -1224,6 +1232,13 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
         if (caster) {
           caster->IsCasting(true);
+          caster->CheckProcs(PROC_TYPE_START_CASTING, target);
+
+          if (spell->GetSpellData()->friendly_spell) {
+            caster->CheckProcs(PROC_TYPE_START_CASTING_FRIENDLY, target);
+          } else {
+            caster->CheckProcs(PROC_TYPE_START_CASTING_HOSTILE, target);
+          }
         }
       } else {
         if (!CastProcessedSpell(lua_spell)) {
@@ -1242,7 +1257,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 
 void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_command, Entity* caster, Spawn* target, bool lock) {
   if (zone && entity_command && caster && target && !target->IsPlayer()) {
-    unique_ptr<Client> client = zone->GetClientBySpawn(caster);
+    shared_ptr<Client> client = zone->GetClientBySpawn(caster);
     if (caster->GetDistance(target) > entity_command->distance) {
       zone->SendSpellFailedPacket(client, SPELL_ERROR_TOO_FAR_AWAY);
       return;
@@ -1284,7 +1299,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
     return false;
   }
 
-  unique_ptr<Client> client = nullptr;
+  shared_ptr<Client> client = nullptr;
   bool hit_target = false;
   bool living_target = false;
 
@@ -1370,8 +1385,13 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
           if (!living_target && target->Alive())
             living_target = true;
 
-          if (spell->caster->IsPlayer() && target->IsPlayer() && living_target)
-            PVP::HandlePlayerEncounter(static_cast<Player*>(spell->caster), static_cast<Player*>(target), !spell->spell->GetSpellData()->friendly_spell);
+          if (target->IsPlayer() && target->Alive()) {
+            if (spell->caster->IsPlayer()) {
+              PVP::HandlePlayerEncounter(static_cast<Player*>(spell->caster), static_cast<Player*>(target), !spell->spell->GetSpellData()->friendly_spell);
+            } else if (spell->caster->IsPet() && static_cast<NPC*>(spell->caster)->GetOwner() && static_cast<NPC*>(spell->caster)->GetOwner()->IsPlayer()) {
+              PVP::HandlePlayerEncounter(static_cast<Player*>(static_cast<NPC*>(spell->caster)->GetOwner()), static_cast<Player*>(target), !spell->spell->GetSpellData()->friendly_spell);
+            }
+          }
 
           if (spell->spell->GetSpellData()->success_message.length() > 0) {
             if (client) {
@@ -1459,17 +1479,30 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
   if (spell->spell->ShouldCancelStealth() && (spell->caster->IsInvis() || spell->caster->IsStealthed()))
     spell->caster->CancelAllStealth(spell);
 
-  if (!spell->spell->GetSpellData()->friendly_spell) {
+  if (!spell->spell->GetSpellData()->friendly_spell && living_target) {
     if (spell->caster->IsPlayer()) {
       static_cast<Player*>(spell->caster)->InCombat(true);
 
       if (static_cast<Player*>(spell->caster)->GetTarget()) {
-        if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
+        int8 auto_attack_mode = static_cast<Player*>(spell->caster)->GetAutoAttackMode();
+
+        if (auto_attack_mode == 0) {
+          if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_MELEE_AUTO) == CASTING_FLAG_ENABLE_MELEE_AUTO) {
+            static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
+            static_cast<Player*>(spell->caster)->SetRangeAttack(false);
+          } else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+            static_cast<Player*>(spell->caster)->SetRangeAttack(true);
+            static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+          }
+        } else if (auto_attack_mode == 1) {
           static_cast<Player*>(spell->caster)->SetMeleeAttack(true);
           static_cast<Player*>(spell->caster)->SetRangeAttack(false);
-        } else if ((spell->spell->GetSpellData()->casting_flags & CASTING_FLAG_ENABLE_RANGED_AUTO) == CASTING_FLAG_ENABLE_RANGED_AUTO) {
+        } else if (auto_attack_mode == 2) {
           static_cast<Player*>(spell->caster)->SetRangeAttack(true);
           static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+        } else if (auto_attack_mode == 3) {
+          static_cast<Player*>(spell->caster)->SetMeleeAttack(false);
+          static_cast<Player*>(spell->caster)->SetRangeAttack(false);
         }
       }
     } else {
@@ -1483,7 +1516,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
   return true;
 }
 
-bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, const unique_ptr<Client>& client) {
+bool SpellProcess::CastProcessedEntityCommand(EntityCommand* entity_command, const shared_ptr<Client>& client) {
   bool ret = false;
   if (entity_command && client) {
     UnlockAllSpells(client);
@@ -1537,7 +1570,7 @@ void SpellProcess::Interrupted(Entity* caster, Spawn* interruptor, int16 error_c
       }
 
       if (interruptor && interruptor->IsPlayer()) {
-        unique_ptr<Client> client = interruptor->GetZone()->GetClientBySpawn(interruptor);
+        shared_ptr<Client> client = interruptor->GetZone()->GetClientBySpawn(interruptor);
 
         if (client) {
           client->Message(CHANNEL_COLOR_SPELL_INTERRUPT, "You interrupt %s's ability to cast!", interruptor->GetName());
@@ -1569,11 +1602,11 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
       for (auto spell : active_spells) {
         auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
 
-        /*if (spell->spell->GetSpellData()->persist_though_death) {
-					if (client && client->IsConnected()) {
-						continue;
-					}
-				}*/
+        if (spell->spell->GetSpellData()->persist_though_death) {
+          if (client && client->IsConnected() && !client->IsZoning()) {
+            continue;
+          }
+        }
 
         if (spell->caster == spawn) {
           /*if (spell->caster != spell->caster->GetZone()->GetSpawnByID(spell->initial_target) && spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->target_type == SPELL_TARGET_OTHER && !spell->spell->GetSpellData()->group_spell) {
@@ -1668,7 +1701,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell) {
 
               // if the group member is in the casters zone, and is alive
               if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive() && caster->GetDistance(group_member) <= luaspell->spell->GetSpellData()->radius) {
-                unique_ptr<Client> client = caster->GetZone()->GetClientBySpawn(group_member);
+                shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(group_member);
 
                 if (((Player*)group_member)->IsResurrecting() || !client || client->IsZoning())
                   continue;
@@ -1933,6 +1966,12 @@ void SpellProcess::CheckSpellScriptTimers() {
   MSpellScriptTimers.releasereadlock(__FUNCTION__, __LINE__);
 
   for (itr = temp_list.begin(); itr != temp_list.end(); itr++) {
+    Spawn* target = (*itr)->spell->caster->GetZone()->GetSpawnByID((*itr)->target);
+
+    if (target) {
+      ProcessSpell((*itr)->spell, target, false, (*itr)->customFunction.c_str(), (*itr));
+    }
+
     RemoveSpellScriptTimer(*itr);
     safe_delete(*itr);
   }
@@ -2039,7 +2078,7 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
   }
 }
 
-bool SpellProcess::AddHO(unique_ptr<Client> client, HeroicOP* ho) {
+bool SpellProcess::AddHO(shared_ptr<Client> client, HeroicOP* ho) {
   bool ret = true;
 
   if (client && ho) {

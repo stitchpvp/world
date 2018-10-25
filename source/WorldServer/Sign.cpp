@@ -216,7 +216,7 @@ float Sign::GetSignDistance() {
 void Sign::SetSignDistance(float val) {
   sign_distance = val;
 }
-void Sign::HandleUse(const unique_ptr<Client>& client, string command) {
+void Sign::HandleUse(const shared_ptr<Client>& client, string command) {
   vector<TransportDestination*>* destinations = 0;
 
   //The following check disables the use of doors and other widgets if the player does not meet the quest requirements

@@ -179,6 +179,7 @@
 #define CASTING_FLAG_MUST_HAVE_RANGED_WEAPON 1024
 #define CASTING_FLAG_NOT_USABLE_IN_COMBAT 2048
 #define CASTING_FLAG_DOES_NOT_BREAK_STEALTH 4096
+#define CASTING_FLAG_NOT_USABLE_ON_SELF 8192
 
 // Spell type is for AI so code knows what a spell is
 #define SPELL_TYPE_UNSET 1
@@ -202,6 +203,10 @@
 #define SPELL_STATUS_UNKNOWN6 32
 #define SPELL_STATUS_READY 64
 #define SPELL_STATUS_UNKNOWN7 128
+
+#define CRIT_MOD_NONE 0
+#define CRIT_MOD_FORCE_CRIT 1
+#define CRIT_MOD_NO_CRIT 2
 
 struct LUAData {
   int8 type;
@@ -301,9 +306,9 @@ public:
   ~Spell();
   Spell();
   Spell(SpellData* in_spell);
-  EQ2Packet* SerializeSpell(const unique_ptr<Client>& client, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0);
-  EQ2Packet* SerializeSpecialSpell(const unique_ptr<Client>& client, bool display, int8 packet_type = 0, int8 sub_packet_type = 0);
-  EQ2Packet* SerializeAASpell(const unique_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type = 0, int8 sub_packet_type = 0);
+  EQ2Packet* SerializeSpell(const shared_ptr<Client>& client, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0);
+  EQ2Packet* SerializeSpecialSpell(const shared_ptr<Client>& client, bool display, int8 packet_type = 0, int8 sub_packet_type = 0);
+  EQ2Packet* SerializeAASpell(const shared_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type = 0, int8 sub_packet_type = 0);
   void AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level);
   void AddSpellEffect(int8 percentage, int8 subbullet, string description);
   void AddSpellLuaData(int8 type, int int_value, float float_value, bool bool_value, string string_value, int flat_value = 0, bool is_scaling = false);
@@ -312,14 +317,14 @@ public:
   void AddSpellLuaDataBool(bool value);
   void AddSpellLuaDataString(string value);
   int32 GetSpellID();
-  void SetPacketInformation(PacketStruct* packet, unique_ptr<Client> client = 0, bool display_tier = false);
-  void SetSpellPacketInformation(PacketStruct* packet, unique_ptr<Client> client = 0, bool display_tier = false, bool pvp = false);
+  void SetPacketInformation(PacketStruct* packet, shared_ptr<Client> client = 0, bool display_tier = false);
+  void SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> client = 0, bool display_tier = false, bool pvp = false);
   int8 GetSpellTier();
   int32 GetSpellDuration();
   int16 GetSpellIcon();
   int16 GetSpellIconBackdrop();
   int16 GetSpellIconHeroicOp();
-  int16 GetLevelRequired(const unique_ptr<Client>& client);
+  int16 GetLevelRequired(const shared_ptr<Client>& client);
   int16 GetHPRequired(Spawn* spawn);
   int16 GetPowerRequired(Spawn* spawn);
   int16 GetSavageryRequired(Spawn* spawn);
@@ -348,6 +353,7 @@ public:
   bool MustBeBehind();
   bool MustBeStealthed();
   bool ShouldCancelStealth();
+  bool UsableOnSelf();
 
 private:
   bool heal_spell;
@@ -378,8 +384,8 @@ public:
   Spell* GetSpellByName(const char* name);
   Spell* GetSpellByCRC(int32 spell_crc);
   void Reload();
-  EQ2Packet* GetSpellPacket(int32 id, int8 tier, unique_ptr<Client> client = 0, bool display = false, int8 packet_type = 0);
-  EQ2Packet* GetSpecialSpellPacket(int32 id, int8 tier, unique_ptr<Client> client = 0, bool display = false, int8 packet_type = 0);
+  EQ2Packet* GetSpellPacket(int32 id, int8 tier, shared_ptr<Client> client = 0, bool display = false, int8 packet_type = 0);
+  EQ2Packet* GetSpecialSpellPacket(int32 id, int8 tier, shared_ptr<Client> client = 0, bool display = false, int8 packet_type = 0);
   void AddSpell(int32 id, int8 tier, Spell* spell);
   Mutex MMasterSpellList;
 

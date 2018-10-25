@@ -47,7 +47,7 @@ public:
   void HandleTimerUpdate();
   void OpenDoor();
   void CloseDoor();
-  void HandleUse(const unique_ptr<Client>& client, string command);
+  void HandleUse(const shared_ptr<Client>& client, string command);
   float GetOpenHeading();
   void SetOpenHeading(float val);
   float GetClosedHeading();

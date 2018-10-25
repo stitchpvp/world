@@ -177,6 +177,11 @@ extern MasterItemList master_item_list;
 #define ITEM_TYPE_DUNGEON_MAKER 21
 #define ITEM_TYPE_MARKETPLACE 22
 
+#define SKILL_BUCKLER 4037812502
+#define SKILL_ROUND_SHIELD 3173504370
+#define SKILL_KITE_SHIELD 2608320658
+#define SKILL_TOWER_SHIELD 570458645
+
 //DOV defines everything till 13 is the same
 //#define ITEM_TYPE_BOOK			  13
 //#define ITEM_TYPE_ADORNMENT		  14
@@ -509,6 +514,7 @@ extern MasterItemList master_item_list;
 #define ITEM_STAT_COMPONENT_REFUND 815
 #define ITEM_STAT_BOUNTIFUL_HARVEST 816
 #define ITEM_STAT_PHYSICAL_DAMAGE_REDUCTION 817
+#define ITEM_STAT_ABILITY_COST_MODIFIER 818
 
 #pragma pack(1)
 struct ItemStatsValues {
@@ -520,6 +526,7 @@ struct ItemStatsValues {
   sint16 vs_slash;
   sint16 vs_crush;
   sint16 vs_pierce;
+  sint16 vs_physical;
   sint16 vs_heat;
   sint16 vs_cold;
   sint16 vs_magic;
@@ -549,11 +556,15 @@ struct ItemStatsValues {
   sint16 aeautoattackchance;
   sint16 strikethrough;
   sint16 accuracy;
-  sint16 offensivespeed;
+  sint16 speed;
+  sint16 offensive_speed;
+  sint16 mount_speed;
   sint16 mitigation_increase;
   sint8 physical_damage_reduction;
   float minimum_deflection_chance;
+  float riposte_chance;
   float base_avoidance_bonus;
+  sint8 ability_cost_modifier;
 };
 struct ItemCore {
   int32 item_id;
@@ -899,6 +910,7 @@ public:
   bool HasFreeBagSlot();
   void DestroyItem(int16 index);
   Item* CanStack(Item* item, bool include_bank = false);
+  int32 GetItemIndex(Item* item);
 
   void RemoveItem(Item* item, bool delete_item = false);
   void AddItem(Item* item);

@@ -23,6 +23,7 @@
 #include "../common/Log.h"
 #include "Traits/Traits.h"
 #include "AltAdvancement/AltAdvancement.h"
+#include "LuaInterface.h"
 #include <sstream>
 #include <iomanip>
 
@@ -134,7 +135,7 @@ void Spell::AddSpellLuaDataString(string value) {
   MSpellInfo.unlock();
 }
 
-int16 Spell::GetLevelRequired(const unique_ptr<Client>& client) {
+int16 Spell::GetLevelRequired(const shared_ptr<Client>& client) {
   int16 ret = 0xFFFF;
   if (!client)
     return ret;
@@ -150,12 +151,12 @@ int16 Spell::GetLevelRequired(const unique_ptr<Client>& client) {
   return ret;
 }
 
-void Spell::SetPacketInformation(PacketStruct* packet, unique_ptr<Client> client, bool display_tier) {
+void Spell::SetPacketInformation(PacketStruct* packet, shared_ptr<Client> client, bool display_tier) {
   SetSpellPacketInformation(packet, client, display_tier, false);
   //SetSpellPacketInformation(packet, client, display_tier, true);
 }
 
-void Spell::SetSpellPacketInformation(PacketStruct* packet, unique_ptr<Client> client, bool display_tier, bool pvp) {
+void Spell::SetSpellPacketInformation(PacketStruct* packet, shared_ptr<Client> client, bool display_tier, bool pvp) {
   const char* name = "spell_info";
 
   packet->setSubstructDataByName(name, "id", spell->id);
@@ -204,7 +205,7 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, unique_ptr<Client> c
   }
 
   packet->setSubstructDataByName(name, "uses_remaining", 0xFFFF);
-  packet->setSubstructDataByName(name, "damage_remaining", 0xFFFF);
+  packet->setSubstructDataByName(name, "damage_remaining", 0xFFFFFFFFFFFFFFFF);
 
   packet->setSubstructDataByName(name, "unknown9", 20);
 
@@ -215,16 +216,22 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, unique_ptr<Client> c
     hp_req = GetHPRequired(client->GetPlayer());
     power_req = GetPowerRequired(client->GetPlayer());
 
-    // might need version checks around these?
-    if (client->GetVersion() >= 1193) {
-      int16 savagery_req = GetSavageryRequired(client->GetPlayer()); // dunno why we need to do this
-      packet->setSubstructDataByName(name, "savagery_req", savagery_req);
-      packet->setSubstructDataByName(name, "savagery_upkeep", spell->savagery_upkeep);
-    }
-    if (client->GetVersion() >= 57048) {
-      int16 dissonance_req = GetDissonanceRequired(client->GetPlayer()); // dunno why we need to do this
-      packet->setSubstructDataByName(name, "dissonance_req", dissonance_req);
-      packet->setSubstructDataByName(name, "dissonance_upkeep", spell->dissonance_upkeep);
+    packet->setSubstructDataByName(name, "savagery_req", GetSavageryRequired(client->GetPlayer()));
+    packet->setSubstructDataByName(name, "savagery_upkeep", spell->savagery_upkeep);
+
+    packet->setSubstructDataByName(name, "dissonance_req", GetDissonanceRequired(client->GetPlayer()));
+    packet->setSubstructDataByName(name, "dissonance_upkeep", spell->dissonance_upkeep);
+
+    SpellEffects* effect = client->GetPlayer()->GetSpellEffect(spell->id);
+
+    if (effect) {
+      if (effect->spell->num_triggers > 0) {
+        packet->setSubstructDataByName(name, "uses_remaining", effect->spell->num_triggers);
+      }
+
+      if (effect->spell->damage_remaining > 0) {
+        packet->setSubstructDataByName(name, "damage_remaining", effect->spell->damage_remaining);
+      }
     }
   }
 
@@ -263,11 +270,11 @@ void Spell::SetSpellPacketInformation(PacketStruct* packet, unique_ptr<Client> c
   packet->setSubstructDataByName(name, "description", &(spell->description));
 }
 
-EQ2Packet* Spell::SerializeSpecialSpell(const unique_ptr<Client>& client, bool display, int8 packet_type, int8 sub_packet_type) {
+EQ2Packet* Spell::SerializeSpecialSpell(const shared_ptr<Client>& client, bool display, int8 packet_type, int8 sub_packet_type) {
   return SerializeSpell(client, display, false, packet_type, sub_packet_type, "WS_ExamineSpecialSpellInfo");
 }
 
-EQ2Packet* Spell::SerializeAASpell(const unique_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type, int8 sub_packet_type) {
+EQ2Packet* Spell::SerializeAASpell(const shared_ptr<Client>& client, AltAdvanceData* data, bool display, int16 packet_type, int8 sub_packet_type) {
   if (!client)
     return 0;
 
@@ -364,7 +371,7 @@ EQ2Packet* Spell::SerializeAASpell(const unique_ptr<Client>& client, AltAdvanceD
   return app;
 }
 
-EQ2Packet* Spell::SerializeSpell(const unique_ptr<Client>& client, bool display, bool trait_display, int8 packet_type, int8 sub_packet_type, const char* struct_name) {
+EQ2Packet* Spell::SerializeSpell(const shared_ptr<Client>& client, bool display, bool trait_display, int8 packet_type, int8 sub_packet_type, const char* struct_name) {
   int16 version = 1;
   if (client)
     version = client->GetVersion();
@@ -445,6 +452,10 @@ int16 Spell::GetPowerRequired(Spawn* spawn) {
       result++;
 
     power_req = (int16)result;
+  }
+
+  if (spawn->IsEntity()) {
+    power_req *= static_cast<Entity*>(spawn)->GetInfoStruct()->ability_cost_multiplier;
   }
 
   return power_req;
@@ -539,7 +550,7 @@ void Spell::PopulateSpellDescription(PacketStruct* packet, vector<LUAData>& scal
   for (int32 i = 0; i < effects.size(); ++i) {
     string description = effects[i]->description;
 
-    for (unsigned int x = 0; x <= 8; x++) {
+    for (sint8 x = 14; x >= 0; --x) {
       string search = "%" + to_string(x + 1);
 
       if (x <= scaled_data.size() && description.find(search) != string::npos && (scaled_data.at(x).type == 0 || scaled_data.at(x).type == 1)) {
@@ -784,14 +795,14 @@ Spell* MasterSpellList::GetSpellByCRC(int32 spell_crc) {
   return 0;
 }
 
-EQ2Packet* MasterSpellList::GetSpellPacket(int32 id, int8 tier, unique_ptr<Client> client, bool display, int8 packet_type) {
+EQ2Packet* MasterSpellList::GetSpellPacket(int32 id, int8 tier, shared_ptr<Client> client, bool display, int8 packet_type) {
   Spell* spell = GetSpell(id, tier);
   if (spell)
     return spell->SerializeSpell(client, display, packet_type);
   return 0;
 }
 
-EQ2Packet* MasterSpellList::GetSpecialSpellPacket(int32 id, int8 tier, unique_ptr<Client> client, bool display, int8 packet_type) {
+EQ2Packet* MasterSpellList::GetSpecialSpellPacket(int32 id, int8 tier, shared_ptr<Client> client, bool display, int8 packet_type) {
   Spell* spell = GetSpell(id, tier);
   if (spell)
     return spell->SerializeSpecialSpell(client, display, packet_type, 0x81);
@@ -927,4 +938,8 @@ bool Spell::MustBeStealthed() {
 
 bool Spell::ShouldCancelStealth() {
   return (spell->casting_flags & CASTING_FLAG_DOES_NOT_BREAK_STEALTH) == 0;
+}
+
+bool Spell::UsableOnSelf() {
+  return (spell->casting_flags & CASTING_FLAG_NOT_USABLE_ON_SELF) == 0;
 }

@@ -17,17 +17,24 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef LUA_INTERFACE_H
-#define LUA_INTERFACE_H
+#pragma once
 
-#include "Spawn.h"
-#include "Spells.h"
+#include <memory>
+#include <vector>
 #include "../common/Mutex.h"
-#include "Quests.h"
-#include "zoneserver.h"
-#include "client.h"
+#include "../common/timer.h"
 
 #include "../LUA/lua.hpp"
+
+class Client;
+class Entity;
+class Item;
+class Quest;
+class Skill;
+class Spawn;
+class Spell;
+class ZoneServer;
+struct SpellScriptTimer;
 
 using namespace std;
 
@@ -52,29 +59,33 @@ struct OptionWindowOption {
 #define EFFECT_FLAG_STIFLE 8
 #define EFFECT_FLAG_DAZE 16
 #define EFFECT_FLAG_FEAR 32
-#define EFFECT_FLAG_SPELLBONUS 64
-#define EFFECT_FLAG_SKILLBONUS 128
-#define EFFECT_FLAG_STEALTH 256
-#define EFFECT_FLAG_INVIS 512
-#define EFFECT_FLAG_SNARE 1024
-#define EFFECT_FLAG_WATERWALK 2048
-#define EFFECT_FLAG_WATERJUMP 4096
-#define EFFECT_FLAG_FLIGHT 8192
-#define EFFECT_FLAG_GLIDE 16384
-#define EFFECT_FLAG_AOE_IMMUNE 32768
-#define EFFECT_FLAG_STUN_IMMUNE 65536
-#define EFFECT_FLAG_MEZ_IMMUNE 131072
-#define EFFECT_FLAG_DAZE_IMMUNE 262144
-#define EFFECT_FLAG_ROOT_IMMUNE 524288
-#define EFFECT_FLAG_STIFLE_IMMUNE 1048576
-#define EFFECT_FLAG_FEAR_IMMUNE 2097152
-#define EFFECT_FLAG_SAFEFALL 4194304
+#define EFFECT_FLAG_FORCE_FACE 64
+#define EFFECT_FLAG_SPELLBONUS 128
+#define EFFECT_FLAG_SKILLBONUS 256
+#define EFFECT_FLAG_STEALTH 512
+#define EFFECT_FLAG_INVIS 1024
+#define EFFECT_FLAG_SNARE 2048
+#define EFFECT_FLAG_WATERWALK 4096
+#define EFFECT_FLAG_WATERJUMP 8192
+#define EFFECT_FLAG_FLIGHT 16384
+#define EFFECT_FLAG_GLIDE 32768
+#define EFFECT_FLAG_AOE_IMMUNE 65536
+#define EFFECT_FLAG_STUN_IMMUNE 131072
+#define EFFECT_FLAG_MEZ_IMMUNE 262144
+#define EFFECT_FLAG_DAZE_IMMUNE 524288
+#define EFFECT_FLAG_ROOT_IMMUNE 1048576
+#define EFFECT_FLAG_STIFLE_IMMUNE 2097152
+#define EFFECT_FLAG_FEAR_IMMUNE 4194304
+#define EFFECT_FLAG_SAFEFALL 8388608
+#define EFFECT_FLAG_FEIGNED 16777216
+#define EFFECT_FLAG_TAUNT 33554432
 
 struct LuaSpell {
   Entity* caster;
   int32 initial_target;
   vector<int32> targets;
   Spell* spell;
+  int8 spell_level;
   lua_State* state;
   string file_name;
   Timer timer;
@@ -233,10 +244,10 @@ public:
   void LogError(const char* error, ...);
 
   void CallQuestFunction(Quest* quest, const char* function, Spawn* player, int32 step_id = 0xFFFFFFFF);
-  void RemoveDebugClients(unique_ptr<Client> client);
-  void UpdateDebugClients(unique_ptr<Client> client);
+  void RemoveDebugClients(shared_ptr<Client> client);
+  void UpdateDebugClients(shared_ptr<Client> client);
   void ProcessErrorMessage(const char* message);
-  map<unique_ptr<Client>, int32> GetDebugClients() { return debug_clients; }
+  map<shared_ptr<Client>, int32> GetDebugClients() { return debug_clients; }
   void AddUserDataPtr(LUAUserData* data);
   void DeleteUserDataPtrs(bool all);
   Mutex* GetSpawnScriptMutex(const char* name);
@@ -251,7 +262,7 @@ private:
   bool spawn_scripts_reloading;
   Timer* user_data_timer;
   map<LUAUserData*, int32> user_data;
-  map<unique_ptr<Client>, int32> debug_clients;
+  map<shared_ptr<Client>, int32> debug_clients;
   map<lua_State*, shared_ptr<LuaSpell>> current_spells;
   vector<string>* GetDirectoryListing(const char* directory);
   lua_State* LoadLuaFile(const char* name);
@@ -276,4 +287,3 @@ private:
   Mutex MLUAMain;
   Mutex MSpellDelete;
 };
-#endif

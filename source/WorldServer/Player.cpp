@@ -47,7 +47,7 @@ extern RuleManager rule_manager;
 extern MasterTitlesList master_titles_list;
 extern MasterLanguagesList master_languages_list;
 
-Player::Player() {
+Player::Player() : auto_attack_mode(0), ignored_by_mobs(false), pvp_immune(false) {
   group = 0;
   appearance.pos.grid_id = 0;
   spawn_index = 0;
@@ -61,7 +61,7 @@ Player::Player() {
   old_movement_packet = 0;
   charsheet_changed = false;
   quickbar_updated = false;
-  should_resend_spawns = false;
+  resend_spawns = 0;
   spawn_tmp_vis_xor_packet = 0;
   spawn_tmp_pos_xor_packet = 0;
   spawn_tmp_info_xor_packet = 0;
@@ -199,18 +199,30 @@ EQ2Packet* Player::serialize(Player* player, int16 version) {
 
 EQ2Packet* Player::Move(float x, float y, float z, int16 version, float heading) {
   PacketStruct* packet = configReader.getStruct("WS_MoveClient", version);
+
   if (packet) {
     packet->setDataByName("x", x);
     packet->setDataByName("y", y);
     packet->setDataByName("z", z);
     packet->setDataByName("unknown", 1);           // 1 seems to force the client to re-render the zone at the new location
     packet->setDataByName("location", 0xFFFFFFFF); //added in 869
-    if (heading != -1.0f)
+
+    SetX(x);
+    SetY(y);
+    SetZ(z);
+
+    if (heading != -1.0f) {
       packet->setDataByName("heading", heading);
+
+      SetHeading(heading - 180.0f);
+    }
+
     EQ2Packet* outapp = packet->serialize();
     safe_delete(packet);
+
     return outapp;
   }
+
   return 0;
 }
 
@@ -426,29 +438,33 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
     packet->setDataByName("pet_behavior", info_struct->pet_behavior);
 
     packet->setDataByName("status_points", info_struct->status_points);
-    string* bind_name = 0;
-    if (bind_zone_id > 0)
+
+    string* bind_name = nullptr;
+    if (bind_zone_id > 0) {
       bind_name = database.GetZoneName(bind_zone_id);
+    }
+
     if (bind_name) {
       packet->setDataByName("bind_zone", bind_name->c_str());
       safe_delete(bind_name);
-    } else
+    } else {
       packet->setDataByName("bind_zone", "None");
-    string* house_name = 0;
-    if (house_zone_id > 0)
+    }
+
+    string* house_name = nullptr;
+    if (house_zone_id > 0) {
       house_name = database.GetZoneName(house_zone_id);
+    }
+
     if (house_name) {
       packet->setDataByName("house_zone", house_name->c_str());
       safe_delete(house_name);
-    } else
+    } else {
       packet->setDataByName("house_zone", "None");
-    //packet->setDataByName("account_age_base", 14);
-    if (player->GetHPRegen() == 0)
-      player->SetHPRegen((int)(info_struct->level * .75) + (int)(info_struct->level / 10) + 1);
-    if (player->GetPowerRegen() == 0)
-      player->SetPowerRegen(info_struct->level + (int)(info_struct->level / 10) + 4);
-    packet->setDataByName("hp_regen", player->GetHPRegen() + player->stats[ITEM_STAT_HPREGEN]);
-    packet->setDataByName("power_regen", player->GetPowerRegen() + player->stats[ITEM_STAT_MANAREGEN]);
+    }
+
+    packet->setDataByName("hp_regen", player->GetTotalHPRegen());
+    packet->setDataByName("power_regen", player->GetTotalPowerRegen());
 
     packet->setDataByName("mitigation2_cur", 2367);
     packet->setDataByName("mitigation_pct_pve", player->GetMitigationPercentage(player->GetLevel()) * 1000); // Mitigation % vs PvE
@@ -509,103 +525,32 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
     packet->setDataByName("unassigned_tradeskill_points", player->GetUnassignedTradeskillAA());
     packet->setDataByName("total_tradeskill_prestige_points", player->GetTradeskillPrestigeAA());
     packet->setDataByName("unassigned_tradeskill_prestige_points", player->GetUnassignedTradeskillPrestigeAA());
-    /*packet->setDataByName("unknown13", 201, 0);
-		packet->setDataByName("unknown13", 201, 1);
-		packet->setDataByName("unknown13", 234, 2);
-		packet->setDataByName("unknown13", 201, 3);
-		packet->setDataByName("unknown13", 214, 4);
-		packet->setDataByName("unknown13", 234, 5);
-		packet->setDataByName("unknown13", 234, 6);
-
-		packet->setDataByName("unknown14", 78);
-		*/
-
-    //packet->setDataByName("unknown23", 1, 146);
-
-    //packet->setDataByName("unknown24", 0xFF, 42);
-    //packet->setDataByName("unknown24", 0xFF, 46);
-
-    // unknown14c = percent aa exp to next level
     packet->setDataByName("unknown14d", 100, 0);
     packet->setDataByName("unknown20", 1084227584, 72);
-    //packet->setDataByName("unknown16", 0xFFFFFFFF, 4);
 
     packet->setDataByName("adventure_vitality", (int16)(player->GetXPVitality() * 10));
-    //packet->setDataByName("unknown15b", 9911);
     packet->setDataByName("xp_yellow_vitality_bar", info_struct->xp_yellow_vitality_bar);
     packet->setDataByName("xp_blue_vitality_bar", info_struct->xp_blue_vitality_bar);
     packet->setDataByName("tradeskill_vitality", 100);
+
     packet->setDataByName("unknown15c", 200);
 
-    //packet->setDataByName("unknown15", 100, 10);
     packet->setDataByName("breath", 30);
     packet->setDataByName("unknown18", 16880);
-    /*packet->setDataByName("unknown19", 1);
-		packet->setDataByName("unknown19", 3, 1);
-		packet->setDataByName("unknown19", 1074301064, 2);
-		packet->setDataByName("unknown19", 1, 3);
-		packet->setDataByName("unknown19", 3, 4);
-		packet->setDataByName("unknown19", 1074301064, 5);
-		packet->setDataByName("unknown19", 6, 6);
-		packet->setDataByName("unknown19", 14, 7);
-		packet->setDataByName("unknown19", 1083179008, 8);*/
-    player->SetGroupInformation(packet);
-    //packet->setDataByName("unknown20", 1, 107);
-    //packet->setDataByName("unknown20", 1, 108);
-    //packet->setDataByName("unknown20", 1, 109);
-    //packet->setDataByName("unknown20", 1, 110);
-    //packet->setDataByName("unknown20", 1, 111);
-    //packet->setDataByName("unknown20b", 255);
-    //packet->setDataByName("unknown20b", 255, 1);
-    //packet->setDataByName("unknown20b", 255, 2);
-    //packet->setDataByName("in_combat", 32768);
-    //make name flash red
-    /*packet->setDataByName("unknown20", 8);
-		packet->setDataByName("unknown20", 38, 70);
-		packet->setDataByName("unknown20", 17, 77);
-		packet->setDataByName("unknown20", 1, 112); //melee stats and such
-		packet->setDataByName("unknown20", 1, 113);
-		packet->setDataByName("unknown20", 1, 114);
-		packet->setDataByName("unknown20", 1, 115);
 
-		packet->setDataByName("unknown20", 4294967295, 309);
-		packet->setDataByName("unknown22", 2, 4);
-		packet->setDataByName("unknown23", 2, 29);
-		*/
-    //packet->setDataByName("unknown20b", 1, i); // pet bar in here
-    //	for(int i=0;i<19;i++)
-    //		packet->setDataByName("unknown7", 257, i);
-    //packet->setDataByName("unknown21", info_struct->rain, 2);
+    player->SetGroupInformation(packet);
+
     packet->setDataByName("rain", info_struct->rain);
     packet->setDataByName("rain2", info_struct->wind); //-102.24);
-    /*packet->setDataByName("unknown22", 3, 4);
-		packet->setDataByName("unknown23", 3, 161);
-		packet->setDataByName("unknown20", 103);
-		packet->setDataByName("unknown20", 1280, 70);
-		packet->setDataByName("unknown20", 9, 71);
-		packet->setDataByName("unknown20", 5, 72);
-		packet->setDataByName("unknown20", 4294967271, 73);
-		packet->setDataByName("unknown20", 5, 75);
-		packet->setDataByName("unknown20", 1051, 77);
-		packet->setDataByName("unknown20", 3, 78);
-		packet->setDataByName("unknown20", 6, 104);
-		packet->setDataByName("unknown20", 1, 105);
-		packet->setDataByName("unknown20", 20, 106);
-		packet->setDataByName("unknown20", 3, 107);
-		packet->setDataByName("unknown20", 1, 108);
-		packet->setDataByName("unknown20", 1, 109);
-		packet->setDataByName("unknown20", 4278190080, 494);
-		packet->setDataByName("unknown20b", 255);
-		packet->setDataByName("unknown20b", 255, 1);
-		packet->setDataByName("unknown20b", 255, 2);
-		packet->setDataByName("unknown20", 50, 75);
-		*/
+
+    packet->setDataByName("auto_attack_mode", player->GetAutoAttackMode());
     packet->setDataByName("melee_pri_dmg_min", player->GetPrimaryWeaponMinDamage());
     packet->setDataByName("melee_pri_dmg_max", player->GetPrimaryWeaponMaxDamage());
     packet->setDataByName("melee_sec_dmg_min", player->GetSecondaryWeaponMinDamage());
     packet->setDataByName("melee_sec_dmg_max", player->GetSecondaryWeaponMaxDamage());
     packet->setDataByName("ranged_dmg_min", player->GetRangedWeaponMinDamage());
     packet->setDataByName("ranged_dmg_max", player->GetRangedWeaponMaxDamage());
+
     if (info_struct->attackspeed > 0) {
       packet->setDataByName("melee_pri_delay", (((float)player->GetPrimaryWeaponDelay() * 1.33) / player->CalculateAttackSpeedMod()) * .001);
       packet->setDataByName("melee_sec_delay", (((float)player->GetSecondaryWeaponDelay() * 1.33) / player->CalculateAttackSpeedMod()) * .001);
@@ -615,6 +560,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
       packet->setDataByName("melee_sec_delay", (float)player->GetSecondaryWeaponDelay() * .001);
       packet->setDataByName("ranged_delay", (float)player->GetRangeWeaponDelay() * .001);
     }
+
     packet->setDataByName("crit_success_mod", 9.5);
 
     if (version >= 1193) {
@@ -640,7 +586,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
     packet->setDataByName("spell_reuse_speed", info_struct->spell_reuse_speed);
     packet->setDataByName("spell_multi_attack", info_struct->spell_multi_attack);
     packet->setDataByName("dps", info_struct->dps);
-    packet->setDataByName("haste", info_struct->haste);
+    packet->setDataByName("haste", info_struct->attackspeed);
     packet->setDataByName("multi_attack", info_struct->multi_attack);
     packet->setDataByName("flurry", info_struct->multi_attack);
     packet->setDataByName("melee_ae", info_struct->melee_ae);
@@ -784,6 +730,12 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
     }
     player->GetDetrimentMutex()->releasereadlock(__FUNCTION__, __LINE__);
 
+    if (player->IsTaunted()) {
+      packet->setDataByName("unknown_flags", 128);
+    } else {
+      packet->setDataByName("unknown_flags", 0);
+    }
+
     string* data = packet->serializeString();
     int32 size = data->length();
     //packet->PrintPacket();
@@ -811,7 +763,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
       control_packet->setDataByName("speed", player->GetSpeed());
       control_packet->setDataByName("air_speed", player->GetAirSpeed());
       control_packet->setDataByName("size", 0.51);
-      unique_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
+      shared_ptr<Client> client = player->GetZone()->GetClientBySpawn(player);
       if (client)
         client->QueuePacket(control_packet->serialize());
       safe_delete(control_packet);
@@ -914,7 +866,7 @@ EQ2Packet* PlayerInfo::serializePet(int16 version) {
   return 0;
 }
 
-bool Player::DamageEquippedItems(const unique_ptr<Client>& client, int8 amount) {
+bool Player::DamageEquippedItems(const shared_ptr<Client>& client, int8 amount) {
   bool ret = false;
   int8 item_type;
   Item* item = 0;
@@ -937,166 +889,193 @@ bool Player::DamageEquippedItems(const unique_ptr<Client>& client, int8 amount) 
   return ret;
 }
 
-vector<EQ2Packet*> Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version) {
+void Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version) {
   vector<EQ2Packet*> packets;
+
   Item* item = equipment_list.items[index];
-  if (item && bag_id == -999) {
-    int8 old_slot = item->details.slot_id;
-    if (item_list.AssignItemToFreeSlot(item)) {
-      database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
 
-      if (item->GetItemScript() && lua_interface)
-        lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+  if (item) {
+    if (bag_id == -999) {
+      int8 old_slot = item->details.slot_id;
 
-      item->save_needed = true;
-      EQ2Packet* outapp = item_list.serialize(this, version);
-      if (outapp) {
-        packets.push_back(outapp);
-        packets.push_back(item->serialize(version, false));
-        EQ2Packet* bag_packet = SendBagUpdate(item->details.inv_slot_id, version);
-        if (bag_packet)
-          packets.push_back(bag_packet);
-      }
-      equipment_list.RemoveItem(index);
-      packets.push_back(equipment_list.serialize(version, this));
-      CalculateBonuses();
-      SetCharSheetChanged(true);
-      SetEquipment(0, old_slot);
-    } else {
-      PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-      if (packet) {
-        packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-        packet->setMediumStringByName("text", "Unable to unequip item: no free inventory locations.");
-        packet->setDataByName("unknown02", 0x00ff);
-        packets.push_back(packet->serialize());
-        safe_delete(packet);
-      }
-    }
-  } else if (item) {
-    Item* to_item = 0;
-    if (item_list.items.count(bag_id) > 0 && item_list.items[bag_id].count(slot) > 0)
-      to_item = item_list.items[bag_id][slot];
-    if (to_item && GetEquipmentList()->CanItemBeEquippedInSlot(to_item, item->details.slot_id)) {
-      equipment_list.RemoveItem(index);
-      database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-      database.DeleteItem(GetCharacterID(), to_item, "NOT-EQUIPPED");
+      if (item_list.AssignItemToFreeSlot(item)) {
+        database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
 
-      if (item->GetItemScript() && lua_interface)
-        lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-
-      if (to_item->GetItemScript() && lua_interface)
-        lua_interface->RunItemScript(to_item->GetItemScript(), "equipped", to_item, this);
-
-      item_list.RemoveItem(to_item);
-      equipment_list.SetItem(item->details.slot_id, to_item);
-      to_item->save_needed = true;
-      packets.push_back(to_item->serialize(version, false));
-      SetEquipment(to_item);
-      CalculateBonuses();
-      item->details.inv_slot_id = bag_id;
-      item->details.slot_id = slot;
-      item_list.AddItem(item);
-      item->save_needed = true;
-      packets.push_back(item->serialize(version, false));
-      packets.push_back(equipment_list.serialize(version));
-      packets.push_back(item_list.serialize(this, version));
-    } else if (to_item && to_item->IsBag() && to_item->details.num_slots > 0) {
-      bool free_slot = false;
-      for (int8 i = 0; i < to_item->details.num_slots; i++) {
-        if (item_list.items[to_item->details.bag_id].count(i) == 0) {
-          SetEquipment(0, item->details.slot_id);
-          database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-
-          if (item->GetItemScript() && lua_interface)
-            lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-
-          equipment_list.RemoveItem(index);
-          CalculateBonuses();
-          item->details.inv_slot_id = to_item->details.bag_id;
-          item->details.slot_id = i;
-          item_list.AddItem(item);
-          item->save_needed = true;
-          packets.push_back(equipment_list.serialize(version));
-          packets.push_back(item->serialize(version, false));
-          packets.push_back(to_item->serialize(version, false, this));
-          packets.push_back(item_list.serialize(this, version));
-          free_slot = true;
-          break;
+        if (item->GetItemScript() && lua_interface) {
+          lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
         }
-      }
-      if (!free_slot) {
+
+        item->save_needed = true;
+
+        EQ2Packet* outapp = item_list.serialize(this, version);
+        if (outapp) {
+          packets.push_back(outapp);
+          packets.push_back(item->serialize(version, false));
+
+          EQ2Packet* bag_packet = SendBagUpdate(item->details.inv_slot_id, version);
+
+          if (bag_packet) {
+            packets.push_back(bag_packet);
+          }
+        }
+
+        equipment_list.RemoveItem(index);
+
+        SetEquipment(0, old_slot);
+
+        packets.push_back(equipment_list.serialize(version, this));
+      } else {
         PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
+
         if (packet) {
           packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-          packet->setMediumStringByName("text", "Unable to unequip item: no free space in the bag.");
+          packet->setMediumStringByName("text", "Unable to unequip item: no free inventory locations.");
           packet->setDataByName("unknown02", 0x00ff);
           packets.push_back(packet->serialize());
           safe_delete(packet);
         }
       }
-    } else if (to_item) {
-      PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
-      if (packet) {
-        packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-        packet->setMediumStringByName("text", "Unable to swap items: that item cannot be equipped there.");
-        packet->setDataByName("unknown02", 0x00ff);
-        packets.push_back(packet->serialize());
-        safe_delete(packet);
-      }
     } else {
-      if ((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == -3 && slot < NUM_BANK_SLOTS) || (bag_id == -4 && slot < NUM_SHARED_BANK_SLOTS)) {
-        if (bag_id == -4 && item->CheckFlag(NO_TRADE)) {
+      Item* to_item = nullptr;
+
+      if (item_list.items.count(bag_id) && item_list.items[bag_id].count(slot)) {
+        to_item = item_list.items[bag_id][slot];
+      }
+
+      if (to_item) {
+        if (GetEquipmentList()->CanItemBeEquippedInSlot(to_item, item->details.slot_id)) {
+          EquipItem(item_list.GetItemIndex(to_item), version, index);
+        } else if (to_item->IsBag() && to_item->details.num_slots > 0) {
+          bool free_slot = false;
+
+          for (int8 i = 0; i < to_item->details.num_slots; i++) {
+            if (!item_list.items[to_item->details.bag_id].count(i)) {
+              equipment_list.RemoveItem(index);
+
+              SetEquipment(0, item->details.slot_id);
+
+              item->details.inv_slot_id = to_item->details.bag_id;
+              item->details.slot_id = i;
+
+              item_list.AddItem(item);
+
+              item->save_needed = true;
+
+              database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+              if (item->GetItemScript() && lua_interface) {
+                lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+              }
+
+              packets.push_back(equipment_list.serialize(version));
+              packets.push_back(item_list.serialize(this, version));
+              packets.push_back(item->serialize(version, false));
+              packets.push_back(to_item->serialize(version, false, this));
+
+              free_slot = true;
+
+              break;
+            }
+          }
+
+          if (!free_slot) {
+            PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
+
+            if (packet) {
+              packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
+              packet->setMediumStringByName("text", "Unable to unequip item: no free space in the bag.");
+              packet->setDataByName("unknown02", 0x00ff);
+              packets.push_back(packet->serialize());
+              safe_delete(packet);
+            }
+          }
+        } else {
           PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
+
           if (packet) {
             packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
-            packet->setMediumStringByName("text", "Unable to unequip item: that item cannot be traded.");
+            packet->setMediumStringByName("text", "Unable to swap items: that item cannot be equipped there.");
             packet->setDataByName("unknown02", 0x00ff);
             packets.push_back(packet->serialize());
             safe_delete(packet);
           }
-        } else {
-          SetEquipment(0, item->details.slot_id);
-          database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
-
-          if (item->GetItemScript() && lua_interface)
-            lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
-
-          equipment_list.RemoveItem(index);
-          item->details.inv_slot_id = bag_id;
-          item->details.slot_id = slot;
-          item_list.AddItem(item);
-          CalculateBonuses();
-          item->save_needed = true;
-          packets.push_back(equipment_list.serialize(version));
-          packets.push_back(item->serialize(version, false));
-          packets.push_back(item_list.serialize(this, version));
         }
       } else {
-        Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
-        if (bag && bag->IsBag() && slot < bag->details.num_slots) {
-          SetEquipment(0, item->details.slot_id);
-          database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+        if ((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == -3 && slot < NUM_BANK_SLOTS) || (bag_id == -4 && slot < NUM_SHARED_BANK_SLOTS)) {
+          if (bag_id == -4 && item->CheckFlag(NO_TRADE)) {
+            PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
 
-          if (item->GetItemScript() && lua_interface)
-            lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+            if (packet) {
+              packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
+              packet->setMediumStringByName("text", "Unable to unequip item: that item cannot be traded.");
+              packet->setDataByName("unknown02", 0x00ff);
+              packets.push_back(packet->serialize());
+              safe_delete(packet);
+            }
+          } else {
+            equipment_list.RemoveItem(index);
 
-          equipment_list.RemoveItem(index);
-          item->details.inv_slot_id = bag_id;
-          item->details.slot_id = slot;
-          item_list.AddItem(item);
-          CalculateBonuses();
-          item->save_needed = true;
-          packets.push_back(equipment_list.serialize(version));
-          packets.push_back(item->serialize(version, false));
-          packets.push_back(item_list.serialize(this, version));
+            SetEquipment(0, item->details.slot_id);
+
+            item->details.inv_slot_id = bag_id;
+            item->details.slot_id = slot;
+
+            item_list.AddItem(item);
+
+            item->save_needed = true;
+
+            database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+            if (item->GetItemScript() && lua_interface) {
+              lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+            }
+
+            packets.push_back(equipment_list.serialize(version));
+            packets.push_back(item->serialize(version, false));
+            packets.push_back(item_list.serialize(this, version));
+          }
+        } else {
+          Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
+
+          if (bag && bag->IsBag() && slot < bag->details.num_slots) {
+            SetEquipment(0, item->details.slot_id);
+            database.DeleteItem(GetCharacterID(), item, "EQUIPPED");
+
+            if (item->GetItemScript() && lua_interface) {
+              lua_interface->RunItemScript(item->GetItemScript(), "unequipped", item, this);
+            }
+
+            equipment_list.RemoveItem(index);
+            item->details.inv_slot_id = bag_id;
+            item->details.slot_id = slot;
+            item_list.AddItem(item);
+            item->save_needed = true;
+            packets.push_back(equipment_list.serialize(version));
+            packets.push_back(item->serialize(version, false));
+            packets.push_back(item_list.serialize(this, version));
+          }
         }
       }
+
+      Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
+
+      if (bag && bag->IsBag()) {
+        packets.push_back(bag->serialize(version, false, this));
+      }
     }
-    Item* bag = item_list.GetItemFromUniqueID(bag_id, true);
-    if (bag && bag->IsBag())
-      packets.push_back(bag->serialize(version, false, this));
+
+    CalculateBonuses();
+    SetCharSheetChanged(true);
   }
-  return packets;
+
+  shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+  if (client) {
+    for (EQ2Packet* outapp : packets) {
+      if (outapp) {
+        client->QueuePacket(outapp);
+      }
+    }
+  }
 }
 
 map<int32, Item*>* Player::GetItemList() {
@@ -1144,120 +1123,184 @@ EQ2Packet* Player::SwapEquippedItems(int8 slot1, int8 slot2, int16 version) {
 }
 bool Player::CanEquipItem(Item* item) {
   if (item) {
-    unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+    shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
     if (client) {
       if (item->IsArmor() || item->IsWeapon() || item->IsFood() || item->IsRanged() || item->IsShield() || item->IsBauble() || item->IsAmmo() || item->IsThrown()) {
-        if ((item->generic_info.skill_req1 == 0 || item->generic_info.skill_req1 == 0xFFFFFFFF || skill_list.HasSkill(item->generic_info.skill_req1)) && (item->generic_info.skill_req2 == 0 || item->generic_info.skill_req2 == 0xFFFFFFFF || skill_list.HasSkill(item->generic_info.skill_req2))) {
-          int16 override_level = item->GetOverrideLevel(GetAdventureClass(), GetTradeskillClass());
-          if (override_level > 0 && override_level <= GetLevel())
-            return true;
-          if (item->CheckClass(GetAdventureClass(), GetTradeskillClass()))
-            if (item->CheckLevel(GetAdventureClass(), GetTradeskillClass(), GetLevel()))
-              return true;
-            else
-              client->Message(CHANNEL_COLOR_RED, "You must be at least level %u to equip \\aITEM %u 0:%s\\/a.", item->generic_info.adventure_default_level, item->details.item_id, item->name.c_str());
-          else
-            client->Message(CHANNEL_COLOR_RED, "Your class may not equip \\aITEM %u 0:%s\\/a.", item->details.item_id, item->name.c_str());
-        } else
-          client->SimpleMessage(0, "You lack the skill required to equip this item.");
-      } else
+        if (!item->CheckLevel(GetAdventureClass(), GetTradeskillClass(), GetLevel())) {
+          client->Message(CHANNEL_COLOR_RED, "You must be at least level %u to equip \\aITEM %u 0:%s\\/a.", item->generic_info.adventure_default_level, item->details.item_id, item->name.c_str());
+          return false;
+        }
+
+        if (!item->CheckClass(GetAdventureClass(), GetTradeskillClass())) {
+          client->Message(CHANNEL_COLOR_RED, "Your class may not equip \\aITEM %u 0:%s\\/a.", item->details.item_id, item->name.c_str());
+          return false;
+        }
+
+        int16 override_level = item->GetOverrideLevel(GetAdventureClass(), GetTradeskillClass());
+
+        if (!override_level || override_level > GetLevel()) {
+          if ((item->generic_info.skill_req1 != 0 && item->generic_info.skill_req1 != 0xFFFFFFFF) && !skill_list.HasSkill(item->generic_info.skill_req1)) {
+            client->SimpleMessage(0, "You lack the skill required to equip this item.");
+            return false;
+          }
+
+          if ((item->generic_info.skill_req2 != 0 && item->generic_info.skill_req2 != 0xFFFFFFFF) && !skill_list.HasSkill(item->generic_info.skill_req2)) {
+            client->SimpleMessage(0, "You lack the skill required to equip this item.");
+            return false;
+          }
+        }
+
+        if ((item->CheckFlag(LORE) || item->CheckFlag(LORE_EQUIP)) && HasEquippedItem(item->details.item_id)) {
+          client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot equip two of the same LORE-EQUIP items.");
+          return false;
+        }
+
+        return true;
+      } else {
         client->Message(0, "Item %s isn't equipable.", item->name.c_str());
+      }
     }
   }
+
   return false;
 }
 
-vector<EQ2Packet*> Player::EquipItem(int16 index, int16 version, int8 slot_id) {
+void Player::EquipItem(int16 index, int16 version, int8 slot_id) {
   vector<EQ2Packet*> packets;
-  if (item_list.indexed_items.count(index) == 0)
-    return packets;
+
+  if (!item_list.indexed_items.count(index)) {
+    return;
+  }
+
   Item* item = item_list.indexed_items[index];
+
   if (item) {
-    if (slot_id != 255 && !item->HasSlot(slot_id))
-      return packets;
-    int8 slot = equipment_list.GetFreeSlot(item, slot_id);
-    bool canEquip = CanEquipItem(item);
-    if (canEquip && item->CheckFlag(ATTUNEABLE)) {
-      PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", version);
-      char text[255];
-      sprintf(text, "%s must be attuned before it can be equipped. Would you like to attune it now?", item->name.c_str());
-      char accept_command[25];
-      sprintf(accept_command, "attune_inv %i 1 0 -1", index);
-      packet->setDataByName("text", text);
-      packet->setDataByName("accept_text", "Attune");
-      packet->setDataByName("accept_command", accept_command);
-      packet->setDataByName("cancel_text", "Cancel");
-      // No clue if we even need the following 2 unknowns, just added them so the packet matches what live sends
-      packet->setDataByName("unknown2", 50);
-      packet->setDataByName("unknown4", 1);
-      packets.push_back(packet->serialize());
-      safe_delete(packet);
-      return packets;
+    if (slot_id != 255 && !item->HasSlot(slot_id)) {
+      return;
     }
-    if (canEquip && slot == 255) {
-      if (slot_id == 255)
-        slot = item->slot_data.at(0);
-      else
-        slot = slot_id;
-      packets = UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
-      // If item is a 2handed weapon and something is in the secondary, unequip the secondary
-      if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
-        vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
-        //packets.reserve(packets.size() + tmp_packets.size());
-        packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
-      }
-    } else if (canEquip && slot < 255) {
-      // If item is a 2handed weapon and something is in the secondary, unequip the secondary
-      if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT) != 0) {
-        vector<EQ2Packet*> tmp_packets = UnequipItem(EQ2_SECONDARY_SLOT, -999, 0, version);
-        //packets.reserve(packets.size() + tmp_packets.size());
-        packets.insert(packets.end(), tmp_packets.begin(), tmp_packets.end());
-      }
 
-      database.DeleteItem(GetCharacterID(), item, "NOT-EQUIPPED");
+    if (CanEquipItem(item)) {
+      if (item->CheckFlag(ATTUNEABLE)) {
+        PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", version);
+        char text[255];
+        char accept_command[25];
 
-      if (item->GetItemScript() && lua_interface)
-        lua_interface->RunItemScript(item->GetItemScript(), "equipped", item, this);
+        sprintf(text, "%s must be attuned before it can be equipped. Would you like to attune it now?", item->name.c_str());
+        sprintf(accept_command, "attune_inv %i 1 0 -1", index);
 
-      item_list.RemoveItem(item);
-      equipment_list.SetItem(slot, item);
-      item->save_needed = true;
-      packets.push_back(item->serialize(version, false));
-      SetEquipment(item);
-      int32 bag_id = item->details.inv_slot_id;
-      if (item->generic_info.condition == 0) {
-        unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
-        if (client) {
-          client->Message(CHANNEL_COLOR_RED, "Your \\aITEM %u %u:%s\\/a is worn out and will not be effective until repaired.", item->details.item_id, item->details.unique_id, item->name.c_str());
+        packet->setDataByName("text", text);
+        packet->setDataByName("accept_text", "Attune");
+        packet->setDataByName("accept_command", accept_command);
+        packet->setDataByName("cancel_text", "Cancel");
+
+        // No clue if we even need the following 2 unknowns, just added them so the packet matches what live sends
+        packet->setDataByName("unknown2", 50);
+        packet->setDataByName("unknown4", 1);
+        packets.push_back(packet->serialize());
+
+        safe_delete(packet);
+      } else {
+        item_list.RemoveItem(item);
+
+        if ((item->IsWeapon() || item->IsShield()) && equipment_list.GetItem(EQ2_PRIMARY_SLOT) && equipment_list.GetItem(EQ2_PRIMARY_SLOT)->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND) {
+          UnequipItem(EQ2_PRIMARY_SLOT, -999, 255, version);
         }
+
+        int8 slot = equipment_list.GetFreeSlot(item, slot_id);
+
+        if (slot == 255) {
+          if (slot_id == 255) {
+            slot = item->slot_data.at(0);
+          } else {
+            slot = slot_id;
+          }
+
+          UnequipItem(slot, item->details.inv_slot_id, item->details.slot_id, version);
+        }
+
+        if (item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && equipment_list.GetItem(EQ2_SECONDARY_SLOT)) {
+          UnequipItem(EQ2_SECONDARY_SLOT, -999, 255, version);
+        }
+
+        equipment_list.SetItem(slot, item);
+
+        SetEquipment(item);
+
+        item->save_needed = true;
+
+        database.DeleteItem(GetCharacterID(), item, "NOT-EQUIPPED");
+
+        if (item->GetItemScript() && lua_interface) {
+          lua_interface->RunItemScript(item->GetItemScript(), "equipped", item, this);
+        }
+
+        int32 bag_id = item->details.inv_slot_id;
+
+        if (item->generic_info.condition == 0) {
+          shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+
+          if (client) {
+            client->Message(CHANNEL_COLOR_RED, "Your \\aITEM %u %u:%s\\/a is worn out and will not be effective until repaired.", item->details.item_id, item->details.unique_id, item->name.c_str());
+          }
+        }
+
+        packets.push_back(item->serialize(version, false));
+        packets.push_back(equipment_list.serialize(version, this));
+
+        EQ2Packet* outapp = item_list.serialize(this, version);
+
+        if (outapp) {
+          packets.push_back(outapp);
+
+          EQ2Packet* bag_packet = SendBagUpdate(bag_id, version);
+
+          if (bag_packet) {
+            packets.push_back(bag_packet);
+          }
+        }
+
+        CalculateBonuses();
+        SetCharSheetChanged(true);
       }
-      packets.push_back(equipment_list.serialize(version, this));
-      EQ2Packet* outapp = item_list.serialize(this, version);
-      if (outapp) {
-        packets.push_back(outapp);
-        EQ2Packet* bag_packet = SendBagUpdate(bag_id, version);
-        if (bag_packet)
-          packets.push_back(bag_packet);
-      }
-      CalculateBonuses();
-      SetCharSheetChanged(true);
     }
   }
-  return packets;
+
+  shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+  if (client) {
+    for (EQ2Packet* outapp : packets) {
+      if (outapp) {
+        client->QueuePacket(outapp);
+      }
+    }
+  }
 }
+
 bool Player::AddItem(Item* item) {
   if (item && item->details.item_id > 0) {
     if (item_list.AssignItemToFreeSlot(item)) {
       item->save_needed = true;
       return true;
-    } else if (item_list.AddOverflowItem(item))
+    } else if (item_list.AddOverflowItem(item)) {
       return true;
+    }
   }
+
   return false;
 }
+
+bool Player::HasItem(int32 item_id, bool include_bank) {
+  return item_list.HasItem(item_id, include_bank) || HasEquippedItem(item_id);
+}
+
+bool Player::HasEquippedItem(int32 item_id) {
+  return GetEquipmentList()->HasItem(item_id);
+}
+
 EQ2Packet* Player::SendInventoryUpdate(int16 version) {
   return item_list.serialize(this, version);
 }
+
 EQ2Packet* Player::MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 new_slot, int8 charges, int16 version) {
   Item* item = item_list.GetItemFromIndex(from_index);
   int8 result = item_list.MoveItem(to_bag_id, from_index, new_slot, charges);
@@ -1531,8 +1574,6 @@ void Player::UnlockAllSpells(bool first_load) {
       Spell* spell = master_spell_list.GetSpell(entry->spell_id, entry->tier);
 
       if (spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE || (!GetSpellEffect(spell->GetSpellID(), this) && !HasLinkedSpellEffect(spell))) {
-        if (spell->MustBeBehind() || spell->MustBeFlanking())
-          continue;
         if (spell->MustBeStealthed() && !IsStealthed()) {
           RemoveSpellStatus(entry, SPELL_STATUS_READY);
           continue;
@@ -1566,8 +1607,6 @@ void Player::UnlockSpell(Spell* spell) {
   for (auto entry : spells) {
     if (entry->spell_id == spell->GetSpellID() && entry->recast_available < Timer::GetCurrentTime2()) {
       if (spell->GetSpellData()->cast_type != SPELL_CAST_TYPE_TOGGLE || (!GetSpellEffect(spell->GetSpellID(), this) && !HasLinkedSpellEffect(spell))) {
-        if (spell->MustBeBehind() || spell->MustBeFlanking())
-          break;
         if (spell->MustBeStealthed() && !IsStealthed())
           break;
 
@@ -2048,11 +2087,27 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell) {
     return;
 
   Spell* spell = luaspell->spell;
+  shared_ptr<LuaSpell> old_spell = 0;
   MaintainedEffects* effect = GetFreeMaintainedSpellSlot();
   int32 target_type = 0;
   Spawn* spawn = 0;
 
   if (effect) {
+    InfoStruct* info = GetInfoStruct();
+    GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
+    for (int i = 0; i < NUM_MAINTAINED_EFFECTS; i++) {
+      shared_ptr<LuaSpell> maintained_spell = info->maintained_effects[i].spell;
+      if (!maintained_spell)
+        continue;
+      else {
+        if (static_cast<Spell*>(maintained_spell->spell)->GetSpellData()->linked_timer == spell->GetSpellData()->linked_timer) {
+          old_spell = info->maintained_effects[i].spell;
+          break;
+        }
+      }
+    }
+    GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
+
     GetMaintainedMutex()->writelock(__FUNCTION__, __LINE__);
     strcpy(effect->name, spell->GetSpellData()->name.data.c_str());
     effect->target = luaspell->initial_target;
@@ -2083,6 +2138,10 @@ void Player::AddMaintainedSpell(shared_ptr<LuaSpell> luaspell) {
       effect->expire_timestamp = Timer::GetCurrentTime2() + (spell->GetSpellDuration() * 100);
     GetMaintainedMutex()->releasewritelock(__FUNCTION__, __LINE__);
 
+    if (old_spell) {
+      RemoveSpellEffect(old_spell);
+      RemoveMaintainedSpell(old_spell);
+    }
     SetCharSheetChanged(true);
   }
 }
@@ -2132,7 +2191,7 @@ void Player::RemoveMaintainedSpell(shared_ptr<LuaSpell> luaspell) {
   }
 
   bool found = false;
-  unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+  shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 
   GetMaintainedMutex()->writelock(__FUNCTION__, __LINE__);
   for (int i = 0; i < 30; i++) {
@@ -2370,7 +2429,7 @@ void Player::PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version
     SetBoatSpawn(0);
 
   if (!IsResurrecting() && !GetBoatSpawn()) {
-    if (!IsRooted() && !IsMezzedOrStunned()) {
+    if (!IsRooted() && !IsMezzedOrStunned() && !IsFeigned()) {
       SetX(x);
       SetY(y);
       SetZ(z);
@@ -2521,13 +2580,8 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
   encounter_list_mutex.lock();
   if (encounter_list.count(spawn_id) > 0) {
     HostileEntity* entity = encounter_list.at(spawn_id);
-
-    if (has_attacked) {
-      entity->last_activity = last_activity;
-
-      if (!entity->has_attacked)
-        entity->has_attacked = has_attacked;
-    }
+    entity->last_activity = last_activity;
+    entity->has_attacked = has_attacked;
   } else {
     HostileEntity* entity = new HostileEntity;
     entity->last_activity = last_activity;
@@ -2537,8 +2591,9 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
   }
   encounter_list_mutex.unlock();
 
-  if (has_attacked)
+  if (has_attacked) {
     InCombat(true);
+  }
 }
 
 void Player::RemoveFromEncounterList(int32 spawn_id) {
@@ -2568,13 +2623,15 @@ void Player::CheckEncounterList() {
   for (const auto& kv : encounter_list) {
     Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
 
-    if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000)))
+    if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000))) {
       to_remove.push_back(kv.first);
+    }
   }
   encounter_list_mutex.unlock();
 
-  for (const auto& spawn : to_remove)
+  for (const auto& spawn : to_remove) {
     RemoveFromEncounterList(spawn);
+  }
 }
 
 void Player::SetCharSheetChanged(bool val) {
@@ -2598,15 +2655,23 @@ void Player::set_character_flag(int flag) {
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flag: %u", flag);
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flags before: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 
-  if (flag > CF_MAXIMUM_FLAG)
+  if (flag > CF_MAXIMUM_FLAG) {
     return;
-  if (flag < 32)
-    GetInfoStruct()->flags |= (1 << flag);
-  else
-    GetInfoStruct()->flags2 |= (1 << (flag - 32));
+  }
 
-  SetCharSheetChanged(true);
-  AddSpawnUpdate(true, false, false);
+  int prev_flags = GetInfoStruct()->flags;
+  int prev_flags2 = GetInfoStruct()->flags2;
+
+  if (flag < 32) {
+    GetInfoStruct()->flags |= (1 << flag);
+  } else {
+    GetInfoStruct()->flags2 |= (1 << (flag - 32));
+  }
+
+  if (GetInfoStruct()->flags != prev_flags || GetInfoStruct()->flags2 != prev_flags2) {
+    SetCharSheetChanged(true);
+    AddSpawnUpdate(true, false, false);
+  }
 
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flags after: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 }
@@ -2615,15 +2680,23 @@ void Player::reset_character_flag(int flag) {
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flag: %u", flag);
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flags before: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 
-  if (flag > CF_MAXIMUM_FLAG)
+  if (flag > CF_MAXIMUM_FLAG) {
     return;
-  if (flag < 32)
-    GetInfoStruct()->flags &= ~(1 << flag);
-  else
-    GetInfoStruct()->flags2 &= ~(1 << (flag - 32));
+  }
 
-  SetCharSheetChanged(true);
-  AddSpawnUpdate(true, false, false);
+  int prev_flags = GetInfoStruct()->flags;
+  int prev_flags2 = GetInfoStruct()->flags2;
+
+  if (flag < 32) {
+    GetInfoStruct()->flags &= ~(1 << flag);
+  } else {
+    GetInfoStruct()->flags2 &= ~(1 << (flag - 32));
+  }
+
+  if (GetInfoStruct()->flags != prev_flags || GetInfoStruct()->flags2 != prev_flags2) {
+    SetCharSheetChanged(true);
+    AddSpawnUpdate(true, false, false);
+  }
 
   LogWrite(PLAYER__DEBUG, 0, "Player", "Flags after: %u, Flags2: %u", GetInfoStruct()->flags, GetInfoStruct()->flags2);
 }
@@ -2860,6 +2933,10 @@ int32 Player::GetTSXP() {
 bool Player::AddXP(int32 xp_amount) {
   float current_xp_percent = ((float)GetXP() / (float)GetNeededXP()) * 100;
   float miniding_min_percent = ((int)(current_xp_percent / 10) + 1) * 10;
+
+  if (GetLevel() == rule_manager.GetGlobalRule(R_Player, MaxLevel)->GetInt16()) {
+    xp_amount = 0;
+  }
   while ((xp_amount + GetXP()) >= GetNeededXP()) {
     if (!CheckLevelStatus(GetLevel() + 1)) {
       GetZone()->GetClientBySpawn(this)->SimpleMessage(CHANNEL_COLOR_RED, "You do not have the required status to level up anymore!");
@@ -3009,7 +3086,7 @@ void Player::CheckQuestsCraftUpdate(Item* item, int32 qty) {
   }
   MPlayerQuests.unlock();
   if (update_list && update_list->size() > 0) {
-    unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+    shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
     if (client) {
       for (int8 i = 0; i < update_list->size(); i++) {
         client->SendQuestUpdate(update_list->at(i));
@@ -3036,7 +3113,7 @@ void Player::CheckQuestsHarvestUpdate(Item* item, int32 qty) {
   }
   MPlayerQuests.unlock();
   if (update_list && update_list->size() > 0) {
-    unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+    shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
     if (client) {
       for (int8 i = 0; i < update_list->size(); i++) {
         client->SendQuestUpdate(update_list->at(i));
@@ -3688,48 +3765,54 @@ void Player::SortSpellBook() {
 int8 Player::GetArrowColor(int8 spawn_level) {
   int8 color = 0;
   sint16 diff = spawn_level - GetLevel();
-  if (GetLevel() < 10)
-    diff *= 3;
-  else if (GetLevel() <= 20)
+
+  if (GetLevel() < 10) {
     diff *= 2;
-  if (diff >= 9)
+  }
+
+  if (diff >= 9) {
     color = ARROW_COLOR_RED;
-  else if (diff >= 5)
+  } else if (diff >= 5) {
     color = ARROW_COLOR_ORANGE;
-  else if (diff >= 1)
+  } else if (diff >= 1) {
     color = ARROW_COLOR_YELLOW;
-  else if (diff == 0)
+  } else if (diff == 0) {
     color = ARROW_COLOR_WHITE;
-  else if (diff <= -11)
+  } else if (diff <= -9) {
     color = ARROW_COLOR_GRAY;
-  else if (diff <= -6)
+  } else if (diff <= -6) {
     color = ARROW_COLOR_GREEN;
-  else //if(diff < 0)
+  } else {
     color = ARROW_COLOR_BLUE;
+  }
+
   return color;
 }
 
 int8 Player::GetTSArrowColor(int8 level) {
   int8 color = 0;
   sint16 diff = level - GetTSLevel();
-  if (GetLevel() < 10)
-    diff *= 3;
-  else if (GetLevel() <= 20)
+
+  if (GetLevel() < 10) {
     diff *= 2;
-  if (diff >= 9)
+  }
+
+  if (diff >= 9) {
     color = ARROW_COLOR_RED;
-  else if (diff >= 5)
+  } else if (diff >= 5) {
     color = ARROW_COLOR_ORANGE;
-  else if (diff >= 1)
+  } else if (diff >= 1) {
     color = ARROW_COLOR_YELLOW;
-  else if (diff == 0)
+  } else if (diff == 0) {
     color = ARROW_COLOR_WHITE;
-  else if (diff <= -11)
+  } else if (diff <= -9) {
     color = ARROW_COLOR_GRAY;
-  else if (diff <= -6)
+  } else if (diff <= -6) {
     color = ARROW_COLOR_GREEN;
-  else //if(diff < 0)
+  } else {
     color = ARROW_COLOR_BLUE;
+  }
+
   return color;
 }
 
@@ -3775,7 +3858,7 @@ void Player::SetPVPImmune(bool val) {
 
   AddSpawnUpdate(false, false, true);
 
-  SetResendSpawns(true);
+  SetResendSpawns(RESEND_AGGRO);
 }
 
 void Player::AddCoins(int64 val) {
@@ -4549,7 +4632,7 @@ void Player::AddPassiveSpell(int32 id, int8 tier) {
   // player has instead of going through all their spells.
   passive_spells.push_back(id);
 
-  unique_ptr<Client> client = GetZone()->GetClientBySpawn(this);
+  shared_ptr<Client> client = GetZone()->GetClientBySpawn(this);
 
   // Don not apply passives if the client is null, zoning, or reviving
   if (client == NULL || client->IsZoning() || IsResurrecting())
@@ -4856,7 +4939,7 @@ void Player::SendQuestRequiredSpawns(int32 quest_id) {
   if (player_spawn_quests_required.size() > 0) {
     ZoneServer* zone = GetZone();
 
-    unique_ptr<Client> client = zone->GetClientBySpawn(this);
+    shared_ptr<Client> client = zone->GetClientBySpawn(this);
 
     if (!client) {
       m_playerSpawnQuestsRequired.releasereadlock(__FUNCTION__, __LINE__);
@@ -4894,7 +4977,7 @@ void Player::SendHistoryRequiredSpawns(int32 event_id) {
 
   if (player_spawn_history_required.size() > 0) {
     ZoneServer* zone = GetZone();
-    unique_ptr<Client> client = zone->GetClientBySpawn(this);
+    shared_ptr<Client> client = zone->GetClientBySpawn(this);
 
     if (!client) {
       m_playerSpawnHistoryRequired.releasereadlock(__FUNCTION__, __LINE__);
@@ -5014,7 +5097,7 @@ void PlayerControlFlags::SetPlayerControlFlag(int8 param, int8 param_value, bool
   MControlFlags.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void PlayerControlFlags::SendControlFlagUpdates(const unique_ptr<Client>& client) {
+void PlayerControlFlags::SendControlFlagUpdates(const shared_ptr<Client>& client) {
   if (!client)
     return;
 
@@ -5042,7 +5125,7 @@ void Player::SetPlayerControlFlag(int8 param, int8 param_value, bool is_active) 
   control_flags.SetPlayerControlFlag(param, param_value, is_active);
 }
 
-void Player::SendControlFlagUpdates(const unique_ptr<Client>& client) {
+void Player::SendControlFlagUpdates(const shared_ptr<Client>& client) {
   control_flags.SendControlFlagUpdates(client);
 }
 

@@ -17,25 +17,20 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_PLAYER__
-#define __EQ2_PLAYER__
+#pragma once
 
-#include "Entity.h"
-#include "Items/Items.h"
-#include "Factions.h"
-#include "Skills.h"
-#include "Quests.h"
-#include "MutexMap.h"
-#include "Guilds/Guild.h"
+#include <mutex>
+#include <set>
+#include "Achievements/Achievements.h"
 #include "Collections/Collections.h"
 #include "Recipes/Recipe.h"
-#include "Titles.h"
+#include "Entity.h"
+#include "Factions.h"
 #include "Languages.h"
-#include "Achievements/Achievements.h"
-#include <algorithm>
-#include <set>
-#include <mutex>
-#include <memory>
+#include "Skills.h"
+#include "Titles.h"
+
+class Guild;
 
 #define CF_COMBAT_EXPERIENCE_ENABLED 0
 #define CF_ENABLE_CHANGE_LASTNAME 1
@@ -131,6 +126,9 @@
 #define HISTORY_SUBTYPE_AA 4
 #define HISTORY_SUBTYPE_ITEM 5
 #define HISTORY_SUBTYPE_LOCATION 6
+
+#define RESEND_AGGRO 1
+#define RESEND_ALL 2
 
 /// <summary>Character history data, should match the `character_history` table in the DB</summary>
 struct HistoryData {
@@ -366,7 +364,7 @@ public:
 
   void SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);
   bool ControlFlagsChanged();
-  void SendControlFlagUpdates(const unique_ptr<Client>& client);
+  void SendControlFlagUpdates(const shared_ptr<Client>& client);
 
 private:
   bool flags_changed;
@@ -432,11 +430,11 @@ public:
   PlayerSkillList skill_list;
   Skill* GetSkillByName(const char* name, bool check_update = false);
   PlayerSkillList* GetSkills();
-  bool DamageEquippedItems(const unique_ptr<Client>& client, int8 amount = 10);
-  vector<EQ2Packet*> EquipItem(int16 index, int16 version, int8 slot_id = 255);
+  bool DamageEquippedItems(const shared_ptr<Client>& client, int8 amount = 10);
+  void EquipItem(int16 index, int16 version, int8 slot_id = 255);
   bool CanEquipItem(Item* item);
   void SetEquippedItemAppearances();
-  vector<EQ2Packet*> UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version);
+  void UnequipItem(int16 index, sint32 bag_id, int8 slot, int16 version);
   EQ2Packet* SwapEquippedItems(int8 slot1, int8 slot2, int16 version);
   EQ2Packet* RemoveInventoryItem(int8 bag_slot, int8 slot);
   EQ2Packet* SendInventoryUpdate(int16 version);
@@ -449,6 +447,8 @@ public:
   Quest* AddStepProgress(int32 quest_id, int32 step, int32 progress);
   int32 GetStepProgress(int32 quest_id, int32 step_id);
   bool AddItem(Item* item);
+  bool HasItem(int32 item_id, bool include_bank = false);
+  bool HasEquippedItem(int32 item_id);
   int16 GetSpellSlotMappingCount();
   int16 GetSpellPacketCount();
   Quest* GetQuest(int32 quest_id);
@@ -727,7 +727,7 @@ public:
   float GetPosPacketSpeed() { return pos_packet_speed; }
   bool ControlFlagsChanged();
   void SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);
-  void SendControlFlagUpdates(const unique_ptr<Client>& client);
+  void SendControlFlagUpdates(const shared_ptr<Client>& client);
 
   /// <summary>Casts all the passive spells for the player, only call after zoning is complete.</summary>
   void ApplyPassiveSpells();
@@ -870,11 +870,14 @@ public:
   int16 GetFame();
   void SetFame(sint16 value);
 
-  void SetResendSpawns(bool val) {
-    should_resend_spawns = val;
-    return;
-  }
-  bool GetResendSpawns() { return should_resend_spawns; }
+  void SetResendSpawns(int8 type) { resend_spawns = type; }
+  int8 GetResendSpawns() { return resend_spawns; }
+
+  void SetIgnoredByMobs(bool val) { ignored_by_mobs = val; }
+  bool GetIgnoredByMobs() { return ignored_by_mobs; }
+
+  void SetAutoAttackMode(int8 val) { auto_attack_mode = val; }
+  int8 GetAutoAttackMode() { return auto_attack_mode; }
 
   void AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked = true);
   void RemoveFromEncounterList(int32 spawn_id);
@@ -896,7 +899,9 @@ public:
 private:
   bool range_attack;
   bool melee_attack;
-  bool pvp_immune = false;
+  bool pvp_immune;
+  bool ignored_by_mobs;
+  int8 auto_attack_mode;
   int16 last_movement_activity;
   bool returning_from_ld;
   PlayerGroup* group;
@@ -914,7 +919,7 @@ private:
   map<int32, Quest*> completed_quests;
   map<Spawn*, int8> player_removed_spawns;
   bool charsheet_changed;
-  bool should_resend_spawns;
+  int8 resend_spawns;
   map<int32, string> spawn_vis_packet_list;
   map<int32, string> spawn_info_packet_list;
   map<int32, string> spawn_pos_packet_list;
@@ -1007,4 +1012,3 @@ private:
   EQ2_Color tmp_mount_saddle_color;
 };
 #pragma pack()
-#endif

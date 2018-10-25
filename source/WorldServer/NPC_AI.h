@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __NPC_AI_H__
-#define __NPC_AI_H__
-#include "NPC.h"
-#include <vector>
+#pragma once
+
 #include <map>
+#include <vector>
+#include "NPC.h"
 
 using namespace std;
 
@@ -109,6 +109,7 @@ public:
   /// <summary>Checks to see if a player is in the encounter</summary>
   /// <returns>True if the encounter list contains a player</returns>
   bool PlayerInEncounter() { return m_playerInEncounter; }
+  void SetOverrideTarget(int32 spawn_id) { override_target = spawn_id; }
 
   /* Helper functions*/
 
@@ -144,6 +145,8 @@ private:
   Mutex MEncounter;
   //m_playerInEncounter = true if a player is added to the encounter
   bool m_playerInEncounter;
+
+  int32 override_target;
 };
 
 // Extension of the default brain for combat pets
@@ -185,4 +188,3 @@ public:
 private:
   int32 m_expireTime;
 };
-#endif

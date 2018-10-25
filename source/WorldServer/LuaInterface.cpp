@@ -303,8 +303,8 @@ bool LuaInterface::LoadZoneScript(const char* name) {
 
 void LuaInterface::ProcessErrorMessage(const char* message) {
   MDebugClients.lock();
-  vector<unique_ptr<Client>> delete_clients;
-  map<unique_ptr<Client>, int32>::iterator itr;
+  vector<shared_ptr<Client>> delete_clients;
+  map<shared_ptr<Client>, int32>::iterator itr;
   for (itr = debug_clients.begin(); itr != debug_clients.end(); itr++) {
     if ((Timer::GetCurrentTime2() - itr->second) > 60000)
       delete_clients.push_back(itr->first);
@@ -316,13 +316,13 @@ void LuaInterface::ProcessErrorMessage(const char* message) {
   MDebugClients.unlock();
 }
 
-void LuaInterface::RemoveDebugClients(unique_ptr<Client> client) {
+void LuaInterface::RemoveDebugClients(shared_ptr<Client> client) {
   MDebugClients.lock();
   debug_clients.erase(client);
   MDebugClients.unlock();
 }
 
-void LuaInterface::UpdateDebugClients(unique_ptr<Client> client) {
+void LuaInterface::UpdateDebugClients(shared_ptr<Client> client) {
   MDebugClients.lock();
   debug_clients[client] = Timer::GetCurrentTime2();
   MDebugClients.unlock();
@@ -989,6 +989,9 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
   lua_register(state, "DropChest", EQ2Emu_lua_DropChest);
   lua_register(state, "SendSkillUpdate", EQ2Emu_lua_SendSkillUpdate);
   lua_register(state, "SetPlayerAlignment", EQ2Emu_lua_SetPlayerAlignment);
+  lua_register(state, "GetLastDamageTaken", EQ2Emu_lua_GetLastDamageTaken);
+  lua_register(state, "GetLastDamageWarded", EQ2Emu_lua_GetLastDamageWarded);
+  lua_register(state, "SetIgnoredByMobs", EQ2Emu_lua_SetIgnoredByMobs);
 }
 
 void LuaInterface::LogError(const char* error, ...) {

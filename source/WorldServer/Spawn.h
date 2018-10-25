@@ -17,22 +17,22 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_SPAWN__
-#define __EQ2_SPAWN__
+#pragma once
 
-#include "../common/types.h"
+#include <deque>
+#include <vector>
+#include "../common/ConfigReader.h"
 #include "../common/EQPacket.h"
 #include "../common/EQ2_Common_Structs.h"
 #include "../common/MiscFunctions.h"
+#include "../common/Mutex.h"
 #include "../common/opcodemgr.h"
 #include "../common/timer.h"
+#include "../common/types.h"
 #include "Commands/Commands.h"
-#include "SpawnLists.h"
-#include <vector>
-#include "../common/ConfigReader.h"
 #include "Items/Items.h"
-#include "../common/Mutex.h"
-#include <deque>
+#include "Quests.h"
+#include "SpawnLists.h"
 
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL 0x41
 #define DAMAGE_PACKET_TYPE_SIPHON_SPELL_CRIT_DMG 0x45
@@ -203,7 +203,7 @@ struct SpawnUpdate {
   bool info_changed;
   bool vis_changed;
   bool pos_changed;
-  unique_ptr<Client> client;
+  shared_ptr<Client> client;
 };
 
 struct SpawnData {
@@ -808,6 +808,10 @@ public:
   void SetTarget(Spawn* spawn);
   Spawn* GetLastAttacker();
   void SetLastAttacker(Spawn* spawn);
+  void SetLastDamageTaken(int32 damage);
+  int32 GetLastDamageTaken();
+  void SetLastDamageWarded(int32 damage) { last_damage_warded = damage; }
+  int32 GetLastDamageWarded() { return last_damage_warded; }
   bool TakeDamage(int32 damage);
   void TakeDamage(Spawn* attacker, int32 damage);
   ZoneServer* GetZone();
@@ -856,7 +860,11 @@ public:
   Spawn* GetRunningTo();
   void SetTempVisualState(int val, bool update = true) { SetInfo(&tmp_visual_state, val, update); }
   int GetTempVisualState() { return tmp_visual_state; }
-  void SetTempActionState(int val, bool update = true) { SetInfo(&tmp_action_state, val, update); }
+  void SetTempActionState(int val, bool update = true) {
+    if (tmp_action_state != val) {
+      SetInfo(&tmp_action_state, val, update);
+    }
+  }
   int GetTempActionState() { return tmp_action_state; }
   void AddAllowAccessSpawn(Spawn* spawn) { allowed_access[spawn->GetID()] = 1; }
   void RemoveSpawnAccess(Spawn* spawn);
@@ -996,6 +1004,8 @@ protected:
   int32 target;
   int8 spawn_type;
   int32 last_attacker;
+  int32 last_damage_taken;
+  int32 last_damage_warded;
   int32 merchant_id;
   int8 merchant_type;
   int32 transporter_id;
@@ -1048,5 +1058,3 @@ private:
 
   Mutex m_Update;
 };
-
-#endif

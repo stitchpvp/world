@@ -118,7 +118,7 @@ void PlayerGroup::Disband() {
   m_members.clear();
 }
 
-void PlayerGroup::SendGroupUpdate(unique_ptr<Client> exclude) {
+void PlayerGroup::SendGroupUpdate(shared_ptr<Client> exclude) {
   deque<GroupMemberInfo*>::iterator itr;
   for (itr = m_members.begin(); itr != m_members.end(); itr++) {
     GroupMemberInfo* gmi = *itr;
@@ -199,7 +199,7 @@ bool PlayerGroupManager::AddGroupMember(int32 group_id, Entity* member) {
 bool PlayerGroupManager::RemoveGroupMember(int32 group_id, Entity* member) {
   bool ret = false;
   bool remove = false;
-  unique_ptr<Client> client = 0;
+  shared_ptr<Client> client = 0;
   MGroups.writelock(__FUNCTION__, __LINE__);
 
   if (m_groups.count(group_id) > 0) {
@@ -333,7 +333,7 @@ int8 PlayerGroupManager::AcceptInvite(Entity* member) {
 
   if (m_pendingInvites.count(member->GetName()) > 0) {
     string leader = m_pendingInvites[member->GetName()];
-    unique_ptr<Client> client_leader = zone_list.GetClientByCharName(leader);
+    shared_ptr<Client> client_leader = zone_list.GetClientByCharName(leader);
 
     if (client_leader) {
       if (m_pendingInvites.count(leader) > 0) {
@@ -379,7 +379,7 @@ bool PlayerGroupManager::IsGroupIDValid(int32 group_id) {
   return ret;
 }
 
-void PlayerGroupManager::SendGroupUpdate(int32 group_id, unique_ptr<Client> exclude) {
+void PlayerGroupManager::SendGroupUpdate(int32 group_id, shared_ptr<Client> exclude) {
   MGroups.writelock(__FUNCTION__, __LINE__);
 
   if (m_groups.count(group_id) > 0) {
@@ -405,7 +405,7 @@ void PlayerGroupManager::ClearPendingInvite(Entity* member) {
   MPendingInvites.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, unique_ptr<Client> client) {
+void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, shared_ptr<Client> client) {
   PlayerGroup* group = nullptr;
   map<Player*, vector<shared_ptr<LuaSpell>>> to_remove;
 
@@ -469,7 +469,7 @@ void PlayerGroupManager::RemoveGroupBuffs(int32 group_id, unique_ptr<Client> cli
         }
       }
 
-      unique_ptr<Client> target_client = target->GetZone()->GetClientBySpawn(target);
+      shared_ptr<Client> target_client = target->GetZone()->GetClientBySpawn(target);
 
       if (target_client) {
         EQ2Packet* packet = target->GetSkills()->GetSkillPacket(target_client->GetVersion());
@@ -495,7 +495,7 @@ int32 PlayerGroupManager::GetGroupSize(int32 group_id) {
   return ret;
 }
 
-void PlayerGroupManager::SendGroupQuests(int32 group_id, unique_ptr<Client> client) {
+void PlayerGroupManager::SendGroupQuests(int32 group_id, shared_ptr<Client> client) {
   GroupMemberInfo* info = 0;
   MGroups.readlock(__FUNCTION__, __LINE__);
   if (m_groups.count(group_id) > 0) {
@@ -564,7 +564,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
   PlayerGroup* group = 0;
   Player* caster = 0;
   vector<int32> new_target_list;
-  unique_ptr<Client> client = 0;
+  shared_ptr<Client> client = 0;
   bool has_effect = false;
   vector<BonusValues*>* sb_list = 0;
   BonusValues* bv = 0;

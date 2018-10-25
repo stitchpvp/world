@@ -58,13 +58,13 @@ public:
   void SetAttemptsPerHarvest(int8 val);
   int32 GetGroundSpawnEntryID();
   void SetGroundSpawnEntryID(int32 val);
-  void ProcessHarvest(const unique_ptr<Client>& client);
+  void ProcessHarvest(const shared_ptr<Client>& client);
   void SetCollectionSkill(const char* val);
   const char* GetCollectionSkill();
   string GetHarvestMessageName(bool present_tense = false, bool failure = false);
   string GetHarvestSpellType();
   string GetHarvestSpellName();
-  void HandleUse(const unique_ptr<Client>& client, string type);
+  void HandleUse(const shared_ptr<Client>& client, string type);
 
 private:
   int8 number_harvests;

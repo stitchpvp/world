@@ -98,7 +98,7 @@ void WorldDatabase::DeleteBuyBack(int32 char_id, int32 item_id, int8 quantity, i
   query.RunQuery2(Q_DELETE, "DELETE FROM character_buyback WHERE char_id = %u AND item_id = %u AND quantity = %i AND price = %u", char_id, item_id, quantity, price);
 }
 
-void WorldDatabase::LoadBuyBacks(const unique_ptr<Client>& client) {
+void WorldDatabase::LoadBuyBacks(const shared_ptr<Client>& client) {
   LogWrite(MERCHANT__DEBUG, 0, "Merchant", "Loading Buyback - Player: %u", client->GetCharacterID());
 
   Query query;
@@ -121,7 +121,7 @@ void WorldDatabase::LoadBuyBacks(const unique_ptr<Client>& client) {
   }
 }
 
-void WorldDatabase::SaveBuyBacks(const unique_ptr<Client>& client) {
+void WorldDatabase::SaveBuyBacks(const shared_ptr<Client>& client) {
   LogWrite(MERCHANT__DEBUG, 3, "Merchant", "Saving Buybacks - Player: %u", client->GetCharacterID());
 
   deque<BuyBackItem*>* buybacks = client->GetBuyBacks();
@@ -223,7 +223,7 @@ int32 WorldDatabase::LoadCharacterSpells(int32 char_id, Player* player) {
   return count;
 }
 
-void WorldDatabase::SavePlayerActiveSpells(const unique_ptr<Client>& client) {
+void WorldDatabase::SavePlayerActiveSpells(const shared_ptr<Client>& client) {
   if (!client)
     return;
 
@@ -248,7 +248,7 @@ void WorldDatabase::SavePlayerActiveSpells(const unique_ptr<Client>& client) {
   }
 }
 
-void WorldDatabase::DeleteCharacterActiveSpells(const unique_ptr<Client>& client, bool delete_all) {
+void WorldDatabase::DeleteCharacterActiveSpells(const shared_ptr<Client>& client, bool delete_all) {
   if (!client) {
     return;
   }
@@ -262,7 +262,7 @@ void WorldDatabase::DeleteCharacterActiveSpells(const unique_ptr<Client>& client
   }
 }
 
-void WorldDatabase::SavePlayerSpells(const unique_ptr<Client>& client) {
+void WorldDatabase::SavePlayerSpells(const shared_ptr<Client>& client) {
   if (!client)
     return;
 
@@ -651,7 +651,7 @@ int8 WorldDatabase::GetAppearanceType(string type) {
   return ret;
 }
 
-int32 WorldDatabase::LoadAppearances(ZoneServer* zone, const unique_ptr<Client>& client) {
+int32 WorldDatabase::LoadAppearances(ZoneServer* zone, const shared_ptr<Client>& client) {
   Query query, query2;
   MYSQL_ROW row;
   int32 count = 0, spawn_id = 0, new_spawn_id = 0;
@@ -1407,7 +1407,7 @@ void WorldDatabase::LoadGroundSpawnEntries(ZoneServer* zone) {
   LoadGroundSpawnItems(zone);
 }
 
-bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, const unique_ptr<Client>& client) {
+bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, const shared_ptr<Client>& client) {
   DatabaseResult result;
 
   if (database_new.Select(&result, "SELECT * FROM character_details WHERE char_id = %i LIMIT 0, 1", id)) {
@@ -1486,6 +1486,7 @@ bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, const unique_
       client->GetPlayer()->GetInfoStruct()->flags = result.GetInt32Str("flags");
       client->GetPlayer()->GetInfoStruct()->flags2 = result.GetInt32Str("flags2");
       client->GetPlayer()->SetLastName(result.GetStringStr("last_name"));
+      client->GetPlayer()->SetAutoAttackMode(result.GetInt8Str("auto_attack_mode"));
 
       // new resist types
       info->elemental_base = result.GetInt16Str("elemental");
@@ -1510,7 +1511,7 @@ bool WorldDatabase::LoadCharacterStats(int32 id, int32 account_id, const unique_
   }
 }
 
-bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, const unique_ptr<Client>& client) {
+bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, const shared_ptr<Client>& client) {
   Query query, query4;
   MYSQL_ROW row, row4;
   int32 id = 0;
@@ -2208,7 +2209,7 @@ void WorldDatabase::DeleteCharacterQuest(int32 quest_id, int32 char_id, bool rep
     LogWrite(DATABASE__ERROR, 0, "DBNew", "Error (%u) in DeleteCharacterQuest query:\n%s", database_new.GetError(), database_new.GetErrorMsg());
 }
 
-void WorldDatabase::SaveCharacterSkills(const unique_ptr<Client>& client) {
+void WorldDatabase::SaveCharacterSkills(const shared_ptr<Client>& client) {
   vector<Skill*>* skills = client->GetPlayer()->GetSkills()->GetSaveNeededSkills();
   if (skills) {
     Query query;
@@ -2225,7 +2226,7 @@ void WorldDatabase::SaveCharacterSkills(const unique_ptr<Client>& client) {
   }
 }
 
-void WorldDatabase::SaveCharacterQuests(const unique_ptr<Client>& client) {
+void WorldDatabase::SaveCharacterQuests(const shared_ptr<Client>& client) {
   Query query;
   map<int32, Quest*>::iterator itr;
   master_quest_list.LockQuests();    //prevent reloading until we are done
@@ -2260,12 +2261,12 @@ void WorldDatabase::SaveCharacterQuests(const unique_ptr<Client>& client) {
   master_quest_list.UnlockQuests();
 }
 
-void WorldDatabase::SaveCharRepeatableQuest(const unique_ptr<Client>& client, int32 quest_id, int16 quest_complete_count) {
+void WorldDatabase::SaveCharRepeatableQuest(const shared_ptr<Client>& client, int32 quest_id, int16 quest_complete_count) {
   if (!database_new.Query("UPDATE `character_quests` SET `given_date` = now(), complete_count = %u WHERE `char_id` = %u AND `quest_id` = %u", quest_complete_count, client->GetCharacterID(), quest_id))
     LogWrite(DATABASE__ERROR, 0, "DBNew", "DB Error %u\n%s", database_new.GetError(), database_new.GetErrorMsg());
 }
 
-void WorldDatabase::SaveCharacterQuestProgress(const unique_ptr<Client>& client, Quest* quest) {
+void WorldDatabase::SaveCharacterQuestProgress(const shared_ptr<Client>& client, Quest* quest) {
   Query query;
   vector<QuestStep*>* steps = quest->GetQuestSteps();
   vector<QuestStep*>::iterator itr;
@@ -2281,7 +2282,7 @@ void WorldDatabase::SaveCharacterQuestProgress(const unique_ptr<Client>& client,
     LogWrite(WORLD__ERROR, 0, "World", "Error in SaveCharacterQuestProgress query '%s': %s", query.GetQuery(), query.GetError());
 }
 
-void WorldDatabase::LoadCharacterQuestProgress(const unique_ptr<Client>& client) {
+void WorldDatabase::LoadCharacterQuestProgress(const shared_ptr<Client>& client) {
   Query query;
   MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT character_quest_progress.quest_id, step_id, progress FROM character_quest_progress, character_quests where character_quest_progress.char_id=%u and character_quest_progress.quest_id = character_quests.quest_id and character_quest_progress.char_id = character_quests.char_id ORDER BY character_quest_progress.quest_id", client->GetCharacterID());
   if (result && mysql_num_rows(result) > 0) {
@@ -2311,7 +2312,7 @@ void WorldDatabase::LoadCharacterQuestProgress(const unique_ptr<Client>& client)
     LogWrite(WORLD__ERROR, 0, "World", "Error in LoadCharacterQuestProgress query '%s': %s", query.GetQuery(), query.GetError());
 }
 
-void WorldDatabase::LoadCharacterQuests(const unique_ptr<Client>& client) {
+void WorldDatabase::LoadCharacterQuests(const shared_ptr<Client>& client) {
   LogWrite(PLAYER__DEBUG, 0, "Player", "Loading Character Quests...");
   Query query;
   MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT quest_id, DAY(given_date), MONTH(given_date), YEAR(given_date), DAY(completed_date), MONTH(completed_date), YEAR(completed_date), quest_giver, tracked, quest_flags, hidden, UNIX_TIMESTAMP(given_date), UNIX_TIMESTAMP(completed_date), complete_count FROM character_quests WHERE char_id=%u ORDER BY current_quest", client->GetCharacterID());
@@ -3493,7 +3494,7 @@ int8 WorldDatabase::GetInstanceTypeByZoneID(int32 zoneID) {
   return ret;
 }
 
-void WorldDatabase::Save(const unique_ptr<Client>& client) {
+void WorldDatabase::Save(const shared_ptr<Client>& client) {
   Query query;
   Player* player = client->GetPlayer();
   if (!player->CheckPlayerInfo())
@@ -3507,11 +3508,11 @@ void WorldDatabase::Save(const unique_ptr<Client>& client) {
   if (client->GetCurrentZone())
     zone_id = client->GetCurrentZone()->GetZoneID();
   query.RunQuery2(Q_UPDATE, "update characters set current_zone_id=%u, x=%f, y=%f, z=%f, heading=%f, level=%i,instance_id=%i,last_saved=%i, `class`=%i, `tradeskill_level`=%i, `tradeskill_class`=%i, alignment=%i where id = %u", zone_id, player->GetX(), player->GetY(), player->GetZ(), player->GetHeading(), player->GetLevel(), instance_id, client->GetLastSavedTimeStamp(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetTSLevel(), client->GetPlayer()->GetTradeskillClass(), client->GetPlayer()->GetAlignment(), client->GetCharacterID());
-  query.RunQuery2(Q_UPDATE, "update character_details set hp=%u, power=%u, str=%i, sta=%i, agi=%i, wis=%i, intel=%i, heat=%i, cold=%i, magic=%i, mental=%i, divine=%i, disease=%i, poison=%i, coin_copper=%u, coin_silver=%u, coin_gold=%u, coin_plat=%u, max_hp = %u, max_power=%u, xp = %u, xp_needed = %u, xp_debt = %u, xp_vitality = %f, tradeskill_xp = %u, tradeskill_xp_needed = %u, tradeskill_xp_vitality = %f, bank_copper = %u, bank_silver = %u, bank_gold = %u, bank_plat = %u, bind_zone_id=%u, bind_x = %f, bind_y = %f, bind_z = %f, bind_heading = %f, house_zone_id=%u, combat_voice = %i, emote_voice = %i, biography='%s', flags=%u, flags2=%u, last_name='%s', fame=%u where char_id = %u",
+  query.RunQuery2(Q_UPDATE, "update character_details set hp=%u, power=%u, str=%i, sta=%i, agi=%i, wis=%i, intel=%i, heat=%i, cold=%i, magic=%i, mental=%i, divine=%i, disease=%i, poison=%i, coin_copper=%u, coin_silver=%u, coin_gold=%u, coin_plat=%u, max_hp = %u, max_power=%u, xp = %u, xp_needed = %u, xp_debt = %u, xp_vitality = %f, tradeskill_xp = %u, tradeskill_xp_needed = %u, tradeskill_xp_vitality = %f, bank_copper = %u, bank_silver = %u, bank_gold = %u, bank_plat = %u, bind_zone_id=%u, bind_x = %f, bind_y = %f, bind_z = %f, bind_heading = %f, house_zone_id=%u, combat_voice = %i, emote_voice = %i, auto_attack_mode = %i, biography='%s', flags=%u, flags2=%u, last_name='%s', fame=%u where char_id = %u",
                   player->GetHP(), player->GetPower(), player->GetStrBase(), player->GetStaBase(), player->GetAgiBase(), player->GetWisBase(), player->GetIntBase(), player->GetHeatResistanceBase(), player->GetColdResistanceBase(), player->GetMagicResistanceBase(),
                   player->GetMentalResistanceBase(), player->GetDivineResistanceBase(), player->GetDiseaseResistanceBase(), player->GetPoisonResistanceBase(), player->GetCoinsCopper(), player->GetCoinsSilver(), player->GetCoinsGold(), player->GetCoinsPlat(), player->GetTotalHPBase(), player->GetTotalPowerBase(), player->GetXP(), player->GetNeededXP(), player->GetXPDebt(), player->GetXPVitality(), player->GetTSXP(), player->GetNeededTSXP(), player->GetTSXPVitality(), player->GetBankCoinsCopper(),
                   player->GetBankCoinsSilver(), player->GetBankCoinsGold(), player->GetBankCoinsPlat(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneID(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneX(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneY(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneZ(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneHeading(), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(),
-                  client->GetPlayer()->GetCombatVoice(), client->GetPlayer()->GetEmoteVoice(), getSafeEscapeString(client->GetPlayer()->GetBiography().c_str()).c_str(), player->GetFlags(), player->GetFlags2(), client->GetPlayer()->GetLastName(), client->GetPlayer()->GetFame(), client->GetCharacterID());
+                  client->GetPlayer()->GetCombatVoice(), client->GetPlayer()->GetEmoteVoice(), client->GetPlayer()->GetAutoAttackMode(), getSafeEscapeString(client->GetPlayer()->GetBiography().c_str()).c_str(), player->GetFlags(), player->GetFlags2(), client->GetPlayer()->GetLastName(), client->GetPlayer()->GetFame(), client->GetCharacterID());
   map<string, int8>::iterator itr;
   map<string, int8>* friends = player->GetFriends();
   if (friends && friends->size() > 0) {
@@ -3766,7 +3767,7 @@ void WorldDatabase::LoadFactionList() {
   LoadFactionAlliances();
 }
 
-void WorldDatabase::SavePlayerFactions(const unique_ptr<Client>& client) {
+void WorldDatabase::SavePlayerFactions(const shared_ptr<Client>& client) {
   LogWrite(PLAYER__DEBUG, 3, "Player", "Saving Player Factions...");
   Query query;
   map<int32, sint32>* factions = client->GetPlayer()->GetFactions()->GetFactionValues();
@@ -3775,7 +3776,7 @@ void WorldDatabase::SavePlayerFactions(const unique_ptr<Client>& client) {
     query.RunQuery2(Q_INSERT, "insert into character_factions (char_id, faction_id, faction_level) values(%u, %u, %i) ON DUPLICATE KEY UPDATE faction_level=%i", client->GetCharacterID(), itr->first, itr->second, itr->second);
 }
 
-bool WorldDatabase::LoadPlayerFactions(const unique_ptr<Client>& client) {
+bool WorldDatabase::LoadPlayerFactions(const shared_ptr<Client>& client) {
   LogWrite(PLAYER__DEBUG, 0, "Player", "Loading Player Factions...");
   Query query;
   MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT faction_id, faction_level FROM character_factions where char_id=%i", client->GetCharacterID());
@@ -3802,7 +3803,7 @@ void WorldDatabase::SavePlayerMail(Mail* mail) {
   }
 }
 
-void WorldDatabase::SavePlayerMail(const unique_ptr<Client>& client) {
+void WorldDatabase::SavePlayerMail(const shared_ptr<Client>& client) {
   if (client) {
     MutexMap<int32, Mail*>* mail_list = client->GetPlayer()->GetMail();
     MutexMap<int32, Mail*>::iterator itr = mail_list->begin();
@@ -3814,7 +3815,7 @@ void WorldDatabase::SavePlayerMail(const unique_ptr<Client>& client) {
   }
 }
 
-void WorldDatabase::LoadPlayerMail(const unique_ptr<Client>& client, bool new_only) {
+void WorldDatabase::LoadPlayerMail(const shared_ptr<Client>& client, bool new_only) {
   LogWrite(PLAYER__DEBUG, 0, "Player", "Loading Player Mail...");
   if (client) {
     Query query;
@@ -4341,7 +4342,7 @@ vector<SpellDisplayEffect*> WorldDatabase::LoadSpellEffect(int32 spell_id) {
   return spell_effects;
 }
 
-int32 WorldDatabase::LoadPlayerSkillbar(const unique_ptr<Client>& client) {
+int32 WorldDatabase::LoadPlayerSkillbar(const shared_ptr<Client>& client) {
   client->GetPlayer()->ClearQuickbarItems();
   Query query;
   MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, type, spell_id, slot, text_val, hotbar, tier FROM character_skillbar where char_id = %u", client->GetCharacterID());
@@ -4392,7 +4393,7 @@ void WorldDatabase::DeleteCharacterSpell(int32 character_id, int32 spell_id) {
   }
 }
 
-bool WorldDatabase::GetItemResultsToClient(const unique_ptr<Client>& client, const char* varSearch, int maxResults) {
+bool WorldDatabase::GetItemResultsToClient(const shared_ptr<Client>& client, const char* varSearch, int maxResults) {
   Query query;
   MYSQL_ROW row;
   int results = 0;
@@ -4760,7 +4761,7 @@ void WorldDatabase::ToggleCharacterOnline() {
   query.RunQuery2(Q_UPDATE, "UPDATE characters SET is_online = 0;");
 }
 
-void WorldDatabase::ToggleCharacterOnline(const unique_ptr<Client>& client, int8 toggle) {
+void WorldDatabase::ToggleCharacterOnline(const shared_ptr<Client>& client, int8 toggle) {
   if (client) {
     Query query;
     Player* player = client->GetPlayer();
@@ -5104,7 +5105,7 @@ bool WorldDatabase::DeleteCharacterFromInstance(int32 char_id, int32 instance_id
   return true;
 }
 
-bool WorldDatabase::LoadCharacterInstances(const unique_ptr<Client>& client) {
+bool WorldDatabase::LoadCharacterInstances(const shared_ptr<Client>& client) {
   DatabaseResult result;
   DatabaseResult result2;
 
@@ -5334,7 +5335,7 @@ bool WorldDatabase::DeleteLocationPoint(int32 location_point_id) {
   return true;
 }
 
-void WorldDatabase::ListLocations(const unique_ptr<Client>& client) {
+void WorldDatabase::ListLocations(const shared_ptr<Client>& client) {
   if (client) {
     Query query;
     MYSQL_ROW row;
@@ -5350,7 +5351,7 @@ void WorldDatabase::ListLocations(const unique_ptr<Client>& client) {
   }
 }
 
-void WorldDatabase::ListLocationPoints(const unique_ptr<Client>& client, int32 location_id) {
+void WorldDatabase::ListLocationPoints(const shared_ptr<Client>& client, int32 location_id) {
   if (client) {
     if (LocationExists(location_id)) {
       Query query;
@@ -5482,13 +5483,13 @@ sint16 WorldDatabase::GetCharSuffixIndex(int32 char_id, Player* player) {
   return ret;
 }
 
-void WorldDatabase::SaveCharPrefixIndex(sint16 index, int32 char_id, const unique_ptr<Client>& client) {
+void WorldDatabase::SaveCharPrefixIndex(sint16 index, int32 char_id, const shared_ptr<Client>& client) {
   Query query;
   query.RunQuery2(Q_UPDATE, "UPDATE character_details SET prefix_title = %i WHERE char_id = %u", index, client->GetCharacterID());
   LogWrite(PLAYER__DEBUG, 0, "Player", "Saving Prefix Index %i for player '%s'...", index, client->GetPlayer()->GetName());
 }
 
-void WorldDatabase::SaveCharSuffixIndex(sint16 index, int32 char_id, const unique_ptr<Client>& client) {
+void WorldDatabase::SaveCharSuffixIndex(sint16 index, int32 char_id, const shared_ptr<Client>& client) {
   Query query;
   query.RunQuery2(Q_SELECT, "UPDATE character_details SET suffix_title = %i WHERE char_id = %u", index, client->GetCharacterID());
   LogWrite(PLAYER__DEBUG, 0, "Player", "Saving Suffix Index %i for player '%s'...", index, client->GetPlayer()->GetName());
@@ -5548,7 +5549,7 @@ int16 WorldDatabase::GetCharacterCurrentLang(int32 char_id, Player* player) {
   return ret;
 }
 
-void WorldDatabase::SaveCharacterCurrentLang(int32 id, int32 char_id, const unique_ptr<Client>& client) {
+void WorldDatabase::SaveCharacterCurrentLang(int32 id, int32 char_id, const shared_ptr<Client>& client) {
   Query query;
   query.RunQuery2(Q_UPDATE, "UPDATE character_details SET current_language = %i WHERE char_id = %u", id, char_id);
   LogWrite(PLAYER__DEBUG, 3, "Player", "Saving current language ID %i for player '%s'...", id, client->GetPlayer()->GetName());

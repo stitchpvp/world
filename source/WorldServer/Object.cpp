@@ -43,7 +43,7 @@ EQ2Packet* Object::serialize(Player* player, int16 version) {
   return spawn_serialize(player, version);
 }
 
-void Object::HandleUse(const unique_ptr<Client>& client, string command) {
+void Object::HandleUse(const shared_ptr<Client>& client, string command) {
   vector<TransportDestination*>* destinations = 0;
   if (GetTransporterID() > 0)
     destinations = GetZone()->GetTransporters(GetTransporterID());

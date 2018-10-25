@@ -17,10 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __EQ2_NPC__
-#define __EQ2_NPC__
+#pragma once
+
 #include "Entity.h"
 #include "MutexMap.h"
+
+struct SkillBonus;
 
 #define AI_STRATEGY_BALANCED 1
 #define AI_STRATEGY_OFFENSIVE 2
@@ -80,7 +82,7 @@ public:
   int32 GetAppearanceID() { return appearance_id; }
   bool IsNPC() { return true; }
   void InCombat(bool val);
-  bool HandleUse(const unique_ptr<Client>& client, string type);
+  bool HandleUse(const shared_ptr<Client>& client, string type);
   void SetRandomize(int32 value) { appearance.randomize = value; }
   void AddRandomize(sint32 value) { appearance.randomize += value; }
   int32 GetRandomize() { return appearance.randomize; }
@@ -180,4 +182,3 @@ private:
   ::Brain* m_brain;
   Mutex MBrain;
 };
-#endif

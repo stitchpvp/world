@@ -17,16 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef CLIENT_H
-#define CLIENT_H
+#pragma once
 
-#include "../common/EQStream.h"
-#include "../common/timer.h"
-#include "zoneserver.h"
-#include "Player.h"
-#include "Quests.h"
 #include <atomic>
-#include <list>
+#include <mutex>
+#include <set>
+#include "Player.h"
+
+class Collection;
+class Guild;
+struct LuaSpell;
 
 using namespace std;
 #define CLIENT_TIMEOUT 60000
@@ -165,7 +165,7 @@ public:
   void SendLoginDeniedBadVersion();
   void SendCharPOVGhost();
   void SendPlayerDeathWindow();
-  float DistanceFrom(const unique_ptr<Client>& client);
+  float DistanceFrom(const shared_ptr<Client>& client);
   void SendDefaultGroupOptions();
   bool HandleLootItem(Entity* entity, int32 item_id);
   bool HandleLootItem(Entity* entity, Item* item);
@@ -254,7 +254,7 @@ public:
   void SetPlayerQuest(Quest* quest, map<int32, int32>* progress);
   void AddPlayerQuest(Quest* quest, bool call_accepted = true, bool send_packets = true);
   void RemovePlayerQuest(int32 id, bool send_update = true, bool delete_quest = true);
-  void SendQuestJournal(bool all_quests = false, unique_ptr<Client> client = 0);
+  void SendQuestJournal(bool all_quests = false, shared_ptr<Client> client = 0);
   void SendQuestUpdate(Quest* quest);
   void SendQuestFailure(Quest* quest);
   void SendQuestUpdateStep(Quest* quest, int32 step, bool display_quest_helper = true);
@@ -387,6 +387,7 @@ public:
 
   bool client_zoning;
   bool ready_for_updates;
+  bool debug_spawns = false;
 
   atomic<bool> waiting_to_zone;
 
@@ -400,7 +401,7 @@ private:
   void GiveQuestReward(Quest* quest);
   void SetStepComplete(int32 quest_id, int32 step);
   void AddStepProgress(int32 quest_id, int32 step, int32 progress);
-  void SendSpawnChanges(vector<Spawn*>& spawns);
+  void SendSpawnChanges(set<Spawn*>& spawns);
 
   map<int32, map<int32, int32>> quest_pending_updates;
   vector<QueuedQuest*> quest_queue;
@@ -488,7 +489,11 @@ private:
   bool on_auto_mount;
   bool EntityCommandPrecheck(Spawn* spawn, const char* command);
 
-  map<int32, shared_ptr<SpawnUpdate>> spawn_updates;
+  deque<int32> info_changes;
+  deque<int32> pos_changes;
+  deque<int32> vis_changes;
+
+  mutex update_mutex;
 };
 
 class ClientList {
@@ -496,8 +501,8 @@ public:
   ClientList();
   ~ClientList();
   bool ContainsStream(EQStream* eqs);
-  void Add(unique_ptr<Client> client);
-  void Remove(unique_ptr<Client> client);
+  void Add(shared_ptr<Client> client);
+  void Remove(shared_ptr<Client> client);
   void RemoveConnection(EQStream* eqs);
   void Process();
   int32 Count();
@@ -505,6 +510,5 @@ public:
 
 private:
   Mutex MClients;
-  vector<unique_ptr<Client>> client_list;
+  list<shared_ptr<Client>> client_list;
 };
-#endif

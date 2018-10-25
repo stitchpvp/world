@@ -121,7 +121,7 @@ extern MasterAAList master_tree_nodes;
 
 using namespace std;
 
-Client::Client(EQStream* ieqs) : pos_update(125), quest_pos_timer(2000), lua_debug_timer(30000) {
+Client::Client(EQStream* ieqs) : pos_update(500), quest_pos_timer(2000), lua_debug_timer(30000) {
   eqs = ieqs;
   ip = eqs->GetrIP();
   port = ntohs(eqs->GetrPort());
@@ -193,10 +193,6 @@ Client::~Client() {
     }
 
     world.GetGroupManager()->ClearPendingInvite(player);
-  }
-
-  if (lua_interface) {
-    lua_interface->RemoveDebugClients(shared_from_this());
   }
 
   //let the stream factory know were done with this stream
@@ -685,6 +681,12 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 
   switch (opcode) {
   case OP_LoginByNumRequestMsg: {
+    if (version) {
+      LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
+      Disconnect(true);
+      return false;
+    }
+
     LogWrite(OPCODE__DEBUG, 0, "Opcode", "Opcode 0x%X (%i): OP_LoginByNumRequestMsg", opcode, opcode);
 
     PacketStruct* request;
@@ -725,7 +727,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 
         if (database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), shared_from_this())) {
           version = request->getType_int16_ByName("version");
-          unique_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
+          shared_ptr<Client> client = zone_list.GetInactiveClientByCharID(player->GetCharacterID());
 
           // TODO: Revisit LD code
           /*MDeletePlayer.writelock(__FUNCTION__, __LINE__);
@@ -908,14 +910,22 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
   case OP_StoodMsg: {
     LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_StoodMsg", opcode, opcode);
     if (camp_timer) {
-      // JA: clear camping flag
-      if ((player->GetActivityStatus() & ACTIVITY_STATUS_CAMPING) > 0)
+      if ((player->GetActivityStatus() & ACTIVITY_STATUS_CAMPING) > 0) {
         player->SetActivityStatus(player->GetActivityStatus() - ACTIVITY_STATUS_CAMPING);
+      }
+
       safe_delete(camp_timer);
+
       EQ2Packet* outapp = new EQ2Packet(OP_CampAbortedMsg, 0, 0);
       QueuePacket(outapp);
     }
-    player->SetTempVisualState(0);
+
+    if (player->IsFeigned()) {
+      player->RemoveAllFeignEffects();
+    } else {
+      player->SetTempActionState(0);
+    }
+
     break;
   }
   case OP_StandMsg: {
@@ -928,17 +938,17 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
       EQ2Packet* outapp = new EQ2Packet(OP_CampAbortedMsg, 0, 0);
       QueuePacket(outapp);
     }
-    player->SetTempVisualState(539);
+    player->SetTempActionState(539);
     break;
   }
   case OP_SitMsg: {
     LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_SitMsg", opcode, opcode);
-    player->SetTempVisualState(538);
+    player->SetTempActionState(538);
     break;
   }
   case OP_SatMsg: {
     LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_SatMsg", opcode, opcode);
-    player->SetTempVisualState(540);
+    player->SetTempActionState(540);
     break;
   }
   case OP_QuestJournalOpenMsg:
@@ -1301,20 +1311,22 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
   case OP_UpdateTargetMsg: {
     LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_UpdateTargetMsg", opcode, opcode);
 
-    int16 index = 0;
+    if (!GetPlayer()->IsTaunted()) {
+      int16 index = 0;
 
-    memcpy(&index, app->pBuffer, sizeof(int16));
+      memcpy(&index, app->pBuffer, sizeof(int16));
 
-    if (index == 0xFFFF) {
-      GetPlayer()->SetTarget(0);
-      GetPlayer()->SetRangeAttack(false);
-      GetPlayer()->SetMeleeAttack(false);
-    } else {
-      GetPlayer()->SetTarget(GetPlayer()->GetSpawnByIndex(index));
-    }
+      if (index == 0xFFFF) {
+        GetPlayer()->SetTarget(0);
+        GetPlayer()->SetRangeAttack(false);
+        GetPlayer()->SetMeleeAttack(false);
+      } else {
+        GetPlayer()->SetTarget(GetPlayer()->GetSpawnByIndex(index));
+      }
 
-    if (GetPlayer()->GetTarget()) {
-      GetCurrentZone()->CallSpawnScript(GetPlayer()->GetTarget(), SPAWN_SCRIPT_TARGETED, GetPlayer());
+      if (GetPlayer()->GetTarget()) {
+        GetCurrentZone()->CallSpawnScript(GetPlayer()->GetTarget(), SPAWN_SCRIPT_TARGETED, GetPlayer());
+      }
     }
 
     break;
@@ -1439,7 +1451,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
       /* Player has contacted a guild recruiter */
       if (recruiter_name.length() > 0) {
         Guild* guild = guild_list.GetGuild(packet->getType_int32_ByName("guild_id"));
-        unique_ptr<Client> recruiter = zone_list.GetClientByCharName(recruiter_name);
+        shared_ptr<Client> recruiter = zone_list.GetClientByCharName(recruiter_name);
 
         if (recruiter && guild) {
           Message(CHANNEL_COLOR_GUILD_EVENT, "Contact request sent to %s of %s.", recruiter->GetPlayer()->GetName(), guild->GetName());
@@ -2045,7 +2057,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
     }
 
     if (spell && sent_spell_details.count(id) == 0) {
-      sent_spell_details[id] = true;
+      //sent_spell_details[id] = true;
       EQ2Packet* app = spell->SerializeSpell(shared_from_this(), false, trait_display);
       //DumpPacket(app);
       QueuePacket(app);
@@ -2132,7 +2144,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
       int8 tier = effect->tier;
       Spell* spell = master_spell_list.GetSpell(id, tier);
       if (spell && sent_spell_details.count(id) == 0) {
-        sent_spell_details[id] = true;
+        //sent_spell_details[id] = true;
         EQ2Packet* app = spell->SerializeSpecialSpell(shared_from_this(), false, 0x00, 0x81);
         //DumpPacket(app);
         QueuePacket(app);
@@ -2166,7 +2178,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
     spell = master_spell_list.GetSpellByCRC(data->spell_crc);
     //spell = master_spell_list.GetSpell(id, 1);
     if (spell && sent_spell_details.count(spell->GetSpellID()) == 0) {
-      sent_spell_details[spell->GetSpellID()] = true;
+      //sent_spell_details[spell->GetSpellID()] = true;
       EQ2Packet* app = spell->SerializeAASpell(shared_from_this(), data, false, GetItemPacketType(GetVersion()), 0x04);
       DumpPacket(app);
       LogWrite(WORLD__INFO, 0, "WORLD", "Examine Info Request-> Spell ID: %u", spell->GetSpellID());
@@ -2272,11 +2284,15 @@ bool Client::Process(bool zone_process) {
       player->SetPower(player->GetTotalPower());
     }
 
-    const char* new_zone_ip = 0;
+    char* new_zone_ip = 0;
     struct in_addr in;
     in.s_addr = GetIP();
 
-    new_zone_ip = const_cast<char*>(net.GetWorldAddress());
+    if (strncmp(inet_ntoa(in), "192.168", 7) == 0 && strlen(net.GetInternalWorldAddress()) > 0) {
+      new_zone_ip = net.GetInternalWorldAddress();
+    } else {
+      new_zone_ip = net.GetWorldAddress();
+    }
 
     int32 key = Timer::GetUnixTimeStamp();
 
@@ -2303,26 +2319,30 @@ bool Client::Process(bool zone_process) {
     CheckQuestQueue();
   }
 
-  if (pos_update.Check() && GetPlayer()->position_changed) {
-    GetPlayer()->AddSpawnUpdate(false, true, false);
+  if (GetCurrentZone() && pos_update.Check()) {
     GetCurrentZone()->CheckTransporters(shared_from_this());
   }
 
   if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
     GetCurrentZone()->ResendSpawns(shared_from_this());
-    GetPlayer()->SetResendSpawns(false);
+    GetPlayer()->SetResendSpawns(0);
   }
 
-  if (lua_interface && lua_debug && lua_debug_timer.Check())
+  if (lua_interface && lua_debug && lua_debug_timer.Check()) {
     lua_interface->UpdateDebugClients(shared_from_this());
-  if (quest_pos_timer.Check())
+  }
+
+  if (quest_pos_timer.Check()) {
     CheckPlayerQuestsLocationUpdate();
+  }
+
   if (camp_timer && camp_timer->Check() && getConnection()) {
     getConnection()->SendDisconnect(false);
     safe_delete(camp_timer);
     disconnect_timer = new Timer(2000);
     disconnect_timer->Start();
   }
+
   if (player->GetSkills()->HasSkillUpdates()) {
     vector<Skill*>* skills = player->GetSkills()->GetSkillUpdates();
     if (skills) {
@@ -2349,7 +2369,7 @@ bool Client::Process(bool zone_process) {
     current_rez.active = false;
     current_rez.caster = 0;
     current_rez.crit = false;
-    current_rez.crit_mod = 0;
+    current_rez.crit_mod = CRIT_MOD_NONE;
     current_rez.expire_timer = 0;
     current_rez.heal_name = "";
     current_rez.hp_perc = 0;
@@ -2396,7 +2416,7 @@ bool Client::Process(bool zone_process) {
     ret = false;
 
   if (!ret) {
-    unique_ptr<Client> client = shared_from_this();
+    shared_ptr<Client> client = shared_from_this();
     thread t([client]() {
       client->Save();
     });
@@ -2426,7 +2446,7 @@ int32 ClientList::Count() {
   return client_list.size();
 }
 
-void ClientList::Add(unique_ptr<Client> client) {
+void ClientList::Add(shared_ptr<Client> client) {
   MClients.writelock(__FUNCTION__, __LINE__);
   client_list.push_back(move(client));
   MClients.releasewritelock(__FUNCTION__, __LINE__);
@@ -2440,6 +2460,7 @@ void ClientList::Process() {
     const auto& client = *client_iter;
 
     if (!client || (!client->Process() || client->remove_from_list)) {
+      erase_iter = client_iter;
       break;
     }
   }
@@ -2447,6 +2468,19 @@ void ClientList::Process() {
 
   if (erase_iter != client_list.end()) {
     const auto& client = *erase_iter;
+
+    MClients.writelock(__FUNCTION__, __LINE__);
+    client_list.erase(erase_iter);
+    MClients.releasewritelock(__FUNCTION__, __LINE__);
+
+    /*
+		if (client && !client->remove_from_list) {
+			struct in_addr  in;
+			in.s_addr = client->GetIP();
+
+			LogWrite(WORLD__INFO, 0, "World", "Removing client from ip: %s port: %i", inet_ntoa(in), client->GetPort());
+		}
+		*/
   }
 }
 
@@ -2483,12 +2517,8 @@ bool ClientList::ContainsStream(EQStream* eqs) {
   return ret;
 }
 
-unique_ptr<Client> ClientList::Remove(unique_ptr<Client> client) {
+void ClientList::Remove(shared_ptr<Client> client) {
   client->remove_from_list = true;
-
-  MClients.writelock(__FUNCTION__, __LINE__);
-  client_list.erase(client);
-  MClients.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Client::SetCurrentZone(int32 id) {
@@ -2561,7 +2591,7 @@ void Client::Disconnect(bool send_disconnect) {
   if (send_disconnect && getConnection())
     getConnection()->SendDisconnect(true);
 
-  unique_ptr<Client> client = shared_from_this();
+  shared_ptr<Client> client = shared_from_this();
   thread t([client]() {
     client->Save();
   });
@@ -2576,7 +2606,7 @@ bool Client::Summon(const char* search_name) {
   Spawn* target = nullptr;
 
   if (search_name || GetPlayer()->GetTarget()) {
-    unique_ptr<Client> search_client = nullptr;
+    shared_ptr<Client> search_client = nullptr;
 
     if (search_name) {
       target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
@@ -2798,7 +2828,7 @@ bool Client::GotoSpawn(const char* search_name) {
   Spawn* target = nullptr;
 
   if (search_name || GetPlayer()->GetTarget()) {
-    unique_ptr<Client> search_client = nullptr;
+    shared_ptr<Client> search_client = nullptr;
 
     if (search_name) {
       target = GetCurrentZone()->FindSpawn(GetPlayer(), search_name);
@@ -2955,7 +2985,7 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords) {
 
   set_next_zone_coords = set_coords;
 
-  unique_ptr<Client> client = shared_from_this();
+  shared_ptr<Client> client = shared_from_this();
   thread t([this, client]() {
     database.SavePlayerActiveSpells(shared_from_this());
     client->Save();
@@ -3007,7 +3037,7 @@ void Client::TeleportWithinZone(float x, float y, float z, float heading) {
     client_zoning = true;
 }
 
-float Client::DistanceFrom(const unique_ptr<Client>& client) {
+float Client::DistanceFrom(const shared_ptr<Client>& client) {
   float ret = 0;
 
   if (client && client != shared_from_this()) {
@@ -3283,23 +3313,10 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
   if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && new_level >= rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8())
     player->set_character_flag(CF_ENABLE_CHANGE_LASTNAME);
 
-  player->GetSkills()->IncreaseAllSkillCaps(5 * (new_level - old_level));
-  SendNewSpells(player->GetAdventureClass());
-  SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
-  SendNewSpells(classes.GetSecondaryBaseClass(player->GetAdventureClass()));
-
-  GetPlayer()->ChangePrimaryWeapon();
-  GetPlayer()->ChangeSecondaryWeapon();
-  GetPlayer()->ChangeRangedWeapon();
   GetPlayer()->GetInfoStruct()->level = new_level;
-
-  LogWrite(MISC__TODO, 1, "TODO", "Get new HP/POWER/stat based on default values from DB\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
   GetPlayer()->SetTotalHPBase(new_level * new_level * 2 + 40);
   GetPlayer()->SetTotalPowerBase((sint32)(new_level * new_level * 2.1 + 45));
-  GetPlayer()->CalculateBonuses();
-  GetPlayer()->SetHP(GetPlayer()->GetTotalHP());
-  GetPlayer()->SetPower(GetPlayer()->GetTotalPower());
   GetPlayer()->GetInfoStruct()->agi_base = new_level * 2 + 15;
   GetPlayer()->GetInfoStruct()->intel_base = new_level * 2 + 15;
   GetPlayer()->GetInfoStruct()->wis_base = new_level * 2 + 15;
@@ -3312,13 +3329,30 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
   GetPlayer()->GetInfoStruct()->magic_base = (int16)(new_level * 4.6);
   GetPlayer()->GetInfoStruct()->divine_base = (int16)(new_level * 4.6);
   GetPlayer()->GetInfoStruct()->poison_base = (int16)(new_level * 4.6);
-  GetPlayer()->SetHPRegen((int)(new_level * .75) + (int)(new_level / 10) + 3);
-  GetPlayer()->SetPowerRegen(new_level + (int)(new_level / 10) + 4);
+
   UpdateTimeStampFlag(LEVEL_UPDATE_FLAG);
+
+  // This needs to happen before we SetHP() and SetPower()
+  GetPlayer()->CalculateBonuses();
+
+  GetPlayer()->SetHP(GetPlayer()->GetTotalHP());
+  GetPlayer()->SetPower(GetPlayer()->GetTotalPower());
+
+  GetPlayer()->ChangePrimaryWeapon();
+  GetPlayer()->ChangeSecondaryWeapon();
+  GetPlayer()->ChangeRangedWeapon();
+
   GetPlayer()->SetCharSheetChanged(true);
 
   Message(CHANNEL_COLOR_EXP, "You are now level %i!", new_level);
   LogWrite(WORLD__DEBUG, 0, "World", "Player: %s leveled from %u to %u", GetPlayer()->GetName(), old_level, new_level);
+
+  SendNewSpells(player->GetAdventureClass());
+  SendNewSpells(classes.GetBaseClass(player->GetAdventureClass()));
+  SendNewSpells(classes.GetSecondaryBaseClass(player->GetAdventureClass()));
+
+  player->GetSkills()->IncreaseAllSkillCaps(5 * (new_level - old_level));
+
   GetPlayer()->GetSkills()->SetSkillCapsByType(1, 5 * new_level);
   GetPlayer()->GetSkills()->SetSkillCapsByType(3, 5 * new_level);
   GetPlayer()->GetSkills()->SetSkillCapsByType(6, 5 * new_level);
@@ -3367,9 +3401,6 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
   }
 
   // Need to send the trait list every time the players level changes
-  // Also need to force the char sheet update or else there can be a large delay from when you level
-  // to when you are actually able to select traits.
-  ClientPacketFunctions::SendCharacterSheet(shared_from_this());
   QueuePacket(master_trait_list.GetTraitListPacket(shared_from_this()));
   ClientPacketFunctions::SendSkillBook(shared_from_this());
 
@@ -4180,7 +4211,7 @@ void Client::SendQuestUpdate(Quest* quest) {
   }
 }
 
-void Client::SendQuestJournal(bool all_quests, unique_ptr<Client> client) {
+void Client::SendQuestJournal(bool all_quests, shared_ptr<Client> client) {
   if (!client)
     client = shared_from_this();
   PacketStruct* packet = player->GetQuestJournalPacket(all_quests, GetVersion(), GetNameCRC(), current_quest_id);
@@ -4702,24 +4733,35 @@ bool Client::AddItem(Item* item) {
   if (!item) {
     return false;
   }
-  if (item->IsBag())
+
+  if (item->IsBag()) {
     item->details.bag_id = item->details.unique_id;
+  }
+
+  if (item->CheckFlag(LORE) && player->HasItem(item->details.item_id, true)) {
+    SimpleMessage(CHANNEL_COLOR_WHITE, "You already own this item and cannot have another.");
+    safe_delete(item);
+    return false;
+  }
+
   if (player->AddItem(item)) {
     EQ2Packet* outapp = player->SendInventoryUpdate(GetVersion());
+
     if (outapp) {
       QueuePacket(outapp);
-      //resend bag desc with new item name added
+
       outapp = player->SendBagUpdate(item->details.inv_slot_id, GetVersion());
-      if (outapp)
+
+      if (outapp) {
         QueuePacket(outapp);
-      /*EQ2Packet* app = item->serialize(client->GetVersion(), false);
-			DumpPacket(app);
-			client->QueuePacket(app);
-			*/
+      }
     }
+
     CheckPlayerQuestsItemUpdate(item);
-    if (item->GetItemScript() && lua_interface)
+
+    if (item->GetItemScript() && lua_interface) {
       lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player);
+    }
   } else {
     SimpleMessage(CHANNEL_COLOR_RED, "Could not find free slot to place item.");
     safe_delete(item);
@@ -4960,9 +5002,8 @@ void Client::BuyBack(int32 item_id, int8 quantity) {
 }
 
 void Client::BuyItem(int32 item_id, int8 quantity) {
-  // Get the merchant we are buying from
   Spawn* spawn = GetMerchantTransaction();
-  // Make sure the spawn has a merchant list
+
   if (spawn && spawn->GetMerchantID() > 0) {
     float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
     Item* master_item = master_item_list.GetItem(item_id);
@@ -4990,12 +5031,22 @@ void Client::BuyItem(int32 item_id, int8 quantity) {
       } else {
         total_available = world.GetMerchantItemQuantity(spawn->GetMerchantID(), item_id);
         sell_price = (int32)(master_item->sell_price * multiplier);
-        if (quantity > total_available)
+
+        if (quantity > total_available) {
           quantity = total_available;
+        }
       }
+
       int32 total_buy_price = sell_price * quantity;
+
+      if (master_item->CheckFlag(LORE) && player->HasItem(master_item->details.item_id, true)) {
+        SimpleMessage(CHANNEL_COLOR_WHITE, "You already own this item and cannot have another.");
+        return;
+      }
+
       Item* item = new Item(master_item);
       item->details.count = quantity;
+
       if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item)) {
         SimpleMessage(CHANNEL_COLOR_RED, "You do not have any slots available for this item.");
         safe_delete(item);
@@ -5982,7 +6033,7 @@ void Client::HandleSentMail(EQApplicationPacket* app) {
 							if (postage_cost > 0 || attachment_cost > 0)
 								PlaySoundA("coin_cha_ching");*/
               mail->save_needed = false;
-              unique_ptr<Client> to_client = zone_list.GetClientByCharID(player_to_id);
+              shared_ptr<Client> to_client = zone_list.GetClientByCharID(player_to_id);
               if (to_client) {
                 to_client->GetPlayer()->AddMail(mail);
                 to_client->SimpleMessage(CHANNEL_COLOR_MAIL, "You've got mail! :)");
@@ -6489,7 +6540,7 @@ void Client::SendChatRelationship(int8 type, const char* name) {
     packet->setArrayDataByName("name", name);
 
     if (type == 0) {
-      unique_ptr<Client> client = zone_list.GetClientByCharName(name);
+      shared_ptr<Client> client = zone_list.GetClientByCharName(name);
 
       if (client) {
         packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName());
@@ -6517,7 +6568,7 @@ void Client::SendFriendList() {
       }
       packet->setArrayLengthByName("num_names", names.size());
       for (int32 i = 0; i < names.size(); i++) {
-        unique_ptr<Client> client = zone_list.GetClientByCharName(names[i]);
+        shared_ptr<Client> client = zone_list.GetClientByCharName(names[i]);
 
         packet->setArrayDataByName("name", names[i].c_str(), i);
 
@@ -7523,25 +7574,87 @@ void Client::AddChangedSpawn(shared_ptr<SpawnUpdate> spawn_update) {
   Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_update->spawn_id);
 
   if (spawn && GetPlayer()->WasSentSpawn(spawn_update->spawn_id) && !GetPlayer()->WasSpawnRemoved(spawn)) {
-    auto current_update = spawn_updates.find(spawn_update->spawn_id);
+    if (spawn == GetPlayer() && (!spawn_update->vis_changed && !spawn_update->info_changed)) {
+      return;
+    }
 
-    if (current_update != spawn_updates.end()) {
-      current_update->second->pos_changed |= spawn_update->pos_changed;
-      current_update->second->vis_changed |= spawn_update->vis_changed;
-      current_update->second->info_changed |= spawn_update->info_changed;
-    } else {
-      if (spawn == GetPlayer() && (!spawn_update->vis_changed && !spawn_update->info_changed)) {
-        return;
+    lock_guard<mutex> guard(update_mutex);
+
+    if (spawn_update->info_changed) {
+      bool has_update = false;
+
+      for (int32 spawn_id : info_changes) {
+        if (spawn_update->spawn_id == spawn_id) {
+          has_update = true;
+          break;
+        }
       }
 
-      spawn_updates[spawn_update->spawn_id] = spawn_update;
+      if (!has_update) {
+        info_changes.push_back(spawn_update->spawn_id);
+      }
+    }
+
+    if (spawn_update->pos_changed) {
+      bool has_update = false;
+
+      for (int32 spawn_id : pos_changes) {
+        if (spawn_update->spawn_id == spawn_id) {
+          has_update = true;
+          break;
+        }
+      }
+
+      if (!has_update) {
+        pos_changes.push_back(spawn_update->spawn_id);
+      }
+    }
+
+    if (spawn_update->vis_changed) {
+      bool has_update = false;
+
+      for (int32 spawn_id : vis_changes) {
+        if (spawn_update->spawn_id == spawn_id) {
+          has_update = true;
+          break;
+        }
+      }
+
+      if (!has_update) {
+        vis_changes.push_back(spawn_update->spawn_id);
+      }
     }
   }
 }
 
 void Client::RemoveChangedSpawn(int32 spawn_id) {
-  if (spawn_updates.count(spawn_id) > 0) {
-    spawn_updates.erase(spawn_id);
+  lock_guard<mutex> guard(update_mutex);
+
+  for (auto itr = info_changes.begin(); itr != info_changes.end();) {
+    if (*itr == spawn_id) {
+      info_changes.erase(itr);
+      break;
+    } else {
+      ++itr;
+    }
+  }
+
+  for (auto itr = pos_changes.begin(); itr != pos_changes.end();) {
+    if (*itr == spawn_id) {
+      pos_changes.erase(itr);
+      break;
+    } else {
+      ++itr;
+    }
+  }
+
+  for (auto itr = vis_changes.begin(); itr != vis_changes.end();) {
+    if (*itr == spawn_id) {
+      vis_changes.erase(itr);
+      break;
+    } else {
+      ++itr;
+    }
   }
 }
 
@@ -7550,65 +7663,66 @@ void Client::SendSpawnChanges(bool only_pos_changes, bool only_players) {
     return;
   }
 
-  vector<Spawn*> spawns_to_send;
-  vector<shared_ptr<SpawnUpdate>> updates_to_keep;
-  int total_changes = 0;
+  int8 max_info = 1;
+  int8 max_pos = 10;
+  int8 max_vis = 1;
 
-  for (const auto& kv : spawn_updates) {
-    shared_ptr<SpawnUpdate> spawn_update = kv.second;
+  int8 cur_info = 0;
+  int8 cur_pos = 0;
+  int8 cur_vis = 0;
 
-    Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_update->spawn_id);
+  set<Spawn*> spawns_to_send;
 
-    if (spawn && (!only_players || spawn->IsPlayer())) {
-      if (!only_pos_changes || spawn_update->pos_changed) {
-        spawn->position_changed = spawn_update->pos_changed;
-        spawn->info_changed = spawn_update->info_changed;
-        spawn->vis_changed = spawn_update->vis_changed;
+  lock_guard<mutex> guard(update_mutex);
 
-        if (spawn->position_changed) {
-          ++total_changes;
-        }
+  while (!info_changes.empty() && cur_info < max_info) {
+    int32 spawn_id = info_changes.front();
 
-        if (spawn->info_changed) {
-          ++total_changes;
-        }
+    Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
 
-        if (spawn->vis_changed) {
-          ++total_changes;
-        }
-
-        if (total_changes < 5) {
-          spawns_to_send.push_back(spawn);
-        } else {
-          updates_to_keep.push_back(spawn_update);
-        }
-      } else {
-        updates_to_keep.push_back(spawn_update);
-      }
-
-      if (total_changes >= 5) {
-        SendSpawnChanges(spawns_to_send);
-
-        spawns_to_send.clear();
-        total_changes = 0;
-      }
-    } else if (spawn) {
-      updates_to_keep.push_back(spawn_update);
+    if (spawn) {
+      spawn->info_changed = true;
+      spawns_to_send.insert(spawn);
+      ++cur_info;
     }
+
+    info_changes.pop_front();
   }
 
-  spawn_updates.clear();
+  while (!pos_changes.empty() && cur_pos < max_pos) {
+    int32 spawn_id = pos_changes.front();
+
+    Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
+
+    if (spawn) {
+      spawn->position_changed = true;
+      spawns_to_send.insert(spawn);
+      ++cur_pos;
+    }
+
+    pos_changes.pop_front();
+  }
+
+  while (!vis_changes.empty() && cur_vis < max_vis) {
+    int32 spawn_id = vis_changes.front();
+
+    Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
+
+    if (spawn) {
+      spawn->vis_changed = true;
+      spawns_to_send.insert(spawn);
+      ++cur_vis;
+    }
+
+    vis_changes.pop_front();
+  }
 
   if (spawns_to_send.size() > 0) {
     SendSpawnChanges(spawns_to_send);
   }
-
-  for (const auto update : updates_to_keep) {
-    spawn_updates[update->spawn_id] = update;
-  }
 }
 
-void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
+void Client::SendSpawnChanges(set<Spawn*>& spawns) {
   map<int32, SpawnData> info_changes;
   map<int32, SpawnData> pos_changes;
   map<int32, SpawnData> vis_changes;
@@ -7672,9 +7786,11 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
   }
 
   static const int8 oversized = 255;
-  static const uchar null_byte = 0;
   int16 opcode_val = EQOpcodeManager[GetOpcodeVersion(version)]->EmuToEQ(OP_EqUpdateGhostCmd);
-  int32 size = info_size + pos_size + vis_size + 14;
+  int32 size = info_size + pos_size + vis_size + 11;
+  size += CheckOverLoadSize(info_size);
+  size += CheckOverLoadSize(pos_size);
+  size += CheckOverLoadSize(vis_size);
   uchar* tmp = new uchar[size];
   uchar* ptr = tmp;
 
@@ -7695,8 +7811,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
   memcpy(ptr, &current_time, sizeof(int32));
   ptr += sizeof(int32);
 
-  memcpy(ptr, &info_size, sizeof(int8));
-  ptr += sizeof(int8);
+  ptr += DoOverLoad(info_size, ptr);
 
   for (const auto& kv : info_changes) {
     auto info = kv.second;
@@ -7704,8 +7819,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
     ptr += info.size;
   }
 
-  memcpy(ptr, &pos_size, sizeof(int8));
-  ptr += sizeof(int8);
+  ptr += DoOverLoad(pos_size, ptr);
 
   for (const auto& kv : pos_changes) {
     auto pos = kv.second;
@@ -7713,8 +7827,7 @@ void Client::SendSpawnChanges(vector<Spawn*>& spawns) {
     ptr += pos.size;
   }
 
-  memcpy(ptr, &vis_size, sizeof(int8));
-  ptr += sizeof(int8);
+  ptr += DoOverLoad(vis_size, ptr);
 
   for (const auto& kv : vis_changes) {
     auto vis = kv.second;

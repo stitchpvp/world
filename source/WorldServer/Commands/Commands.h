@@ -21,13 +21,13 @@
 #define __EQ2_COMMANDS__
 #include "../../common/DataBuffer.h"
 #include "../../common/MiscFunctions.h"
-#include "../../common/types.h"
-#include "../../common/opcodemgr.h"
-#include <memory>
-#include <vector>
-#include <string>
-#include <map>
 #include "../../common/debug.h"
+#include "../../common/opcodemgr.h"
+#include "../../common/types.h"
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 using namespace std;
 
 class Client;
@@ -487,6 +487,9 @@ public:
   void Command_Heal(const shared_ptr<Client>& client);
   void Command_Target(const shared_ptr<Client>& client, Seperator* sep);
   void Command_Assist(const shared_ptr<Client>& client, Seperator* sep);
+  void Command_Debug(const shared_ptr<Client>& client, Seperator* sep);
+  void Command_SetAutoAttackMode(const shared_ptr<Client>& client, Seperator* sep);
+  void Command_CancelEffect(const shared_ptr<Client>& client, Seperator* sep);
 
 private:
   RemoteCommands* remote_commands;
@@ -872,6 +875,9 @@ private:
 #define COMMAND_TARGET 315
 #define COMMAND_ASSIST 316
 
+#define COMMAND_SET_AUTO_ATTACK_MODE 317
+#define COMMAND_CANCEL_EFFECT 318
+
 #define COMMAND_BOT 500
 #define COMMAND_BOT_CREATE 501
 #define COMMAND_BOT_CUSTOMIZE 502
@@ -904,5 +910,6 @@ private:
 #define COMMAND_RESET_ENCOUNTER 2007
 #define COMMAND_KNOCKBACK 2008
 #define COMMAND_HEAL 2009
+#define COMMAND_DEBUG 2010
 
 #endif

@@ -82,7 +82,6 @@ EQStreamFactory eqsf(LoginStream);
 LoginServer loginserver;
 MasterServer master_server;
 LuaInterface* lua_interface = new LuaInterface();
-#include "MutexList.h"
 
 #include "Rules/Rules.h"
 #include "Titles.h"
@@ -134,6 +133,21 @@ int main(int argc, char** argv) {
 
   if (!database.ConnectNewDatabase())
     return EXIT_FAILURE;
+
+  if (signal(SIGINT, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
+
+  if (signal(SIGSEGV, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
+
+  if (signal(SIGILL, CatchSignal) == SIG_ERR) {
+    LogWrite(INIT__ERROR, 0, "Init", "Could not set signal handler");
+    return 0;
+  }
 
   srand(time(NULL));
 
@@ -272,6 +286,10 @@ int main(int argc, char** argv) {
     } else {
       LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetWorldAddress(), net.GetWorldPort());
     }
+
+    if (strlen(net.GetInternalWorldAddress()) > 0) {
+      LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
+    }
   } else {
     LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
     return 1;
@@ -290,11 +308,11 @@ int main(int argc, char** argv) {
 
   map<EQStream*, int32> connecting_clients;
 
-  LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
-  thread thr3(EQ2ConsoleListener, nullptr);
-  thr3.detach();
+  //LogWrite(WORLD__DEBUG, 0, "Thread", "Starting console command thread...");
+  //thread thr3(EQ2ConsoleListener, nullptr);
+  //thr3.detach();
 
-  LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
+  //LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
   while (RunLoops) {
     Timer::SetCurrentTime();

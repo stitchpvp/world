@@ -45,10 +45,15 @@
 #include "GroundSpawn.h"
 #include "Sign.h"
 
+#include "Guilds/Guild.h"
+
 extern NetConnection net; // needs to be here or compile errors in commands.cpp
+
+class Bot;
 class SpellProcess;
 class TradeskillMgr;
-class Bot;
+struct Location;
+struct Title;
 
 #define EXPANSION_UNKNOWN 1
 #define EXPANSION_UNKNOWN2 64
@@ -121,7 +126,7 @@ struct PlayerProximity {
   float distance;
   string in_range_lua_function;
   string leaving_range_lua_function;
-  map<unique_ptr<Client>, bool> clients_in_proximity;
+  map<shared_ptr<Client>, bool> clients_in_proximity;
 };
 
 struct LocationProximity {
@@ -131,7 +136,7 @@ struct LocationProximity {
   float max_variation;
   string in_range_lua_function;
   string leaving_range_lua_function;
-  map<unique_ptr<Client>, bool> clients_in_proximity;
+  map<shared_ptr<Client>, bool> clients_in_proximity;
 };
 
 struct LocationGrid {
@@ -165,7 +170,7 @@ struct LocationTransportDestination;
 void ZoneLoop(ZoneServer* zs);
 void SpawnLoop(ZoneServer* zs);
 void UpdateLoop(ZoneServer* zs);
-void SendInitialSpawns(unique_ptr<Client> client);
+void SendInitialSpawns(shared_ptr<Client> client);
 
 using namespace std;
 struct RevivePoint {
@@ -228,23 +233,23 @@ public:
   bool UpdateProcess();
 
   void LoadRevivePoints(vector<RevivePoint*>* revive_points);
-  vector<RevivePoint*>* GetRevivePoints(const unique_ptr<Client>& client);
+  vector<RevivePoint*>* GetRevivePoints(const shared_ptr<Client>& client);
   RevivePoint* GetRevivePoint(int32 id);
 
-  void AddClient(unique_ptr<Client> client);
-  void AddIncomingClient(unique_ptr<Client> client);
+  void AddClient(shared_ptr<Client> client);
+  void AddIncomingClient(shared_ptr<Client> client);
 
   void SimpleMessage(int8 type, const char* message, Spawn* from, float distance);
   void HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
-  void HandleChatMessage(const unique_ptr<Client>& client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
+  void HandleChatMessage(const shared_ptr<Client>& client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
   void HandleBroadcast(const char* message);
   void HandleAnnouncement(const char* message);
 
   int16 SetSpawnTargetable(Spawn* spawn, float distance);
   int16 SetSpawnTargetable(int32 spawn_id);
-  void ApplySetSpawnCommand(const unique_ptr<Client>& client, Spawn* target, int8 type, char* value);
-  void SetSpawnCommand(Spawn* spawn, int8 type, char* value, unique_ptr<Client> client = 0);
-  void SetSpawnCommand(int32 spawn_id, int8 type, char* value, unique_ptr<Client> client = 0);
+  void ApplySetSpawnCommand(const shared_ptr<Client>& client, Spawn* target, int8 type, char* value);
+  void SetSpawnCommand(Spawn* spawn, int8 type, char* value, shared_ptr<Client> client = 0);
+  void SetSpawnCommand(int32 spawn_id, int8 type, char* value, shared_ptr<Client> client = 0);
   void AddLoot(NPC* npc);
 
   NPC* AddNPCSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentry);
@@ -265,23 +270,23 @@ public:
   void RemoveSpawn(Spawn* spawn, bool delete_spawn = true, bool respawn = true, bool lock = true);
   void RemoveSpawnFromClient(Spawn* spawn, bool skip_if_client = true);
   void ProcessSpawnLocations();
-  void SendQuestUpdates(const unique_ptr<Client>& client, Spawn* spawn = 0);
+  void SendQuestUpdates(const shared_ptr<Client>& client, Spawn* spawn = 0);
 
-  EQ2Packet* GetZoneInfoPacket(const unique_ptr<Client>& client);
+  EQ2Packet* GetZoneInfoPacket(const shared_ptr<Client>& client);
   Spawn* FindSpawn(Player* searcher, const char* name);
   void CallSpawnScript(Spawn* npc, int8 type, Spawn* spawn = 0, const char* message = 0);
   void SendSpawnVisualState(Spawn* spawn, int16 type);
-  void ResendSpawns(const unique_ptr<Client>& client);
-  void SendSpellFailedPacket(const unique_ptr<Client>& client, int16 error);
+  void ResendSpawns(const shared_ptr<Client>& client);
+  void SendSpellFailedPacket(const shared_ptr<Client>& client, int16 error);
   void SendInterruptPacket(Spawn* interrupted, LuaSpell* spell);
-  void HandleEmote(const unique_ptr<Client>& originator, string name);
-  unique_ptr<Client> GetClientBySpawn(Spawn* spawn);
+  void HandleEmote(const shared_ptr<Client>& originator, string name);
+  shared_ptr<Client> GetClientBySpawn(Spawn* spawn);
   Spawn* GetSpawnByDatabaseID(int32 id);
   Spawn* GetSpawnByID(int32 id);
 
-  void PlaySoundFile(const unique_ptr<Client>& client, const char* name, float origin_x, float origin_y, float origin_z);
-  void SendZoneSpawns(const unique_ptr<Client>& client);
-  void StartZoneInitialSpawnThread(unique_ptr<Client> client);
+  void PlaySoundFile(const shared_ptr<Client>& client, const char* name, float origin_x, float origin_y, float origin_z);
+  void SendZoneSpawns(const shared_ptr<Client>& client);
+  void StartZoneInitialSpawnThread(shared_ptr<Client> client);
   void SendSpawnChanges(bool only_pos_changes = false, bool only_players = false);
 
   void UpdateVitality(float amount);
@@ -309,7 +314,7 @@ public:
 
   void Despawn(Spawn* spawn, int32 timer);
 
-  void RepopSpawns(const unique_ptr<Client>& client, Spawn* spawn);
+  void RepopSpawns(const shared_ptr<Client>& client, Spawn* spawn);
   bool AddCloseSpawnsToSpawnGroup(Spawn* spawn, float radius);
   void Depop(bool respawns = false, bool repop = false);
 
@@ -318,14 +323,14 @@ public:
   void AddEnemyList(NPC* npc);
 
   void ReloadClientQuests();
-  void SendAllSpawnsForLevelChange(const unique_ptr<Client>& client);
+  void SendAllSpawnsForLevelChange(const shared_ptr<Client>& client);
 
   void AddLocationGrid(LocationGrid* grid);
   void RemoveLocationGrids();
 
   void DeleteTransporters();
 
-  void CheckTransporters(const unique_ptr<Client>& client);
+  void CheckTransporters(const shared_ptr<Client>& client);
 
   void WritePlayerStatistics();
 
@@ -338,7 +343,7 @@ public:
 
   void AddDrowningVictim(Player* player);
   void RemoveDrowningVictim(Player* player);
-  unique_ptr<Client> GetDrowningVictim(Player* player);
+  shared_ptr<Client> GetDrowningVictim(Player* player);
 
   void DeleteSpellProcess();
   void LoadSpellProcess();
@@ -352,7 +357,7 @@ public:
   void AddPlayerTracking(Player* player);
   void RemovePlayerTracking(Player* player, int8 mode);
 
-  void SendUpdateTitles(const unique_ptr<Client>& client, Title* suffix = 0, Title* prefix = 0);
+  void SendUpdateTitles(const shared_ptr<Client>& client, Title* suffix = 0, Title* prefix = 0);
   void SendUpdateTitles(Spawn* spawn, Title* suffix = 0, Title* prefix = 0);
 
   void RemoveTargetFromSpell(shared_ptr<LuaSpell> spell, Spawn* target);
@@ -379,10 +384,10 @@ public:
 
   Spawn* GetClosestTransportSpawn(float x, float y, float z);
 
-  void ResurrectSpawn(Spawn* spawn, const unique_ptr<Client>& client);
+  void ResurrectSpawn(Spawn* spawn, const shared_ptr<Client>& client);
 
   void HidePrivateSpawn(Spawn* spawn);
-  unique_ptr<Client> GetClientByName(char* name);
+  shared_ptr<Client> GetClientByName(char* name);
 
   /// <summary>Gets spawns for a true AoE spell</summary>
   vector<Spawn*> GetAttackableSpawnsByDistance(Spawn* spawn, float distance);
@@ -403,8 +408,8 @@ public:
   int32 GetClosestLocation(Spawn* spawn);
   Spawn* GetClosestSpawn(Spawn* spawn, int32 spawn_id);
   SpawnLocation* GetSpawnLocation(int32 id);
-  void PlayFlavor(const unique_ptr<Client>& client, Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
-  void PlayVoice(const unique_ptr<Client>& client, Spawn* spawn, const char* mp3, int32 key1, int32 key2);
+  void PlayFlavor(const shared_ptr<Client>& client, Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
+  void PlayVoice(const shared_ptr<Client>& client, Spawn* spawn, const char* mp3, int32 key1, int32 key2);
   void PlayFlavor(Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);
   void PlayVoice(Spawn* spawn, const char* mp3, int32 key1, int32 key2);
   void SendThreatPacket(Spawn* caster, Spawn* target, int32 threat_amt, const char* spell_name);
@@ -539,8 +544,8 @@ public:
   void SetWeatherPattern(int8 val) { weather_pattern = val; }
   void SetWeatherLastChangedTime(int32 val) { weather_last_changed_time = val; }
 
-  void RemoveClientImmediately(unique_ptr<Client> client);
-  void RemoveFromSpawnRangeMap(unique_ptr<Client> client);
+  void RemoveClientImmediately(shared_ptr<Client> client);
+  void RemoveFromSpawnRangeMap(shared_ptr<Client> client);
 
   void ClearHate(Entity* entity);
 
@@ -566,20 +571,20 @@ public:
   void AddFlightPath(int32 id, FlightPathInfo* info);
   void AddFlightPathLocation(int32 id, FlightPathLocation* location);
   void DeleteFlightPaths();
-  void SendFlightPathsPackets(const unique_ptr<Client>& client);
+  void SendFlightPathsPackets(const shared_ptr<Client>& client);
   int32 GetFlightPathIndex(int32 id);
   float GetFlightPathSpeed(int32 id);
 
   Entity* unknown_spawn;
 
-  void SendSpawn(Spawn* spawn, const unique_ptr<Client>& client);
+  void SendSpawn(Spawn* spawn, const shared_ptr<Client>& client);
   void SaveClients();
 
-  bool SendRemoveSpawn(const unique_ptr<Client>& client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);
-  void AddSpawnUpdate(int32 spawn_id, bool info_changed, bool pos_changed, bool vis_changed, unique_ptr<Client> client = nullptr);
+  bool SendRemoveSpawn(const shared_ptr<Client>& client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);
+  void AddSpawnUpdate(int32 spawn_id, bool info_changed, bool pos_changed, bool vis_changed, shared_ptr<Client> client = nullptr);
   void RemoveSpawnUpdate(int32 spawn_id);
 
-  void AddToSpawnRangeMap(unique_ptr<Client> client);
+  void AddToSpawnRangeMap(shared_ptr<Client> client);
 
 private:
   /* Private Functions */
@@ -594,7 +599,7 @@ private:
 	Following functions were public but never used outside the zone server so moved them to private
 	*/
   void ClientProcess();                                                                                                                                                                                                                                                // never used outside zone server
-  void RemoveClient(unique_ptr<Client> client);                                                                                                                                                                                                                        // never used outside zone server
+  void RemoveClient(shared_ptr<Client> client);                                                                                                                                                                                                                        // never used outside zone server
   void DeterminePosition(SpawnLocation* spawnlocation, Spawn* spawn);                                                                                                                                                                                                  // never used outside zone server
   int32 CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn = false);                                                                                                                                                                                       // never used outside zone server
   float GetSpawnGroupChance(int32 group_id);                                                                                                                                                                                                                           // never used outside zone server
@@ -605,20 +610,20 @@ private:
   Spawn* ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respawn = false);                                                                                                                                                                                     // never used outside zone server
   Spawn* ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, map<int32, int32>* instNPCs, map<int32, int32>* instGroundSpawns, map<int32, int32>* instObjSpawns, map<int32, int32>* instWidgetSpawns, map<int32, int32>* instSignSpawns, bool respawn = false); // never used outside zone server
   void SendCharSheetChanges();                                                                                                                                                                                                                                         // never used outside zone server
-  void SendCharSheetChanges(const unique_ptr<Client>& client);                                                                                                                                                                                                         // never used outside zone server
+  void SendCharSheetChanges(const shared_ptr<Client>& client);                                                                                                                                                                                                         // never used outside zone server
   void CheckSendSpawnToClient();                                                                                                                                                                                                                                       // never used outside zone server
-  void CheckSendSpawnToClient(const unique_ptr<Client>& client, bool initial_login = false);                                                                                                                                                                           // never used outside zone server
+  void CheckSendSpawnToClient(const shared_ptr<Client>& client, bool initial_login = false);                                                                                                                                                                           // never used outside zone server
   void CheckRemoveSpawnFromClient(Spawn* spawn);                                                                                                                                                                                                                       // never used outside zone server
-  void SaveClient(const unique_ptr<Client>& client);                                                                                                                                                                                                                   // never used outside zone server
-  void ProcessFaction(Spawn* spawn, const unique_ptr<Client>& client);                                                                                                                                                                                                 // never used outside zone server
+  void SaveClient(const shared_ptr<Client>& client);                                                                                                                                                                                                                   // never used outside zone server
+  void ProcessFaction(Spawn* spawn, const shared_ptr<Client>& client);                                                                                                                                                                                                 // never used outside zone server
   void RegenUpdate();                                                                                                                                                                                                                                                  // never used outside zone server
   void SendCalculatedXP(Player* player, Spawn* victim);                                                                                                                                                                                                                // never used outside zone server, might not be used at all any more
-  void SendTimeUpdate(const unique_ptr<Client>& client);                                                                                                                                                                                                               // never used outside zone server
+  void SendTimeUpdate(const shared_ptr<Client>& client);                                                                                                                                                                                                               // never used outside zone server
   void CheckWidgetTimers();                                                                                                                                                                                                                                            // never used outside zone server
   void CheckRespawns();                                                                                                                                                                                                                                                // never used outside zone server
   void CheckSpawnExpireTimers();                                                                                                                                                                                                                                       // never used outside zone server
   void AddSpawnExpireTimer(Spawn* spawn, int32 expire_time, int32 expire_offset = 0);                                                                                                                                                                                  // never used outside zone server
-  void CheckSpawnRange(unique_ptr<Client> client, Spawn* spawn, bool initial_login = false);                                                                                                                                                                           // never used outside zone server
+  void CheckSpawnRange(shared_ptr<Client> client, Spawn* spawn, bool initial_login = false);                                                                                                                                                                           // never used outside zone server
   void CheckSpawnRange(Spawn* spawn);                                                                                                                                                                                                                                  // never used outside zone server
   void DeleteSpawnScriptTimers(Spawn* spawn, bool all = false);                                                                                                                                                                                                        // never used outside zone server
   void DeleteSpawnScriptTimers();                                                                                                                                                                                                                                      // never used outside zone server
@@ -628,11 +633,11 @@ private:
   void ProcessMovement();                                                                                                                                                                                                                                              // never used outside zone server
   void PrepareSpawnID(Player* player, Spawn* spawn);                                                                                                                                                                                                                   // never used outside zone server
   void RemoveMovementNPC(Spawn* spawn);                                                                                                                                                                                                                                // never used outside zone server
-  bool CheckNPCAttacks(NPC* npc, Spawn* victim, unique_ptr<Client> client = 0);                                                                                                                                                                                        // never used outside zone server
+  bool CheckNPCAttacks(NPC* npc, Spawn* victim, shared_ptr<Client> client = 0);                                                                                                                                                                                        // never used outside zone server
   bool CheckEnemyList(NPC* npc);                                                                                                                                                                                                                                       // never used outside zone server
   void RemovePlayerProximity(Spawn* spawn, bool all = false);                                                                                                                                                                                                          // never used outside zone server
-  void RemovePlayerProximity(unique_ptr<Client> client);                                                                                                                                                                                                               // never used outside zone server
-  void CheckPlayerProximity(Spawn* spawn, unique_ptr<Client> client);                                                                                                                                                                                                  // never used outside zone server
+  void RemovePlayerProximity(shared_ptr<Client> client);                                                                                                                                                                                                               // never used outside zone server
+  void CheckPlayerProximity(Spawn* spawn, shared_ptr<Client> client);                                                                                                                                                                                                  // never used outside zone server
   void RemoveLocationProximities();                                                                                                                                                                                                                                    // never used outside zone server
   void CheckLocationProximity();                                                                                                                                                                                                                                       // never used outside zone server
   void CheckLocationGrids();                                                                                                                                                                                                                                           // never used outside zone server
@@ -644,7 +649,7 @@ private:
   void ProcessDrowning();                                                                                                                                                                                                                                              // never used outside zone server
   void RemoveDamagedSpawn(Spawn* spawn);                                                                                                                                                                                                                               // never used outside zone server
   void ProcessTracking();                                                                                                                                                                                                                                              // never used outside zone server
-  void ProcessTracking(const unique_ptr<Client>& client);                                                                                                                                                                                                              // never used outside zone server
+  void ProcessTracking(const shared_ptr<Client>& client);                                                                                                                                                                                                              // never used outside zone server
   void SendEpicMobDeathToGuild(Player* killer, Spawn* victim);                                                                                                                                                                                                         // never used outside zone server
   void ProcessAggroChecks(Spawn* spawn);                                                                                                                                                                                                                               // never used outside zone server
   /// <summary>Checks to see if it is time to remove a spawn and removes it</summary>
@@ -656,16 +661,16 @@ private:
   void DismissAllPets(); // never used outside zone server
 
   void ClearSpawnRangeMap();
-  void SetClientRangeDistance(unique_ptr<Client> client, int32 spawn_id, float distance);
-  float GetClientRangeDistance(unique_ptr<Client> client, int32 spawn_id);
-  bool HasClientRangeSpawn(unique_ptr<Client> client, int32 spawn_id);
-  map<int32, float>* GetClientRangeMap(unique_ptr<Client> client);
-  void RemoveFromClientRangeMap(unique_ptr<Client> client, int32 spawn_id);
+  void SetClientRangeDistance(shared_ptr<Client> client, int32 spawn_id, float distance);
+  float GetClientRangeDistance(shared_ptr<Client> client, int32 spawn_id);
+  bool HasClientRangeSpawn(shared_ptr<Client> client, int32 spawn_id);
+  map<int32, float>* GetClientRangeMap(shared_ptr<Client> client);
+  void RemoveFromClientRangeMap(shared_ptr<Client> client, int32 spawn_id);
 
-  void SetSpawnStructs(const unique_ptr<Client>& client);
+  void SetSpawnStructs(const shared_ptr<Client>& client);
 
-  vector<unique_ptr<Client>> clients;
-  vector<unique_ptr<Client>> incoming_clients;
+  vector<shared_ptr<Client>> clients;
+  vector<shared_ptr<Client>> incoming_clients;
 
   shared_timed_mutex clients_mutex;
 
@@ -686,9 +691,9 @@ private:
   Mutex MRemoveSpawnScriptTimersList;
 
   /* Mutex Maps */
-  MutexMap<Spawn*, unique_ptr<Client>> client_spawn_map;
+  MutexMap<Spawn*, shared_ptr<Client>> client_spawn_map;
   MutexMap<int32, int32> delayed_spawn_remove_list; // 1st int32 = spawn id, 2nd int32 = time
-  MutexMap<unique_ptr<Client>, int32> drowning_victims;
+  MutexMap<shared_ptr<Client>, int32> drowning_victims;
   MutexMap<Spawn*, int32> heading_timers;
   MutexMap<int32, int32> movement_spawns;               // 1st int32 = spawn id
   MutexMap<int32, PlayerProximity*> player_proximities; // 1st int32 = spawn id
@@ -703,12 +708,11 @@ private:
   MutexMap<int32, MutexList<int32>> spawn_group_map; // MutexList<int32> is a list of spawn id's
   map<int32, list<int32>*> spawn_location_groups;
   map<int32, SpawnLocation*> spawn_location_list;
-  //MutexMap<unique_ptr<Client>, MutexMap<int32, float >* >	spawn_range_map;								// int32 in the MutexMap<int32, float>* = spawn id, float = distance
   MutexMap<int32, int32> widget_timers; // 1st int32 = spawn id
 
-  map<unique_ptr<Client>, unique_ptr<map<int32, float>>> spawn_range_map;
+  map<shared_ptr<Client>, unique_ptr<map<int32, float>>> spawn_range_map;
 
-  map<unique_ptr<Client>, mutex> client_range_mutex_map;
+  map<shared_ptr<Client>, mutex> client_range_mutex_map;
   mutex spawn_range_mutex;
   mutex client_range_mutex;
 

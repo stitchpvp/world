@@ -387,10 +387,10 @@ ZoneList::~ZoneList() {
   client_timeouts.clear();
 }
 
-void ZoneList::CheckFriendList(const unique_ptr<Client>& client) {
+void ZoneList::CheckFriendList(const shared_ptr<Client>& client) {
   LogWrite(WORLD__DEBUG, 0, "World", "Sending FriendList...");
   MClientList.lock();
-  map<string, unique_ptr<Client>>::iterator itr;
+  map<string, shared_ptr<Client>>::iterator itr;
   for (itr = client_map.begin(); itr != client_map.end(); itr++) {
     if (itr->second != client && itr->second) {
       if (itr->second->GetPlayer()->IsFriend(client->GetPlayer()->GetName())) {
@@ -402,9 +402,9 @@ void ZoneList::CheckFriendList(const unique_ptr<Client>& client) {
   MClientList.unlock();
 }
 
-void ZoneList::CheckFriendZoned(const unique_ptr<Client>& client) {
+void ZoneList::CheckFriendZoned(const shared_ptr<Client>& client) {
   MClientList.lock();
-  map<string, unique_ptr<Client>>::iterator itr;
+  map<string, shared_ptr<Client>>::iterator itr;
   for (itr = client_map.begin(); itr != client_map.end(); itr++) {
     if (itr->second != client && itr->second) {
       if (itr->second->GetPlayer()->IsFriend(client->GetPlayer()->GetName())) {
@@ -415,14 +415,14 @@ void ZoneList::CheckFriendZoned(const unique_ptr<Client>& client) {
   MClientList.unlock();
 }
 
-bool ZoneList::HandleGlobalChatMessage(const unique_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name) {
+bool ZoneList::HandleGlobalChatMessage(const shared_ptr<Client>& from, char* to, int16 channel, const char* message, const char* channel_name) {
   if (!from) {
     LogWrite(WORLD__ERROR, 0, "World", "HandleGlobalChatMessage() called with an invalid client");
     return false;
   }
 
   if (channel == CHANNEL_TELL) {
-    unique_ptr<Client> find_client = zone_list.GetClientByCharName(to);
+    shared_ptr<Client> find_client = zone_list.GetClientByCharName(to);
     if (!find_client || find_client->GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
       return false;
     else if (find_client == from) {
@@ -605,7 +605,7 @@ ZoneServer* ZoneList::Get(int32 id, bool loadZone) {
   return tmp;
 }
 
-void ZoneList::SendZoneList(const unique_ptr<Client>& client) {
+void ZoneList::SendZoneList(const shared_ptr<Client>& client) {
   list<ZoneServer*>::iterator zone_iter;
   ZoneServer* tmp = 0;
   MZoneList.readlock(__FUNCTION__, __LINE__);
@@ -685,7 +685,7 @@ ZoneServer* ZoneList::GetByLowestPopulation(int32 zone_id) {
 
 bool ZoneList::ClientConnected(int32 account_id) {
   bool ret = false;
-  map<string, unique_ptr<Client>>::iterator itr;
+  map<string, shared_ptr<Client>>::iterator itr;
   MClientList.lock();
   for (itr = client_map.begin(); itr != client_map.end(); itr++) {
     if (itr->second && itr->second->GetAccountID() == account_id && (itr->second->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) == 0) {
@@ -733,7 +733,7 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
     for (spawn_iter = tmpPlayers.begin(); spawn_iter != tmpPlayers.end(); spawn_iter++) {
       player = *spawn_iter;
       add_player = true;
-      unique_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
+      shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
       if (find_client == NULL)
         continue;
       int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
@@ -804,7 +804,7 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
   }
 }
 
-void ZoneList::ProcessWhoQuery(const char* query, const unique_ptr<Client>& client) {
+void ZoneList::ProcessWhoQuery(const char* query, const shared_ptr<Client>& client) {
   list<ZoneServer*>::iterator zone_iter;
   vector<Entity*> players;
   vector<Entity*>::iterator spawn_iter;
@@ -866,7 +866,7 @@ void ZoneList::ProcessWhoQuery(const char* query, const unique_ptr<Client>& clie
       if (i == num_characters)
         break;
       player = *spawn_iter;
-      unique_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
+      shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
       int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
       int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
       packet->setArrayDataByName("char_name", player->GetName(), i);
@@ -1014,7 +1014,7 @@ void ZoneList::ShutDownZones() {
 }
 
 void ZoneList::ReloadMail() {
-  map<string, unique_ptr<Client>>::iterator itr;
+  map<string, shared_ptr<Client>>::iterator itr;
   MClientList.writelock(__FUNCTION__, __LINE__);
   for (itr = client_map.begin(); itr != client_map.end(); itr++) {
     itr->second->GetPlayer()->DeleteMail();
@@ -1393,7 +1393,7 @@ void World::RemoveServerStatistics() {
   server_statistics.clear();
 }
 
-void World::SendGroupQuests(PlayerGroup* group, const unique_ptr<Client>& client) {
+void World::SendGroupQuests(PlayerGroup* group, const shared_ptr<Client>& client) {
   return;
   /*if(!group)
 		return;
@@ -1433,7 +1433,7 @@ void World::SendGroupQuests(PlayerGroup* group, const unique_ptr<Client>& client
 	}
 }*/
 
-void World::RejoinGroup(const unique_ptr<Client>& client) {
+void World::RejoinGroup(const shared_ptr<Client>& client) {
   /*map<GroupMemberInfo*, int32>::iterator itr;
 	GroupMemberInfo* found = 0;
 	string name = string(client->GetPlayer()->GetName());
@@ -1463,180 +1463,244 @@ void World::AddBonuses(ItemStatsValues* values, int16 type, sint32 value, Entity
       values->str += value;
       break;
     }
+
     case ITEM_STAT_STA: {
       values->sta += value;
       break;
     }
+
     case ITEM_STAT_AGI: {
       values->agi += value;
       break;
     }
+
     case ITEM_STAT_WIS: {
       values->wis += value;
       break;
     }
+
     case ITEM_STAT_INT: {
       values->int_ += value;
       break;
     }
+
     case ITEM_STAT_VS_SLASH: {
       values->vs_slash += value;
       break;
     }
+
     case ITEM_STAT_VS_CRUSH: {
       values->vs_crush += value;
       break;
     }
+
     case ITEM_STAT_VS_PIERCE: {
       values->vs_pierce += value;
       break;
     }
+
+    case ITEM_STAT_VS_PHYSICAL: {
+      values->vs_physical += value;
+    }
+
     case ITEM_STAT_VS_ELEMENTAL: {
       values->vs_heat += value;
       values->vs_cold += value;
       break;
     }
+
     case ITEM_STAT_VS_COLD: {
       values->vs_cold += value;
       break;
     }
+
     case ITEM_STAT_VS_ARCANE: {
       values->vs_magic += value;
       values->vs_mental += value;
       values->vs_divine += value;
       break;
     }
+
     case ITEM_STAT_VS_MENTAL: {
       values->vs_mental += value;
       break;
     }
+
     case ITEM_STAT_VS_DIVINE: {
       values->vs_divine += value;
       break;
     }
+
     case ITEM_STAT_VS_DISEASE: {
       values->vs_disease += value;
       break;
     }
+
     case ITEM_STAT_VS_NOXIOUS: {
       values->vs_poison += value;
       values->vs_disease += value;
       break;
     }
+
     case ITEM_STAT_HEALTH: {
       values->health += value;
       break;
     }
+
     case ITEM_STAT_POWER: {
       values->power += value;
       break;
     }
+
     case ITEM_STAT_CONCENTRATION: {
       values->concentration += value;
       break;
     }
+
     case ITEM_STAT_ABILITY_MODIFIER: {
       values->ability_modifier += value;
       break;
     }
+
     case ITEM_STAT_CRITICALMITIGATION: {
       values->criticalmitigation += value;
       break;
     }
+
     case ITEM_STAT_EXTRASHIELDBLOCKCHANCE: {
       values->extrashieldblockchance += value;
       break;
     }
+
     case ITEM_STAT_BENEFICIALCRITCHANCE: {
       values->beneficialcritchance += value;
       break;
     }
+
     case ITEM_STAT_CRITBONUS: {
       values->critbonus += value;
       break;
     }
-    /*case ITEM_STAT_POTENCY:{
-				values->potency += value;
-				break;
-			}*/
+
     case ITEM_STAT_HATEGAINMOD: {
       values->hategainmod += value;
       break;
     }
+
     case ITEM_STAT_ABILITYREUSESPEED: {
       values->abilityreusespeed += value;
       break;
     }
+
     case ITEM_STAT_ABILITYCASTINGSPEED: {
       values->abilitycastingspeed += value;
       break;
     }
+
     case ITEM_STAT_ABILITYRECOVERYSPEED: {
       values->abilityrecoveryspeed += value;
       break;
     }
+
     case ITEM_STAT_SPELLREUSESPEED: {
       values->spellreusespeed += value;
       break;
     }
+
     case ITEM_STAT_SPELLMULTIATTACKCHANCE: {
       values->spellmultiattackchance += value;
       break;
     }
+
     case ITEM_STAT_DPS: {
       values->dps += value;
       break;
     }
+
     case ITEM_STAT_ATTACKSPEED: {
       values->attackspeed += value;
       break;
     }
+
     case ITEM_STAT_MULTIATTACKCHANCE: {
       values->multiattackchance += value;
       break;
     }
+
     case ITEM_STAT_AEAUTOATTACKCHANCE: {
       values->aeautoattackchance += value;
       break;
     }
+
     case ITEM_STAT_STRIKETHROUGH: {
       values->strikethrough += value;
       break;
     }
+
     case ITEM_STAT_ACCURACY: {
       values->accuracy += value;
       break;
     }
+
     case ITEM_STAT_ARMORMITIGATIONINCREASE: {
       values->mitigation_increase += value;
       break;
     }
+
     case ITEM_STAT_PHYSICAL_DAMAGE_REDUCTION: {
       values->physical_damage_reduction += value;
       break;
     }
+
     case ITEM_STAT_BASEAVOIDANCEBONUS: {
       values->base_avoidance_bonus += value;
       break;
     }
+
     case ITEM_STAT_MINIMUMDEFLECTIONCHANCE: {
       values->minimum_deflection_chance += value;
       break;
     }
-    /*case ITEM_STAT_OFFENSIVESPEED:{
-				values->offensivespeed += value;
-				break;
-			}*/
+
+    case ITEM_STAT_RIPOSTECHANCE: {
+      values->riposte_chance += value;
+      break;
+    }
+
+    case ITEM_STAT_ABILITY_COST_MODIFIER: {
+      values->ability_cost_modifier += value;
+      break;
+    }
+
+    case ITEM_STAT_SPEED: {
+      if (value > values->speed) {
+        values->speed = value;
+      }
+
+      break;
+    }
+
+    case ITEM_STAT_OFFENSIVESPEED: {
+      values->offensive_speed += value;
+      break;
+    }
+
+    case ITEM_STAT_MOUNTSPEED: {
+      values->mount_speed += value;
+      break;
+    }
+
     default: {
-      if (entity)
+      if (entity) {
         entity->stats[type] += value;
+      }
       break;
     }
     }
   }
 }
 
-void World::CreateGuild(const char* guild_name, unique_ptr<Client> leader, int32 group_id) {
+void World::CreateGuild(const char* guild_name, shared_ptr<Client> leader, int32 group_id) {
   deque<GroupMemberInfo*>::iterator itr;
   GroupMemberInfo* gmi;
   Guild* guild;
@@ -1747,7 +1811,7 @@ void World::CheckLottoPlayers() {
     if (Timer::GetCurrentTime2() >= lp->end_time && lp->set) {
       int8 num_matches = lp->num_matches;
       LogWrite(PLAYER__DEBUG, 0, "Player", "Num matches: %u", lp->num_matches);
-      unique_ptr<Client> client = zone_list.GetClientByCharID(itr->first);
+      shared_ptr<Client> client = zone_list.GetClientByCharID(itr->first);
       if (client && num_matches >= 2) {
         if (num_matches == 2) {
           client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You receive 10 silver.");
