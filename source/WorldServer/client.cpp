@@ -2224,11 +2224,7 @@ bool Client::Process(bool zone_process) {
     return false;
   }
 
-  if ((connected_to_zone && !zone_process) || (!connected_to_zone && zone_process)) {
-    return true;
-  }
-
-  if (new_client_login) {
+  if (connected_to_zone && new_client_login) {
     LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
     SendLoginInfo();
     new_client_login = false;
@@ -2269,7 +2265,7 @@ bool Client::Process(bool zone_process) {
 
     GetCurrentZone()->RemoveSpawn(player, false);
 
-    SetCurrentZone(next_zone);
+    //SetCurrentZone(next_zone);
 
     // Do smoething with group to show that the person is ozning
 
@@ -2305,125 +2301,127 @@ bool Client::Process(bool zone_process) {
     return true;
   }
 
-  if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
-    player->ApplyPassiveSpells();
-    database.LoadCharacterActiveSpells(player);
-    player->UnlockAllSpells(true);
+  if (connected_to_zone && GetCurrentZone()) {
+    if (GetCurrentZone() && GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID()) && should_load_spells) {
+      player->ApplyPassiveSpells();
+      database.LoadCharacterActiveSpells(player);
+      player->UnlockAllSpells(true);
 
-    should_load_spells = false;
-  }
-
-  if (quest_updates) {
-    LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, ProcessQuestUpdates", __FUNCTION__, __LINE__);
-    ProcessQuestUpdates();
-  }
-  if (last_update_time > 0 && last_update_time < (Timer::GetCurrentTime2() - 300)) {
-    LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, CheckQuestQueue", __FUNCTION__, __LINE__);
-    CheckQuestQueue();
-  }
-
-  if (GetCurrentZone() && pos_update.Check()) {
-    GetCurrentZone()->CheckTransporters(shared_from_this());
-  }
-
-  if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
-    GetCurrentZone()->ResendSpawns(shared_from_this());
-    GetPlayer()->SetResendSpawns(0);
-  }
-
-  if (lua_interface && lua_debug && lua_debug_timer.Check()) {
-    lua_interface->UpdateDebugClients(shared_from_this());
-  }
-
-  if (quest_pos_timer.Check()) {
-    CheckPlayerQuestsLocationUpdate();
-  }
-
-  if (camp_timer && camp_timer->Check() && getConnection()) {
-    getConnection()->SendDisconnect(false);
-    safe_delete(camp_timer);
-    disconnect_timer = new Timer(2000);
-    disconnect_timer->Start();
-  }
-
-  if (player->GetSkills()->HasSkillUpdates()) {
-    vector<Skill*>* skills = player->GetSkills()->GetSkillUpdates();
-    if (skills) {
-      vector<Skill*>::iterator itr;
-      for (itr = skills->begin(); itr != skills->end(); ++itr) {
-        Skill* skill = *itr;
-        SkillChanged(skill, skill->previous_val, skill->current_val);
-      }
-      safe_delete(skills);
+      should_load_spells = false;
     }
-  }
-  if (disconnect_timer && disconnect_timer->Check()) {
-    safe_delete(disconnect_timer);
-    ret = false;
-  }
-  m_resurrect.writelock(__FUNCTION__, __LINE__);
-  if (current_rez.should_delete || (current_rez.expire_timer && current_rez.expire_timer->Check(false))) {
-    if (GetCurrentZone() && GetCurrentZone()->GetSpellProcess() && current_rez.spell)
-      GetCurrentZone()->GetSpellProcess()->DeleteCasterSpell(current_rez.spell, false);
 
-    if (current_rez.expire_timer)
-      safe_delete(current_rez.expire_timer);
-    current_rez.expire_timer = 0;
-    current_rez.active = false;
-    current_rez.caster = 0;
-    current_rez.crit = false;
-    current_rez.crit_mod = CRIT_MOD_NONE;
-    current_rez.expire_timer = 0;
-    current_rez.heal_name = "";
-    current_rez.hp_perc = 0;
-    current_rez.mp_perc = 0;
-    current_rez.no_calcs = false;
-    current_rez.range = 0;
-    current_rez.should_delete = false;
-    current_rez.spell_name = "";
-    current_rez.spell_visual = 0;
-    current_rez.subspell = 0;
-  }
-  m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
+    if (quest_updates) {
+      LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, ProcessQuestUpdates", __FUNCTION__, __LINE__);
+      ProcessQuestUpdates();
+    }
+    if (last_update_time > 0 && last_update_time < (Timer::GetCurrentTime2() - 300)) {
+      LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, CheckQuestQueue", __FUNCTION__, __LINE__);
+      CheckQuestQueue();
+    }
 
-  GetPlayer()->CheckActivityStatuses();
+    if (GetCurrentZone() && pos_update.Check()) {
+      GetCurrentZone()->CheckTransporters(shared_from_this());
+    }
 
-  // Quest timers
-  Quest* failed_step = 0;
-  MQuestTimers.writelock(__FUNCTION__, __LINE__);
-  if (quest_timers.size() > 0) {
-    vector<int32>::iterator itr;
-    map<int32, Quest*>* player_quests = player->GetPlayerQuests();
-    for (itr = quest_timers.begin(); itr != quest_timers.end(); ++itr) {
-      if (player_quests->count(*itr) > 0 && player_quests->at(*itr)->GetStepTimer() != 0) {
-        Quest* quest = player_quests->at(*itr);
-        if (Timer::GetUnixTimeStamp() >= quest->GetStepTimer()) {
-          failed_step = quest;
+    if (spawn_vis_update.Check() && GetPlayer()->GetResendSpawns()) {
+      GetCurrentZone()->ResendSpawns(shared_from_this());
+      GetPlayer()->SetResendSpawns(0);
+    }
+
+    if (lua_interface && lua_debug && lua_debug_timer.Check()) {
+      lua_interface->UpdateDebugClients(shared_from_this());
+    }
+
+    if (quest_pos_timer.Check()) {
+      CheckPlayerQuestsLocationUpdate();
+    }
+
+    if (camp_timer && camp_timer->Check() && getConnection()) {
+      getConnection()->SendDisconnect(false);
+      safe_delete(camp_timer);
+      disconnect_timer = new Timer(2000);
+      disconnect_timer->Start();
+    }
+
+    if (player->GetSkills()->HasSkillUpdates()) {
+      vector<Skill*>* skills = player->GetSkills()->GetSkillUpdates();
+      if (skills) {
+        vector<Skill*>::iterator itr;
+        for (itr = skills->begin(); itr != skills->end(); ++itr) {
+          Skill* skill = *itr;
+          SkillChanged(skill, skill->previous_val, skill->current_val);
+        }
+        safe_delete(skills);
+      }
+    }
+    if (disconnect_timer && disconnect_timer->Check()) {
+      safe_delete(disconnect_timer);
+      ret = false;
+    }
+    m_resurrect.writelock(__FUNCTION__, __LINE__);
+    if (current_rez.should_delete || (current_rez.expire_timer && current_rez.expire_timer->Check(false))) {
+      if (GetCurrentZone() && GetCurrentZone()->GetSpellProcess() && current_rez.spell)
+        GetCurrentZone()->GetSpellProcess()->DeleteCasterSpell(current_rez.spell, false);
+
+      if (current_rez.expire_timer)
+        safe_delete(current_rez.expire_timer);
+      current_rez.expire_timer = 0;
+      current_rez.active = false;
+      current_rez.caster = 0;
+      current_rez.crit = false;
+      current_rez.crit_mod = CRIT_MOD_NONE;
+      current_rez.expire_timer = 0;
+      current_rez.heal_name = "";
+      current_rez.hp_perc = 0;
+      current_rez.mp_perc = 0;
+      current_rez.no_calcs = false;
+      current_rez.range = 0;
+      current_rez.should_delete = false;
+      current_rez.spell_name = "";
+      current_rez.spell_visual = 0;
+      current_rez.subspell = 0;
+    }
+    m_resurrect.releasewritelock(__FUNCTION__, __LINE__);
+
+    GetPlayer()->CheckActivityStatuses();
+
+    // Quest timers
+    Quest* failed_step = 0;
+    MQuestTimers.writelock(__FUNCTION__, __LINE__);
+    if (quest_timers.size() > 0) {
+      vector<int32>::iterator itr;
+      map<int32, Quest*>* player_quests = player->GetPlayerQuests();
+      for (itr = quest_timers.begin(); itr != quest_timers.end(); ++itr) {
+        if (player_quests->count(*itr) > 0 && player_quests->at(*itr)->GetStepTimer() != 0) {
+          Quest* quest = player_quests->at(*itr);
+          if (Timer::GetUnixTimeStamp() >= quest->GetStepTimer()) {
+            failed_step = quest;
+            break;
+          }
+        } else {
+          quest_timers.erase(itr);
           break;
         }
-      } else {
-        quest_timers.erase(itr);
-        break;
       }
     }
-  }
-  MQuestTimers.releasewritelock(__FUNCTION__, __LINE__);
+    MQuestTimers.releasewritelock(__FUNCTION__, __LINE__);
 
-  if (failed_step)
-    failed_step->StepFailed(failed_step->GetTimerStep());
+    if (failed_step)
+      failed_step->StepFailed(failed_step->GetTimerStep());
 
-  if (player->ControlFlagsChanged())
-    player->SendControlFlagUpdates(shared_from_this());
+    if (player->ControlFlagsChanged())
+      player->SendControlFlagUpdates(shared_from_this());
 
-  if (!eqs || !eqs->CheckActive())
-    ret = false;
+    if (!eqs || !eqs->CheckActive())
+      ret = false;
 
-  if (!ret) {
-    shared_ptr<Client> client = shared_from_this();
-    thread t([client]() {
-      client->Save();
-    });
-    t.detach();
+    if (!ret) {
+      shared_ptr<Client> client = shared_from_this();
+      thread t([client]() {
+        client->Save();
+      });
+      t.detach();
+    }
   }
 
   return ret;
@@ -2526,7 +2524,6 @@ void ClientList::Remove(shared_ptr<Client> client) {
 
 void Client::SetCurrentZone(int32 id) {
   if (current_zone) {
-    //current_zone->GetCombat()->RemoveHate(player);
     current_zone->RemoveSpawn(player, false);
   }
   SetCurrentZone(zone_list.Get(id));
@@ -3000,7 +2997,8 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords) {
 
 void Client::Zone(const char* new_zone, bool set_coords) {
   LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request to '%s'", new_zone);
-  Zone(zone_list.Get(new_zone), set_coords);
+  ZoneServer* zs = new ZoneServer(new_zone);
+  Zone(zs, set_coords);
 }
 
 void Client::TeleportWithinZone(float x, float y, float z, float heading) {
@@ -3116,7 +3114,7 @@ void Client::DetermineCharacterUpdates() {
 }
 
 void Client::Save() {
-  if (current_zone) {
+  if (current_zone && GetPlayer()) {
     DetermineCharacterUpdates();
 
     UpdateCharacterInstances();
@@ -7574,6 +7572,10 @@ bool Client::EntityCommandPrecheck(Spawn* spawn, const char* command) {
 }
 
 void Client::AddChangedSpawn(shared_ptr<SpawnUpdate> spawn_update) {
+  if (!connected_to_zone) {
+    return;
+  }
+
   Spawn* spawn = GetCurrentZone()->GetSpawnByID(spawn_update->spawn_id);
 
   if (spawn && GetPlayer()->WasSentSpawn(spawn_update->spawn_id) && !GetPlayer()->WasSpawnRemoved(spawn)) {

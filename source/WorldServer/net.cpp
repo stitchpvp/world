@@ -315,6 +315,8 @@ int main(int argc, char** argv) {
   //LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
   ZoneServer* zs = zone_list.Get("freeport");
+  database.LoadZoneInfo(zs);
+  zs->Init();
 
   while (RunLoops) {
     Timer::SetCurrentTime();

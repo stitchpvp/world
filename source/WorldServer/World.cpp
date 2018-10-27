@@ -554,9 +554,6 @@ void ZoneList::Remove(ZoneServer* zone) {
 
 ZoneServer* ZoneList::Get(const char* zone_name, bool loadZone) {
   ZoneServer* ret = new ZoneServer(zone_name);
-  database.LoadZoneInfo(ret);
-  ret->Init();
-
   return ret;
 }
 
@@ -576,15 +573,6 @@ ZoneServer* ZoneList::Get(int32 id, bool loadZone) {
   MZoneList.releasereadlock(__FUNCTION__, __LINE__);
   if (ret)
     tmp = ret;
-  else if (loadZone) {
-    string* zonename = database.GetZoneName(id);
-    if (zonename) {
-      tmp = new ZoneServer(zonename->c_str());
-      database.LoadZoneInfo(tmp);
-      tmp->Init();
-      safe_delete(zonename);
-    }
-  }
   return tmp;
 }
 
