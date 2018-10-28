@@ -792,7 +792,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
             connected_to_zone = true;
             new_client_login = true;
 
-            GetCurrentZone()->AddIncomingClient(shared_from_this());
+            //GetCurrentZone()->AddIncomingClient(shared_from_this());
             zone_list.AddClientToMap(player->GetName(), shared_from_this());
           } else {
             LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);

@@ -19,7 +19,7 @@ bool MasterServer::Connect() {
   char errbuf[TCPConnection_ErrorBufferSize];
   memset(errbuf, 0, TCPConnection_ErrorBufferSize);
 
-  if (tcpc->Connect("192.168.0.14", 9050, errbuf)) {
+  if (tcpc->Connect(getenv("MASTER_SERVER_HOST"), 9050, errbuf)) {
     return true;
   } else {
     return false;

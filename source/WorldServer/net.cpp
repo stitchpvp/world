@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 
   //LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
-  ZoneServer* zs = zone_list.Get("freeport");
+  ZoneServer* zs = new ZoneServer(argv[1]);
   database.LoadZoneInfo(zs);
   zs->Init();
 
@@ -336,7 +336,7 @@ int main(int argc, char** argv) {
       if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
         auto client = make_shared<Client>(eqs);
         client->SetCurrentZone(zs);
-        client_list.Add(client);
+        //client_list.Add(client);
         zs->AddIncomingClient(client);
       } else if (eqs && !client_list.ContainsStream(eqs)) {
         connecting_clients[eqs] = Timer::GetCurrentTime2();
@@ -349,7 +349,7 @@ int main(int argc, char** argv) {
           LogWrite(NET__DEBUG, 0, "Net", "Removing client from waiting list...");
 
           auto client = make_shared<Client>(cc_itr->first);
-          client_list.Add(client);
+          //client_list.Add(client);
           zs->AddIncomingClient(client);
 
           connecting_clients.erase(cc_itr);
