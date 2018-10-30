@@ -247,6 +247,7 @@ struct ServerLSStatus_Struct {
 
 struct ServerMSInfo_Struct {
   int32 zone_id;
+  char uuid[36];
 };
 
 struct ServerMSAuthPlayer_Struct {

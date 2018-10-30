@@ -70,6 +70,7 @@ void MasterServer::SayHello(int32 zone_id) {
   auto pack = new ServerPacket(ServerOP_MSHello, sizeof(ServerMSInfo_Struct));
   auto msi = (ServerMSInfo_Struct*)pack->pBuffer;
   msi->zone_id = zone_id;
+  strncpy(msi->uuid, getenv("ZONE_UUID"), 36);
   tcpc->SendPacket(pack);
   safe_delete(pack);
 }
