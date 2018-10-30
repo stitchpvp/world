@@ -976,8 +976,8 @@ void Entity::CalculateBonuses() {
   SetTotalHP(GetTotalHPBase() + values->health + sta_hp_bonus);
   SetTotalPower(GetTotalPowerBase() + values->power + prim_power_bonus);
 
-  sint32 hp_difference = GetTotalHP() - GetTotalHPBase();
-  sint32 power_difference = GetTotalPower() - GetTotalPowerBase();
+  sint32 hp_difference = GetTotalHP() - total_hp;
+  sint32 power_difference = GetTotalPower() - total_power;
 
   if (hp_difference > 0) {
     SetHP(GetHP() + hp_difference);
