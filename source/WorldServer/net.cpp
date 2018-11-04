@@ -82,6 +82,7 @@ EQStreamFactory eqsf(LoginStream);
 LoginServer loginserver;
 MasterServer master_server;
 LuaInterface* lua_interface = new LuaInterface();
+ZoneServer* zone;
 
 #include "Rules/Rules.h"
 #include "Titles.h"
@@ -295,9 +296,9 @@ int main(int argc, char** argv) {
 
   //LogWrite(WORLD__INFO, 0, "Console", "Type 'help' or '?' and press enter for menu options.");
 
-  ZoneServer* zs = new ZoneServer(argv[1]);
-  database.LoadZoneInfo(zs);
-  zs->Init();
+  zone = new ZoneServer(argv[1]);
+  database.LoadZoneInfo(zone);
+  zone->Init();
 
   while (RunLoops) {
     Timer::SetCurrentTime();
@@ -316,9 +317,9 @@ int main(int argc, char** argv) {
 
       if (eqs && eqs->CheckActive() && !client_list.ContainsStream(eqs)) {
         auto client = make_shared<Client>(eqs);
-        client->SetCurrentZone(zs);
+        client->SetCurrentZone(zone);
         //client_list.Add(client);
-        zs->AddIncomingClient(client);
+        zone->AddIncomingClient(client);
       } else if (eqs && !client_list.ContainsStream(eqs)) {
         connecting_clients[eqs] = Timer::GetCurrentTime2();
       }
@@ -331,7 +332,7 @@ int main(int argc, char** argv) {
 
           auto client = make_shared<Client>(cc_itr->first);
           //client_list.Add(client);
-          zs->AddIncomingClient(client);
+          zone->AddIncomingClient(client);
 
           connecting_clients.erase(cc_itr);
           break;
@@ -355,17 +356,10 @@ int main(int argc, char** argv) {
       InterserverTimer.Start();
       database.ping();
 
-      if (true /*getenv("MASTER_SERVER_ENABLED") == "true"*/ && !master_server.Connected() && master_server.Connect()) {
+      if (!master_server.Connected() && master_server.Connect()) {
         LogWrite(WORLD__INFO, 0, "Master", "Connected to Master Server");
-        master_server.SayHello(zs->GetZoneID());
+        master_server.SayHello(zone->GetZoneID());
       }
-
-      /*if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
-				LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
-
-				thread thr4(AutoInitLoginServer, nullptr);
-				thr4.detach();
-			}*/
     }
 
     this_thread::yield();
@@ -541,14 +535,7 @@ void CatchSignal(int sig_num) {
 
 bool NetConnection::ReadLoginINI() {
   strncpy(worldname, getenv("EQ2_WORLD_NAME"), 201);
-  strncpy(worldaddress, getenv("EQ2_ADDRESS"), 250);
   worldport = atoi(getenv("EQ2_PORT"));
-  publicport = atoi(getenv("PUBLIC_PORT"));
-
-  strncpy(worldaccount, getenv("EQ2_LS_USERNAME"), 31);
-  strncpy(worldpassword, getenv("EQ2_LS_PASSWORD"), 31);
-  strncpy(loginaddress[0], getenv("EQ2_LS_ADDRESS"), 250);
-  loginport[0] = atoi(getenv("EQ2_LS_PORT"));
 
   LoginServerInfo = 1;
 
@@ -614,7 +601,6 @@ ZoneAuthRequest::~ZoneAuthRequest() {
 }
 
 void ZoneAuth::AddAuth(ZoneAuthRequest* zar) {
-  LogWrite(NET__DEBUG, 0, "Net", "AddAuth: %u Key: %u", zar->GetAccountID(), zar->GetAccessKey());
   list.Insert(zar);
 }
 

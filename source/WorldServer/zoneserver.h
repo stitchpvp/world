@@ -239,7 +239,7 @@ public:
   void AddClient(shared_ptr<Client> client);
   void AddIncomingClient(shared_ptr<Client> client);
 
-  void SimpleMessage(int8 type, const char* message, Spawn* from, float distance);
+  void SimpleMessage(int8 type, const char* message, Spawn* from = nullptr, float distance = 0);
   void HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
   void HandleChatMessage(const shared_ptr<Client>& client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
   void HandleBroadcast(const char* message);

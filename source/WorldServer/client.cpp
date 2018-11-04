@@ -105,7 +105,6 @@ extern MasterTraitList master_trait_list;
 extern MasterQuestList master_quest_list;
 extern MasterFactionList master_faction_list;
 extern MasterRecipeList master_recipe_list;
-extern volatile bool RunLoops;
 extern ConfigReader configReader;
 extern LuaInterface* lua_interface;
 extern World world;
@@ -721,10 +720,12 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
       int32 account_id = request->getType_int32_ByName("account_id");
       int32 access_code = request->getType_int32_ByName("access_code");
 
+      LogWrite(ZONE__INFO, 0, "ZoneAuth", "Access Key: %u, Account ID: %u", access_code, account_id);
+
       ZoneAuthRequest* zar = zone_auth.GetAuth(account_id, access_code);
 
       if (zar) {
-        LogWrite(ZONE__INFO, 0, "ZoneAuth", "Access Key: %u, Character Name: %s, Account ID: %u", zar->GetAccessKey(), zar->GetCharacterName(), zar->GetAccountID());
+        //LogWrite(ZONE__INFO, 0, "ZoneAuth", "Access Key: %u, Character Name: %s, Account ID: %u", zar->GetAccessKey(), zar->GetCharacterName(), zar->GetAccountID());
 
         firstlogin = zar->isFirstLogin();
 
@@ -1135,11 +1136,6 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
     break;
   }
   case OP_ReadyToZoneMsg: {
-    LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ReadyToZoneMsg", opcode, opcode);
-    if (client_zoning)
-      LogWrite(WORLD__INFO, 0, "World", "OP_ReadyToZone: Player %s zoning to %s", player->GetName(), GetCurrentZone()->GetZoneName());
-    else
-      LogWrite(WORLD__ERROR, 0, "World", "OP_ReadyToZone: Player %s attempting to zone without server authorization.", player->GetName());
     Disconnect();
     break;
   }
@@ -2226,6 +2222,7 @@ bool Client::Process(bool zone_process) {
 
   if (connected_to_zone && new_client_login) {
     LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
+    master_server.PlayerOnline(GetCharacterID());
     SendLoginInfo();
     new_client_login = false;
   }
@@ -2256,8 +2253,6 @@ bool Client::Process(bool zone_process) {
   }
 
   if (!waiting_to_zone && next_zone) {
-    client_zoning = true;
-
     player->DismissPet((NPC*)player->GetPet());
     player->DismissPet((NPC*)player->GetCharmedPet());
     player->DismissPet((NPC*)player->GetDeityPet());
@@ -2265,7 +2260,7 @@ bool Client::Process(bool zone_process) {
 
     GetCurrentZone()->RemoveSpawn(player, false);
 
-    //SetCurrentZone(next_zone);
+    SetCurrentZone(next_zone);
 
     // Do smoething with group to show that the person is ozning
 
@@ -2283,12 +2278,17 @@ bool Client::Process(bool zone_process) {
       player->SetPower(player->GetTotalPower());
     }
 
-    char* new_zone_ip = net.GetWorldAddress();
+    if (!client_zoning) {
+      master_server.ZoneRequest(shared_from_this(), next_zone->GetZoneID());
+    }
 
-    int32 key = Timer::GetUnixTimeStamp();
+    client_zoning = true;
 
-    ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
-    zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
+    //int32 key = Timer::GetUnixTimeStamp();
+
+    //char* new_zone_ip = net.GetWorldAddress();
+    //ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
+    //zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
 
     return true;
   }
@@ -2990,6 +2990,7 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords) {
 void Client::Zone(const char* new_zone, bool set_coords) {
   LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request to '%s'", new_zone);
   ZoneServer* zs = new ZoneServer(new_zone);
+  zs->SetZoneID(database.GetZoneID(new_zone));
   Zone(zs, set_coords);
 }
 

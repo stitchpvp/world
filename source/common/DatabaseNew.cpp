@@ -55,7 +55,11 @@ bool DatabaseNew::Connect() {
   const char* password = const_cast<char*>(getenv("DATABASE_PASSWORD"));
   const char* database = const_cast<char*>(getenv("DATABASE_NAME"));
 
-  return Connect(host, user, password, database);
+  if (getenv("DATABASE_PORT")) {
+    return Connect(host, user, password, database, atoi(getenv("DATABASE_PORT")));
+  } else {
+    return Connect(host, user, password, database);
+  }
 }
 
 bool DatabaseNew::Connect(const char* host, const char* user, const char* password, const char* database) {

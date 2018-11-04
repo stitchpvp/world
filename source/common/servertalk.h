@@ -32,58 +32,70 @@
 #define LoginServer_AuthStale 60000
 #define AUTHCHANGE_TIMEOUT 900 // in seconds
 
-#define ServerOP_KeepAlive 0x0001      // packet to test if port is still open
-#define ServerOP_ChannelMessage 0x0002 // broadcast/guildsay
-#define ServerOP_SetZone 0x0003        // client -> server zoneinfo
-#define ServerOP_ShutdownAll 0x0004    // exit(0);
-#define ServerOP_ZoneShutdown 0x0005   // unload all data, goto sleep mode
-#define ServerOP_ZoneBootup 0x0006     // come out of sleep mode and load zone specified
-#define ServerOP_ZoneStatus 0x0007     // Shows status of all zones
-#define ServerOP_SetConnectInfo 0x0008 // Tells server address and port #
-#define ServerOP_EmoteMessage 0x0009   // Worldfarts
-#define ServerOP_ClientList 0x000A     // Update worldserver's client list, for #whos
-#define ServerOP_Who 0x000B            // #who
-#define ServerOP_ZonePlayer 0x000C     // #zone, or #summon
-#define ServerOP_KickPlayer 0x000D     // #kick
-#define ServerOP_RefreshGuild 0x000E   // Notice to all zoneservers to refresh their guild cache for ID# in packet
-#define ServerOP_GuildKickAll 0x000F   // Remove all clients from this guild
-#define ServerOP_GuildInvite 0x0010
-#define ServerOP_GuildRemove 0x0011
-#define ServerOP_GuildPromote 0x0012
-#define ServerOP_GuildDemote 0x0013
-#define ServerOP_GuildLeader 0x0014
-#define ServerOP_GuildGMSet 0x0015
-#define ServerOP_GuildGMSetRank 0x0016
-#define ServerOP_FlagUpdate 0x0018 // GM Flag updated for character, refresh the memory cache
-#define ServerOP_GMGoto 0x0019
-#define ServerOP_MultiLineMsg 0x001A
-#define ServerOP_Lock 0x001B // For #lock/#unlock inside server
-#define ServerOP_Motd 0x001C // For changing MoTD inside server.
-#define ServerOP_Uptime 0x001D
-#define ServerOP_Petition 0x001E
-#define ServerOP_KillPlayer 0x001F
-#define ServerOP_UpdateGM 0x0020
-#define ServerOP_RezzPlayer 0x0021
-#define ServerOP_ZoneReboot 0x0022
-#define ServerOP_ZoneToZoneRequest 0x0023
-#define ServerOP_AcceptWorldEntrance 0x0024
-#define ServerOP_ZAAuth 0x0025
-#define ServerOP_ZAAuthFailed 0x0026
-#define ServerOP_ZoneIncClient 0x0027 // Incomming client
-#define ServerOP_ClientListKA 0x0028
-#define ServerOP_ChangeWID 0x0029
-#define ServerOP_IPLookup 0x002A
-#define ServerOP_LockZone 0x002B
-#define ServerOP_ItemStatus 0x002C
-#define ServerOP_OOCMute 0x002D
-#define ServerOP_Revoke 0x002E
-#define ServerOP_GuildJoin 0x002F
-#define ServerOP_GroupIDReq 0x0030
-#define ServerOP_GroupIDReply 0x0031
-#define ServerOP_GroupLeave 0x0032 // for disbanding out of zone folks
-#define ServerOP_RezzPlayerAccept 0x0033
-#define ServerOP_SpawnCondition 0x0034
-#define ServerOP_SpawnEvent 0x0035
+#define ServerOP_HelloWorld 0x0001
+#define ServerOP_AuthPlayer 0x0002
+#define ServerOP_PlayerOnline 0x0003
+#define ServerOP_PlayerOffline 0x0004
+#define ServerOP_ZoneRequest 0x0005
+#define ServerOP_ZonePlayer 0x0006
+#define ServerOP_KickPlayer 0x0007
+#define ServerOP_Message 0x0008
+#define ServerOP_Tell 0x0009
+
+// #define ServerOP_HearChat 0x0008
+
+// #define ServerOP_KeepAlive 0x0001      // packet to test if port is still open
+// #define ServerOP_ChannelMessage 0x0002 // broadcast/guildsay
+// #define ServerOP_SetZone 0x0003        // client -> server zoneinfo
+// #define ServerOP_ShutdownAll 0x0004    // exit(0);
+// #define ServerOP_ZoneShutdown 0x0005   // unload all data, goto sleep mode
+// #define ServerOP_ZoneBootup 0x0006     // come out of sleep mode and load zone specified
+// #define ServerOP_ZoneStatus 0x0007     // Shows status of all zones
+// #define ServerOP_SetConnectInfo 0x0008 // Tells server address and port #
+// #define ServerOP_EmoteMessage 0x0009   // Worldfarts
+// #define ServerOP_ClientList 0x000A     // Update worldserver's client list, for #whos
+// #define ServerOP_Who 0x000B            // #who
+// #define ServerOP_ZonePlayer 0x000C     // #zone, or #summon
+// #define ServerOP_KickPlayer 0x000D     // #kick
+// #define ServerOP_RefreshGuild 0x000E   // Notice to all zoneservers to refresh their guild cache for ID# in packet
+// #define ServerOP_GuildKickAll 0x000F   // Remove all clients from this guild
+// #define ServerOP_GuildInvite 0x0010
+// #define ServerOP_GuildRemove 0x0011
+// #define ServerOP_GuildPromote 0x0012
+// #define ServerOP_GuildDemote 0x0013
+// #define ServerOP_GuildLeader 0x0014
+// #define ServerOP_GuildGMSet 0x0015
+// #define ServerOP_GuildGMSetRank 0x0016
+// #define ServerOP_FlagUpdate 0x0018 // GM Flag updated for character, refresh the memory cache
+// #define ServerOP_GMGoto 0x0019
+// #define ServerOP_MultiLineMsg 0x001A
+// #define ServerOP_Lock 0x001B // For #lock/#unlock inside server
+// #define ServerOP_Motd 0x001C // For changing MoTD inside server.
+// #define ServerOP_Uptime 0x001D
+// #define ServerOP_Petition 0x001E
+// #define ServerOP_KillPlayer 0x001F
+// #define ServerOP_UpdateGM 0x0020
+// #define ServerOP_RezzPlayer 0x0021
+// #define ServerOP_ZoneReboot 0x0022
+// #define ServerOP_ZoneToZoneRequest 0x0023
+// #define ServerOP_AcceptWorldEntrance 0x0024
+// #define ServerOP_ZAAuth 0x0025
+// #define ServerOP_ZAAuthFailed 0x0026
+// #define ServerOP_ZoneIncClient 0x0027 // Incomming client
+// #define ServerOP_ClientListKA 0x0028
+// #define ServerOP_ChangeWID 0x0029
+// #define ServerOP_IPLookup 0x002A
+// #define ServerOP_LockZone 0x002B
+// #define ServerOP_ItemStatus 0x002C
+// #define ServerOP_OOCMute 0x002D
+// #define ServerOP_Revoke 0x002E
+// #define ServerOP_GuildJoin 0x002F
+// #define ServerOP_GroupIDReq 0x0030
+// #define ServerOP_GroupIDReply 0x0031
+// #define ServerOP_GroupLeave 0x0032 // for disbanding out of zone folks
+// #define ServerOP_RezzPlayerAccept 0x0033
+// #define ServerOP_SpawnCondition 0x0034
+// #define ServerOP_SpawnEvent 0x0035
 
 #define UpdateServerOP_Verified 0x5090
 #define UpdateServerOP_DisplayMsg 0x5091
@@ -111,6 +123,9 @@
 #define ServerOP_MSKickPlayer 0x4002
 #define ServerOP_MSPlayerOnline 0x4003
 #define ServerOP_MSPlayerOffline 0x4004
+#define ServerOP_MSZoneRequest 0x4005
+#define ServerOP_MSZonePlayer 0x4006
+#define ServerOP_MSHearChat 0x4007
 
 #define ServerOP_UsertoWorldReq 0xAB00
 #define ServerOP_UsertoWorldResp 0xAB01
@@ -253,6 +268,21 @@ struct ServerMSInfo_Struct {
 struct ServerMSAuthPlayer_Struct {
   int32 account_id;
   int32 char_id;
+  int32 access_key;
+  bool first_login;
+};
+
+struct ServerMSZonePlayer_Struct {
+  char addr[80];
+  int16 port;
+  int32 character_id;
+  int32 access_key;
+};
+
+struct ServerMSZoneRequest_Struct {
+  int32 zone_id;
+  int32 account_id;
+  int32 character_id;
 };
 
 struct ServerMSPlayer_Struct {
@@ -261,6 +291,24 @@ struct ServerMSPlayer_Struct {
 
 struct ServerMSKickPlayer_Struct {
   int32 char_id;
+};
+
+struct ServerMessage_Struct {
+  int8 channel;
+  int32 spawn_id;
+  int16 distance;
+  int16 size;
+  char message[0];
+};
+
+struct ServerTell_Struct {
+  ServerTell_Struct() : character_id(0) {}
+
+  int32 character_id;
+  char from[32];
+  char to[32];
+  int16 size;
+  char message[256];
 };
 
 struct ServerSystemwideMessage {

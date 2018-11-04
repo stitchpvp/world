@@ -78,7 +78,6 @@ extern ZoneAuth zone_auth;
 extern Variables variables;
 extern ZoneList zone_list;
 extern ClientList client_list;
-extern volatile bool RunLoops;
 volatile bool LoginLoopRunning = false;
 extern ConfigReader configReader;
 extern RuleManager rule_manager;

@@ -78,6 +78,11 @@ bool Database::Init() {
   char* passwd = getenv("DATABASE_PASSWORD");
   char* database = getenv("DATABASE_NAME");
   int32 port = 0;
+
+  if (getenv("DATABASE_PORT")) {
+    port = atoi(getenv("DATABASE_PORT"));
+  }
+
   bool compression = false;
 
   int32 errnum = 0;

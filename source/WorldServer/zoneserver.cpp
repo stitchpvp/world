@@ -27,6 +27,7 @@ using namespace std;
 #include <time.h>
 #include <stdlib.h>
 #include "Commands/Commands.h"
+#include "MasterServer.h"
 #include <functional>
 #include <atomic>
 
@@ -107,6 +108,8 @@ extern Chat chat;
 extern MasterRaceTypeList race_types_list;
 extern MasterSpellList master_spell_list;
 extern MasterSkillList master_skill_list;
+extern MasterServer master_server;
+extern volatile bool RunLoops;
 
 int32 MinInstanceID = 1000;
 
@@ -209,6 +212,8 @@ ZoneServer::~ZoneServer() {
   --numzones;
   UpdateWindowTitle(0);
   zone_list.Remove(this);
+
+  RunLoops = false;
 }
 
 void ZoneServer::Init() {
@@ -2858,6 +2863,7 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
 
     LogWrite(MISC__TODO, 1, "TODO", "Put Player Online Status updates in a timer eventually\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
     database.ToggleCharacterOnline(client, 0);
+    master_server.PlayerOffline(client->GetCharacterID());
   }
 }
 
@@ -2967,9 +2973,11 @@ void ZoneServer::SimpleMessage(int8 type, const char* message, Spawn* from, floa
   shared_lock<shared_timed_mutex> guard(clients_mutex);
 
   for (const auto& client : clients) {
-    if (from && client->IsConnected() && from->GetDistance(client->GetPlayer()) <= distance) {
-      client->SimpleMessage(type, message);
+    if (from && distance > 0 && from->GetDistance(client->GetPlayer()) > distance) {
+      return;
     }
+
+    client->SimpleMessage(type, message);
   }
 }
 
@@ -3386,7 +3394,7 @@ Spawn* ZoneServer::GetSpawnByDatabaseID(int32 id) {
 }
 
 Spawn* ZoneServer::GetSpawnByID(int32 id) {
-  Spawn* ret = 0;
+  Spawn* ret = nullptr;
   MSpawnList.readlock(__FUNCTION__, __LINE__);
   if (spawn_list.count(id) > 0)
     ret = spawn_list[id];

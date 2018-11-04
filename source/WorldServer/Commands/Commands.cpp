@@ -43,6 +43,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../VisualStates.h"
 #include "../World.h"
 #include "../WorldDatabase.h"
+#include "../MasterServer.h"
 #include "../client.h"
 #include <sys/types.h>
 
@@ -68,6 +69,7 @@ extern Chat chat;
 extern RuleManager rule_manager;
 extern MasterAAList master_aa_list;
 extern MasterRaceTypeList race_types_list;
+extern MasterServer master_server;
 
 EQ2Packet* RemoteCommands::serialize() {
   buffer.clear();
@@ -1488,10 +1490,13 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
   }
   case COMMAND_TELL: {
     if (sep && sep->arg[0] && sep->argplus[1]) {
-      if (!zone_list.HandleGlobalChatMessage(client, sep->arg[0], CHANNEL_TELL, sep->argplus[1]))
-        client->Message(CHANNEL_COLOR_RED, "Unable to find client %s", sep->arg[0]);
-    } else
-      client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage:  /tell {character_name} {message}");
+      if (!zone_list.HandleGlobalChatMessage(client, sep->arg[0], CHANNEL_TELL, sep->argplus[1])) {
+        master_server.Tell(client->GetPlayer()->GetName(), sep->arg[0], sep->argplus[1]);
+        //client->Message(CHANNEL_COLOR_RED, "Unable to find client %s", sep->arg[0]);
+      }
+    } else {
+      client->SimpleMessage(CHANNEL_COLOR_RED, "Usage: /tell <charactername> <message>");
+    }
     break;
   }
   case COMMAND_SHOUT: {
@@ -2386,8 +2391,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
   }
   case COMMAND_USE: {
     Spawn* target = client->GetPlayer()->GetTarget();
-    if (target->IsWidget())
-      ((Widget*)target)->HandleUse(client, "use");
+    if (target && target->IsWidget()) {
+      static_cast<Widget*>(target)->HandleUse(client, "use");
+    }
     break;
   }
   case COMMAND_ATTACK:
