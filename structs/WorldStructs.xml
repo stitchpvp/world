@@ -29875,4 +29875,25 @@ to zero and treated like placeholders." />
 <Data ElementName="body_size" Type="float" />
 <Data ElementName="body_age" Type="float" />
 </Struct>
+<Struct Name="WS_SpawnAppearance" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_SpawnAppearance">
+  <Data ElementName="unknown" Type="int16" />
+  <Data ElementName="unknown2" Type="int8" Size="2" />
+  <Data ElementName="can_modify" Type="int8" />
+  <Data ElementName="show_hood" Type="int8" />
+  <Data ElementName="show_heraldry" Type="int8" />
+  <Data ElementName="unknown3" Type="int8" />
+  <Data ElementName="unknown4" Type="int8" />
+  <Data ElementName="num_slots" Type="int8" />
+  <Data ElementName="slot_array" Type="Array" ArraySizeVariable="num_slots">
+    <Data ElementName="slot_id" Type="int8" />
+    <Data ElementName="unknown5" Type="int8" Size="3" />
+  </Data>
+  <Data ElementName="num_items" Type="int8" />
+  <Data ElementName="item_array" Type="Array" ArraySizeVariable="num_items">
+    <Data ElementName="item_id" Type="int32" />
+    <Data ElementName="item_name" Type="EQ2_16Bit_String" />
+    <Data ElementName="unknown6" Type="int8" Size="6" />
+  </Data>
+  <Data ElementName="unknown7" Type="int8" Size="3" />
+</Struct>
 </EQ2Emulator>

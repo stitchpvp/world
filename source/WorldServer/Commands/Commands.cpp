@@ -7368,6 +7368,24 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
   if (sep == nullptr)
     return;
 
+  PacketStruct* packet = configReader.getStruct("WS_SpawnAppearance", client->GetVersion());
+
+  for (int i = 0; i < 3; ++i) {
+    if (sep->IsSet(i) && sep->IsNumber(i)) {
+      packet->setDataByName("unknown2", atoi(sep->arg[i]), i);
+    } else {
+      break;
+    }
+  }
+
+  packet->setDataByName("show_hood", 1);
+  packet->setDataByName("show_heraldry", 1);
+  //packet->setDataByName("unknown3", 1);
+  //packet->setDataByName("unknown4", 1);
+  packet->setDataByName("num_slots", 1);
+  packet->setArrayDataByName("slot_id", 0);
+  client->QueuePacket(packet->serialize());
+
   /*if (sep->IsSet(2) && sep->IsNumber(2)) {
 		client->GetCurrentZone()->SendStateCommand(client->GetPlayer(), atol(sep->arg[2]));
 	}
@@ -7380,7 +7398,7 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 		client->GetPlayer()->SetVisualState(atol(sep->arg[1]));
 	}*/
 
-  if (sep->IsSet(0) && sep->IsNumber(0)) {
+  /*if (sep->IsSet(0) && sep->IsNumber(0)) {
     client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
   }
 
@@ -7400,7 +7418,7 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
     client->GetPlayer()->size_mod_unknown = atol(sep->arg[4]);
   }
 
-  client->GetPlayer()->AddSpawnUpdate(true, false, false);
+  client->GetPlayer()->AddSpawnUpdate(true, false, false);*/
 
   //if (sep->IsSet(0) && sep->IsNumber(0) && atoi(sep->arg[0]) == 1) {
   //	shared_ptr<ActivityStatus> status(new ActivityStatus);

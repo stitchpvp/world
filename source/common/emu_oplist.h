@@ -501,3 +501,4 @@ N(OP_LoginReplyMsg)
     N(OP_ReadyForTakeOffMsg),
     N(OP_EarlyLandingRequestMsg),
     N(OP_SubmitCharCust),
+    N(OP_SpawnAppearance),
