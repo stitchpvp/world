@@ -4076,9 +4076,7 @@ void Player::SetGroupInformation(PacketStruct* packet) {
           packet->setDataByName("group_leader_id", x); // If leader is some one else then fill with the slot number they are in
       }
 
-      member = info->member;
-
-      if (member && member->GetZone() == GetZone()) {
+      if (member = info->member) {
         packet->setSubstructDataByName("group_members", "unknown3", 1, x);
         packet->setSubstructDataByName("group_members", "spawn_id", GetIDWithPlayerSpawn(member), x);
 

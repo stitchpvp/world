@@ -4359,7 +4359,7 @@ void Commands::Command_Follow(const shared_ptr<Client>& client, Seperator* sep) 
     // Loop through the group members
     for (itr = members->begin(); itr != members->end(); itr++) {
       // If a group member matches a target
-      if ((*itr)->member == client->GetPlayer()->GetTarget()) {
+      if ((*itr)->member && (*itr)->member == client->GetPlayer()->GetTarget()) {
         // toggle the flag and break the loop
         targetInGroup = true;
         break;

@@ -302,8 +302,9 @@ Spell* Bot::GetHealSpell() {
   for (int8 i = 0; i < members->size(); i++) {
     Entity* member = members->at(i)->member;
 
-    if (!member->Alive())
+    if (!member || !member->Alive()) {
       continue;
+    }
 
     int8 percent = (int8)(((float)member->GetHP() / member->GetTotalHP()) * 100);
     if (percent <= threshold) {
@@ -384,6 +385,11 @@ Spell* Bot::GetHoTWardSpell() {
   deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(gmi->group_id);
   for (int8 i = 0; i < members->size(); i++) {
     Entity* member = members->at(i)->member;
+
+    if (!member) {
+      continue;
+    }
+
     int8 percent = 0;
     if (member->GetHP() > 0)
       percent = (int8)(((float)member->GetHP() / member->GetTotalHP()) * 100);

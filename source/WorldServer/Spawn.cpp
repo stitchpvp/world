@@ -178,8 +178,10 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 
       int i = 0;
       for (const auto* info : *members) {
-        header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(info->client->GetPlayer()), i);
-        i++;
+        if (info->client) {
+          header->setArrayDataByName("group_spawn_id", player->GetIDWithPlayerSpawn(info->client->GetPlayer()), i);
+          ++i;
+        }
       }
 
       world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);

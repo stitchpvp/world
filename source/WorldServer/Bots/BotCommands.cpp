@@ -43,6 +43,10 @@ void Commands::Command_Bot(const shared_ptr<Client>& client, Seperator* sep) {
               deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(gmi->group_id);
               deque<GroupMemberInfo*>::iterator itr;
               for (itr = members->begin(); itr != members->end(); itr++) {
+                if (!(*itr)->member) {
+                  continue;
+                }
+
                 if ((*itr)->member->IsBot() && ((Bot*)(*itr)->member)->GetOwner() == client->GetPlayer()) {
                   ((Bot*)(*itr)->member)->SetCombatTarget(target->GetID());
                 }
@@ -95,7 +99,7 @@ void Commands::Command_Bot(const shared_ptr<Client>& client, Seperator* sep) {
       deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(gmi->group_id);
       for (int8 i = 0; i < members->size(); i++) {
         GroupMemberInfo* gmi2 = members->at(i);
-        if (gmi2->member->IsBot() && ((Bot*)gmi2->member)->GetOwner() == client->GetPlayer()) {
+        if (gmi2->member && gmi2->member->IsBot() && ((Bot*)gmi2->member)->GetOwner() == client->GetPlayer()) {
           ((Bot*)gmi2->member)->SetMainTank(target);
           client->Message(CHANNEL_COMMAND_TEXT, "Setting main tank for %s to %s", gmi2->member->GetName(), target->GetName());
         }
@@ -127,7 +131,7 @@ void Commands::Command_Bot(const shared_ptr<Client>& client, Seperator* sep) {
           deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(gmi->group_id);
           for (int8 i = 0; i < members->size(); i++) {
             Entity* member = members->at(i)->member;
-            if (member->IsBot() && ((Bot*)member)->GetOwner() == player) {
+            if (member && member->IsBot() && ((Bot*)member)->GetOwner() == player) {
               member->appearance.pos.grid_id = player->appearance.pos.grid_id;
               member->SetX(player->GetX());
               member->SetY(player->GetY());

@@ -1357,7 +1357,7 @@ bool SpellProcess::CastProcessedSpell(shared_ptr<LuaSpell> spell, bool passive) 
           deque<GroupMemberInfo*>::iterator itr;
           deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(gmi->group_id);
           for (itr = members->begin(); itr != members->end(); itr++) {
-            if ((*itr)->member == target) {
+            if ((*itr)->member && (*itr)->member == target) {
               in_group = true;
               break;
             }
@@ -1700,7 +1700,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell) {
               Entity* group_member = (*itr)->member;
 
               // if the group member is in the casters zone, and is alive
-              if (group_member->GetZone() == luaspell->caster->GetZone() && group_member->Alive() && caster->GetDistance(group_member) <= luaspell->spell->GetSpellData()->radius) {
+              if (group_member && group_member->Alive() && caster->GetDistance(group_member) <= luaspell->spell->GetSpellData()->radius) {
                 shared_ptr<Client> client = caster->GetZone()->GetClientBySpawn(group_member);
 
                 if (((Player*)group_member)->IsResurrecting() || !client || client->IsZoning())
@@ -1843,7 +1843,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell) {
               Entity* group_member = (*itr)->member;
 
               // if the group member is in the same zone as caster, and group member is alive, and group member is within distance
-              if (group_member->GetZone() == caster->GetZone() && group_member->Alive() && caster->GetDistance(group_member) <= data->range && (group_member == target || !group_member->IsAOEImmune()))
+              if (group_member && group_member->Alive() && caster->GetDistance(group_member) <= data->range && (group_member == target || !group_member->IsAOEImmune()))
                 luaspell->targets.push_back(group_member->GetID()); // add as target
             }
 
@@ -1877,7 +1877,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell) {
             for (itr = members->begin(); itr != members->end(); itr++) {
               Entity* group_member = (*itr)->member;
               //Check if group member is in the same zone in range of the spell and dead
-              if (group_member->GetZone() == target->GetZone() && !group_member->Alive() && target->GetDistance(group_member) <= data->radius) {
+              if (group_member && !group_member->Alive() && target->GetDistance(group_member) <= data->radius) {
                 luaspell->targets.push_back(group_member->GetID());
               }
             }

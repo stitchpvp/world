@@ -58,7 +58,7 @@ bool PlayerGroup::AddMember(Entity* member) {
   if (member->IsPlayer()) {
     gmi->client = member->GetZone()->GetClientBySpawn(member);
   } else {
-    gmi->client = 0;
+    gmi->client = nullptr;
   }
 
   member->SetGroupMemberInfo(gmi);
@@ -733,7 +733,7 @@ bool PlayerGroupManager::IsInGroup(int32 group_id, Entity* member) {
   if (m_groups.count(group_id) > 0) {
     deque<GroupMemberInfo*>* members = m_groups[group_id]->GetMembers();
     for (int8 i = 0; i < members->size(); i++) {
-      if (member == members->at(i)->member) {
+      if (members->at(i)->member && members->at(i)->member == member) {
         ret = true;
         break;
       }

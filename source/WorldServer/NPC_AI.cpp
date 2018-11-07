@@ -393,7 +393,7 @@ void Brain::AddToEncounter(Entity* entity) {
     deque<GroupMemberInfo*>* members = world.GetGroupManager()->GetGroupMembers(group_id);
 
     for (const auto member : *members) {
-      if (member && entity->GetZone() == member->client->GetPlayer()->GetZone()) {
+      if (member && member->member && member->client) {
         m_encounter.push_back(member->client->GetPlayer()->GetID());
       }
     }

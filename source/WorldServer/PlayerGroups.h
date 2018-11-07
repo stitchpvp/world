@@ -18,8 +18,7 @@ You should have received a copy of the GNU General Public License
 along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PLAYERGROUPS_H__
-#define __PLAYERGROUPS_H__
+#pragma once
 
 #include <deque>
 #include <map>
@@ -185,5 +184,3 @@ private:
   Mutex MGroups;         // Mutex for the group map (m_groups)
   Mutex MPendingInvites; // Mutex for the pending invites map (m_pendingInvites)
 };
-
-#endif
