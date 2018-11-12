@@ -874,6 +874,7 @@ void Entity::CalculateBonuses() {
   info->riposte_chance = 0;
   info->physical_damage_reduction = 0;
   info->ability_cost_multiplier = 1.0;
+  info->speed = 0;
 
   stats.clear();
   ItemStatsValues* values = equipment_list.CalculateEquipmentBonuses(this);
