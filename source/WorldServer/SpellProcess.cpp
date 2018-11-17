@@ -124,7 +124,9 @@ void SpellProcess::Process() {
   last_checked_time = Timer::GetCurrentTime2() + 50;
 
   MSpellProcess.lock();
+
   CheckSpellScriptTimers();
+  CheckRemoveTargetFromSpell();
 
   {
     unique_lock<mutex> guard(active_spells_mutex);
@@ -150,12 +152,14 @@ void SpellProcess::Process() {
               for (int32 i = 0; i < spell->targets.size(); i++) {
                 Spawn* target = zone->GetSpawnByID(spell->targets[i]);
 
-                guard.unlock();
-                if (!ProcessSpell(spell, target, false)) {
+                if (target) {
+                  guard.unlock();
+                  if (!ProcessSpell(spell, target, false)) {
+                    guard.lock();
+                    break;
+                  }
                   guard.lock();
-                  break;
                 }
-                guard.lock();
               }
             }
             spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
@@ -196,8 +200,6 @@ void SpellProcess::Process() {
       }
     }
   }
-
-  CheckRemoveTargetFromSpell();
 
   MSpellCancelList.writelock(__FUNCTION__, __LINE__);
   if (SpellCancelList.size() > 0) {
