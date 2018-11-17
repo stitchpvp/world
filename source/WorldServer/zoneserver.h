@@ -691,7 +691,6 @@ private:
   Mutex MRemoveSpawnScriptTimersList;
 
   /* Mutex Maps */
-  MutexMap<Spawn*, shared_ptr<Client>> client_spawn_map;
   MutexMap<int32, int32> delayed_spawn_remove_list; // 1st int32 = spawn id, 2nd int32 = time
   MutexMap<shared_ptr<Client>, int32> drowning_victims;
   MutexMap<Spawn*, int32> heading_timers;
@@ -710,6 +709,7 @@ private:
   map<int32, SpawnLocation*> spawn_location_list;
   MutexMap<int32, int32> widget_timers; // 1st int32 = spawn id
 
+  map<Spawn*, shared_ptr<Client>> client_spawn_map;
   map<shared_ptr<Client>, unique_ptr<map<int32, float>>> spawn_range_map;
 
   map<shared_ptr<Client>, mutex> client_range_mutex_map;
@@ -739,6 +739,7 @@ private:
   Mutex MSpawnDeleteList;
   Mutex MClientList;
 
+  shared_timed_mutex client_spawn_mutex;
   mutex incoming_clients_mutex;
   mutex hide_spawns_mutex;
   mutex write_statistics_mutex;
