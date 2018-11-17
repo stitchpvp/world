@@ -137,16 +137,12 @@ void SpellProcess::Process() {
       while (spell_itr != end(active_spells)) {
         auto spell = (*spell_itr);
 
-        if (spell->timer.Check()) {
-          spell->num_calls++;
+        spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+        if (spell->targets.size() > 0) {
+          if (spell->timer.Check()) {
+            spell->num_calls++;
 
-          // ProcessSpell(spell, flase) will atempt to call the tick() function in the lua script
-          // if there is no tick function it will return false, this will cause the server to crash in the event
-          // of a spell that has a duration but is not a "until canceled" spell or a spell with a tick (tradeskill buffs)
-          // to counter this check to see if the spell has a call_frequency > 0 before we call ProcessSpell()
-          if (spell->spell->GetSpellData()->call_frequency > 0) {
-            spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-            if (spell->targets.size() > 0) {
+            if (spell->spell->GetSpellData()->call_frequency > 0) {
               ZoneServer* zone = spell->caster->GetZone();
 
               for (int32 i = 0; i < spell->targets.size(); i++) {
@@ -162,16 +158,14 @@ void SpellProcess::Process() {
                 }
               }
             }
-            spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+
+            if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100) {
+              DeleteCasterSpell(spell);
+            }
           }
 
-          if (!spell->spell->GetSpellData()->duration_until_cancel && (spell->timer.GetDuration() * spell->num_calls) > spell->spell->GetSpellData()->duration1 * 100) {
-            DeleteCasterSpell(spell);
-          }
-        }
-
-        spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-        if (spell->targets.size() == 0) {
+          ++spell_itr;
+        } else {
           spell_itr = active_spells.erase(spell_itr);
 
           if (spell->caster) {
@@ -193,8 +187,6 @@ void SpellProcess::Process() {
               }
             }
           }
-        } else {
-          ++spell_itr;
         }
         spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
       }
@@ -2034,8 +2026,7 @@ void SpellProcess::CheckRemoveTargetFromSpell() {
         }
       }
 
-      if (targets)
-        targets->clear();
+      targets->clear();
 
       safe_delete(targets);
     }
