@@ -2849,7 +2849,10 @@ void ZoneServer::RemoveClient(shared_ptr<Client> client) {
         ((Bot*)spawn)->Camp();
     }
 
-    client_spawn_map.Put(client->GetPlayer(), nullptr);
+    {
+      unique_lock<shared_timed_mutex> client_spawn_guard(client_spawn_mutex);
+      client_spawn_map.erase(client->GetPlayer());
+    }
 
     {
       unique_lock<shared_timed_mutex> guard(clients_mutex);
@@ -3094,7 +3097,8 @@ void ZoneServer::SendSpawn(Spawn* spawn, const shared_ptr<Client>& client) {
 }
 
 shared_ptr<Client> ZoneServer::GetClientBySpawn(Spawn* spawn) {
-  return client_spawn_map.Get(spawn);
+  shared_lock<shared_timed_mutex> guard(client_spawn_mutex);
+  return client_spawn_map[spawn];
 }
 
 shared_ptr<Client> ZoneServer::GetClientByName(char* name) {
@@ -4540,7 +4544,10 @@ int16 ZoneServer::SetSpawnTargetable(int32 spawn_id) {
 }
 
 EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
-  client_spawn_map.Put(client->GetPlayer(), client);
+  {
+    unique_lock<shared_timed_mutex> guard(client_spawn_mutex);
+    client_spawn_map.insert({client->GetPlayer(), client});
+  }
 
   PacketStruct* packet = configReader.getStruct("WS_ZoneInfo", client->GetVersion());
   packet->setSmallStringByName("server1", net.GetWorldName());
