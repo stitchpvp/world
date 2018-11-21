@@ -776,12 +776,14 @@ to zero and treated like placeholders." />
 <Data ElementName="server1" Type="EQ2_8Bit_String" />
 <Data ElementName="server2" Type="EQ2_8Bit_String" />
 <Data ElementName="unknown1" Type="int8" Size="2" />
-<Data ElementName="unknown2a" Type="int32" Size="1" />
-<Data ElementName="expansions_enabled" Type="int32" Size="1" />
-<Data ElementName="unknown3a" Type="int32" Size="1" />
-<Data ElementName="unknown2b" Type="int32" Size="1" />
-<Data ElementName="unknown3b" Type="int32" Size="1" />
-<Data ElementName="unknown3c" Type="int32" Size="1" />
+<Data ElementName="num_exp_feature_bytes" Type="int32" Size="1" />
+<Data ElementName="exp_feature_bytes_array" Type="Array" ArraySizeVariable="num_exp_feature_bytes">
+  <Data ElementName="exp_feature_bytes" Type="int8" />
+</Data>
+<Data ElementName="num_unknown_feature_bytes" Type="int32" Size="1" />
+<Data ElementName="unknown_feature_bytes_array" Type="Array" ArraySizeVariable="num_unknown_feature_bytes">
+  <Data ElementName="unknown_feature_bytes" Type="int8" />
+</Data>
 <Data ElementName="auction_website" Type="EQ2_8Bit_String" />
 <Data ElementName="auction_port" Type="int32" Size="1" />
 <Data ElementName="upload_page" Type="EQ2_8Bit_String" />
@@ -855,13 +857,14 @@ to zero and treated like placeholders." />
 <Data ElementName="server1" Type="EQ2_8Bit_String" />
 <Data ElementName="server2" Type="EQ2_8Bit_String" />
 <Data ElementName="unknown1" Type="int8" Size="2" />
-<Data ElementName="unknown2a" Type="int32" Size="1" />
-<Data ElementName="expansions_enabled" Type="int32" Size="1" />
-<Data ElementName="unknown3a" Type="int32" Size="1" />
-<Data ElementName="unknown2b" Type="int32" Size="1" />
-<Data ElementName="unknown3b" Type="int32" Size="1" />
-<Data ElementName="unknown3c" Type="int32" Size="1" />
-<Data ElementName="unknown3d" Type="int16" Size="1" />
+<Data ElementName="num_exp_feature_bytes" Type="int32" Size="1" />
+<Data ElementName="exp_feature_bytes_array" Type="Array" ArraySizeVariable="num_exp_feature_bytes">
+  <Data ElementName="exp_feature_bytes" Type="int8" />
+</Data>
+<Data ElementName="num_unknown_feature_bytes" Type="int32" Size="1" />
+<Data ElementName="unknown_feature_bytes_array" Type="Array" ArraySizeVariable="num_unknown_feature_bytes">
+  <Data ElementName="unknown_feature_bytes" Type="int8" />
+</Data>
 <Data ElementName="auction_website" Type="EQ2_8Bit_String" />
 <Data ElementName="auction_port" Type="int32" Size="1" />
 <Data ElementName="upload_page" Type="EQ2_8Bit_String" />

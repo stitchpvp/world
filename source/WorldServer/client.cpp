@@ -2222,7 +2222,7 @@ bool Client::Process(bool zone_process) {
 
   if (connected_to_zone && new_client_login) {
     LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
-    master_server.PlayerOnline(GetCharacterID());
+    master_server.PlayerOnline(GetCharacterID(), GetPlayer()->GetID());
     SendLoginInfo();
     new_client_login = false;
   }
@@ -2253,42 +2253,36 @@ bool Client::Process(bool zone_process) {
   }
 
   if (!waiting_to_zone && next_zone) {
-    player->DismissPet((NPC*)player->GetPet());
-    player->DismissPet((NPC*)player->GetCharmedPet());
-    player->DismissPet((NPC*)player->GetDeityPet());
-    player->DismissPet((NPC*)player->GetCosmeticPet());
-
-    GetCurrentZone()->RemoveSpawn(player, false);
-
-    SetCurrentZone(next_zone);
-
-    // Do smoething with group to show that the person is ozning
-
-    UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
-
-    if (set_next_zone_coords) {
-      player->SetX(GetCurrentZone()->GetSafeX());
-      player->SetY(GetCurrentZone()->GetSafeY());
-      player->SetZ(GetCurrentZone()->GetSafeZ());
-      player->SetHeading(GetCurrentZone()->GetSafeHeading());
-    }
-
-    if (GetPlayer()->IsResurrecting()) {
-      player->SetHP(player->GetTotalHP());
-      player->SetPower(player->GetTotalPower());
-    }
-
     if (!client_zoning) {
+      client_zoning = true;
+
+      player->DismissPet((NPC*)player->GetPet());
+      player->DismissPet((NPC*)player->GetCharmedPet());
+      player->DismissPet((NPC*)player->GetDeityPet());
+      player->DismissPet((NPC*)player->GetCosmeticPet());
+
+      GetCurrentZone()->RemoveSpawn(player, false);
+
+      SetCurrentZone(next_zone);
+
+      // Do smoething with group to show that the person is ozning
+
+      UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
+
+      if (set_next_zone_coords) {
+        player->SetX(GetCurrentZone()->GetSafeX());
+        player->SetY(GetCurrentZone()->GetSafeY());
+        player->SetZ(GetCurrentZone()->GetSafeZ());
+        player->SetHeading(GetCurrentZone()->GetSafeHeading());
+      }
+
+      if (GetPlayer()->IsResurrecting()) {
+        player->SetHP(player->GetTotalHP());
+        player->SetPower(player->GetTotalPower());
+      }
+
       master_server.ZoneRequest(shared_from_this(), next_zone->GetZoneID());
     }
-
-    client_zoning = true;
-
-    //int32 key = Timer::GetUnixTimeStamp();
-
-    //char* new_zone_ip = net.GetWorldAddress();
-    //ClientPacketFunctions::SendZoneChange(shared_from_this(), new_zone_ip, net.GetWorldPort(), key);
-    //zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
 
     return true;
   }

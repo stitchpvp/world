@@ -41,6 +41,11 @@
 #define ServerOP_KickPlayer 0x0007
 #define ServerOP_Message 0x0008
 #define ServerOP_Tell 0x0009
+#define ServerOP_WhoQuery 0x0010
+#define ServerOP_WhoReply 0x0011
+#define ServerOP_GroupInvite 0x0012
+#define ServerOP_GroupJoin 0x0013
+#define ServerOP_GroupLeave 0x0014
 
 // #define ServerOP_HearChat 0x0008
 
@@ -287,14 +292,35 @@ struct ServerMSZoneRequest_Struct {
 
 struct ServerMSPlayer_Struct {
   int32 character_id;
+  int32 spawn_id;
 };
 
 struct ServerMSKickPlayer_Struct {
   int32 char_id;
 };
 
+struct ServerGroupInvite_Struct {
+  int32 inviter_id;
+  int32 target_id;
+};
+
+struct ServerGroupJoin_Struct {
+  int32 character_id;
+};
+
+struct ServerGroupInviteByName_Struct {
+  int32 inviter_id;
+  char name[40];
+};
+
+struct ServerGroupInviteRequest_Struct {
+  char inviter[40];
+  int32 invitee_id;
+};
+
 struct ServerMessage_Struct {
   int8 channel;
+  int32 character_id;
   int32 spawn_id;
   int16 distance;
   int16 size;
@@ -309,6 +335,29 @@ struct ServerTell_Struct {
   char to[32];
   int16 size;
   char message[256];
+};
+
+struct ServerWhoQuery_Struct {
+  int32 character_id;
+  char query[256];
+};
+
+struct ServerWhoReply_Struct {
+  int32 character_id;
+  int8 response;
+  bool zone_only;
+  int16 num_characters;
+  char characters[];
+};
+
+struct ServerWhoPlayer_Struct {
+  char name[40];
+  int8 level;
+  int8 race;
+  int8 class_id;
+  char guild[40];
+  char zone[77];
+  int16 admin_status;
 };
 
 struct ServerSystemwideMessage {

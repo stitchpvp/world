@@ -76,6 +76,7 @@ bool MasterServer::Process() {
       auto data = reinterpret_cast<ServerMessage_Struct*>(pack->pBuffer);
 
       Spawn* spawn = nullptr;
+      shared_ptr<Client> client = nullptr;
       char* message = new char[data->size];
       string msg_str(data->message);
       msg_str.resize(data->size);
@@ -83,8 +84,16 @@ bool MasterServer::Process() {
       if (data->spawn_id > 0) {
         spawn = zone->GetSpawnByID(data->spawn_id);
       }
+      
+      if (data->character_id > 0) {
+        client = zone_list.GetClientByCharID(data->character_id);
+      }
 
-      zone->SimpleMessage(data->channel, msg_str.c_str(), spawn, data->distance);
+      if (client) {
+        client->SimpleMessage(data->channel, msg_str.c_str());
+      } else {
+        zone->SimpleMessage(data->channel, msg_str.c_str(), spawn, data->distance);
+      }
 
       break;
     }
@@ -110,11 +119,65 @@ bool MasterServer::Process() {
           packet->setMediumStringByName("message", msg_str.c_str());
           EQ2Packet* outpacket = packet->serialize();
           client->QueuePacket(outpacket);
-          // TODO: Send tell message to sender
           safe_delete(packet);
         }
-      } else {
-        // TODO: Send an error message
+      }
+
+      break;
+    }
+
+    case ServerOP_WhoReply: {
+      auto data = reinterpret_cast<ServerWhoReply_Struct*>(pack->pBuffer);
+
+      shared_ptr<Client> client = zone_list.GetClientByCharID(data->character_id);
+
+      if (client) {
+        PacketStruct* packet = configReader.getStruct("WS_WhoQueryReply", client->GetVersion());
+
+        if (packet) {
+          packet->setDataByName("account_id", client->GetAccountID());
+          packet->setDataByName("unknown", 0xFFFFFFFF);
+          packet->setDataByName("response", data->response);
+          packet->setArrayLengthByName("num_characters", data->num_characters);
+          packet->setDataByName("unknown10", data->zone_only);
+
+          for (int i = 0; i < data->num_characters; ++i) {
+            auto character = reinterpret_cast<ServerWhoPlayer_Struct*>(data->characters + (i * sizeof(ServerWhoPlayer_Struct)));
+            packet->setArrayDataByName("char_name", character->name, i);
+            packet->setArrayDataByName("level", character->level, i);
+            packet->setArrayDataByName("admin_level", character->admin_status, i);
+            packet->setArrayDataByName("class", character->class_id, i);
+            packet->setArrayDataByName("unknown4", 0xFF, i); //probably tradeskill class
+            packet->setArrayDataByName("flags", 0, i); //probably tradeskill class
+            packet->setArrayDataByName("race", character->race, i);
+            packet->setArrayDataByName("zone", character->zone, i);
+            packet->setArrayDataByName("guild", character->guild, i);
+          }
+
+          EQ2Packet* outpacket = packet->serialize();
+          client->QueuePacket(outpacket);
+          safe_delete(packet);
+        }
+      }
+
+      break;
+    }
+
+    case ServerOP_GroupInvite: {
+      auto data = reinterpret_cast<ServerGroupInviteRequest_Struct*>(pack->pBuffer);
+
+      shared_ptr<Client> client = zone_list.GetClientByCharID(data->invitee_id);
+
+      if (client) {
+        PacketStruct* packet = configReader.getStruct("WS_ReceiveOffer", client->GetVersion());
+
+        if (packet) {
+          packet->setDataByName("type", 1);
+          packet->setDataByName("name", data->inviter);
+          packet->setDataByName("unknown2", 1);
+          client->QueuePacket(packet->serialize());
+          safe_delete(packet);
+        }
       }
 
       break;
@@ -140,10 +203,11 @@ void MasterServer::SayHello(int32 zone_id) {
   safe_delete(pack);
 }
 
-void MasterServer::PlayerOnline(int32 character_id) {
+void MasterServer::PlayerOnline(int32 character_id, int32 spawn_id) {
   auto pack = new ServerPacket(ServerOP_PlayerOnline, sizeof(ServerMSPlayer_Struct));
   auto msp = (ServerMSPlayer_Struct*)pack->pBuffer;
   msp->character_id = character_id;
+  msp->spawn_id = spawn_id;
   tcpc->SendPacket(pack);
   safe_delete(pack);
 }
@@ -173,6 +237,32 @@ void MasterServer::Tell(const char* from, const char* to, const char* message) {
   strncpy(data->to, to, 32);
   data->size = strlen(message);
   strncpy(data->message, message, 256);
+  tcpc->SendPacket(pack);
+  safe_delete(pack);
+}
+
+void MasterServer::WhoQuery(int32 character_id, const char* query) {
+  auto pack = new ServerPacket(ServerOP_WhoQuery, sizeof(ServerWhoQuery_Struct));
+  auto data = (ServerWhoQuery_Struct*)pack->pBuffer;
+  data->character_id = character_id;
+  strncpy(data->query, query, 256);
+  tcpc->SendPacket(pack);
+  safe_delete(pack);
+}
+
+void MasterServer::InviteToGroup(int32 from_id, const char* to) {
+  auto pack = new ServerPacket(ServerOP_GroupInvite, sizeof(ServerGroupInviteByName_Struct));
+  auto data = (ServerGroupInviteByName_Struct*)pack->pBuffer;
+  data->inviter_id = from_id;
+  strncpy(data->name, to, 40);
+  tcpc->SendPacket(pack);
+  safe_delete(pack);
+}
+
+void MasterServer::JoinGroup(int32 character_id) {
+  auto pack = new ServerPacket(ServerOP_GroupJoin, sizeof(ServerGroupJoin_Struct));
+  auto data = (ServerGroupJoin_Struct*)pack->pBuffer;
+  data->character_id = character_id;
   tcpc->SendPacket(pack);
   safe_delete(pack);
 }

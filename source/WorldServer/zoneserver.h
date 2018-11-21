@@ -93,10 +93,10 @@ struct Title;
 #define MAX_REVIVEPOINT_DISTANCE 1000
 
 /* JA: TODO Turn into R_World Rules */
-#define SEND_SPAWN_DISTANCE 150 /* when spawns appear visually to the client */
+#define SEND_SPAWN_DISTANCE 200 /* when spawns appear visually to the client */
 #define HEAR_SPAWN_DISTANCE 30  /* max distance a client can be from a spawn to 'hear' it */
 #define MAX_CHASE_DISTANCE 80
-#define REMOVE_SPAWN_DISTANCE 180
+#define REMOVE_SPAWN_DISTANCE 250
 
 #define TRACKING_STOP 0
 #define TRACKING_START 1

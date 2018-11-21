@@ -1556,7 +1556,7 @@ bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, const s
 
     LogWrite(MISC__TODO, 1, "TODO", "Fix SOGA appearances here\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
 
-    client->GetPlayer()->features.wing_type = atoi(row[19]);
+    //client->GetPlayer()->features.wing_type = atoi(row[19]);
     client->GetPlayer()->features.soga_hair_type = atoi(row[20]);
     client->GetPlayer()->features.soga_chest_type = atoi(row[21]);
     client->GetPlayer()->features.soga_legs_type = atoi(row[22]);
@@ -4097,7 +4097,7 @@ Spell* WorldDatabase::GenerateSpell(DatabaseResult& result, string spell_name, s
   data->friendly_spell = result.GetInt8Str("friendly_spell");
   data->group_spell = result.GetInt8Str("group_spell");
   data->is_active = result.GetInt8Str("is_active");
-  data->persist_though_death = (result.GetInt8Str("persist_through_death") == 1);
+  data->persist_through_death = (result.GetInt8Str("persist_through_death") == 1);
   data->cast_while_moving = (result.GetInt8Str("cast_while_moving") == 1);
   data->not_maintained = (result.GetInt8Str("not_maintained") == 1);
 

@@ -294,7 +294,7 @@ struct SpellData {
   int8 control_effect_type;
   int32 casting_flags;
   bool cast_while_moving;
-  bool persist_though_death;
+  bool persist_through_death;
   bool not_maintained;
   int8 savage_bar;
   int8 savage_bar_slot;

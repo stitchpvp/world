@@ -4561,7 +4561,7 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
   packet->setSmallStringByName("zone_desc", GetZoneDescription());
   packet->setSmallStringByName("char_name", client->GetPlayer()->GetName());
 
-  packet->setDataByName("expansions_enabled", 49247);
+  packet->setDataByName("expansions_enabled", 0xFFFFFFFF);
   packet->setDataByName("x", client->GetPlayer()->GetX());
   packet->setDataByName("y", client->GetPlayer()->GetY());
   packet->setDataByName("z", client->GetPlayer()->GetZ());
@@ -4572,12 +4572,26 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
     packet->setDataByName("unknown3", 3085434875, 1);
     packet->setDataByName("unknown3", 2147483633, 2);
   } else if (client->GetVersion() >= 63225) {
-    packet->setDataByName("unknown2a", 9);
-    packet->setDataByName("unknown2b", 2304);
-    packet->setDataByName("unknown3a", 12587148);
-    packet->setDataByName("unknown3b", 113270528);
-    packet->setDataByName("unknown3c", 4291923949);
-    packet->setDataByName("unknown3d", 49375);
+    packet->setArrayLengthByName("num_exp_feature_bytes", 9);
+    packet->setArrayDataByName("exp_feature_bytes", 0x5F, 0);
+    packet->setArrayDataByName("exp_feature_bytes", 0xFF, 1);
+    packet->setArrayDataByName("exp_feature_bytes", 0xF8, 2);
+    packet->setArrayDataByName("exp_feature_bytes", 0x90, 3);
+    packet->setArrayDataByName("exp_feature_bytes", 0x46, 4);
+    packet->setArrayDataByName("exp_feature_bytes", 0x9F, 5);
+    packet->setArrayDataByName("exp_feature_bytes", 0xE0, 6);
+    packet->setArrayDataByName("exp_feature_bytes", 0x12, 7);
+    packet->setArrayDataByName("exp_feature_bytes", 0xC0, 8);
+    packet->setArrayLengthByName("num_unknown_feature_bytes", 9);
+    packet->setArrayDataByName("unknown_feature_bytes", 0x5F, 0);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xFF, 1);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xFB, 2);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xF6, 3);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xC7, 4);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xFF, 5);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xFF, 6);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xFF, 7);
+    packet->setArrayDataByName("unknown_feature_bytes", 0xE0, 8);
   } else {
     packet->setDataByName("unknown2a", 8);
     packet->setDataByName("unknown2b", 8);
@@ -4605,7 +4619,7 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(const shared_ptr<Client>& client) {
 
   packet->setDataByName("unknown10b", 1);
   //packet->setDataByName("permission_level",3);// added on 63182  for now till we figur it out 0=none,1=visitor,2=friend,3=trustee,4=owner
-  packet->setDataByName("num_adv", 9);
+  packet->setArrayLengthByName("num_adv", 9);
 
   packet->setArrayDataByName("adv_name", "adv02_dun_drowned_caverns", 0);
   packet->setArrayDataByName("adv_id", 6, 0);

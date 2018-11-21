@@ -1402,13 +1402,14 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     break;
   }
   case COMMAND_WHO: {
-    const char* who = 0;
-    if (sep && sep->arg[0]) {
-      //cout << "Who query: \n";
+    const char* who = "";
+
+    if (sep && sep->arg[0][0]) {
       who = sep->argplus[0];
-      //cout << who << endl;
     }
-    zone_list.ProcessWhoQuery(who, client);
+
+    master_server.WhoQuery(client->GetCharacterID(), who);
+
     break;
   }
   case COMMAND_SELECT_JUNCTION: {
@@ -1489,10 +1490,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     break;
   }
   case COMMAND_TELL: {
-    if (sep && sep->arg[0] && sep->argplus[1]) {
-      if (!zone_list.HandleGlobalChatMessage(client, sep->arg[0], CHANNEL_TELL, sep->argplus[1])) {
+    if (sep && sep->arg[0] && sep->arg[1][0]) {
+      if (ToLower(client->GetPlayer()->GetName()) != ToLower(sep->arg[0])) {
         master_server.Tell(client->GetPlayer()->GetName(), sep->arg[0], sep->argplus[1]);
-        //client->Message(CHANNEL_COLOR_RED, "Unable to find client %s", sep->arg[0]);
       }
     } else {
       client->SimpleMessage(CHANNEL_COLOR_RED, "Usage: /tell <charactername> <message>");
@@ -1970,8 +1970,23 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
     break;
   }
   case COMMAND_GROUPINVITE: {
-    Entity* target = 0;
-    shared_ptr<Client> target_client = 0;
+    //if (sep && sep->arg[0] && sep->arg[1][0]) {
+    //  if (ToLower(client->GetPlayer()->GetName()) != ToLower(sep->arg[0])) {
+    //    master_server.Tell(client->GetPlayer()->GetName(), sep->arg[0], sep->argplus[1]);
+    //  }
+    //} else {
+    //  client->SimpleMessage(CHANNEL_COLOR_RED, "Usage: /tell <charactername> <message>");
+    //}
+    if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) {
+      master_server.InviteToGroup(client->GetCharacterID(), client->GetPlayer()->GetTarget()->GetName());
+    } else if (sep && sep->arg[0][0]) {
+      master_server.InviteToGroup(client->GetCharacterID(), sep->argplus[0]);
+    }
+
+    break;
+
+    Entity* target = nullptr;
+    shared_ptr<Client> target_client = nullptr;
 
     if (client->GetPlayer()->GetGroupMemberInfo() && !client->GetPlayer()->GetGroupMemberInfo()->leader) {
       client->SimpleMessage(CHANNEL_COMMANDS, "You must be the group leader to invite.");
@@ -2184,16 +2199,17 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, const shared
   }
   case COMMAND_GROUP_ACCEPT_INVITE: {
     if (sep && sep->arg[0] && strcmp(sep->arg[0], "group") == 0) {
-      int8 result = world.GetGroupManager()->AcceptInvite(client->GetPlayer());
+      master_server.JoinGroup(client->GetCharacterID());
+      //int8 result = world.GetGroupManager()->AcceptInvite(client->GetPlayer());
 
-      if (result == 0)
-        client->SimpleMessage(CHANNEL_GROUP, "You have joined the group.");
-      else if (result == 1)
-        client->SimpleMessage(CHANNEL_GROUP, "You do not have a pending invite.");
-      else if (result == 2)
-        client->SimpleMessage(CHANNEL_GROUP, "Unable to join group - could not find leader.");
-      else
-        client->SimpleMessage(CHANNEL_GROUP, "Unable to join group - unknown error.");
+      //if (result == 0)
+      //  client->SimpleMessage(CHANNEL_GROUP, "You have joined the group.");
+      //else if (result == 1)
+      //  client->SimpleMessage(CHANNEL_GROUP, "You do not have a pending invite.");
+      //else if (result == 2)
+      //  client->SimpleMessage(CHANNEL_GROUP, "Unable to join group - could not find leader.");
+      //else
+      //  client->SimpleMessage(CHANNEL_GROUP, "Unable to join group - unknown error.");
     }
     break;
   }
@@ -7387,26 +7403,30 @@ void Commands::Command_Test(const shared_ptr<Client>& client, Seperator* sep) {
 	}*/
 
   if (sep->IsSet(0) && sep->IsNumber(0)) {
-    client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
+    client->GetPlayer()->toggle_character_flag(atoi(sep->arg[0]));
   }
 
-  if (sep->IsSet(1) && sep->IsNumber(1)) {
-    client->GetPlayer()->size_mod_b = atol(sep->arg[1]);
-  }
+  //if (sep->IsSet(0) && sep->IsNumber(0)) {
+  //  client->GetPlayer()->size_mod_a = atol(sep->arg[0]);
+  //}
 
-  if (sep->IsSet(2) && sep->IsNumber(2)) {
-    client->GetPlayer()->size_mod_c = atol(sep->arg[2]);
-  }
+  //if (sep->IsSet(1) && sep->IsNumber(1)) {
+  //  client->GetPlayer()->size_mod_b = atol(sep->arg[1]);
+  //}
 
-  if (sep->IsSet(3) && sep->IsNumber(3)) {
-    client->GetPlayer()->size_shrink_multiplier = atol(sep->arg[3]);
-  }
+  //if (sep->IsSet(2) && sep->IsNumber(2)) {
+  //  client->GetPlayer()->size_mod_c = atol(sep->arg[2]);
+  //}
 
-  if (sep->IsSet(4) && sep->IsNumber(4)) {
-    client->GetPlayer()->size_mod_unknown = atol(sep->arg[4]);
-  }
+  //if (sep->IsSet(3) && sep->IsNumber(3)) {
+  //  client->GetPlayer()->size_shrink_multiplier = atol(sep->arg[3]);
+  //}
 
-  client->GetPlayer()->AddSpawnUpdate(true, false, false);
+  //if (sep->IsSet(4) && sep->IsNumber(4)) {
+  //  client->GetPlayer()->size_mod_unknown = atol(sep->arg[4]);
+  //}
+
+  //client->GetPlayer()->AddSpawnUpdate(true, false, false);
 
   //if (sep->IsSet(0) && sep->IsNumber(0) && atoi(sep->arg[0]) == 1) {
   //	shared_ptr<ActivityStatus> status(new ActivityStatus);

@@ -801,11 +801,11 @@ bool TCPConnection::RecvData(char* errbuf) {
     }
 #endif
   }
-  if ((TCPMode == modePacket || TCPMode == modeTransition) && timeout_timer->Check()) {
-    if (errbuf)
-      snprintf(errbuf, TCPConnection_ErrorBufferSize, "TCPConnection::RecvData(): Connection timeout");
-    return false;
-  }
+  //if ((TCPMode == modePacket || TCPMode == modeTransition) && timeout_timer->Check()) {
+  //  if (errbuf)
+  //    snprintf(errbuf, TCPConnection_ErrorBufferSize, "TCPConnection::RecvData(): Connection timeout");
+  //  return false;
+  //}
 
   return true;
 }

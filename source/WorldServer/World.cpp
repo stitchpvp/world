@@ -48,6 +48,7 @@
 #include "LuaInterface.h"
 #include "HeroicOp/HeroicOp.h"
 #include "RaceTypes/RaceTypes.h"
+#include "MasterServer.h"
 
 MasterQuestList master_quest_list;
 MasterItemList master_item_list;
@@ -86,6 +87,7 @@ extern ConfigReader configReader;
 extern LoginServer loginserver;
 extern World world;
 extern RuleManager rule_manager;
+extern MasterServer master_server;
 
 World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(3600000), player_stats_timer(60000), server_stats_timer(60000), guilds_timer(60000), players_timer(60000), lotto_players_timer(500) {
   save_time_timer.Start();
@@ -711,8 +713,6 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
       int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
       for (int32 i = 0; add_player && queries && i < queries->size(); i++) {
         found_match = false;
-        if (queries->at(i) == "ALL")
-          continue;
         if (queries->at(i).length() > 3 && classes.GetClassID(queries->at(i).c_str()) > 0) {
           if (player->GetAdventureClass() != classes.GetClassID(queries->at(i).c_str()))
             add_player = false;
@@ -776,105 +776,103 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
 }
 
 void ZoneList::ProcessWhoQuery(const char* query, const shared_ptr<Client>& client) {
-  list<ZoneServer*>::iterator zone_iter;
-  vector<Entity*> players;
-  vector<Entity*>::iterator spawn_iter;
-  Entity* player = 0;
-  //for now display all clients
   bool all = false;
-  vector<string>* queries = 0;
   bool isGM = ((client->GetAdminStatus() >> 4) > 4);
+  vector<string>* queries = nullptr;
+  vector<Entity*> players;
+
   if (query) {
     string query_string = string(query);
-    query_string = ToUpper(query_string);
+    query_string = ToLower(query_string);
     queries = SplitString(query_string, ' ');
   }
-  if (queries && queries->size() > 0 && queries->at(0) == "ALL")
-    all = true;
-  if (all) {
-    MZoneList.readlock(__FUNCTION__, __LINE__);
-    for (zone_iter = zlist.begin(); zone_iter != zlist.end(); zone_iter++) {
-      ZoneServer* tmp = *zone_iter;
-      ProcessWhoQuery(queries, tmp, &players, isGM);
-    }
-    MZoneList.releasereadlock(__FUNCTION__, __LINE__);
-  } else {
-    ProcessWhoQuery(queries, client->GetCurrentZone(), &players, isGM);
-  }
 
-  PacketStruct* packet = configReader.getStruct("WS_WhoQueryReply", client->GetVersion());
-  if (packet) {
-    packet->setDataByName("account_id", client->GetAccountID());
-    packet->setDataByName("unknown", 0xFFFFFFFF);
-    int8 num_characters = players.size();
-    int8 max_who_results = 10;
-    int8 max_who_results_status_override = 100;
-
-    Variable* var = variables.FindVariable("max_who_results_status_override");
-    if (var) {
-      max_who_results_status_override = atoi(var->GetValue());
-    }
-
-    // AdnaeDMorte
-    if (client->GetAdminStatus() >= max_who_results_status_override) {
-      client->Message(CHANNEL_COLOR_RED, "** ADMIN-MODE ** ");
-    }
-
-    Variable* var1 = variables.FindVariable("max_who_results");
-    if (var1) {
-      max_who_results = atoi(var1->GetValue());
-    }
-
-    if (num_characters > max_who_results && client->GetAdminStatus() < max_who_results_status_override) {
-      num_characters = max_who_results;
-      packet->setDataByName("response", 3); //response 1 = error message, 3 == capped
-    } else
-      packet->setDataByName("response", 2);
-    packet->setArrayLengthByName("num_characters", num_characters);
-    packet->setDataByName("unknown10", 1);
-    int i = 0;
-    for (spawn_iter = players.begin(); spawn_iter != players.end(); spawn_iter++, i++) {
-      if (i == num_characters)
-        break;
-      player = *spawn_iter;
-      shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
-      int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
-      int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
-      packet->setArrayDataByName("char_name", player->GetName(), i);
-      packet->setArrayDataByName("level", player->GetLevel(), i);
-      packet->setArrayDataByName("admin_level", ((flags2 & (1 << (CF_HIDE_STATUS - 32))) && !isGM) ? 0 : (find_client->GetAdminStatus() >> 4), i);
-      packet->setArrayDataByName("class", player->GetAdventureClass(), i);
-      packet->setArrayDataByName("unknown4", 0xFF, i); //probably tradeskill class
-      packet->setArrayDataByName("flags", (((flags >> CF_ANONYMOUS) & 1) << 0) |
-                                              (((flags >> CF_LFG) & 1) << 1) |
-                                              (((flags >> CF_ANONYMOUS) & 1) << 2) |
-                                              /*(((flags >> CF_HIDDEN) & 1) << 3 ) |*/
-                                              (((flags >> CF_ROLEPLAYING) & 1) << 4) |
-                                              (((flags >> CF_AFK) & 1) << 5) |
-                                              (((flags >> CF_LFW) & 1) << 6) /*|
-									(((flags >> CF_NOTA) & 1) << 7 )*/,
-                                 i);
-      packet->setArrayDataByName("race", player->GetRace(), i);
-      if (player->GetZone() && player->GetZone()->GetZoneDescription())
-        packet->setArrayDataByName("zone", player->GetZone()->GetZoneDescription(), i);
-      if (player->appearance.sub_title) {
-        int32 sub_title_length = strlen(player->appearance.sub_title);
-        char tmp_title[255];
-        int32 index = 0;
-        int32 index_tmp = 0;
-        while (index < sub_title_length) {
-          if (player->appearance.sub_title[index] != '<' && player->appearance.sub_title[index] != '>') {
-            memcpy(tmp_title + index_tmp, player->appearance.sub_title + index, 1);
-            index_tmp++;
-          }
-          index++;
-        }
-        tmp_title[index_tmp] = '\0';
-        packet->setArrayDataByName("guild", tmp_title, i);
+  if (queries && queries->size() > 0) {
+    for (auto query : *queries) {
+      if (query == "all") {
+        all = true;
       }
     }
-    client->QueuePacket(packet->serialize());
-    safe_delete(packet);
+  }
+
+  if (all) {
+  } else {
+    ProcessWhoQuery(queries, client->GetCurrentZone(), &players, isGM);
+
+    PacketStruct* packet = configReader.getStruct("WS_WhoQueryReply", client->GetVersion());
+    if (packet) {
+      packet->setDataByName("account_id", client->GetAccountID());
+      packet->setDataByName("unknown", 0xFFFFFFFF);
+      int8 num_characters = players.size();
+      int8 max_who_results = 10;
+      int8 max_who_results_status_override = 100;
+
+      Variable* var = variables.FindVariable("max_who_results_status_override");
+      if (var) {
+        max_who_results_status_override = atoi(var->GetValue());
+      }
+
+      // AdnaeDMorte
+      if (client->GetAdminStatus() >= max_who_results_status_override) {
+        client->Message(CHANNEL_COLOR_RED, "** ADMIN-MODE ** ");
+      }
+
+      Variable* var1 = variables.FindVariable("max_who_results");
+      if (var1) {
+        max_who_results = atoi(var1->GetValue());
+      }
+
+      if (num_characters > max_who_results && client->GetAdminStatus() < max_who_results_status_override) {
+        num_characters = max_who_results;
+        packet->setDataByName("response", 3); //response 1 = error message, 3 == capped
+      } else
+        packet->setDataByName("response", 2);
+      packet->setArrayLengthByName("num_characters", num_characters);
+      packet->setDataByName("unknown10", 1);
+      int i = 0;
+      for (auto spawn_iter = players.begin(); spawn_iter != players.end(); ++spawn_iter, ++i) {
+        if (i == num_characters)
+          break;
+        Entity* player = *spawn_iter;
+        shared_ptr<Client> find_client = zone_list.GetClientByCharName(player->GetName());
+        int flags = find_client->GetPlayer()->GetInfoStruct()->flags;
+        int flags2 = find_client->GetPlayer()->GetInfoStruct()->flags2;
+        packet->setArrayDataByName("char_name", player->GetName(), i);
+        packet->setArrayDataByName("level", player->GetLevel(), i);
+        packet->setArrayDataByName("admin_level", ((flags2 & (1 << (CF_HIDE_STATUS - 32))) && !isGM) ? 0 : (find_client->GetAdminStatus() >> 4), i);
+        packet->setArrayDataByName("class", player->GetAdventureClass(), i);
+        packet->setArrayDataByName("unknown4", 0xFF, i); //probably tradeskill class
+        packet->setArrayDataByName("flags", (((flags >> CF_ANONYMOUS) & 1) << 0) |
+                                                (((flags >> CF_LFG) & 1) << 1) |
+                                                (((flags >> CF_ANONYMOUS) & 1) << 2) |
+                                                /*(((flags >> CF_HIDDEN) & 1) << 3 ) |*/
+                                                (((flags >> CF_ROLEPLAYING) & 1) << 4) |
+                                                (((flags >> CF_AFK) & 1) << 5) |
+                                                (((flags >> CF_LFW) & 1) << 6) /*|
+                    (((flags >> CF_NOTA) & 1) << 7 )*/,
+                                  i);
+        packet->setArrayDataByName("race", player->GetRace(), i);
+        if (player->GetZone() && player->GetZone()->GetZoneDescription())
+          packet->setArrayDataByName("zone", player->GetZone()->GetZoneDescription(), i);
+        if (player->appearance.sub_title) {
+          int32 sub_title_length = strlen(player->appearance.sub_title);
+          char tmp_title[255];
+          int32 index = 0;
+          int32 index_tmp = 0;
+          while (index < sub_title_length) {
+            if (player->appearance.sub_title[index] != '<' && player->appearance.sub_title[index] != '>') {
+              memcpy(tmp_title + index_tmp, player->appearance.sub_title + index, 1);
+              index_tmp++;
+            }
+            index++;
+          }
+          tmp_title[index_tmp] = '\0';
+          packet->setArrayDataByName("guild", tmp_title, i);
+        }
+      }
+      client->QueuePacket(packet->serialize());
+      safe_delete(packet);
+    }
   }
 }
 

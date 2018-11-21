@@ -1596,7 +1596,7 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
       for (auto spell : active_spells) {
         auto client = spell->caster->GetZone()->GetClientBySpawn(spell->caster);
 
-        if (spell->spell->GetSpellData()->persist_though_death) {
+        if (spell->spell->GetSpellData()->persist_through_death) {
           if (client && client->IsConnected() && !client->IsZoning()) {
             continue;
           }

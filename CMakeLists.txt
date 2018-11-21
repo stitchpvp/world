@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.5)
 
 project(world)
 
+add_definitions(-DNO_CATCH)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS, "-march=native -mtune=native")
 
 file(GLOB_RECURSE SOURCES "source/common/*.cpp" "source/LUA/*.c" "source/WorldServer/*.cpp")
 
