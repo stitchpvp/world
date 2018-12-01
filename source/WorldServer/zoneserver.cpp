@@ -3090,7 +3090,11 @@ void ZoneServer::SendSpawn(Spawn* spawn, const shared_ptr<Client>& client) {
 
 shared_ptr<Client> ZoneServer::GetClientBySpawn(Spawn* spawn) {
   shared_lock<shared_timed_mutex> guard(client_spawn_mutex);
-  return client_spawn_map[spawn];
+  if (client_spawn_map.count(spawn) > 0) {
+    return client_spawn_map.at(spawn);
+  } else {
+    return nullptr;
+  }
 }
 
 shared_ptr<Client> ZoneServer::GetClientByName(char* name) {
