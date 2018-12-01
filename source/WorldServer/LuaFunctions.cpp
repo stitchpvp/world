@@ -6001,19 +6001,24 @@ int EQ2Emu_lua_Knockback(lua_State* state) {
 
   if (spawn->IsPlayer() && (vertical != 0 || horizontal != 0)) {
     shared_ptr<Client> client = spawn->GetZone()->GetClientBySpawn(spawn);
-    PacketStruct* packet = configReader.getStruct("WS_PlayerKnockback", client->GetVersion());
-    if (packet) {
-      packet->setDataByName("target_x", target_spawn->GetX());
-      packet->setDataByName("target_y", target_spawn->GetY());
-      packet->setDataByName("target_z", target_spawn->GetZ());
-      packet->setDataByName("vertical_movement", vertical);
-      packet->setDataByName("horizontal_movement", horizontal);
-      if (use_heading)
-        packet->setDataByName("use_player_heading", 1);
 
-      client->QueuePacket(packet->serialize());
+    if (client) {
+      PacketStruct* packet = configReader.getStruct("WS_PlayerKnockback", client->GetVersion());
+
+      if (packet) {
+        packet->setDataByName("target_x", target_spawn->GetX());
+        packet->setDataByName("target_y", target_spawn->GetY());
+        packet->setDataByName("target_z", target_spawn->GetZ());
+        packet->setDataByName("vertical_movement", vertical);
+        packet->setDataByName("horizontal_movement", horizontal);
+        if (use_heading)
+          packet->setDataByName("use_player_heading", 1);
+
+        client->QueuePacket(packet->serialize());
+      }
+
+      safe_delete(packet);
     }
-    safe_delete(packet);
   }
 
   return 0;
