@@ -248,19 +248,19 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
   if (MeetsSpawnAccessRequirements(player)) {
     shared_ptr<Client> client = GetZone()->GetClientBySpawn(player);
 
-    if (client->debug_spawns || appearance.attackable || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this)))) {
+    if ((client && client->debug_spawns) || appearance.attackable || (IsPlayer() && player->CanAttackTarget(static_cast<Player*>(this)))) {
       vis_flags += 64;
     }
 
-    if (client->debug_spawns || appearance.show_level) {
+    if ((client && client->debug_spawns) || appearance.show_level) {
       vis_flags += 32;
     }
 
-    if (client->debug_spawns || appearance.display_name) {
+    if ((client && client->debug_spawns) || appearance.display_name) {
       vis_flags += 16;
     }
 
-    if (client->debug_spawns || IsPlayer() || appearance.targetable == 1) {
+    if ((client && client->debug_spawns) || IsPlayer() || appearance.targetable == 1) {
       vis_flags += 4;
     }
 
