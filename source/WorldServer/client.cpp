@@ -1826,7 +1826,11 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
       int16 count = max(static_cast<int>(packet->getType_int16_ByName("num_events")), GUILD_MAX_EVENTS);
 
       for (int16 i = 0; i < count; ++i) {
-        int64 id = packet->getType_int64_ByName("event_id_0", i);
+        string idx = to_string(i);
+        string field = "event_id_";
+        field.append(idx);
+
+        int64 id = packet->getType_int64_ByName(field.c_str());
 
         if (id > 0) {
           GuildEvent* ge = GetPlayer()->GetGuild()->GetGuildEvent(id);
