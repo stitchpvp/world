@@ -18530,7 +18530,7 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown525b" Type ="int32" Size="12" />
 <Data ElementName="unknown525c" Type ="int8" Size="3" />
 <Data ElementName="unknown_flags" Type ="int8" Size="1" />
-<Data ElementName="unknown525d" Type ="int8" Size="114" />
+<Data ElementName="unknown525d" Type ="int8" Size="110" />
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" />
 <Data ElementName="unknown182" Type="int16" Size="1" />
 <Data ElementName="unknown183" Type="int8" Size="410" />
