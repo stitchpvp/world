@@ -1959,68 +1959,58 @@ void Guild::SendGuildModification(const shared_ptr<Client>& client, float points
 
 void Guild::GuildMemberLogin(const shared_ptr<Client>& client, bool first_login) {
 
-  map<int32, GuildMember*>::iterator itr;
-  shared_ptr<Client> client_to;
   char buf[128];
 
   assert(client);
 
   UpdateGuildMemberInfo(client->GetPlayer());
-  if (first_login)
-    SendGuildMOTD(client);
+
   SendGuildUpdate(client);
-  if (first_login)
+
+  if (first_login) {
+    SendGuildMOTD(client);
     SendGuildMember(client->GetPlayer(), false);
+  }
+
+  SendGuildMember(client->GetPlayer());
   SendGuildRecruiterInfo(client, client->GetPlayer());
   SendGuildEventList(client);
   SendGuildBankEventList(client);
-  SendGuildMember(client->GetPlayer());
   SendGuildEventDetails(client);
-  uchar blah5[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  uchar blah6[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00};
-  uchar blah7[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00};
-  uchar blah8[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00};
-
-  //DumpPacket(blah5, sizeof(blah5));
-  //DumpPacket(blah6, sizeof(blah6));
-  //DumpPacket(blah7, sizeof(blah7));
-  //DumpPacket(blah8, sizeof(blah8));
-
-  client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah5, sizeof(blah5)));
-  client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah6, sizeof(blah6)));
-  client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah7, sizeof(blah7)));
-  client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah8, sizeof(blah8)));
-  if (first_login)
-    SendAllGuildEvents(client);
   SendGuildMemberList(client);
+
   if (first_login) {
     snprintf(buf, sizeof(buf), "Guildmate: %s has logged in", client->GetPlayer()->GetName());
 
     mMembers.readlock(__FUNCTION__, __LINE__);
-    for (itr = members.begin(); itr != members.end(); itr++) {
-      if ((client_to = zone_list.GetClientByCharID(itr->second->character_id)))
+    for (auto itr = members.begin(); itr != members.end(); ++itr) {
+      shared_ptr<Client> client_to = zone_list.GetClientByCharID(itr->second->character_id);
+      if (client_to) {
         client_to->SimpleMessage(CHANNEL_GUILD_MEMBER_ONLINE, buf);
+      }
     }
     mMembers.releasereadlock(__FUNCTION__, __LINE__);
   }
 
-  if (first_login) {
-    uchar blah1[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uchar blah2[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00};
-    uchar blah3[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00};
-    uchar blah4[] = {/*0xFF,0x09,0x01,*/ 0x01, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00};
+  // uchar blah5[] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  // uchar blah6[] = {0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00};
+  // uchar blah7[] = {0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00};
+  // uchar blah8[] = {0x01, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00};
+  // client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah5, sizeof(blah5)));
+  // client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah6, sizeof(blah6)));
+  // client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah7, sizeof(blah7)));
+  // client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah8, sizeof(blah8)));
 
-    //DumpPacket(blah1, sizeof(blah1));
-    //DumpPacket(blah2, sizeof(blah2));
-    //DumpPacket(blah3, sizeof(blah3));
-    //DumpPacket(blah4, sizeof(blah4));
-
-    client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah1, sizeof(blah1)));
-    client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah2, sizeof(blah2)));
-    client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah3, sizeof(blah3)));
-    client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah4, sizeof(blah4)));
-  }
-  LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild Member logged in.");
+  // if (first_login) {
+  //   uchar blah1[] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  //   uchar blah2[] = {0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00};
+  //   uchar blah3[] = {0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00};
+  //   uchar blah4[] = {0x01, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00};
+  //   client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah1, sizeof(blah1)));
+  //   client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah2, sizeof(blah2)));
+  //   client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah3, sizeof(blah3)));
+  //   client->QueuePacket(new EQ2Packet(OP_GuildBankUpdateMsg, blah4, sizeof(blah4)));
+  // }
 }
 
 void Guild::GuildMemberLogoff(Player* player) {

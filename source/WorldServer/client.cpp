@@ -1813,6 +1813,40 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
     break;
   }
 
+  case OP_GuildEventDetailsMsg: {
+    if (!GetPlayer() || !GetPlayer()->GetGuild()) {
+      break;
+    }
+
+    PacketStruct* packet = configReader.getStruct("WS_GuildEventDetails", GetVersion());
+
+    if (packet) {
+      packet->LoadPacketData(app->pBuffer, app->size);
+
+      int16 count = packet->getType_int16_ByName("num_events");
+
+      if (count >= GUILD_MAX_EVENTS) {
+        count = 500;
+      }
+
+      for (int16 i = 0; i < count; ++i) {
+        int64 id = packet->getType_int64_ByName("event_id", i);
+
+        if (id > 0) {
+          GuildEvent* ge = GetPlayer()->GetGuild()->GetGuildEvent(id);
+
+          if (ge) {
+            GetPlayer()->GetGuild()->SendOldGuildEvent(shared_from_this(), ge);
+          }
+        }
+      }
+
+      safe_delete(packet);
+    }
+
+    break;
+  }
+
   default: {
     LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): Unknown in %s", opcode, opcode, __FILE__);
     const char* name = app->GetOpcodeName();
