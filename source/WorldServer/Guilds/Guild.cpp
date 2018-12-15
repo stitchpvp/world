@@ -1976,7 +1976,6 @@ void Guild::GuildMemberLogin(const shared_ptr<Client>& client, bool first_login)
   SendGuildRecruiterInfo(client, client->GetPlayer());
   SendGuildEventList(client);
   SendGuildBankEventList(client);
-  SendGuildEventDetails(client);
   SendGuildMemberList(client);
 
   if (first_login) {
