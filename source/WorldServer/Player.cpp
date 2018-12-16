@@ -2591,7 +2591,7 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
     entity->last_activity = last_activity;
     entity->has_attacked = has_attacked;
 
-    encounter_list.insert(make_pair(spawn_id, entity));
+    encounter_list.insert(make_pair(spawn_id, move(entity)));
   }
 
   if (has_attacked) {

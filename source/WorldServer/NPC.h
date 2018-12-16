@@ -145,40 +145,40 @@ public:
   /// <summary>Gets the current brain this NPC uses</summary>
   /// <returns>The Brain this NPC uses</returns>
   ::Brain* Brain() { return m_brain; }
-  bool m_runningBack;
-  sint16 m_runbackHeading;
 
   bool IsDismissing() { return m_petDismissing; }
   void SetDismissing(bool val) { m_petDismissing = val; }
 
-private:
-  MovementLocation* runback;
-  int8 cast_percentage;
-  float aggro_radius;
-  Spell* GetNextSpell(float distance, int8 type);
-  map<string, Skill*>* skills;
-  vector<Spell*>* spells;
-  int32 primary_spell_list;
-  int32 secondary_spell_list;
-  int32 primary_skill_list;
-  int32 secondary_skill_list;
-  int32 equipment_list_id;
-  int8 attack_type;
-  int8 ai_strategy;
-  int32 appearance_id;
-  int32 npc_id;
-  MutexMap<int32, SkillBonus*> skill_bonus_list;
-  int8 m_petType;
-  // m_petSpellID holds the spell id used to create this pet
-  int32 m_petSpellID;
-  int8 m_petSpellTier;
-  int32 owner;
-  int8 m_petMaxLevel;
+  bool m_runningBack = false;
+  sint16 m_runbackHeading = 0;
 
-  bool m_petDismissing;
+private:
+  Spell* GetNextSpell(float distance, int8 type);
+
+  float aggro_radius = 0.0f;
+  int8 ai_strategy = 0;
+  int32 appearance_id = 0;
+  int8 attack_type = 0;
+  int8 cast_percentage = 0;
+  int32 equipment_list_id = 0;
+  bool m_petDismissing = false;
+  int8 m_petMaxLevel = 0;
+  int32 m_petSpellID = 0;
+  int8 m_petSpellTier = 0;
+  int8 m_petType = 0;
+  int32 npc_id = 0;
+  int32 owner = 0;
+  int32 primary_skill_list = 0;
+  int32 primary_spell_list = 0;
+  MovementLocation* runback = nullptr;
+  int32 secondary_spell_list = 0;
+  int32 secondary_skill_list = 0;
+  map<string, Skill*>* skills = nullptr;
+  MutexMap<int32, SkillBonus*> skill_bonus_list;
+  vector<Spell*>* spells = nullptr;
 
   // Because I named the get function Brain() as well we need to use '::' to specify we are refering to
   // the brain class and not the function defined above
-  ::Brain* m_brain;
+  ::Brain* m_brain = nullptr;
   Mutex MBrain;
 };

@@ -107,28 +107,20 @@ NPC::~NPC() {
 }
 
 void NPC::Initialize() {
-  ai_strategy = 0;
-  attack_type = 0;
-  movement_index = 0;
-  resume_movement = true;
-  movement_start_time = 0;
-  spawn_type = 2;
-  movement_interrupted = false;
   attack_resume_needed = false;
-  MMovementLoop.SetName("NPC::MMovementLoop");
-  last_movement_update = Timer::GetCurrentTime2();
-  aggro_radius = 0;
-  skills = 0;
-  spells = 0;
-  runback = 0;
-  owner = 0;
-  m_brain = new ::Brain(this);
-  MBrain.SetName("NPC::m_brain");
-  m_runningBack = false;
-  m_runbackHeading = 0;
   following = false;
-  SetFollowTarget(0);
-  m_petDismissing = false;
+  last_movement_update = Timer::GetCurrentTime2();
+  m_brain = new ::Brain(this);
+  movement_index = 0;
+  movement_interrupted = false;
+  movement_start_time = 0;
+  resume_movement = true;
+  spawn_type = 2;
+
+  MBrain.SetName("NPC::m_brain");
+  MMovementLoop.SetName("NPC::MMovementLoop");
+
+  SetFollowTarget(nullptr);
 }
 
 EQ2Packet* NPC::serialize(Player* player, int16 version) {

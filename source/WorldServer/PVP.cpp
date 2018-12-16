@@ -131,9 +131,9 @@ void PVP::HandleFameChange(Player* victim) {
 
         for (const auto& kv : static_cast<Player*>(spawn)->encounter_list) {
           if (kv.first == victim->GetID()) {
-            HostileEntity* hostile_entity = kv.second;
+            HostileEntity* hostile_entity = kv.second.get();
 
-            if (hostile_entity->has_attacked) {
+            if (hostile_entity && hostile_entity->has_attacked) {
               fame_recipients.push_back(static_cast<Player*>(spawn));
             }
 
