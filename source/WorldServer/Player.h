@@ -887,7 +887,7 @@ public:
   // NPCs will be removed by hate functions
   // PVP players will be removed based on last activity time
   mutex encounter_list_mutex;
-  map<int32, HostileEntity*> encounter_list;
+  map<int32, unique_ptr<HostileEntity>> encounter_list;
   vector<shared_ptr<ActivityStatus>> activity_statuses;
 
   mutex quickbar_mutex;

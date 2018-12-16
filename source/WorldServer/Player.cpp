@@ -2554,7 +2554,7 @@ PlayerSkillList* Player::GetSkills() {
 }
 
 void Player::InCombat(bool val) {
-  lock_guard<mutex> lock(encounter_list_mutex);
+  lock_guard<mutex> guard(encounter_list_mutex);
 
   if (!val && encounter_list.size() > 0) {
     for (auto& kv : encounter_list) {
@@ -2577,19 +2577,22 @@ void Player::InCombat(bool val) {
 }
 
 void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked) {
-  encounter_list_mutex.lock();
+  lock_guard<mutex> guard(encounter_list_mutex);
+
   if (encounter_list.count(spawn_id) > 0) {
-    HostileEntity* entity = encounter_list.at(spawn_id);
-    entity->last_activity = last_activity;
-    entity->has_attacked = has_attacked;
+    HostileEntity* entity = encounter_list.at(spawn_id).get();
+
+    if (entity) {
+      entity->last_activity = last_activity;
+      entity->has_attacked = has_attacked;
+    }
   } else {
-    HostileEntity* entity = new HostileEntity;
+    auto entity = make_unique<HostileEntity>();
     entity->last_activity = last_activity;
     entity->has_attacked = has_attacked;
 
-    encounter_list.insert(pair<int32, HostileEntity*>(spawn_id, entity));
+    encounter_list.insert(make_pair(spawn_id, entity));
   }
-  encounter_list_mutex.unlock();
 
   if (has_attacked) {
     InCombat(true);
@@ -2597,12 +2600,11 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
 }
 
 void Player::RemoveFromEncounterList(int32 spawn_id) {
-  encounter_list_mutex.lock();
+  lock_guard<mutex> guard(encounter_list_mutex);
+
   if (encounter_list.count(spawn_id) > 0) {
-    free(encounter_list.at(spawn_id));
     encounter_list.erase(spawn_id);
   }
-  encounter_list_mutex.unlock();
 
   if (encounter_list.size() == 0) {
     InCombat(false);
@@ -2612,22 +2614,24 @@ void Player::RemoveFromEncounterList(int32 spawn_id) {
 }
 
 void Player::ClearEncounterList() {
-  lock_guard<mutex> lock(encounter_list_mutex);
+  lock_guard<mutex> guard(encounter_list_mutex);
   encounter_list.clear();
 }
 
 void Player::CheckEncounterList() {
   vector<int32> to_remove;
 
-  encounter_list_mutex.lock();
-  for (const auto& kv : encounter_list) {
-    Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
+  {
+    lock_guard<mutex> guard(encounter_list_mutex);
 
-    if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000))) {
-      to_remove.push_back(kv.first);
+    for (const auto& kv : encounter_list) {
+      Spawn* spawn = GetZone()->GetSpawnByID(kv.first);
+
+      if (!spawn || (spawn->IsPlayer() && Timer::GetCurrentTime2() >= (kv.second->last_activity + PVP_LOCK_DURATION * 1000))) {
+        to_remove.push_back(kv.first);
+      }
     }
   }
-  encounter_list_mutex.unlock();
 
   for (const auto& spawn : to_remove) {
     RemoveFromEncounterList(spawn);
