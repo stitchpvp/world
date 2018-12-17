@@ -2554,13 +2554,15 @@ PlayerSkillList* Player::GetSkills() {
 }
 
 void Player::InCombat(bool val) {
-  lock_guard<mutex> guard(encounter_list_mutex);
+  if (!val) {
+    lock_guard<mutex> guard(encounter_list_mutex);
 
-  if (!val && encounter_list.size() > 0) {
-    for (auto& kv : encounter_list) {
-      if (kv.second->has_attacked == true) {
-        val = true;
-        break;
+    if (!val && encounter_list.size() > 0) {
+      for (auto& kv : encounter_list) {
+        if (kv.second->has_attacked == true) {
+          val = true;
+          break;
+        }
       }
     }
   }
@@ -2577,21 +2579,23 @@ void Player::InCombat(bool val) {
 }
 
 void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked) {
-  lock_guard<mutex> guard(encounter_list_mutex);
+  {
+    lock_guard<mutex> guard(encounter_list_mutex);
 
-  if (encounter_list.count(spawn_id) > 0) {
-    HostileEntity* entity = encounter_list.at(spawn_id).get();
+    if (encounter_list.count(spawn_id) > 0) {
+      HostileEntity* entity = encounter_list.at(spawn_id).get();
 
-    if (entity) {
+      if (entity) {
+        entity->last_activity = last_activity;
+        entity->has_attacked = has_attacked;
+      }
+    } else {
+      auto entity = make_unique<HostileEntity>();
       entity->last_activity = last_activity;
       entity->has_attacked = has_attacked;
-    }
-  } else {
-    auto entity = make_unique<HostileEntity>();
-    entity->last_activity = last_activity;
-    entity->has_attacked = has_attacked;
 
-    encounter_list.insert(make_pair(spawn_id, move(entity)));
+      encounter_list.insert(make_pair(spawn_id, move(entity)));
+    }
   }
 
   if (has_attacked) {
@@ -2600,13 +2604,19 @@ void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_at
 }
 
 void Player::RemoveFromEncounterList(int32 spawn_id) {
-  lock_guard<mutex> guard(encounter_list_mutex);
+  int size = 0;
 
-  if (encounter_list.count(spawn_id) > 0) {
-    encounter_list.erase(spawn_id);
+  {
+    lock_guard<mutex> guard(encounter_list_mutex);
+
+    if (encounter_list.count(spawn_id) > 0) {
+      encounter_list.erase(spawn_id);
+    }
+
+    size = encounter_list.size();
   }
 
-  if (encounter_list.size() == 0) {
+  if (size == 0) {
     InCombat(false);
     SetRangeAttack(false);
     SetMeleeAttack(false);
