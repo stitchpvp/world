@@ -2580,6 +2580,10 @@ void Player::InCombat(bool val) {
 
 void Player::AddToEncounterList(int32 spawn_id, int32 last_activity, bool has_attacked) {
   {
+    if (spawn_id == this->spawn_id) {
+      return;
+    }
+
     lock_guard<mutex> guard(encounter_list_mutex);
 
     if (encounter_list.count(spawn_id) > 0) {
